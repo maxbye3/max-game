@@ -1,0 +1,1 @@
+Makes the protagonist move 60% faster for 10 seconds

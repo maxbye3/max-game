@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Max's Overworld</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <canvas id="game" width="480" height="480" aria-label="Overworld game map"></canvas>
+      <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
+        Inventory <span class="inventory-count">1</span>
+      </button>
+      <div id="powerup-status" class="powerup-status" hidden></div>
+      <section id="inventory-panel" class="inventory-panel" aria-label="Inventory" hidden>
+        <div class="inventory-header">
+          <h2>Inventory</h2>
+          <button id="inventory-close" class="inventory-close" type="button" aria-label="Close inventory">×</button>
+        </div>
+        <button id="inventory-item" class="inventory-item" type="button" aria-expanded="false">
+          <img src="example_character/item.png" alt="Suspiciously powerful sandwich" />
+          <span>
+            <strong>Power Sandwich</strong>
+            <small id="item-status">Ready to use</small>
+          </span>
+          <span id="ready-badge" class="ready-badge">Ready</span>
+        </button>
+        <div class="recharge-track" aria-hidden="true"><span id="recharge-fill"></span></div>
+        <div id="item-actions" class="item-actions" hidden>
+          <p>Makes the protagonist move 60% faster for 10 seconds.</p>
+          <button id="use-item" type="button">Use item</button>
+        </div>
+        <p id="inventory-message" class="inventory-message" aria-live="polite"></p>
+      </section>
+      <div class="controls">
+        <div class="dpad" aria-label="Movement controls">
+          <button class="dpad-button diagonal up-left" data-directions="ArrowUp ArrowLeft" aria-label="Move up and left">◤</button>
+          <button class="dpad-button up" data-directions="ArrowUp" aria-label="Move up">△</button>
+          <button class="dpad-button diagonal up-right" data-directions="ArrowUp ArrowRight" aria-label="Move up and right">◥</button>
+          <button class="dpad-button left" data-directions="ArrowLeft" aria-label="Move left">◁</button>
+          <span class="dpad-center" aria-hidden="true"></span>
+          <button class="dpad-button right" data-directions="ArrowRight" aria-label="Move right">▷</button>
+          <button class="dpad-button diagonal down-left" data-directions="ArrowDown ArrowLeft" aria-label="Move down and left">◣</button>
+          <button class="dpad-button down" data-directions="ArrowDown" aria-label="Move down">▽</button>
+          <button class="dpad-button diagonal down-right" data-directions="ArrowDown ArrowRight" aria-label="Move down and right">◢</button>
+        </div>
+        <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
+      </div>
+    </main>
+    <script src="collision-shapes.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
