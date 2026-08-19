@@ -18,9 +18,9 @@
           <h2>Inventory</h2>
           <button id="inventory-close" class="inventory-close" type="button" aria-label="Close inventory">×</button>
         </div>
-        <button id="inventory-item" class="inventory-item" type="button" aria-expanded="false">
+        <button id="inventory-item" class="inventory-item" type="button" aria-expanded="false" aria-controls="item-actions">
           <img src="example_character/item.png" alt="Suspiciously powerful sandwich" />
-          <span>
+          <span class="item-text">
             <strong>Power Sandwich</strong>
             <small id="item-status">Ready to use</small>
           </span>
@@ -31,22 +31,23 @@
           <p>Makes the protagonist move 60% faster for 10 seconds.</p>
           <button id="use-item" type="button">Use item</button>
         </div>
-        <p id="inventory-message" class="inventory-message" aria-live="polite"></p>
+        <p id="inventory-message" class="inventory-message"></p>
       </section>
       <div class="controls">
-        <div class="dpad" aria-label="Movement controls">
-          <button class="dpad-button diagonal up-left" data-directions="ArrowUp ArrowLeft" aria-label="Move up and left">◤</button>
-          <button class="dpad-button up" data-directions="ArrowUp" aria-label="Move up">△</button>
-          <button class="dpad-button diagonal up-right" data-directions="ArrowUp ArrowRight" aria-label="Move up and right">◥</button>
-          <button class="dpad-button left" data-directions="ArrowLeft" aria-label="Move left">◁</button>
+        <div class="dpad" role="group" aria-label="Movement controls">
+          <button class="dpad-button up-left" data-directions="up left" aria-label="Move up and left">◸</button>
+          <button class="dpad-button" data-directions="up" aria-label="Move up">△</button>
+          <button class="dpad-button up-right" data-directions="up right" aria-label="Move up and right">◹</button>
+          <button class="dpad-button" data-directions="left" aria-label="Move left">◁</button>
           <span class="dpad-center" aria-hidden="true"></span>
-          <button class="dpad-button right" data-directions="ArrowRight" aria-label="Move right">▷</button>
-          <button class="dpad-button diagonal down-left" data-directions="ArrowDown ArrowLeft" aria-label="Move down and left">◣</button>
-          <button class="dpad-button down" data-directions="ArrowDown" aria-label="Move down">▽</button>
-          <button class="dpad-button diagonal down-right" data-directions="ArrowDown ArrowRight" aria-label="Move down and right">◢</button>
+          <button class="dpad-button" data-directions="right" aria-label="Move right">▷</button>
+          <button class="dpad-button down-left" data-directions="down left" aria-label="Move down and left">◺</button>
+          <button class="dpad-button" data-directions="down" aria-label="Move down">▽</button>
+          <button class="dpad-button down-right" data-directions="down right" aria-label="Move down and right">◿</button>
         </div>
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
+      <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
     <script src="collision-shapes.js"></script>
     <script src="game.js"></script>
