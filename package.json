@@ -1,0 +1,14 @@
+{
+  "name": "max-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Max's Overworld - a browser overworld game",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
