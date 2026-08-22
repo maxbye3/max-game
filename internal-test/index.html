@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Diary & Laboratory</title>
+    <link rel="stylesheet" href="../style.css" />
+    <style>
+      .interior-exit {
+        position: absolute;
+        z-index: 8;
+        top: 24px;
+        left: 24px;
+        padding: 10px 12px;
+        border: 1px solid rgb(255 255 255 / 35%);
+        border-radius: 10px;
+        color: var(--text);
+        background: rgb(var(--panel-rgb) / 88%);
+        font: 10px/1.4 var(--font-pixel);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="game-shell">
+      <canvas id="game" width="480" height="480" aria-label="Diary and Laboratory interior"></canvas>
+      <a class="interior-exit" href="/">Exit</a>
+      <div class="controls">
+        <div class="dpad" role="group" aria-label="Movement controls">
+          <button class="dpad-button up-left" data-directions="up left" aria-label="Move up and left">◸</button>
+          <button class="dpad-button" data-directions="up" aria-label="Move up">△</button>
+          <button class="dpad-button up-right" data-directions="up right" aria-label="Move up and right">◹</button>
+          <button class="dpad-button" data-directions="left" aria-label="Move left">◁</button>
+          <span class="dpad-center" aria-hidden="true"></span>
+          <button class="dpad-button" data-directions="right" aria-label="Move right">▷</button>
+          <button class="dpad-button down-left" data-directions="down left" aria-label="Move down and left">◺</button>
+          <button class="dpad-button" data-directions="down" aria-label="Move down">▽</button>
+          <button class="dpad-button down-right" data-directions="down right" aria-label="Move down and right">◿</button>
+        </div>
+        <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
+      </div>
+    </main>
+    <script src="../dist/internal-bundle.js"></script>
+  </body>
+</html>

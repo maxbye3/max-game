@@ -13,6 +13,13 @@
         Inventory <span class="inventory-count">1</span>
       </button>
       <div id="powerup-status" class="powerup-status" hidden></div>
+      <section id="sign-dialogue" class="sign-dialogue" aria-live="polite" hidden>
+        <div class="sign-dialogue-heading">
+          <span class="sign-dialogue-icon" aria-hidden="true">!</span>
+          <h2 id="sign-dialogue-title">Sign</h2>
+        </div>
+        <p id="sign-dialogue-text"></p>
+      </section>
       <section id="inventory-panel" class="inventory-panel" aria-label="Inventory" hidden>
         <div class="inventory-header">
           <h2>Inventory</h2>
@@ -49,6 +56,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script type="module" src="dist/main.js"></script>
+    <script src="dist/main-bundle.js"></script>
   </body>
 </html>

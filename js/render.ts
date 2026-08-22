@@ -1,8 +1,10 @@
 import { images } from './assets.js';
-import { COLLISION_SHAPES } from './collision-shapes.js';
+import { COLLISION_SHAPES } from './collision-data.js';
 import {
   ARTIST_STUDIO_X,
   ARTIST_STUDIO_Y,
+  BILLBOARD_X,
+  BILLBOARD_Y,
   BOOKSHOP_HEIGHT,
   BOOKSHOP_WIDTH,
   BOOKSHOP_X,
@@ -40,6 +42,8 @@ import {
   ZEN_GARDEN_Y,
 } from './config.js';
 import { canvas, context } from './dom.js';
+import { getOpenDoorways } from './doors.js';
+import { getHolePlayerTransform } from './hole.js';
 import { directionRows, player } from './player.js';
 
 function drawCollisionShapes(cameraX: number, cameraY: number): void {
@@ -58,6 +62,20 @@ function drawCollisionShapes(cameraX: number, cameraY: number): void {
 
 function drawTori(cameraX: number, cameraY: number): void {
   context.drawImage(images.tori, TORI_X - cameraX, TORI_Y - cameraY, TORI_SIZE, TORI_SIZE);
+}
+
+function drawOpenDoorways(cameraX: number, cameraY: number): void {
+  for (const doorway of getOpenDoorways()) {
+    const width = Math.max(8, Math.min(14, Math.round(doorway.width * 0.48)));
+    const height = Math.max(10, Math.min(18, Math.round(doorway.height * 0.62)));
+    const x = Math.round(doorway.x + doorway.width / 2 - width / 2 - cameraX);
+    const y = Math.round(doorway.y + doorway.height - height - cameraY);
+
+    context.fillStyle = '#101816';
+    context.fillRect(x, y, width, height);
+    context.fillStyle = '#263329';
+    context.fillRect(x + 2, y + 2, Math.max(1, width - 4), Math.max(1, height - 2));
+  }
 }
 
 function logPlayerPosition(): void {
@@ -90,6 +108,7 @@ export function draw(time: number): void {
     canvas.width,
     canvas.height,
   );
+  context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
 
   // Canvas layers use draw order instead of CSS z-index. Drawing buildings
   // after the map keeps them above the houses baked into the overworld image.
@@ -125,22 +144,47 @@ export function draw(time: number): void {
   if (!toriCoversPlayer) drawTori(cameraX, cameraY);
 
   if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
+  drawOpenDoorways(cameraX, cameraY);
 
   const sourceX = player.frame * FRAME_WIDTH;
   const sourceY = directionRows[player.direction] * FRAME_HEIGHT;
   const width = FRAME_WIDTH * SCALE;
   const height = FRAME_HEIGHT * SCALE;
-  context.drawImage(
-    images.spriteSheet,
-    sourceX,
-    sourceY,
-    FRAME_WIDTH,
-    FRAME_HEIGHT,
-    Math.round(player.x - cameraX - width / 2),
-    Math.round(player.y - cameraY - height),
-    width,
-    height,
-  );
+  const holeTransform = getHolePlayerTransform();
+  if (holeTransform) {
+    context.save();
+    context.globalAlpha = holeTransform.opacity;
+    context.translate(
+      Math.round(player.x - cameraX),
+      Math.round(player.y - cameraY - height / 2 + holeTransform.offsetY),
+    );
+    context.rotate(holeTransform.rotation);
+    context.scale(holeTransform.scale, holeTransform.scale);
+    context.drawImage(
+      images.spriteSheet,
+      sourceX,
+      sourceY,
+      FRAME_WIDTH,
+      FRAME_HEIGHT,
+      -width / 2,
+      -height / 2,
+      width,
+      height,
+    );
+    context.restore();
+  } else {
+    context.drawImage(
+      images.spriteSheet,
+      sourceX,
+      sourceY,
+      FRAME_WIDTH,
+      FRAME_HEIGHT,
+      Math.round(player.x - cameraX - width / 2),
+      Math.round(player.y - cameraY - height),
+      width,
+      height,
+    );
+  }
   if (toriCoversPlayer) drawTori(cameraX, cameraY);
 }
 

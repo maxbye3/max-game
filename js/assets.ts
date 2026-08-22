@@ -1,5 +1,6 @@
 const IMAGE_SOURCES = {
-  map: 'img/external/overworld.png',
+  map: 'img/external/overworld.png?v=no-bushes-no-pink-trees',
+  billboard: 'img/external/buildings/billboard.png',
   cinema: 'img/external/buildings/cinema.png',
   musicShop: 'img/external/buildings/music-shop.png',
   gym: 'img/external/buildings/gym.png',

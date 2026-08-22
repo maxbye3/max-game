@@ -225,6 +225,51 @@ canvas {
   font-family: var(--font-display);
 }
 
+.sign-dialogue {
+  position: absolute;
+  z-index: 6;
+  top: 24px;
+  left: 50%;
+  width: min(390px, calc(100% - 48px));
+  padding: 12px 15px 15px;
+  translate: -50% 0;
+  border: 2px solid #f5fff6;
+  color: #f5fff6;
+  background: rgb(3 10 6 / 96%);
+  box-shadow: 5px 5px 0 rgb(0 0 0 / 55%);
+  pointer-events: none;
+}
+
+.sign-dialogue-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+.sign-dialogue-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border: 2px solid #17120b;
+  color: #17120b;
+  background: #c39a61;
+  font: 14px/1 var(--font-pixel);
+}
+
+.sign-dialogue h2 {
+  margin: 0;
+  font: 10px/1.5 var(--font-pixel);
+}
+
+.sign-dialogue p {
+  margin: 0;
+  font: 9px/1.8 var(--font-pixel);
+  white-space: pre-line;
+}
+
 .controls {
   position: absolute;
   left: 24px;
@@ -306,6 +351,7 @@ kbd {
   .keyboard-hint { display: none; }
   .inventory-toggle { top: 12px; right: 12px; }
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }
+  .sign-dialogue { top: 12px; width: calc(100% - 24px); }
 }
 
 .visually-hidden {

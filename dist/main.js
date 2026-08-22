@@ -1,16 +1,22 @@
 import { loadAssets } from './assets.js';
-import { COLLISION_SHAPES } from './collision-shapes.js';
+import { COLLISION_SHAPES } from './collision-data.js';
 import { canvas } from './dom.js';
+import { updateDoors } from './doors.js';
 import { setupInput } from './input.js';
 import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
-import { updatePlayer } from './player.js';
+import { updateHole } from './hole.js';
+import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
+import { updateSigns } from './signs.js';
 let previousTime = 0;
 function gameLoop(time) {
     const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
     previousTime = time;
     updatePowerups(time);
     updatePlayer(deltaTime, getSpeedMultiplier());
+    updateHole(deltaTime, player);
+    updateSigns(player.x, player.y);
+    updateDoors(player.x, player.y);
     draw(time);
     requestAnimationFrame(gameLoop);
 }

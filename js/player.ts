@@ -7,7 +7,9 @@ import {
   WORLD_WIDTH,
 } from './config.js';
 import { playerCollidesAt } from './collision.js';
+import { isHoleAnimationActive } from './hole.js';
 import { isHeld } from './input.js';
+import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
 
 const clampX = (x: number) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
@@ -39,14 +41,20 @@ function movePlayerWithCollisions(movementX: number, movementY: number): void {
 
   for (let step = 0; step < steps; step += 1) {
     const nextX = clampX(player.x + stepX);
-    if (!playerCollidesAt(nextX, player.y)) player.x = nextX;
+    if (!bumpSignAt(nextX, player.y) && !playerCollidesAt(nextX, player.y)) player.x = nextX;
 
     const nextY = clampY(player.y + stepY);
-    if (!playerCollidesAt(player.x, nextY)) player.y = nextY;
+    if (!bumpSignAt(player.x, nextY) && !playerCollidesAt(player.x, nextY)) player.y = nextY;
   }
 }
 
 export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
+  if (isHoleAnimationActive()) {
+    player.animationTime = 0;
+    player.frame = 0;
+    return;
+  }
+
   let dx = 0;
   let dy = 0;
   if (isHeld('left')) dx -= 1;

@@ -4,11 +4,14 @@
   "private": true,
   "description": "Max's Overworld - a browser overworld game",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
+    "build": "tsc && npm run bundle",
+    "bundle": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife",
+    "watch": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
+    "watch:bundle": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "typescript": "^5.9.2"
   }
 }
