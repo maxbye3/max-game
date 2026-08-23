@@ -24,14 +24,14 @@ function requireCanvasContext(target: HTMLCanvasElement): CanvasRenderingContext
 
 const context = requireCanvasContext(canvas);
 
-const WORLD_WIDTH = 1024;
-const WORLD_HEIGHT = 1536;
+const WORLD_WIDTH = 512;
+const WORLD_HEIGHT = 768;
 const FRAME_WIDTH = 23;
 const FRAME_HEIGHT = 36;
 const FRAME_COUNT = 9;
 const PLAYER_SCALE = 2;
-const VIEW_SCALE = 0.5;
-const SPEED = 235;
+const VIEW_SCALE = 1;
+const SPEED = 120;
 const SHOW_COLLISIONS = new URLSearchParams(window.location.search).has('collisions');
 
 const interior = new Image();
@@ -61,8 +61,8 @@ const directionRows: Record<Direction, number> = {
 
 const enteredDoor = new URLSearchParams(window.location.search).get('door');
 const player = {
-  x: enteredDoor === 'diary-lab-right' ? 718 : 306,
-  y: 1125,
+  x: enteredDoor === 'diary-lab-right' ? 359 : 153,
+  y: 563,
   direction: 'up' as Direction,
   frame: 0,
   animationTime: 0,
@@ -87,31 +87,31 @@ let openDoorIndex: number | null = null;
 
 const INTERIOR_DOORS = [
   {
-    triggerX: 306,
-    triggerY: 1190,
-    sourceX: 120,
-    sourceY: 30,
-    sourceWidth: 560,
-    sourceHeight: 650,
-    x: 160,
-    y: 1118,
-    width: 252,
-    height: 260,
+    triggerX: 153,
+    triggerY: 595,
+    sourceX: 60,
+    sourceY: 15,
+    sourceWidth: 280,
+    sourceHeight: 325,
+    x: 80,
+    y: 559,
+    width: 126,
+    height: 130,
   },
   {
-    triggerX: 718,
-    triggerY: 1190,
-    sourceX: 1290,
-    sourceY: 30,
-    sourceWidth: 560,
-    sourceHeight: 650,
-    x: 616,
-    y: 1118,
-    width: 252,
-    height: 260,
+    triggerX: 359,
+    triggerY: 595,
+    sourceX: 645,
+    sourceY: 15,
+    sourceWidth: 280,
+    sourceHeight: 325,
+    x: 308,
+    y: 559,
+    width: 126,
+    height: 130,
   },
 ] as const;
-const DOOR_OPEN_DISTANCE = 105;
+const DOOR_OPEN_DISTANCE = 53;
 
 const isHeld = (direction: InputDirection) => heldDirections.has(direction);
 

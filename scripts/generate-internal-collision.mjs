@@ -1,26 +1,14 @@
-import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { readPng, rgbaAt } from './png.mjs';
 
-const width = 1024;
-const height = 1536;
-const cellSize = 4;
+const sourcePath = resolve('img/internal/diary-lab-collision.png');
+const image = readPng(readFileSync(sourcePath));
+const { width, height } = image;
+const cellSize = 2;
 const columns = Math.ceil(width / cellSize);
 const rows = Math.ceil(height / cellSize);
-const sourcePath = resolve('img/internal/diary-lab-collision.png');
 const outputPath = resolve('js/internal-collision-mask.ts');
-
-const result = spawnSync(
-  'magick',
-  [sourcePath, '-alpha', 'off', '-depth', '8', 'rgba:-'],
-  { encoding: null, maxBuffer: 16 * 1024 * 1024 },
-);
-
-if (result.status !== 0 || !result.stdout) {
-  throw new Error(result.stderr?.toString() || 'Could not read the interior collision image.');
-}
-
-const pixels = result.stdout;
 const bits = Buffer.alloc(Math.ceil(columns * rows / 8));
 
 for (let row = 0; row < rows; row += 1) {
@@ -31,10 +19,7 @@ for (let row = 0; row < rows; row += 1) {
 
     for (let y = firstY; y < Math.min(firstY + cellSize, height) && !blocked; y += 1) {
       for (let x = firstX; x < Math.min(firstX + cellSize, width); x += 1) {
-        const pixelIndex = (y * width + x) * 4;
-        const red = pixels[pixelIndex] ?? 0;
-        const green = pixels[pixelIndex + 1] ?? 0;
-        const blue = pixels[pixelIndex + 2] ?? 0;
+        const [red, green, blue] = rgbaAt(image, x, y);
         if (red < 80 && green > 150 && blue > 150) {
           blocked = true;
           break;

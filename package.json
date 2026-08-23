@@ -7,6 +7,7 @@
     "build": "tsc && npm run bundle",
     "bundle": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife",
     "generate:internal-collision": "node scripts/generate-internal-collision.mjs",
+    "optimize:internal-assets": "node scripts/optimize-internal-assets.mjs",
     "watch": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
     "watch:bundle": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
     "typecheck": "tsc --noEmit"
