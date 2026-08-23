@@ -1,3 +1,10 @@
+import {
+  INTERNAL_COLLISION_BITS,
+  INTERNAL_COLLISION_CELL_SIZE,
+  INTERNAL_COLLISION_COLUMNS,
+  INTERNAL_COLLISION_ROWS,
+} from './internal-collision-mask.js';
+
 const requireElement = <T extends Element>(selector: string): T => {
   const element = document.querySelector<T>(selector);
   if (!element) throw new Error(`Missing required element: ${selector}`);
@@ -23,6 +30,7 @@ const FRAME_WIDTH = 23;
 const FRAME_HEIGHT = 36;
 const FRAME_COUNT = 9;
 const PLAYER_SCALE = 2;
+const VIEW_SCALE = 0.5;
 const SPEED = 235;
 const SHOW_COLLISIONS = new URLSearchParams(window.location.search).has('collisions');
 
@@ -37,11 +45,8 @@ spriteSheet.src = '../example_character/SpriteSheet.png';
 const doorSound = new Audio('../audio/open-door.mp3');
 doorSound.preload = 'auto';
 
-const maskCanvas = document.createElement('canvas');
-maskCanvas.width = WORLD_WIDTH;
-maskCanvas.height = WORLD_HEIGHT;
-const maskContext = maskCanvas.getContext('2d', { willReadFrequently: true });
-if (!maskContext) throw new Error('Could not create the collision-mask context.');
+const collisionBinary = atob(INTERNAL_COLLISION_BITS);
+const collisionBits = Uint8Array.from(collisionBinary, (character) => character.charCodeAt(0));
 
 const directionRows: Record<Direction, number> = {
   down: 0,
@@ -77,7 +82,6 @@ const directionCodes: Record<string, InputDirection> = {
 const heldDirections = new Map<InputDirection, number>();
 const heldCodes = new Set<string>();
 const releaseHandlers: Array<() => void> = [];
-let maskPixels: Uint8ClampedArray | null = null;
 let previousTime = 0;
 let openDoorIndex: number | null = null;
 
@@ -186,13 +190,13 @@ function bindControls(): void {
 }
 
 function isCollisionPixel(x: number, y: number): boolean {
-  if (!maskPixels || x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) return true;
-  const index = (Math.floor(y) * WORLD_WIDTH + Math.floor(x)) * 4;
-  const red = maskPixels[index] ?? 0;
-  const green = maskPixels[index + 1] ?? 0;
-  const blue = maskPixels[index + 2] ?? 0;
-  const alpha = maskPixels[index + 3] ?? 0;
-  return alpha > 20 && red < 80 && green > 150 && blue > 150;
+  if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) return true;
+  const column = Math.floor(x / INTERNAL_COLLISION_CELL_SIZE);
+  const row = Math.floor(y / INTERNAL_COLLISION_CELL_SIZE);
+  if (column >= INTERNAL_COLLISION_COLUMNS || row >= INTERNAL_COLLISION_ROWS) return true;
+  const cellIndex = row * INTERNAL_COLLISION_COLUMNS + column;
+  const byte = collisionBits[Math.floor(cellIndex / 8)] ?? 0;
+  return (byte & (1 << (cellIndex % 8))) !== 0;
 }
 
 function playerCollidesAt(x: number, y: number): boolean {
@@ -267,10 +271,12 @@ function updateDoors(): void {
 }
 
 function draw(): void {
-  const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, player.x - canvas.width / 2)));
-  const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, player.y - canvas.height / 2)));
+  const viewportWidth = canvas.width / VIEW_SCALE;
+  const viewportHeight = canvas.height / VIEW_SCALE;
+  const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - viewportWidth, player.x - viewportWidth / 2)));
+  const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - viewportHeight, player.y - viewportHeight / 2)));
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(interior, cameraX, cameraY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+  context.drawImage(interior, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
   if (openDoorIndex !== null) {
     const door = INTERIOR_DOORS[openDoorIndex];
     if (door) {
@@ -280,17 +286,17 @@ function draw(): void {
         door.sourceY,
         door.sourceWidth,
         door.sourceHeight,
-        door.x - cameraX,
-        door.y - cameraY,
-        door.width,
-        door.height,
+        (door.x - cameraX) * VIEW_SCALE,
+        (door.y - cameraY) * VIEW_SCALE,
+        door.width * VIEW_SCALE,
+        door.height * VIEW_SCALE,
       );
     }
   }
   if (SHOW_COLLISIONS) {
     context.save();
     context.globalAlpha = 0.55;
-    context.drawImage(collisionMask, cameraX, cameraY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+    context.drawImage(collisionMask, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
     context.restore();
   }
 
@@ -302,10 +308,10 @@ function draw(): void {
     directionRows[player.direction] * FRAME_HEIGHT,
     FRAME_WIDTH,
     FRAME_HEIGHT,
-    Math.round(player.x - cameraX - width / 2),
-    Math.round(player.y - cameraY - height),
-    width,
-    height,
+    Math.round((player.x - cameraX - width / 2) * VIEW_SCALE),
+    Math.round((player.y - cameraY - height) * VIEW_SCALE),
+    width * VIEW_SCALE,
+    height * VIEW_SCALE,
   );
 }
 
@@ -321,8 +327,6 @@ function gameLoop(time: number): void {
 bindControls();
 Promise.all([interior.decode(), collisionMask.decode(), doorOverlay.decode(), spriteSheet.decode()])
   .then(() => {
-    maskContext.drawImage(collisionMask, 0, 0);
-    maskPixels = maskContext.getImageData(0, 0, WORLD_WIDTH, WORLD_HEIGHT).data;
     context.imageSmoothingEnabled = false;
     requestAnimationFrame(gameLoop);
   })

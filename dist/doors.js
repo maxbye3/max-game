@@ -49,7 +49,7 @@ export function updateDoors(playerX, playerY) {
     if (!enteredDoorway)
         return;
     navigationStarted = true;
-    window.location.assign(`/internal-test/?door=${encodeURIComponent(enteredDoorway.id)}`);
+    window.location.assign(`internal-test/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
 }
 export function getOpenDoorways() {
     return DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));
