@@ -20,7 +20,7 @@ const FRAME_HEIGHT = 36;
 const FRAME_COUNT = 9;
 const PLAYER_SCALE = 2;
 const VIEW_SCALE = 1;
-const SPEED = 120;
+const SPEED = 145;
 const SHOW_COLLISIONS = new URLSearchParams(window.location.search).has('collisions');
 const interior = new Image();
 const collisionMask = new Image();
@@ -67,6 +67,7 @@ const heldCodes = new Set();
 const releaseHandlers = [];
 let previousTime = 0;
 let openDoorIndex = null;
+let navigationStarted = false;
 const INTERIOR_DOORS = [
     {
         triggerX: 153,
@@ -94,6 +95,7 @@ const INTERIOR_DOORS = [
     },
 ];
 const DOOR_OPEN_DISTANCE = 53;
+const DOOR_EXIT_DISTANCE = 18;
 const isHeld = (direction) => heldDirections.has(direction);
 function holdDirection(direction) {
     heldDirections.set(direction, (heldDirections.get(direction) ?? 0) + 1);
@@ -251,6 +253,14 @@ function updateDoors() {
         });
     }
     openDoorIndex = nextOpenDoorIndex >= 0 ? nextOpenDoorIndex : null;
+    if (navigationStarted)
+        return;
+    const exitDoor = INTERIOR_DOORS.find((door) => Math.hypot(player.x - door.triggerX, player.y - door.triggerY) <= DOOR_EXIT_DISTANCE);
+    if (!exitDoor)
+        return;
+    navigationStarted = true;
+    const returnDoor = enteredDoor ? `?door=${encodeURIComponent(enteredDoor)}` : '';
+    window.location.assign(`../index.html${returnDoor}`);
 }
 function draw() {
     const viewportWidth = canvas.width / VIEW_SCALE;
@@ -259,12 +269,6 @@ function draw() {
     const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - viewportHeight, player.y - viewportHeight / 2)));
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(interior, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
-    if (openDoorIndex !== null) {
-        const door = INTERIOR_DOORS[openDoorIndex];
-        if (door) {
-            context.drawImage(doorOverlay, door.sourceX, door.sourceY, door.sourceWidth, door.sourceHeight, (door.x - cameraX) * VIEW_SCALE, (door.y - cameraY) * VIEW_SCALE, door.width * VIEW_SCALE, door.height * VIEW_SCALE);
-        }
-    }
     if (SHOW_COLLISIONS) {
         context.save();
         context.globalAlpha = 0.55;
@@ -274,6 +278,12 @@ function draw() {
     const width = FRAME_WIDTH * PLAYER_SCALE;
     const height = FRAME_HEIGHT * PLAYER_SCALE;
     context.drawImage(spriteSheet, player.frame * FRAME_WIDTH, directionRows[player.direction] * FRAME_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT, Math.round((player.x - cameraX - width / 2) * VIEW_SCALE), Math.round((player.y - cameraY - height) * VIEW_SCALE), width * VIEW_SCALE, height * VIEW_SCALE);
+    if (openDoorIndex !== null) {
+        const door = INTERIOR_DOORS[openDoorIndex];
+        if (door) {
+            context.drawImage(doorOverlay, door.sourceX, door.sourceY, door.sourceWidth, door.sourceHeight, (door.x - cameraX) * VIEW_SCALE, (door.y - cameraY) * VIEW_SCALE, door.width * VIEW_SCALE, door.height * VIEW_SCALE);
+        }
+    }
 }
 function gameLoop(time) {
     const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);

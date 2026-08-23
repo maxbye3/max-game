@@ -31,7 +31,7 @@ const FRAME_HEIGHT = 36;
 const FRAME_COUNT = 9;
 const PLAYER_SCALE = 2;
 const VIEW_SCALE = 1;
-const SPEED = 120;
+const SPEED = 145;
 const SHOW_COLLISIONS = new URLSearchParams(window.location.search).has('collisions');
 
 const interior = new Image();
@@ -84,6 +84,7 @@ const heldCodes = new Set<string>();
 const releaseHandlers: Array<() => void> = [];
 let previousTime = 0;
 let openDoorIndex: number | null = null;
+let navigationStarted = false;
 
 const INTERIOR_DOORS = [
   {
@@ -112,6 +113,7 @@ const INTERIOR_DOORS = [
   },
 ] as const;
 const DOOR_OPEN_DISTANCE = 53;
+const DOOR_EXIT_DISTANCE = 18;
 
 const isHeld = (direction: InputDirection) => heldDirections.has(direction);
 
@@ -268,6 +270,16 @@ function updateDoors(): void {
     });
   }
   openDoorIndex = nextOpenDoorIndex >= 0 ? nextOpenDoorIndex : null;
+
+  if (navigationStarted) return;
+  const exitDoor = INTERIOR_DOORS.find((door) =>
+    Math.hypot(player.x - door.triggerX, player.y - door.triggerY) <= DOOR_EXIT_DISTANCE,
+  );
+  if (!exitDoor) return;
+
+  navigationStarted = true;
+  const returnDoor = enteredDoor ? `?door=${encodeURIComponent(enteredDoor)}` : '';
+  window.location.assign(`../index.html${returnDoor}`);
 }
 
 function draw(): void {
@@ -277,22 +289,6 @@ function draw(): void {
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - viewportHeight, player.y - viewportHeight / 2)));
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.drawImage(interior, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
-  if (openDoorIndex !== null) {
-    const door = INTERIOR_DOORS[openDoorIndex];
-    if (door) {
-      context.drawImage(
-        doorOverlay,
-        door.sourceX,
-        door.sourceY,
-        door.sourceWidth,
-        door.sourceHeight,
-        (door.x - cameraX) * VIEW_SCALE,
-        (door.y - cameraY) * VIEW_SCALE,
-        door.width * VIEW_SCALE,
-        door.height * VIEW_SCALE,
-      );
-    }
-  }
   if (SHOW_COLLISIONS) {
     context.save();
     context.globalAlpha = 0.55;
@@ -313,6 +309,23 @@ function draw(): void {
     width * VIEW_SCALE,
     height * VIEW_SCALE,
   );
+
+  if (openDoorIndex !== null) {
+    const door = INTERIOR_DOORS[openDoorIndex];
+    if (door) {
+      context.drawImage(
+        doorOverlay,
+        door.sourceX,
+        door.sourceY,
+        door.sourceWidth,
+        door.sourceHeight,
+        (door.x - cameraX) * VIEW_SCALE,
+        (door.y - cameraY) * VIEW_SCALE,
+        door.width * VIEW_SCALE,
+        door.height * VIEW_SCALE,
+      );
+    }
+  }
 }
 
 function gameLoop(time: number): void {

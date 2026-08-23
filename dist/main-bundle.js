@@ -672,9 +672,14 @@
   // js/player.ts
   var clampX = (x) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
   var clampY = (y) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
+  var returnDoorId = new URLSearchParams(window.location.search).get("door");
+  var returnDoor = DOORWAYS.find((doorway) => doorway.id === returnDoorId);
+  var DEFAULT_START_X = WORLD_WIDTH / 1.5;
+  var DEFAULT_START_Y = WORLD_HEIGHT / 2;
+  var DOOR_RETURN_OFFSET = 12;
   var player = {
-    x: WORLD_WIDTH / 1.5,
-    y: WORLD_HEIGHT / 2,
+    x: returnDoor ? returnDoor.x + returnDoor.width / 2 : DEFAULT_START_X,
+    y: returnDoor ? returnDoor.y + returnDoor.height + DOOR_RETURN_OFFSET : DEFAULT_START_Y,
     direction: "down",
     frame: 0,
     animationTime: 0
