@@ -1,3 +1,5 @@
+import { markInternalTestVisited } from './world-state.js';
+
 export interface Doorway {
   readonly id: string;
   readonly x: number;
@@ -65,6 +67,7 @@ export function updateDoors(playerX: number, playerY: number): void {
   if (!enteredDoorway) return;
 
   navigationStarted = true;
+  markInternalTestVisited();
   window.location.assign(`internal-test/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
 }
 

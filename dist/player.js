@@ -3,13 +3,14 @@ import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
 import { isHoleAnimationActive } from './hole.js';
 import { isHeld } from './input.js';
+import { isMikeDialogueOpen, MIKE } from './mike.js';
 import { bumpSignAt } from './signs.js';
 const clampX = (x) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
 const clampY = (y) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
 const returnDoorId = new URLSearchParams(window.location.search).get('door');
 const returnDoor = DOORWAYS.find((doorway) => doorway.id === returnDoorId);
-const DEFAULT_START_X = WORLD_WIDTH / 1.5;
-const DEFAULT_START_Y = WORLD_HEIGHT / 2;
+const DEFAULT_START_X = MIKE.x - 42;
+const DEFAULT_START_Y = MIKE.y + 8;
 const DOOR_RETURN_OFFSET = 12;
 export const player = {
     x: returnDoor ? returnDoor.x + returnDoor.width / 2 : DEFAULT_START_X,
@@ -42,7 +43,7 @@ function movePlayerWithCollisions(movementX, movementY) {
     }
 }
 export function updatePlayer(deltaTime, speedMultiplier) {
-    if (isHoleAnimationActive()) {
+    if (isHoleAnimationActive() || isMikeDialogueOpen()) {
         player.animationTime = 0;
         player.frame = 0;
         return;

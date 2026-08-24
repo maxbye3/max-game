@@ -1,4 +1,6 @@
 import { INTERNAL_COLLISION_BITS, INTERNAL_COLLISION_CELL_SIZE, INTERNAL_COLLISION_COLUMNS, INTERNAL_COLLISION_ROWS, } from './internal-collision-mask.js';
+import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
+import { markInternalTestVisited } from './world-state.js';
 const requireElement = (selector) => {
     const element = document.querySelector(selector);
     if (!element)
@@ -6,6 +8,26 @@ const requireElement = (selector) => {
     return element;
 };
 const canvas = requireElement('#game');
+markInternalTestVisited();
+const interactionPrompt = requireElement('#interaction-prompt');
+const noelDialogue = requireElement('#noel-dialogue');
+const noelSpeaker = requireElement('#noel-speaker');
+const noelDialogueLine = requireElement('#noel-dialogue-line');
+const noelDialogueQuestion = requireElement('#noel-dialogue-question');
+const noelDialogueOptions = requireElement('#noel-dialogue-options');
+const noelDialogueClose = requireElement('#noel-dialogue-close');
+const noelDeclineButton = requireElement('#noel-decline');
+const noelReadDiaryButton = requireElement('#noel-read-diary');
+const noelViewExperimentsButton = requireElement('#noel-view-experiments');
+const diaryPanel = requireElement('#diary-panel');
+const diaryUnlockForm = requireElement('#diary-unlock-form');
+const diaryPassword = requireElement('#diary-password');
+const diaryUnlockMessage = requireElement('#diary-unlock-message');
+const diaryLink = requireElement('#diary-link');
+const experimentsPanel = requireElement('#experiments-panel');
+const experimentLightbox = requireElement('#experiment-lightbox');
+const experimentLightboxImage = requireElement('#experiment-lightbox-image');
+const experimentLightboxClose = requireElement('#experiment-lightbox-close');
 function requireCanvasContext(target) {
     const value = target.getContext('2d');
     if (!value)
@@ -21,17 +43,38 @@ const FRAME_COUNT = 9;
 const PLAYER_SCALE = 2;
 const VIEW_SCALE = 1;
 const SPEED = 145;
+const NOEL_FOLDER = 'chat/noel';
+const NOEL_NAME = NOEL_FOLDER.slice(NOEL_FOLDER.lastIndexOf('/') + 1);
+const NOEL_QUESTION = 'would you like to checkout some experiments Max is working on or his journal (this will require you to know his phone number)';
+const DIARY_PHONE_NUMBERS = new Set(['2026527772', '07815437754']);
+const NOEL = {
+    x: WORLD_WIDTH / 2,
+    y: WORLD_HEIGHT / 2 + 36,
+    width: 52,
+    height: 72,
+};
+const NOEL_COLLISION_DISTANCE = 31;
+const NOEL_INTERACTION_DISTANCE = 62;
+const INTERACTION_TARGETS = [
+    { kind: 'noel', label: 'Talk to noel', x: NOEL.x, y: NOEL.y, distance: NOEL_INTERACTION_DISTANCE },
+    { kind: 'diary', label: 'See journal', x: 170, y: 466, distance: 54 },
+    { kind: 'experiments', label: 'See experiments', x: 350, y: 285, distance: 54 },
+];
 const SHOW_COLLISIONS = new URLSearchParams(window.location.search).has('collisions');
 const interior = new Image();
 const collisionMask = new Image();
 const doorOverlay = new Image();
 const spriteSheet = new Image();
+const noelSprite = new Image();
 interior.src = '../img/internal/diary-lab.png';
 collisionMask.src = '../img/internal/diary-lab-collision.png';
 doorOverlay.src = '../img/internal/diary-lab-doors-out.png';
 spriteSheet.src = '../example_character/SpriteSheet.png';
+noelSprite.src = '../chat/noel/interior-avatar.png';
 const doorSound = new Audio('../audio/open-door.mp3');
 doorSound.preload = 'auto';
+const noelTheme = new Audio('../chat/noel/example_character/theme.mp3');
+noelTheme.preload = 'auto';
 const collisionBinary = atob(INTERNAL_COLLISION_BITS);
 const collisionBits = Uint8Array.from(collisionBinary, (character) => character.charCodeAt(0));
 const directionRows = {
@@ -68,6 +111,9 @@ const releaseHandlers = [];
 let previousTime = 0;
 let openDoorIndex = null;
 let navigationStarted = false;
+let nearbyInteraction = null;
+let noelDialogueOpen = false;
+let noelConversationIndex = 0;
 const INTERIOR_DOORS = [
     {
         triggerX: 153,
@@ -98,6 +144,8 @@ const DOOR_OPEN_DISTANCE = 53;
 const DOOR_EXIT_DISTANCE = 18;
 const isHeld = (direction) => heldDirections.has(direction);
 function holdDirection(direction) {
+    if (noelDialogueOpen)
+        return;
     heldDirections.set(direction, (heldDirections.get(direction) ?? 0) + 1);
 }
 function releaseDirection(direction) {
@@ -125,10 +173,125 @@ function releaseAllInput() {
     heldDirections.clear();
     releaseHandlers.forEach((release) => release());
 }
+function finishNoelIntroduction() {
+    noelDialogueQuestion.textContent = NOEL_QUESTION;
+    noelDialogueQuestion.hidden = false;
+    noelDialogueOptions.hidden = false;
+}
+function resetDiaryPanel() {
+    diaryUnlockForm.reset();
+    diaryUnlockMessage.textContent = '';
+    diaryUnlockMessage.classList.remove('success');
+    diaryLink.hidden = true;
+}
+function hideNoelFeaturePanels() {
+    diaryPanel.hidden = true;
+    experimentsPanel.hidden = true;
+    if (experimentLightbox.open)
+        experimentLightbox.close();
+    experimentLightboxImage.removeAttribute('src');
+    experimentLightboxImage.alt = '';
+    resetDiaryPanel();
+}
+function openDiaryPanel() {
+    noelDialogue.hidden = true;
+    experimentsPanel.hidden = true;
+    resetDiaryPanel();
+    diaryPanel.hidden = false;
+    diaryPassword.focus();
+}
+function openExperimentsPanel() {
+    noelDialogue.hidden = true;
+    diaryPanel.hidden = true;
+    experimentsPanel.hidden = false;
+}
+function unlockDiary(event) {
+    event.preventDefault();
+    const phoneNumber = diaryPassword.value.replace(/\D/g, '');
+    if (!DIARY_PHONE_NUMBERS.has(phoneNumber)) {
+        diaryUnlockMessage.textContent = "That isn't Max's phone number.";
+        diaryUnlockMessage.classList.remove('success');
+        diaryLink.hidden = true;
+        diaryPassword.select();
+        return;
+    }
+    diaryUnlockMessage.textContent = 'Diary unlocked.';
+    diaryUnlockMessage.classList.add('success');
+    diaryLink.hidden = false;
+    diaryLink.focus();
+}
+function openExperimentImage(button) {
+    const source = button.dataset.experimentSrc;
+    const thumbnail = button.querySelector('img');
+    if (!source || !thumbnail)
+        return;
+    experimentLightboxImage.src = source;
+    experimentLightboxImage.alt = thumbnail.alt;
+    experimentLightbox.showModal();
+}
+function closeNoelDialogue() {
+    noelDialogueOpen = false;
+    noelDialogue.hidden = true;
+    noelDialogueOptions.hidden = true;
+    hideNoelFeaturePanels();
+    noelTheme.pause();
+    noelTheme.currentTime = 0;
+    noelTheme.onended = null;
+    interactionPrompt.hidden = nearbyInteraction === null;
+}
+function startNoelDialogue() {
+    if (nearbyInteraction !== 'noel' || noelDialogueOpen)
+        return;
+    releaseAllInput();
+    noelDialogueOpen = true;
+    noelSpeaker.textContent = NOEL_NAME;
+    noelDialogueLine.textContent = NOEL_DIALOGUE_LINES[noelConversationIndex % NOEL_DIALOGUE_LINES.length] ?? '';
+    noelConversationIndex += 1;
+    noelDialogueQuestion.hidden = true;
+    noelDialogueOptions.hidden = true;
+    noelDialogue.hidden = false;
+    interactionPrompt.hidden = true;
+    noelTheme.pause();
+    noelTheme.currentTime = 0;
+    noelTheme.onended = finishNoelIntroduction;
+    void noelTheme.play().catch(finishNoelIntroduction);
+}
+function startFeatureInteraction(kind) {
+    if (noelDialogueOpen)
+        return;
+    releaseAllInput();
+    noelDialogueOpen = true;
+    interactionPrompt.hidden = true;
+    if (kind === 'diary')
+        openDiaryPanel();
+    else
+        openExperimentsPanel();
+}
+function activateNearbyInteraction() {
+    if (nearbyInteraction === 'noel')
+        startNoelDialogue();
+    else if (nearbyInteraction === 'diary' || nearbyInteraction === 'experiments') {
+        startFeatureInteraction(nearbyInteraction);
+    }
+}
 function bindControls() {
     window.addEventListener('keydown', (event) => {
         if (event.ctrlKey || event.metaKey || event.altKey) {
             releaseAllInput();
+            return;
+        }
+        if (event.code === 'Escape' && noelDialogueOpen) {
+            event.preventDefault();
+            if (experimentLightbox.open) {
+                experimentLightbox.close();
+                return;
+            }
+            closeNoelDialogue();
+            return;
+        }
+        if ((event.code === 'KeyE' || event.code === 'Enter' || event.code === 'Space') && nearbyInteraction) {
+            event.preventDefault();
+            activateNearbyInteraction();
             return;
         }
         if (directionCodes[event.code]) {
@@ -138,6 +301,23 @@ function bindControls() {
     });
     window.addEventListener('keyup', (event) => releaseCode(event.code));
     window.addEventListener('blur', releaseAllInput);
+    interactionPrompt.addEventListener('click', activateNearbyInteraction);
+    noelDialogueClose.addEventListener('click', closeNoelDialogue);
+    noelDeclineButton.addEventListener('click', closeNoelDialogue);
+    noelReadDiaryButton.addEventListener('click', openDiaryPanel);
+    noelViewExperimentsButton.addEventListener('click', openExperimentsPanel);
+    diaryUnlockForm.addEventListener('submit', unlockDiary);
+    document.querySelectorAll('.internal-feature-close').forEach((button) => {
+        button.addEventListener('click', closeNoelDialogue);
+    });
+    document.querySelectorAll('[data-experiment-src]').forEach((button) => {
+        button.addEventListener('click', () => openExperimentImage(button));
+    });
+    experimentLightboxClose.addEventListener('click', () => experimentLightbox.close());
+    experimentLightbox.addEventListener('click', (event) => {
+        if (event.target === experimentLightbox)
+            experimentLightbox.close();
+    });
     document.querySelectorAll('.dpad-button').forEach((button) => {
         const directions = (button.dataset.directions ?? '').split(' ').filter((value) => value === 'up' || value === 'down' || value === 'left' || value === 'right');
         let pressed = false;
@@ -181,6 +361,8 @@ function isCollisionPixel(x, y) {
     return (byte & (1 << (cellIndex % 8))) !== 0;
 }
 function playerCollidesAt(x, y) {
+    if (Math.hypot(x - NOEL.x, y - NOEL.y) < NOEL_COLLISION_DISTANCE)
+        return true;
     const halfWidth = FRAME_WIDTH * PLAYER_SCALE * 0.29;
     const footHeight = FRAME_HEIGHT * PLAYER_SCALE * 0.17;
     const left = x - halfWidth;
@@ -208,6 +390,8 @@ function movePlayer(movementX, movementY) {
     }
 }
 function updatePlayer(deltaTime) {
+    if (noelDialogueOpen)
+        return;
     let dx = 0;
     let dy = 0;
     if (isHeld('left'))
@@ -244,6 +428,22 @@ function updatePlayer(deltaTime) {
     player.animationTime += deltaTime;
     player.frame = Math.floor(player.animationTime * 11) % FRAME_COUNT;
 }
+function updateNearbyInteraction() {
+    const target = INTERACTION_TARGETS
+        .map((interaction) => ({
+        ...interaction,
+        playerDistance: Math.hypot(player.x - interaction.x, player.y - interaction.y),
+    }))
+        .filter((interaction) => interaction.playerDistance <= interaction.distance)
+        .sort((first, second) => first.playerDistance - second.playerDistance)[0];
+    const nextInteraction = target?.kind ?? null;
+    if (nextInteraction === nearbyInteraction)
+        return;
+    nearbyInteraction = nextInteraction;
+    if (target)
+        interactionPrompt.textContent = target.label;
+    interactionPrompt.hidden = !target || noelDialogueOpen;
+}
 function updateDoors() {
     const nextOpenDoorIndex = INTERIOR_DOORS.findIndex((door) => Math.hypot(player.x - door.triggerX, player.y - door.triggerY) <= DOOR_OPEN_DISTANCE);
     if (nextOpenDoorIndex >= 0 && nextOpenDoorIndex !== openDoorIndex) {
@@ -269,6 +469,7 @@ function draw() {
     const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - viewportHeight, player.y - viewportHeight / 2)));
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(interior, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
+    context.drawImage(noelSprite, Math.round((NOEL.x - cameraX - NOEL.width / 2) * VIEW_SCALE), Math.round((NOEL.y - cameraY - NOEL.height) * VIEW_SCALE), NOEL.width * VIEW_SCALE, NOEL.height * VIEW_SCALE);
     if (SHOW_COLLISIONS) {
         context.save();
         context.globalAlpha = 0.55;
@@ -289,12 +490,13 @@ function gameLoop(time) {
     const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
     previousTime = time;
     updatePlayer(deltaTime);
+    updateNearbyInteraction();
     updateDoors();
     draw();
     requestAnimationFrame(gameLoop);
 }
 bindControls();
-Promise.all([interior.decode(), collisionMask.decode(), doorOverlay.decode(), spriteSheet.decode()])
+Promise.all([interior.decode(), collisionMask.decode(), doorOverlay.decode(), spriteSheet.decode(), noelSprite.decode()])
     .then(() => {
     context.imageSmoothingEnabled = false;
     requestAnimationFrame(gameLoop);

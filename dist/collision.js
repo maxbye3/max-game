@@ -1,6 +1,7 @@
 import { COLLISION_BUCKET_SIZE, FRAME_HEIGHT, FRAME_WIDTH, SCALE } from './config.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import { isDoorPassagePoint } from './doors.js';
+import { playerCollidesWithMike } from './mike.js';
 const bucketKey = (column, row) => `${column},${row}`;
 /**
  * The bucket range and the key format must stay identical between the index
@@ -35,6 +36,8 @@ COLLISION_SHAPES.forEach((shape) => {
 export function playerCollidesAt(x, y) {
     if (isDoorPassagePoint(x, y))
         return false;
+    if (playerCollidesWithMike(x, y))
+        return true;
     const footHalfWidth = Math.max(4, FRAME_WIDTH * SCALE * 0.3);
     const left = x - footHalfWidth;
     const right = x + footHalfWidth;

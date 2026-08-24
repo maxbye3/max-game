@@ -5,6 +5,7 @@ import { updateDoors } from './doors.js';
 import { setupInput } from './input.js';
 import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
+import { setupMike, updateMikeInteraction } from './mike.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
 import { updateSigns } from './signs.js';
@@ -15,6 +16,7 @@ function gameLoop(time) {
     updatePowerups(time);
     updatePlayer(deltaTime, getSpeedMultiplier());
     updateHole(deltaTime, player);
+    updateMikeInteraction(player.x, player.y);
     updateSigns(player.x, player.y);
     updateDoors(player.x, player.y);
     draw(time);
@@ -22,6 +24,7 @@ function gameLoop(time) {
 }
 setupInput();
 setupInventory();
+setupMike();
 loadAssets()
     .then(() => {
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES.length);

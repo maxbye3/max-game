@@ -25,6 +25,59 @@
     <main class="game-shell">
       <canvas id="game" width="480" height="480" aria-label="Diary and Laboratory interior"></canvas>
       <a class="interior-exit" href="../index.html">Exit</a>
+      <button id="interaction-prompt" class="npc-talk" type="button" hidden>Interact</button>
+      <section id="noel-dialogue" class="npc-dialogue" aria-live="polite" hidden>
+        <header class="npc-dialogue-header">
+          <h2 id="noel-speaker"></h2>
+          <button id="noel-dialogue-close" class="npc-dialogue-close" type="button" aria-label="Close dialogue">×</button>
+        </header>
+        <p id="noel-dialogue-line"></p>
+        <p id="noel-dialogue-question" class="npc-dialogue-question" hidden></p>
+        <div id="noel-dialogue-options" class="npc-dialogue-options" hidden>
+          <button id="noel-read-diary" type="button" data-noel-choice="diary">Read diary</button>
+          <button id="noel-view-experiments" type="button" data-noel-choice="experiments">Checkout experiments</button>
+          <button id="noel-decline" type="button" data-noel-choice="decline">Neh. I'm good</button>
+        </div>
+      </section>
+      <section id="diary-panel" class="internal-feature-panel" role="dialog" aria-modal="true" aria-labelledby="diary-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="diary-title">Max's diary</h2>
+          <button class="internal-feature-close" type="button" aria-label="Close diary">×</button>
+        </header>
+        <p>The contents of my diary are quite personal so you'll need to know my phone number to see it:</p>
+        <form id="diary-unlock-form" class="diary-unlock-form">
+          <label for="diary-password">Phone number</label>
+          <input id="diary-password" type="password" inputmode="numeric" autocomplete="off" pattern="[0-9]*" required>
+          <button type="submit">Unlock diary</button>
+        </form>
+        <p id="diary-unlock-message" class="diary-unlock-message" role="status"></p>
+        <a id="diary-link" class="diary-link" href="https://photos.app.goo.gl/RCJ28tWK77zQt1GZ7" target="_blank" rel="noopener noreferrer" hidden>Open the diary</a>
+      </section>
+      <section id="experiments-panel" class="internal-feature-panel" role="dialog" aria-modal="true" aria-labelledby="experiments-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="experiments-title">Experiments</h2>
+          <button class="internal-feature-close" type="button" aria-label="Close experiments">×</button>
+        </header>
+        <p>Pick a test image to inspect it full screen.</p>
+        <div class="experiment-gallery">
+          <button type="button" data-experiment-src="../chat/noel/example_character/profile.png">
+            <img src="../chat/noel/example_character/profile.png" alt="Noel profile test">
+            <span>Profile test</span>
+          </button>
+          <button type="button" data-experiment-src="../chat/noel/example_character/item.png">
+            <img src="../chat/noel/example_character/item.png" alt="Noel item test">
+            <span>Item test</span>
+          </button>
+          <button type="button" data-experiment-src="../chat/noel/avatar.png">
+            <img src="../chat/noel/avatar.png" alt="Noel avatar test">
+            <span>Avatar test</span>
+          </button>
+        </div>
+      </section>
+      <dialog id="experiment-lightbox" class="experiment-lightbox" aria-label="Expanded experiment image">
+        <button id="experiment-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
+        <img id="experiment-lightbox-image" alt="">
+      </dialog>
       <div class="controls">
         <div class="dpad" role="group" aria-label="Movement controls">
           <button class="dpad-button up-left" data-directions="up left" aria-label="Move up and left">◸</button>

@@ -4,13 +4,16 @@
   "private": true,
   "description": "Max's Overworld - a browser overworld game",
   "scripts": {
-    "build": "tsc && npm run bundle",
+    "build": "npm run generate:dialogues && tsc && npm run bundle",
     "bundle": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife",
     "extend:internal-collision": "node scripts/extend-internal-collision.mjs && npm run generate:internal-collision",
     "generate:internal-collision": "node scripts/generate-internal-collision.mjs",
+    "generate:dialogues": "npm run generate:noel-dialogue && npm run generate:mike-dialogue",
+    "generate:mike-dialogue": "node scripts/generate-mike-dialogue.mjs",
+    "generate:noel-dialogue": "node scripts/generate-noel-dialogue.mjs",
     "optimize:internal-assets": "node scripts/optimize-internal-assets.mjs",
-    "watch": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
-    "watch:bundle": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
+    "watch": "npm run generate:dialogues && esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
+    "watch:bundle": "npm run generate:dialogues && esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

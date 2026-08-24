@@ -44,7 +44,13 @@ import {
 import { canvas, context } from './dom.js';
 import { getOpenDoorways } from './doors.js';
 import { getHolePlayerTransform } from './hole.js';
+import { isMikeAftermathActive, MIKE } from './mike.js';
 import { directionRows, player } from './player.js';
+
+const MIKE_AFTERMATH_X = 222;
+const MIKE_AFTERMATH_Y = 432;
+const MIKE_AFTERMATH_WIDTH = 276;
+const MIKE_AFTERMATH_HEIGHT = 271;
 
 function drawCollisionShapes(cameraX: number, cameraY: number): void {
   context.fillStyle = 'rgba(0, 92, 255, 0.62)';
@@ -145,6 +151,23 @@ export function draw(time: number): void {
 
   if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
   drawOpenDoorways(cameraX, cameraY);
+  if (isMikeAftermathActive()) {
+    context.drawImage(
+      images.mikeAftermath,
+      MIKE_AFTERMATH_X - cameraX,
+      MIKE_AFTERMATH_Y - cameraY,
+      MIKE_AFTERMATH_WIDTH,
+      MIKE_AFTERMATH_HEIGHT,
+    );
+  } else {
+    context.drawImage(
+      images.mike,
+      Math.round(MIKE.x - cameraX - MIKE.width / 2),
+      Math.round(MIKE.y - cameraY - MIKE.height),
+      MIKE.width,
+      MIKE.height,
+    );
+  }
 
   const sourceX = player.frame * FRAME_WIDTH;
   const sourceY = directionRows[player.direction] * FRAME_HEIGHT;

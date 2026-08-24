@@ -1,3 +1,4 @@
+import { markInternalTestVisited } from './world-state.js';
 // World-space doorway bounds traced from the green annotations.
 export const DOORWAYS = [
     { id: 'northwest-portal', x: 222, y: 242, width: 27, height: 25 },
@@ -49,6 +50,7 @@ export function updateDoors(playerX, playerY) {
     if (!enteredDoorway)
         return;
     navigationStarted = true;
+    markInternalTestVisited();
     window.location.assign(`internal-test/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
 }
 export function getOpenDoorways() {

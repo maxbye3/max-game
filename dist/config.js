@@ -44,5 +44,5 @@ export const COLLISION_BUCKET_SIZE = 32;
 export const BOOST_MULTIPLIER = 1.6;
 export const BOOST_DURATION = 10000;
 export const RECHARGE_DURATION = 20000;
-export const SHOW_COLLISION_SHAPES = true;
+export const SHOW_COLLISION_SHAPES = false;
 //# sourceMappingURL=config.js.map

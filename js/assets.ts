@@ -14,6 +14,8 @@ const IMAGE_SOURCES = {
   zenGarden: 'img/external/buildings/zen-garden.png',
   tori: 'img/external/buildings/tori.png',
   spriteSheet: 'example_character/SpriteSheet.png',
+  mike: 'chat/mike/overworld-avatar.png',
+  mikeAftermath: 'img/external/mike-aftermath.png',
 } as const;
 
 export type AssetName = keyof typeof IMAGE_SOURCES;

@@ -16,7 +16,9 @@
     bookshop: "img/external/buildings/bookshop.png",
     zenGarden: "img/external/buildings/zen-garden.png",
     tori: "img/external/buildings/tori.png",
-    spriteSheet: "example_character/SpriteSheet.png"
+    spriteSheet: "example_character/SpriteSheet.png",
+    mike: "chat/mike/overworld-avatar.png",
+    mikeAftermath: "img/external/mike-aftermath.png"
   };
   var images = Object.fromEntries(
     Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()])
@@ -88,7 +90,7 @@
   var BOOST_MULTIPLIER = 1.6;
   var BOOST_DURATION = 1e4;
   var RECHARGE_DURATION = 2e4;
-  var SHOW_COLLISION_SHAPES = true;
+  var SHOW_COLLISION_SHAPES = false;
 
   // js/dom.ts
   function requireElement(selector) {
@@ -258,6 +260,22 @@
     [...RAW_COLLISION_SHAPES]
   );
 
+  // js/world-state.ts
+  var INTERNAL_TEST_VISITED_KEY = "max-game:internal-test-visited";
+  function hasVisitedInternalTest() {
+    try {
+      return window.localStorage.getItem(INTERNAL_TEST_VISITED_KEY) === "true";
+    } catch {
+      return false;
+    }
+  }
+  function markInternalTestVisited() {
+    try {
+      window.localStorage.setItem(INTERNAL_TEST_VISITED_KEY, "true");
+    } catch {
+    }
+  }
+
   // js/doors.ts
   var DOORWAYS = [
     { id: "northwest-portal", x: 222, y: 242, width: 27, height: 25 },
@@ -302,6 +320,7 @@
     const enteredDoorway = DOORWAYS.find((doorway) => pointInsideDoorway(playerX, playerY, doorway));
     if (!enteredDoorway) return;
     navigationStarted = true;
+    markInternalTestVisited();
     window.location.assign(`internal-test/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
   }
   function getOpenDoorways() {
@@ -519,6 +538,91 @@
     }
   }
 
+  // js/mike-dialogue.ts
+  var MIKE_DIALOGUE_LINES = [
+    "Oh, there you are. I was beginning to think you'd got lost.",
+    "You're back. Did the suspiciously powerful sandwich work?",
+    "Three conversations? We're basically best friends now."
+  ];
+
+  // js/mike.ts
+  var MIKE_FOLDER = "chat/mike";
+  var MIKE_NAME = MIKE_FOLDER.slice(MIKE_FOLDER.lastIndexOf("/") + 1);
+  var INTERACTION_DISTANCE = 56;
+  var COLLISION_DISTANCE = 27;
+  var MIKE = {
+    x: 300,
+    y: 685,
+    width: 40,
+    height: 46
+  };
+  var talkButton = requireElement("#mike-talk");
+  var dialogue2 = requireElement("#mike-dialogue");
+  var speaker = requireElement("#mike-speaker");
+  var dialogueLine = requireElement("#mike-dialogue-line");
+  var closeButton = requireElement("#mike-dialogue-close");
+  var theme = new Audio("chat/mike/example_character/theme.mp3");
+  theme.preload = "auto";
+  var nearby = false;
+  var dialogueOpen = false;
+  var conversationIndex = 0;
+  var isMikeDialogueOpen = () => dialogueOpen;
+  var isMikeAftermathActive = () => hasVisitedInternalTest();
+  function playerCollidesWithMike(x, y) {
+    if (isMikeAftermathActive()) return false;
+    return Math.hypot(x - MIKE.x, y - MIKE.y) < COLLISION_DISTANCE;
+  }
+  function closeDialogue() {
+    dialogueOpen = false;
+    dialogue2.hidden = true;
+    theme.pause();
+    theme.currentTime = 0;
+    talkButton.hidden = !nearby;
+  }
+  function startDialogue() {
+    if (!nearby || dialogueOpen) return;
+    dialogueOpen = true;
+    speaker.textContent = MIKE_NAME;
+    dialogueLine.textContent = MIKE_DIALOGUE_LINES[conversationIndex % MIKE_DIALOGUE_LINES.length] ?? "";
+    conversationIndex += 1;
+    dialogue2.hidden = false;
+    talkButton.hidden = true;
+    theme.pause();
+    theme.currentTime = 0;
+    void theme.play().catch(() => {
+    });
+  }
+  function updateMikeInteraction(playerX, playerY) {
+    if (isMikeAftermathActive()) {
+      nearby = false;
+      talkButton.hidden = true;
+      return;
+    }
+    const nextNearby = Math.hypot(playerX - MIKE.x, playerY - MIKE.y) <= INTERACTION_DISTANCE;
+    if (nextNearby === nearby) return;
+    nearby = nextNearby;
+    talkButton.hidden = !nearby || dialogueOpen;
+  }
+  function setupMike() {
+    if (isMikeAftermathActive()) {
+      talkButton.hidden = true;
+      return;
+    }
+    talkButton.addEventListener("click", startDialogue);
+    closeButton.addEventListener("click", closeDialogue);
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Escape" && dialogueOpen) {
+        event.preventDefault();
+        closeDialogue();
+        return;
+      }
+      if ((event.code === "KeyE" || event.code === "Enter" || event.code === "Space") && nearby) {
+        event.preventDefault();
+        startDialogue();
+      }
+    });
+  }
+
   // js/collision.ts
   var bucketKey = (column, row) => `${column},${row}`;
   function forEachBucket(left, top, right, bottom, visit) {
@@ -548,6 +652,7 @@
   });
   function playerCollidesAt(x, y) {
     if (isDoorPassagePoint(x, y)) return false;
+    if (playerCollidesWithMike(x, y)) return true;
     const footHalfWidth = Math.max(4, FRAME_WIDTH * SCALE * 0.3);
     const left = x - footHalfWidth;
     const right = x + footHalfWidth;
@@ -674,8 +779,8 @@
   var clampY = (y) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
   var returnDoorId = new URLSearchParams(window.location.search).get("door");
   var returnDoor = DOORWAYS.find((doorway) => doorway.id === returnDoorId);
-  var DEFAULT_START_X = WORLD_WIDTH / 1.5;
-  var DEFAULT_START_Y = WORLD_HEIGHT / 2;
+  var DEFAULT_START_X = MIKE.x - 42;
+  var DEFAULT_START_Y = MIKE.y + 8;
   var DOOR_RETURN_OFFSET = 12;
   var player = {
     x: returnDoor ? returnDoor.x + returnDoor.width / 2 : DEFAULT_START_X,
@@ -706,7 +811,7 @@
     }
   }
   function updatePlayer(deltaTime, speedMultiplier2) {
-    if (isHoleAnimationActive()) {
+    if (isHoleAnimationActive() || isMikeDialogueOpen()) {
       player.animationTime = 0;
       player.frame = 0;
       return;
@@ -740,6 +845,10 @@
   }
 
   // js/render.ts
+  var MIKE_AFTERMATH_X = 222;
+  var MIKE_AFTERMATH_Y = 432;
+  var MIKE_AFTERMATH_WIDTH = 276;
+  var MIKE_AFTERMATH_HEIGHT = 271;
   function drawCollisionShapes(cameraX, cameraY) {
     context.fillStyle = "rgba(0, 92, 255, 0.62)";
     for (const [shapeX, shapeY, shapeWidth, shapeHeight] of COLLISION_SHAPES2) {
@@ -819,6 +928,23 @@
     if (!toriCoversPlayer) drawTori(cameraX, cameraY);
     if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
     drawOpenDoorways(cameraX, cameraY);
+    if (isMikeAftermathActive()) {
+      context.drawImage(
+        images.mikeAftermath,
+        MIKE_AFTERMATH_X - cameraX,
+        MIKE_AFTERMATH_Y - cameraY,
+        MIKE_AFTERMATH_WIDTH,
+        MIKE_AFTERMATH_HEIGHT
+      );
+    } else {
+      context.drawImage(
+        images.mike,
+        Math.round(MIKE.x - cameraX - MIKE.width / 2),
+        Math.round(MIKE.y - cameraY - MIKE.height),
+        MIKE.width,
+        MIKE.height
+      );
+    }
     const sourceX = player.frame * FRAME_WIDTH;
     const sourceY = directionRows[player.direction] * FRAME_HEIGHT;
     const width = FRAME_WIDTH * SCALE;
@@ -877,6 +1003,7 @@
     updatePowerups(time);
     updatePlayer(deltaTime, getSpeedMultiplier());
     updateHole(deltaTime, player);
+    updateMikeInteraction(player.x, player.y);
     updateSigns(player.x, player.y);
     updateDoors(player.x, player.y);
     draw(time);
@@ -884,6 +1011,7 @@
   }
   setupInput();
   setupInventory();
+  setupMike();
   loadAssets().then(() => {
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES2.length);
     requestAnimationFrame(gameLoop);
