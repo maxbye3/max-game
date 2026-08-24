@@ -4,7 +4,7 @@ import { DOORWAYS } from './doors.js';
 import { isHoleAnimationActive } from './hole.js';
 import { isHeld } from './input.js';
 import { isMikeDialogueOpen, MIKE } from './mike.js';
-import { NIALL } from './niall.js';
+import { isNiallBattleTransitionActive, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
 const clampX = (x) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
 const clampY = (y) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
@@ -45,7 +45,7 @@ function movePlayerWithCollisions(movementX, movementY) {
     }
 }
 export function updatePlayer(deltaTime, speedMultiplier) {
-    if (isHoleAnimationActive() || isMikeDialogueOpen()) {
+    if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallBattleTransitionActive()) {
         player.animationTime = 0;
         player.frame = 0;
         return;

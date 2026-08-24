@@ -46,7 +46,7 @@ function releaseCode(code: string): void {
   releaseDirection(direction);
 }
 
-function releaseAllInput(): void {
+export function releaseAllInput(): void {
   heldCodes.clear();
   heldDirections.clear();
   releaseButtonHandlers.forEach((release) => release());

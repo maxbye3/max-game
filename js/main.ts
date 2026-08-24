@@ -20,7 +20,7 @@ function gameLoop(time: number): void {
   updatePlayer(deltaTime, getSpeedMultiplier());
   updateHole(deltaTime, player);
   updateMikeInteraction(player.x, player.y);
-  updateNiallInteraction(player.x, player.y);
+  updateNiallInteraction(deltaTime, player.x, player.y);
   updateSigns(player.x, player.y);
   updateDoors(player.x, player.y);
   draw(time);

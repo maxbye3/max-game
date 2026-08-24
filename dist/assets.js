@@ -17,6 +17,7 @@ const IMAGE_SOURCES = {
     mike: 'chat/mike/overworld-avatar.png',
     mikeAftermath: 'img/external/mike-aftermath.png',
     niall: 'chat/niall/avatar.png',
+    niallSprite: 'chat/niall/niall-sprite.png',
 };
 export const images = Object.fromEntries(Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()]));
 function loadImage(image, src) {

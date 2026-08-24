@@ -1,56 +1,114 @@
 import { requireElement } from './dom.js';
+import {
+  WORLD_HEIGHT,
+  WORLD_WIDTH,
+} from './config.js';
 import { hasCompletedNiallFight } from './world-state.js';
+import { releaseAllInput } from './input.js';
+import type { Direction } from './types.js';
 
-const INTERACTION_DISTANCE = 58;
-const COLLISION_DISTANCE = 27;
+const CONTACT_DISTANCE = 30;
+const CHASE_SPEED = 235;
+const FRAME_COUNT = 4;
+const FRAME_RATE = 9;
+const BATTLE_TRANSITION_DURATION = 1350;
 
 export const NIALL = {
   x: 430,
   y: 684,
   width: 44,
-  height: 48,
+  height: 66,
 } as const;
 
 const fightButton = requireElement<HTMLButtonElement>('#niall-fight-start');
-let nearby = false;
+const gameShell = requireElement<HTMLElement>('.game-shell');
+
+export const niallState: {
+  x: number;
+  y: number;
+  direction: Direction;
+  frame: number;
+  animationTime: number;
+} = {
+  x: NIALL.x,
+  y: NIALL.y,
+  direction: 'down',
+  frame: 0,
+  animationTime: 0,
+};
 
 export const isNiallFollowing = () => hasCompletedNiallFight();
+let battleTransitionActive = false;
+
+export const isNiallBattleTransitionActive = () => battleTransitionActive;
 
 export function playerCollidesWithNiall(x: number, y: number): boolean {
-  if (isNiallFollowing()) return false;
-  return Math.hypot(x - NIALL.x, y - NIALL.y) < COLLISION_DISTANCE;
+  void x;
+  void y;
+  return false;
 }
 
 function startFight(): void {
-  if (!nearby || isNiallFollowing()) return;
-  window.location.assign('niall-fight/');
+  if (isNiallFollowing() || battleTransitionActive) return;
+  battleTransitionActive = true;
+  fightButton.hidden = true;
+  releaseAllInput();
+
+  const transition = document.createElement('div');
+  transition.className = 'battle-transition';
+  transition.setAttribute('aria-hidden', 'true');
+  for (let index = 0; index < 12; index += 1) {
+    const band = document.createElement('span');
+    band.style.setProperty('--band-index', String(index));
+    transition.append(band);
+  }
+  gameShell.append(transition);
+
+  window.setTimeout(() => {
+    window.location.assign('niall-fight/');
+  }, BATTLE_TRANSITION_DURATION);
 }
 
-export function updateNiallInteraction(playerX: number, playerY: number): void {
+function setDirection(dx: number, dy: number): void {
+  if (Math.abs(dx) > Math.abs(dy) * 1.7) {
+    niallState.direction = dx < 0 ? 'left' : 'right';
+  } else if (Math.abs(dy) > Math.abs(dx) * 1.7) {
+    niallState.direction = dy < 0 ? 'up' : 'down';
+  } else if (dx < 0 && dy < 0) {
+    niallState.direction = 'upLeft';
+  } else if (dx > 0 && dy < 0) {
+    niallState.direction = 'upRight';
+  } else if (dx < 0 && dy > 0) {
+    niallState.direction = 'downLeft';
+  } else if (dx > 0 && dy > 0) {
+    niallState.direction = 'downRight';
+  }
+}
+
+export function updateNiallInteraction(deltaTime: number, playerX: number, playerY: number): void {
   if (isNiallFollowing()) {
-    nearby = false;
     fightButton.hidden = true;
     return;
   }
+  if (battleTransitionActive) return;
 
-  const nextNearby = Math.hypot(playerX - NIALL.x, playerY - NIALL.y) <= INTERACTION_DISTANCE;
-  if (nextNearby === nearby) return;
-  nearby = nextNearby;
-  fightButton.hidden = !nearby;
+  fightButton.hidden = true;
+  const dx = playerX - niallState.x;
+  const dy = playerY - niallState.y;
+  const distance = Math.hypot(dx, dy);
+  if (distance <= CONTACT_DISTANCE) {
+    startFight();
+    return;
+  }
+  if (distance === 0) return;
+
+  setDirection(dx, dy);
+  niallState.x = Math.max(NIALL.width / 2, Math.min(WORLD_WIDTH - NIALL.width / 2, niallState.x + (dx / distance) * CHASE_SPEED * deltaTime));
+  niallState.y = Math.max(NIALL.height, Math.min(WORLD_HEIGHT, niallState.y + (dy / distance) * CHASE_SPEED * deltaTime));
+  niallState.animationTime += deltaTime;
+  niallState.frame = Math.floor(niallState.animationTime * FRAME_RATE) % FRAME_COUNT;
 }
 
 export function setupNiall(): void {
-  if (isNiallFollowing()) {
-    fightButton.hidden = true;
-    return;
-  }
-
-  fightButton.addEventListener('click', startFight);
-  window.addEventListener('keydown', (event) => {
-    if (event.defaultPrevented) return;
-    if ((event.code === 'KeyE' || event.code === 'Enter' || event.code === 'Space') && nearby) {
-      event.preventDefault();
-      startFight();
-    }
-  });
+  fightButton.hidden = true;
 }

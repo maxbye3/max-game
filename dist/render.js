@@ -5,17 +5,33 @@ import { canvas, context } from './dom.js';
 import { getOpenDoorways } from './doors.js';
 import { getHolePlayerTransform } from './hole.js';
 import { isMikeAftermathActive, MIKE } from './mike.js';
-import { isNiallFollowing, NIALL } from './niall.js';
+import { isNiallFollowing, NIALL, niallState } from './niall.js';
 import { directionRows, player } from './player.js';
 const MIKE_AFTERMATH_X = 222;
 const MIKE_AFTERMATH_Y = 432;
 const MIKE_AFTERMATH_WIDTH = 276;
 const MIKE_AFTERMATH_HEIGHT = 271;
-function drawNiallAt(cameraX, cameraY, x, y) {
+const NIALL_SPRITE_COLUMNS = 4;
+const NIALL_SPRITE_ROWS = 7;
+const niallDirectionRows = {
+    down: 0,
+    downRight: 1,
+    right: 2,
+    upRight: 3,
+    upLeft: 4,
+    left: 4,
+    up: 5,
+    downLeft: 1,
+};
+function drawNiallAt(cameraX, cameraY, x, y, direction, frame) {
+    const sourceWidth = Math.floor(images.niallSprite.width / NIALL_SPRITE_COLUMNS);
+    const sourceHeight = Math.floor(images.niallSprite.height / NIALL_SPRITE_ROWS);
+    const sourceX = (frame % NIALL_SPRITE_COLUMNS) * sourceWidth;
+    const sourceY = niallDirectionRows[direction] * sourceHeight;
     context.save();
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
-    context.drawImage(images.niall, Math.round(x - cameraX - NIALL.width / 2), Math.round(y - cameraY - NIALL.height), NIALL.width, NIALL.height);
+    context.drawImage(images.niallSprite, sourceX, sourceY, sourceWidth, sourceHeight, Math.round(x - cameraX - NIALL.width / 2), Math.round(y - cameraY - NIALL.height), NIALL.width, NIALL.height);
     context.restore();
 }
 function drawCollisionShapes(cameraX, cameraY) {
@@ -88,10 +104,10 @@ export function draw(time) {
         drawCollisionShapes(cameraX, cameraY);
     drawOpenDoorways(cameraX, cameraY);
     if (isNiallFollowing()) {
-        drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12);
+        drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
     }
     else {
-        drawNiallAt(cameraX, cameraY, NIALL.x, NIALL.y);
+        drawNiallAt(cameraX, cameraY, niallState.x, niallState.y, niallState.direction, niallState.frame);
     }
     if (isMikeAftermathActive()) {
         context.drawImage(images.mikeAftermath, MIKE_AFTERMATH_X - cameraX, MIKE_AFTERMATH_Y - cameraY, MIKE_AFTERMATH_WIDTH, MIKE_AFTERMATH_HEIGHT);

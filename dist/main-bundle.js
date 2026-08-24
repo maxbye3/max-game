@@ -19,7 +19,8 @@
     spriteSheet: "example_character/SpriteSheet.png",
     mike: "chat/mike/overworld-avatar.png",
     mikeAftermath: "img/external/mike-aftermath.png",
-    niall: "chat/niall/avatar.png"
+    niall: "chat/niall/avatar.png",
+    niallSprite: "chat/niall/niall-sprite.png"
   };
   var images = Object.fromEntries(
     Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()])
@@ -633,49 +634,90 @@
   }
 
   // js/niall.ts
-  var INTERACTION_DISTANCE2 = 58;
-  var COLLISION_DISTANCE2 = 27;
+  var CONTACT_DISTANCE = 30;
+  var CHASE_SPEED = 235;
+  var FRAME_COUNT2 = 4;
+  var FRAME_RATE = 9;
+  var BATTLE_TRANSITION_DURATION = 1350;
   var NIALL = {
     x: 430,
     y: 684,
     width: 44,
-    height: 48
+    height: 66
   };
   var fightButton = requireElement("#niall-fight-start");
-  var nearby2 = false;
+  var gameShell = requireElement(".game-shell");
+  var niallState = {
+    x: NIALL.x,
+    y: NIALL.y,
+    direction: "down",
+    frame: 0,
+    animationTime: 0
+  };
   var isNiallFollowing = () => hasCompletedNiallFight();
+  var battleTransitionActive = false;
+  var isNiallBattleTransitionActive = () => battleTransitionActive;
   function playerCollidesWithNiall(x, y) {
-    if (isNiallFollowing()) return false;
-    return Math.hypot(x - NIALL.x, y - NIALL.y) < COLLISION_DISTANCE2;
+    void x;
+    void y;
+    return false;
   }
   function startFight() {
-    if (!nearby2 || isNiallFollowing()) return;
-    window.location.assign("niall-fight/");
+    if (isNiallFollowing() || battleTransitionActive) return;
+    battleTransitionActive = true;
+    fightButton.hidden = true;
+    releaseAllInput();
+    const transition = document.createElement("div");
+    transition.className = "battle-transition";
+    transition.setAttribute("aria-hidden", "true");
+    for (let index = 0; index < 12; index += 1) {
+      const band = document.createElement("span");
+      band.style.setProperty("--band-index", String(index));
+      transition.append(band);
+    }
+    gameShell.append(transition);
+    window.setTimeout(() => {
+      window.location.assign("niall-fight/");
+    }, BATTLE_TRANSITION_DURATION);
   }
-  function updateNiallInteraction(playerX, playerY) {
+  function setDirection(dx, dy) {
+    if (Math.abs(dx) > Math.abs(dy) * 1.7) {
+      niallState.direction = dx < 0 ? "left" : "right";
+    } else if (Math.abs(dy) > Math.abs(dx) * 1.7) {
+      niallState.direction = dy < 0 ? "up" : "down";
+    } else if (dx < 0 && dy < 0) {
+      niallState.direction = "upLeft";
+    } else if (dx > 0 && dy < 0) {
+      niallState.direction = "upRight";
+    } else if (dx < 0 && dy > 0) {
+      niallState.direction = "downLeft";
+    } else if (dx > 0 && dy > 0) {
+      niallState.direction = "downRight";
+    }
+  }
+  function updateNiallInteraction(deltaTime, playerX, playerY) {
     if (isNiallFollowing()) {
-      nearby2 = false;
       fightButton.hidden = true;
       return;
     }
-    const nextNearby = Math.hypot(playerX - NIALL.x, playerY - NIALL.y) <= INTERACTION_DISTANCE2;
-    if (nextNearby === nearby2) return;
-    nearby2 = nextNearby;
-    fightButton.hidden = !nearby2;
+    if (battleTransitionActive) return;
+    fightButton.hidden = true;
+    const dx = playerX - niallState.x;
+    const dy = playerY - niallState.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance <= CONTACT_DISTANCE) {
+      startFight();
+      return;
+    }
+    if (distance === 0) return;
+    setDirection(dx, dy);
+    niallState.x = Math.max(NIALL.width / 2, Math.min(WORLD_WIDTH - NIALL.width / 2, niallState.x + dx / distance * CHASE_SPEED * deltaTime));
+    niallState.y = Math.max(NIALL.height, Math.min(WORLD_HEIGHT, niallState.y + dy / distance * CHASE_SPEED * deltaTime));
+    niallState.animationTime += deltaTime;
+    niallState.frame = Math.floor(niallState.animationTime * FRAME_RATE) % FRAME_COUNT2;
   }
   function setupNiall() {
-    if (isNiallFollowing()) {
-      fightButton.hidden = true;
-      return;
-    }
-    fightButton.addEventListener("click", startFight);
-    window.addEventListener("keydown", (event) => {
-      if (event.defaultPrevented) return;
-      if ((event.code === "KeyE" || event.code === "Enter" || event.code === "Space") && nearby2) {
-        event.preventDefault();
-        startFight();
-      }
-    });
+    fightButton.hidden = true;
   }
 
   // js/collision.ts
@@ -868,7 +910,7 @@
     }
   }
   function updatePlayer(deltaTime, speedMultiplier2) {
-    if (isHoleAnimationActive() || isMikeDialogueOpen()) {
+    if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallBattleTransitionActive()) {
       player.animationTime = 0;
       player.frame = 0;
       return;
@@ -906,12 +948,32 @@
   var MIKE_AFTERMATH_Y = 432;
   var MIKE_AFTERMATH_WIDTH = 276;
   var MIKE_AFTERMATH_HEIGHT = 271;
-  function drawNiallAt(cameraX, cameraY, x, y) {
+  var NIALL_SPRITE_COLUMNS = 4;
+  var NIALL_SPRITE_ROWS = 7;
+  var niallDirectionRows = {
+    down: 0,
+    downRight: 1,
+    right: 2,
+    upRight: 3,
+    upLeft: 4,
+    left: 4,
+    up: 5,
+    downLeft: 1
+  };
+  function drawNiallAt(cameraX, cameraY, x, y, direction, frame) {
+    const sourceWidth = Math.floor(images.niallSprite.width / NIALL_SPRITE_COLUMNS);
+    const sourceHeight = Math.floor(images.niallSprite.height / NIALL_SPRITE_ROWS);
+    const sourceX = frame % NIALL_SPRITE_COLUMNS * sourceWidth;
+    const sourceY = niallDirectionRows[direction] * sourceHeight;
     context.save();
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.drawImage(
-      images.niall,
+      images.niallSprite,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
       Math.round(x - cameraX - NIALL.width / 2),
       Math.round(y - cameraY - NIALL.height),
       NIALL.width,
@@ -999,9 +1061,9 @@
     if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
     drawOpenDoorways(cameraX, cameraY);
     if (isNiallFollowing()) {
-      drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12);
+      drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
     } else {
-      drawNiallAt(cameraX, cameraY, NIALL.x, NIALL.y);
+      drawNiallAt(cameraX, cameraY, niallState.x, niallState.y, niallState.direction, niallState.frame);
     }
     if (isMikeAftermathActive()) {
       context.drawImage(
@@ -1079,7 +1141,7 @@
     updatePlayer(deltaTime, getSpeedMultiplier());
     updateHole(deltaTime, player);
     updateMikeInteraction(player.x, player.y);
-    updateNiallInteraction(player.x, player.y);
+    updateNiallInteraction(deltaTime, player.x, player.y);
     updateSigns(player.x, player.y);
     updateDoors(player.x, player.y);
     draw(time);
