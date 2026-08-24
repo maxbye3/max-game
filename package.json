@@ -5,7 +5,7 @@
   "description": "Max's Overworld - a browser overworld game",
   "scripts": {
     "build": "npm run generate:dialogues && tsc && npm run bundle",
-    "bundle": "esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife",
+    "bundle": "esbuild js/main.ts js/internal.ts js/niall-fight.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife",
     "extend:internal-collision": "node scripts/extend-internal-collision.mjs && npm run generate:internal-collision",
     "generate:internal-collision": "node scripts/generate-internal-collision.mjs",
     "generate:dialogues": "npm run generate:noel-dialogue && npm run generate:mike-dialogue",

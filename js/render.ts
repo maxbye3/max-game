@@ -45,12 +45,27 @@ import { canvas, context } from './dom.js';
 import { getOpenDoorways } from './doors.js';
 import { getHolePlayerTransform } from './hole.js';
 import { isMikeAftermathActive, MIKE } from './mike.js';
+import { isNiallFollowing, NIALL } from './niall.js';
 import { directionRows, player } from './player.js';
 
 const MIKE_AFTERMATH_X = 222;
 const MIKE_AFTERMATH_Y = 432;
 const MIKE_AFTERMATH_WIDTH = 276;
 const MIKE_AFTERMATH_HEIGHT = 271;
+
+function drawNiallAt(cameraX: number, cameraY: number, x: number, y: number): void {
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  context.drawImage(
+    images.niall,
+    Math.round(x - cameraX - NIALL.width / 2),
+    Math.round(y - cameraY - NIALL.height),
+    NIALL.width,
+    NIALL.height,
+  );
+  context.restore();
+}
 
 function drawCollisionShapes(cameraX: number, cameraY: number): void {
   context.fillStyle = 'rgba(0, 92, 255, 0.62)';
@@ -151,6 +166,11 @@ export function draw(time: number): void {
 
   if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
   drawOpenDoorways(cameraX, cameraY);
+  if (isNiallFollowing()) {
+    drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12);
+  } else {
+    drawNiallAt(cameraX, cameraY, NIALL.x, NIALL.y);
+  }
   if (isMikeAftermathActive()) {
     context.drawImage(
       images.mikeAftermath,

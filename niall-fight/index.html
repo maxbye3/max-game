@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Niall Fight</title>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body class="battle-body">
+    <main class="battle-shell" aria-label="Turn-based battle with Niall">
+      <section class="battle-stage">
+        <div class="battle-card enemy-card">
+          <div class="battle-name-row">
+            <h1>NIALL</h1>
+            <span>:L19</span>
+          </div>
+          <div class="battle-hp-row">
+            <span>HP:</span>
+            <meter id="niall-hp" min="0" max="100" value="100"></meter>
+          </div>
+        </div>
+
+        <img id="niall-battler" class="battle-sprite enemy-sprite" src="../chat/niall/avatar.png" alt="Niall">
+        <img class="battle-sprite player-sprite" src="../example_character/avatar.png" alt="Protagonist">
+
+        <div class="battle-card player-card">
+          <div class="battle-name-row">
+            <h2>MAX</h2>
+            <span>:L25</span>
+          </div>
+          <div class="battle-hp-row">
+            <span>HP:</span>
+            <meter id="player-hp" min="0" max="100" value="100"></meter>
+          </div>
+          <p><strong id="player-hp-text">100</strong>/100</p>
+          <p id="fomo-status" class="battle-status">FOMO: 0</p>
+        </div>
+      </section>
+
+      <section class="battle-console">
+        <div id="battle-log" class="battle-log" aria-live="polite">A wild NIALL appeared.</div>
+        <div id="move-grid" class="move-grid" aria-label="Battle moves">
+          <button type="button" data-move="splash">Splash</button>
+          <button type="button" data-move="lecture">Lecture</button>
+          <button type="button" data-move="calm">Tell him to calm down</button>
+          <button type="button" data-move="chelsea">Chelsea</button>
+          <button type="button" data-move="reprimand">Reprimand</button>
+        </div>
+        <a id="bus-link" class="bus-link" href="../index.html?niall=bus" hidden>Walk to the bus</a>
+      </section>
+    </main>
+    <script src="../dist/niall-fight-bundle.js"></script>
+  </body>
+</html>

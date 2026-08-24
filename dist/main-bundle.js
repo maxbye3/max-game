@@ -18,7 +18,8 @@
     tori: "img/external/buildings/tori.png",
     spriteSheet: "example_character/SpriteSheet.png",
     mike: "chat/mike/overworld-avatar.png",
-    mikeAftermath: "img/external/mike-aftermath.png"
+    mikeAftermath: "img/external/mike-aftermath.png",
+    niall: "chat/niall/avatar.png"
   };
   var images = Object.fromEntries(
     Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()])
@@ -262,6 +263,7 @@
 
   // js/world-state.ts
   var INTERNAL_TEST_VISITED_KEY = "max-game:internal-test-visited";
+  var NIALL_FIGHT_COMPLETE_KEY = "max-game:niall-fight-complete";
   function hasVisitedInternalTest() {
     try {
       return window.localStorage.getItem(INTERNAL_TEST_VISITED_KEY) === "true";
@@ -273,6 +275,13 @@
     try {
       window.localStorage.setItem(INTERNAL_TEST_VISITED_KEY, "true");
     } catch {
+    }
+  }
+  function hasCompletedNiallFight() {
+    try {
+      return window.localStorage.getItem(NIALL_FIGHT_COMPLETE_KEY) === "true";
+    } catch {
+      return false;
     }
   }
 
@@ -623,6 +632,52 @@
     });
   }
 
+  // js/niall.ts
+  var INTERACTION_DISTANCE2 = 58;
+  var COLLISION_DISTANCE2 = 27;
+  var NIALL = {
+    x: 430,
+    y: 684,
+    width: 44,
+    height: 48
+  };
+  var fightButton = requireElement("#niall-fight-start");
+  var nearby2 = false;
+  var isNiallFollowing = () => hasCompletedNiallFight();
+  function playerCollidesWithNiall(x, y) {
+    if (isNiallFollowing()) return false;
+    return Math.hypot(x - NIALL.x, y - NIALL.y) < COLLISION_DISTANCE2;
+  }
+  function startFight() {
+    if (!nearby2 || isNiallFollowing()) return;
+    window.location.assign("niall-fight/");
+  }
+  function updateNiallInteraction(playerX, playerY) {
+    if (isNiallFollowing()) {
+      nearby2 = false;
+      fightButton.hidden = true;
+      return;
+    }
+    const nextNearby = Math.hypot(playerX - NIALL.x, playerY - NIALL.y) <= INTERACTION_DISTANCE2;
+    if (nextNearby === nearby2) return;
+    nearby2 = nextNearby;
+    fightButton.hidden = !nearby2;
+  }
+  function setupNiall() {
+    if (isNiallFollowing()) {
+      fightButton.hidden = true;
+      return;
+    }
+    fightButton.addEventListener("click", startFight);
+    window.addEventListener("keydown", (event) => {
+      if (event.defaultPrevented) return;
+      if ((event.code === "KeyE" || event.code === "Enter" || event.code === "Space") && nearby2) {
+        event.preventDefault();
+        startFight();
+      }
+    });
+  }
+
   // js/collision.ts
   var bucketKey = (column, row) => `${column},${row}`;
   function forEachBucket(left, top, right, bottom, visit) {
@@ -653,6 +708,7 @@
   function playerCollidesAt(x, y) {
     if (isDoorPassagePoint(x, y)) return false;
     if (playerCollidesWithMike(x, y)) return true;
+    if (playerCollidesWithNiall(x, y)) return true;
     const footHalfWidth = Math.max(4, FRAME_WIDTH * SCALE * 0.3);
     const left = x - footHalfWidth;
     const right = x + footHalfWidth;
@@ -781,10 +837,11 @@
   var returnDoor = DOORWAYS.find((doorway) => doorway.id === returnDoorId);
   var DEFAULT_START_X = MIKE.x - 42;
   var DEFAULT_START_Y = MIKE.y + 8;
+  var fightReturn = new URLSearchParams(window.location.search).get("niall") === "bus";
   var DOOR_RETURN_OFFSET = 12;
   var player = {
-    x: returnDoor ? returnDoor.x + returnDoor.width / 2 : DEFAULT_START_X,
-    y: returnDoor ? returnDoor.y + returnDoor.height + DOOR_RETURN_OFFSET : DEFAULT_START_Y,
+    x: fightReturn ? NIALL.x - 42 : returnDoor ? returnDoor.x + returnDoor.width / 2 : DEFAULT_START_X,
+    y: fightReturn ? NIALL.y + 8 : returnDoor ? returnDoor.y + returnDoor.height + DOOR_RETURN_OFFSET : DEFAULT_START_Y,
     direction: "down",
     frame: 0,
     animationTime: 0
@@ -849,6 +906,19 @@
   var MIKE_AFTERMATH_Y = 432;
   var MIKE_AFTERMATH_WIDTH = 276;
   var MIKE_AFTERMATH_HEIGHT = 271;
+  function drawNiallAt(cameraX, cameraY, x, y) {
+    context.save();
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(
+      images.niall,
+      Math.round(x - cameraX - NIALL.width / 2),
+      Math.round(y - cameraY - NIALL.height),
+      NIALL.width,
+      NIALL.height
+    );
+    context.restore();
+  }
   function drawCollisionShapes(cameraX, cameraY) {
     context.fillStyle = "rgba(0, 92, 255, 0.62)";
     for (const [shapeX, shapeY, shapeWidth, shapeHeight] of COLLISION_SHAPES2) {
@@ -928,6 +998,11 @@
     if (!toriCoversPlayer) drawTori(cameraX, cameraY);
     if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
     drawOpenDoorways(cameraX, cameraY);
+    if (isNiallFollowing()) {
+      drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12);
+    } else {
+      drawNiallAt(cameraX, cameraY, NIALL.x, NIALL.y);
+    }
     if (isMikeAftermathActive()) {
       context.drawImage(
         images.mikeAftermath,
@@ -1004,6 +1079,7 @@
     updatePlayer(deltaTime, getSpeedMultiplier());
     updateHole(deltaTime, player);
     updateMikeInteraction(player.x, player.y);
+    updateNiallInteraction(player.x, player.y);
     updateSigns(player.x, player.y);
     updateDoors(player.x, player.y);
     draw(time);
@@ -1012,6 +1088,7 @@
   setupInput();
   setupInventory();
   setupMike();
+  setupNiall();
   loadAssets().then(() => {
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES2.length);
     requestAnimationFrame(gameLoop);

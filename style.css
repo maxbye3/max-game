@@ -285,6 +285,249 @@ canvas {
   cursor: pointer;
 }
 
+.niall-fight-start {
+  right: 24px;
+  bottom: 76px;
+}
+
+.battle-body {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  background: #f4f5ee;
+}
+
+.battle-shell {
+  display: grid;
+  width: min(100vw, 760px);
+  height: min(100dvh, 720px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  border: 4px solid #111;
+  color: #111;
+  background: #f4f5ee;
+  font-family: var(--font-pixel);
+  image-rendering: pixelated;
+}
+
+.battle-stage {
+  position: relative;
+  min-height: 0;
+  background:
+    linear-gradient(#f4f5ee 0 60%, #dfe5dc 60% 61%, transparent 61%),
+    radial-gradient(ellipse at 23% 76%, #cbd4c8 0 15%, transparent 16%),
+    radial-gradient(ellipse at 78% 31%, #cbd4c8 0 13%, transparent 14%);
+}
+
+.battle-card {
+  position: absolute;
+  width: min(300px, 46%);
+  padding: 10px 12px;
+  border: 4px solid #111;
+  background: #f4f5ee;
+}
+
+.enemy-card {
+  top: 26px;
+  left: 28px;
+  border-right-width: 8px;
+  border-bottom-width: 8px;
+}
+
+.player-card {
+  right: 28px;
+  bottom: 18px;
+  border-left-width: 8px;
+  border-top-width: 8px;
+}
+
+.battle-name-row,
+.battle-hp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.battle-name-row h1,
+.battle-name-row h2 {
+  margin: 0;
+  font: 18px/1.2 var(--font-pixel);
+}
+
+.battle-name-row span,
+.battle-hp-row span,
+.player-card p {
+  margin: 4px 0 0;
+  font: 12px/1.4 var(--font-pixel);
+}
+
+.battle-hp-row meter {
+  width: 100%;
+  height: 12px;
+  border: 2px solid #111;
+  background: #dde5db;
+}
+
+.battle-hp-row meter::-webkit-meter-bar {
+  border: 0;
+  background: #dde5db;
+}
+
+.battle-hp-row meter::-webkit-meter-optimum-value { background: #738879; }
+.battle-hp-row meter::-moz-meter-bar { background: #738879; }
+
+.battle-status.active {
+  color: #a82020;
+}
+
+.battle-sprite {
+  position: absolute;
+  display: block;
+  object-fit: contain;
+}
+
+.enemy-sprite {
+  top: 105px;
+  right: 70px;
+  width: min(180px, 31%);
+  aspect-ratio: 1;
+  filter: grayscale(1) contrast(1.25);
+}
+
+.player-sprite {
+  left: 72px;
+  bottom: 40px;
+  width: min(180px, 32%);
+  aspect-ratio: 1;
+  filter: grayscale(1) contrast(1.35);
+  transform: scaleX(-1);
+}
+
+.battle-console {
+  display: grid;
+  min-height: 190px;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 42%);
+  border-top: 4px solid #111;
+  background: #f4f5ee;
+}
+
+.battle-log {
+  min-width: 0;
+  padding: 20px;
+  border-right: 4px solid #111;
+  font: 17px/1.65 var(--font-pixel);
+}
+
+.move-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+}
+
+.move-grid button,
+.bus-link {
+  min-width: 0;
+  padding: 16px 12px;
+  border: 0;
+  border-right: 2px solid #111;
+  border-bottom: 2px solid #111;
+  color: #111;
+  background: #f4f5ee;
+  font: 14px/1.45 var(--font-pixel);
+  text-align: left;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.move-grid button:disabled {
+  color: #666;
+  background: #d9ded7;
+  cursor: wait;
+}
+
+.move-grid button:hover,
+.move-grid button:focus-visible,
+.bus-link:hover,
+.bus-link:focus-visible {
+  color: #f4f5ee;
+  background: #111;
+  outline: none;
+}
+
+.move-grid[hidden] {
+  display: none;
+}
+
+.bus-link {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.bus-link[hidden] {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .battle-card {
+    width: min(260px, 58%);
+  }
+
+  .enemy-card {
+    top: 16px;
+    left: 14px;
+  }
+
+  .player-card {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .battle-name-row h1,
+  .battle-name-row h2 {
+    font-size: 13px;
+  }
+
+  .battle-name-row span,
+  .battle-hp-row span,
+  .player-card p {
+    font-size: 8px;
+  }
+
+  .enemy-sprite {
+    top: 112px;
+    right: 28px;
+    width: 34%;
+  }
+
+  .player-sprite {
+    left: 30px;
+    bottom: 48px;
+    width: 36%;
+  }
+
+  .battle-console {
+    min-height: 240px;
+    grid-template-columns: 1fr;
+  }
+
+  .battle-log {
+    min-height: 92px;
+    padding: 13px;
+    border-right: 0;
+    border-bottom: 4px solid #111;
+    font-size: 11px;
+  }
+
+  .move-grid button,
+  .bus-link {
+    padding: 12px 10px;
+    font-size: 9px;
+  }
+}
+
 .npc-dialogue {
   position: absolute;
   z-index: 9;

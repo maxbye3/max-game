@@ -16,6 +16,7 @@ const IMAGE_SOURCES = {
   spriteSheet: 'example_character/SpriteSheet.png',
   mike: 'chat/mike/overworld-avatar.png',
   mikeAftermath: 'img/external/mike-aftermath.png',
+  niall: 'chat/niall/avatar.png',
 } as const;
 
 export type AssetName = keyof typeof IMAGE_SOURCES;
