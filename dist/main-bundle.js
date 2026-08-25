@@ -3,12 +3,14 @@
   // js/assets.ts
   var IMAGE_SOURCES = {
     map: "img/external/overworld.png?v=no-bushes-no-pink-trees",
+    doorOpen: "img/external/door-open.png",
     billboard: "img/external/buildings/billboard.png",
     cinema: "img/external/buildings/cinema.png",
     musicShop: "img/external/buildings/music-shop.png",
     gym: "img/external/buildings/gym.png",
     gymRoof: "img/external/buildings/gym-roof.png",
     snowMansion: "img/external/buildings/snow-mansion.png",
+    snowmanFallen: "img/external/snowman-fallen.png",
     jobCenter: "img/external/buildings/job-center.png",
     artistStudio: "img/external/buildings/artist-studio.png",
     feedback: "img/external/buildings/feedback.png?v=91x97",
@@ -16,11 +18,12 @@
     bookshop: "img/external/buildings/bookshop.png",
     zenGarden: "img/external/buildings/zen-garden.png",
     tori: "img/external/buildings/tori.png",
-    spriteSheet: "example_character/SpriteSheet.png",
+    spriteSheet: "player/SpriteSheet.png",
     mike: "chat/mike/overworld-avatar.png",
     mikeAftermath: "img/external/mike-aftermath.png",
     niall: "chat/niall/avatar.png",
-    niallSprite: "chat/niall/niall-sprite.png"
+    niallSprite: "chat/niall/niall-sprite.png",
+    niallExplanationMark: "chat/niall/explanation-mark.png"
   };
   var images = Object.fromEntries(
     Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()])
@@ -84,8 +87,8 @@
   var DIARY_LAB_HEIGHT = 120;
   var BOOKSHOP_X = 509;
   var BOOKSHOP_Y = 978;
-  var BOOKSHOP_WIDTH = 89;
-  var BOOKSHOP_HEIGHT = 79;
+  var BOOKSHOP_WIDTH = 90;
+  var BOOKSHOP_HEIGHT = 99;
   var HALF_WIDTH = FRAME_WIDTH * SCALE / 2;
   var SPRITE_HEIGHT = FRAME_HEIGHT * SCALE;
   var COLLISION_BUCKET_SIZE = 32;
@@ -116,6 +119,7 @@
     {
       id: "north-directory",
       title: "Town Directory",
+      message: SIGN_MESSAGES[0],
       x: 392,
       y: 157,
       width: 19,
@@ -124,6 +128,7 @@
     {
       id: "community-billboard",
       title: "Community Billboard",
+      message: SIGN_MESSAGES[0],
       x: 402,
       y: 420,
       width: 108,
@@ -132,6 +137,7 @@
     {
       id: "music-shop-placard",
       title: "Music Shop",
+      message: SIGN_MESSAGES[0],
       x: 197,
       y: 471,
       width: 17,
@@ -140,6 +146,7 @@
     {
       id: "job-center-noticeboard",
       title: "Job Center",
+      message: SIGN_MESSAGES[2],
       x: 1057,
       y: 803,
       width: 43,
@@ -148,6 +155,7 @@
     {
       id: "east-directory",
       title: "Riverside Sign",
+      message: SIGN_MESSAGES[0],
       x: 1156,
       y: 960,
       width: 20,
@@ -181,9 +189,9 @@
     if (activeSign?.id === sign.id) return;
     activeSign = sign;
     dialogueTitle.textContent = sign.title;
-    dialogueText.textContent = SIGN_MESSAGES.join("\n\n");
+    dialogueText.textContent = sign.message;
     dialogue.hidden = false;
-    announcer.textContent = `${sign.title}: ${SIGN_MESSAGES.join(" ")}`;
+    announcer.textContent = `${sign.title}: ${sign.message}`;
   }
   function hideSign() {
     activeSign = null;
@@ -297,7 +305,7 @@
     { id: "job-center", x: 1005, y: 775, width: 33, height: 34 },
     { id: "artist-studio", x: 762, y: 788, width: 33, height: 32 },
     { id: "cinema", x: 474, y: 800, width: 33, height: 40 },
-    { id: "bookshop", x: 531, y: 1028, width: 35, height: 26 },
+    { id: "bookshop", x: 542, y: 1034, width: 25, height: 30 },
     { id: "snow-mansion", x: 792, y: 1100, width: 32, height: 32 },
     { id: "feedback-center", x: 123, y: 1103, width: 30, height: 31 }
   ];
@@ -331,7 +339,7 @@
     if (!enteredDoorway) return;
     navigationStarted = true;
     markInternalTestVisited();
-    window.location.assign(`internal-test/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
+    window.location.assign(`internal/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
   }
   function getOpenDoorways() {
     return DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));
@@ -571,7 +579,7 @@
   var speaker = requireElement("#mike-speaker");
   var dialogueLine = requireElement("#mike-dialogue-line");
   var closeButton = requireElement("#mike-dialogue-close");
-  var theme = new Audio("chat/mike/example_character/theme.mp3");
+  var theme = new Audio("chat/mike/player/theme.mp3");
   theme.preload = "auto";
   var nearby = false;
   var dialogueOpen = false;
@@ -635,15 +643,18 @@
 
   // js/niall.ts
   var CONTACT_DISTANCE = 30;
+  var VERTICAL_SIGHT_HALF_WIDTH = 16;
+  var VERTICAL_SIGHT_DISTANCE = 180;
   var CHASE_SPEED = 235;
+  var NIALL_CHASE_ENABLED = false;
   var FRAME_COUNT2 = 4;
   var FRAME_RATE = 9;
   var BATTLE_TRANSITION_DURATION = 1350;
   var NIALL = {
-    x: 430,
-    y: 684,
-    width: 44,
-    height: 66
+    x: 792,
+    y: 391,
+    width: 28,
+    height: 40
   };
   var fightButton = requireElement("#niall-fight-start");
   var gameShell = requireElement(".game-shell");
@@ -656,7 +667,9 @@
   };
   var isNiallFollowing = () => hasCompletedNiallFight();
   var battleTransitionActive = false;
+  var alertActive = false;
   var isNiallBattleTransitionActive = () => battleTransitionActive;
+  var isNiallAlertActive = () => alertActive;
   function playerCollidesWithNiall(x, y) {
     void x;
     void y;
@@ -695,6 +708,13 @@
       niallState.direction = "downRight";
     }
   }
+  function chasePlayer(deltaTime, dx, dy, distance) {
+    setDirection(dx, dy);
+    niallState.x = Math.max(NIALL.width / 2, Math.min(WORLD_WIDTH - NIALL.width / 2, niallState.x + dx / distance * CHASE_SPEED * deltaTime));
+    niallState.y = Math.max(NIALL.height, Math.min(WORLD_HEIGHT, niallState.y + dy / distance * CHASE_SPEED * deltaTime));
+    niallState.animationTime += deltaTime;
+    niallState.frame = Math.floor(niallState.animationTime * FRAME_RATE) % FRAME_COUNT2;
+  }
   function updateNiallInteraction(deltaTime, playerX, playerY) {
     if (isNiallFollowing()) {
       fightButton.hidden = true;
@@ -704,20 +724,79 @@
     fightButton.hidden = true;
     const dx = playerX - niallState.x;
     const dy = playerY - niallState.y;
+    if (!alertActive && Math.abs(dx) <= VERTICAL_SIGHT_HALF_WIDTH && dy > 0 && dy <= VERTICAL_SIGHT_DISTANCE) {
+      alertActive = true;
+      niallState.direction = "down";
+      niallState.frame = 0;
+      releaseAllInput();
+      return;
+    }
+    if (alertActive) return;
     const distance = Math.hypot(dx, dy);
     if (distance <= CONTACT_DISTANCE) {
       startFight();
       return;
     }
-    if (distance === 0) return;
-    setDirection(dx, dy);
-    niallState.x = Math.max(NIALL.width / 2, Math.min(WORLD_WIDTH - NIALL.width / 2, niallState.x + dx / distance * CHASE_SPEED * deltaTime));
-    niallState.y = Math.max(NIALL.height, Math.min(WORLD_HEIGHT, niallState.y + dy / distance * CHASE_SPEED * deltaTime));
-    niallState.animationTime += deltaTime;
-    niallState.frame = Math.floor(niallState.animationTime * FRAME_RATE) % FRAME_COUNT2;
+    if (distance === 0 || !NIALL_CHASE_ENABLED) return;
+    chasePlayer(deltaTime, dx, dy, distance);
   }
   function setupNiall() {
     fightButton.hidden = true;
+  }
+
+  // js/snowman.ts
+  var SNOWMAN = {
+    // Matches the snowman baked into snow-mansion.png.
+    x: 925,
+    y: 1110,
+    fallenWidth: 82,
+    fallenHeight: 67
+  };
+  var COLLISION_RADIUS = 25;
+  var fallen = false;
+  var isSnowmanFallen = () => fallen;
+  function playFallSound() {
+    const AudioContextClass = window.AudioContext;
+    const audioContext = new AudioContextClass();
+    const oscillator = audioContext.createOscillator();
+    const bonkGain = audioContext.createGain();
+    const noise = audioContext.createBufferSource();
+    const noiseFilter = audioContext.createBiquadFilter();
+    const noiseGain = audioContext.createGain();
+    const noiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * 0.16), audioContext.sampleRate);
+    const noiseSamples = noiseBuffer.getChannelData(0);
+    for (let index = 0; index < noiseSamples.length; index += 1) {
+      const fade = 1 - index / noiseSamples.length;
+      noiseSamples[index] = (Math.random() * 2 - 1) * fade;
+    }
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(180, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(65, audioContext.currentTime + 0.18);
+    bonkGain.gain.setValueAtTime(0.14, audioContext.currentTime);
+    bonkGain.gain.exponentialRampToValueAtTime(1e-3, audioContext.currentTime + 0.2);
+    noise.buffer = noiseBuffer;
+    noiseFilter.type = "bandpass";
+    noiseFilter.frequency.value = 900;
+    noiseFilter.Q.value = 0.7;
+    noiseGain.gain.setValueAtTime(0.09, audioContext.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(1e-3, audioContext.currentTime + 0.16);
+    oscillator.connect(bonkGain);
+    bonkGain.connect(audioContext.destination);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(audioContext.destination);
+    oscillator.start();
+    noise.start();
+    oscillator.stop(audioContext.currentTime + 0.2);
+    noise.stop(audioContext.currentTime + 0.16);
+    oscillator.addEventListener("ended", () => void audioContext.close(), { once: true });
+  }
+  function playerCollidesWithSnowman(x, y) {
+    if (fallen) return false;
+    if (Math.hypot(x - SNOWMAN.x, y - SNOWMAN.y) >= COLLISION_RADIUS) return false;
+    fallen = true;
+    playFallSound();
+    return true;
   }
 
   // js/collision.ts
@@ -751,6 +830,7 @@
     if (isDoorPassagePoint(x, y)) return false;
     if (playerCollidesWithMike(x, y)) return true;
     if (playerCollidesWithNiall(x, y)) return true;
+    if (playerCollidesWithSnowman(x, y)) return true;
     const footHalfWidth = Math.max(4, FRAME_WIDTH * SCALE * 0.3);
     const left = x - footHalfWidth;
     const right = x + footHalfWidth;
@@ -910,7 +990,7 @@
     }
   }
   function updatePlayer(deltaTime, speedMultiplier2) {
-    if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallBattleTransitionActive()) {
+    if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallAlertActive() || isNiallBattleTransitionActive()) {
       player.animationTime = 0;
       player.frame = 0;
       return;
@@ -950,6 +1030,18 @@
   var MIKE_AFTERMATH_HEIGHT = 271;
   var NIALL_SPRITE_COLUMNS = 4;
   var NIALL_SPRITE_ROWS = 7;
+  var NIALL_EXPLANATION_MARK_WIDTH = 26;
+  var NIALL_EXPLANATION_MARK_HEIGHT = 21;
+  var BAKED_SNOWMAN_PATCH = {
+    sourceX: 270,
+    sourceY: 105,
+    sourceWidth: 28,
+    sourceHeight: 88,
+    x: SNOW_MANSION_X + 214,
+    y: SNOW_MANSION_Y - 10 + 105,
+    width: 56,
+    height: 88
+  };
   var niallDirectionRows = {
     down: 0,
     downRight: 1,
@@ -991,16 +1083,40 @@
   function drawTori(cameraX, cameraY) {
     context.drawImage(images.tori, TORI_X - cameraX, TORI_Y - cameraY, TORI_SIZE, TORI_SIZE);
   }
+  function drawSnowman(cameraX, cameraY) {
+    if (!isSnowmanFallen()) return;
+    context.save();
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(
+      images.snowMansion,
+      BAKED_SNOWMAN_PATCH.sourceX,
+      BAKED_SNOWMAN_PATCH.sourceY,
+      BAKED_SNOWMAN_PATCH.sourceWidth,
+      BAKED_SNOWMAN_PATCH.sourceHeight,
+      BAKED_SNOWMAN_PATCH.x - cameraX,
+      BAKED_SNOWMAN_PATCH.y - cameraY,
+      BAKED_SNOWMAN_PATCH.width,
+      BAKED_SNOWMAN_PATCH.height
+    );
+    context.drawImage(
+      images.snowmanFallen,
+      Math.round(SNOWMAN.x - cameraX - SNOWMAN.fallenWidth / 2),
+      Math.round(SNOWMAN.y - cameraY - SNOWMAN.fallenHeight),
+      SNOWMAN.fallenWidth,
+      SNOWMAN.fallenHeight
+    );
+    context.restore();
+  }
   function drawOpenDoorways(cameraX, cameraY) {
     for (const doorway of getOpenDoorways()) {
-      const width = Math.max(8, Math.min(14, Math.round(doorway.width * 0.48)));
-      const height = Math.max(10, Math.min(18, Math.round(doorway.height * 0.62)));
-      const x = Math.round(doorway.x + doorway.width / 2 - width / 2 - cameraX);
-      const y = Math.round(doorway.y + doorway.height - height - cameraY);
-      context.fillStyle = "#101816";
-      context.fillRect(x, y, width, height);
-      context.fillStyle = "#263329";
-      context.fillRect(x + 2, y + 2, Math.max(1, width - 4), Math.max(1, height - 2));
+      context.drawImage(
+        images.doorOpen,
+        Math.round(doorway.x - cameraX),
+        Math.round(doorway.y - cameraY),
+        doorway.width,
+        doorway.height
+      );
     }
   }
   function logPlayerPosition() {
@@ -1035,6 +1151,7 @@
       context.drawImage(images.gymRoof, GYM_ROOF_X - cameraX - 1, GYM_ROOF_Y - cameraY + 1);
     }
     context.drawImage(images.snowMansion, SNOW_MANSION_X - cameraX, SNOW_MANSION_Y - cameraY - 10);
+    drawSnowman(cameraX, cameraY);
     context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
     context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
     context.drawImage(images.feedback, FEEDBACK_X - cameraX, FEEDBACK_Y - cameraY);
@@ -1064,6 +1181,15 @@
       drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
     } else {
       drawNiallAt(cameraX, cameraY, niallState.x, niallState.y, niallState.direction, niallState.frame);
+    }
+    if (isNiallAlertActive()) {
+      context.drawImage(
+        images.niallExplanationMark,
+        Math.round(niallState.x - cameraX - NIALL_EXPLANATION_MARK_WIDTH / 2),
+        Math.round(niallState.y - cameraY - NIALL.height - NIALL_EXPLANATION_MARK_HEIGHT - 4),
+        NIALL_EXPLANATION_MARK_WIDTH,
+        NIALL_EXPLANATION_MARK_HEIGHT
+      );
     }
     if (isMikeAftermathActive()) {
       context.drawImage(

@@ -11,7 +11,7 @@ import { DOORWAYS } from './doors.js';
 import { isHoleAnimationActive } from './hole.js';
 import { isHeld } from './input.js';
 import { isMikeDialogueOpen, MIKE } from './mike.js';
-import { isNiallBattleTransitionActive, NIALL } from './niall.js';
+import { isNiallAlertActive, isNiallBattleTransitionActive, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
 
@@ -59,7 +59,7 @@ function movePlayerWithCollisions(movementX: number, movementY: number): void {
 }
 
 export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
-  if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallBattleTransitionActive()) {
+  if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallAlertActive() || isNiallBattleTransitionActive()) {
     player.animationTime = 0;
     player.frame = 0;
     return;

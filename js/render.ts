@@ -45,8 +45,9 @@ import { canvas, context } from './dom.js';
 import { getOpenDoorways } from './doors.js';
 import { getHolePlayerTransform } from './hole.js';
 import { isMikeAftermathActive, MIKE } from './mike.js';
-import { isNiallFollowing, NIALL, niallState } from './niall.js';
+import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
 import { directionRows, player } from './player.js';
+import { isSnowmanFallen, SNOWMAN } from './snowman.js';
 import type { Direction } from './types.js';
 
 const MIKE_AFTERMATH_X = 222;
@@ -56,6 +57,18 @@ const MIKE_AFTERMATH_HEIGHT = 271;
 
 const NIALL_SPRITE_COLUMNS = 4;
 const NIALL_SPRITE_ROWS = 7;
+const NIALL_EXPLANATION_MARK_WIDTH = 26;
+const NIALL_EXPLANATION_MARK_HEIGHT = 21;
+const BAKED_SNOWMAN_PATCH = {
+  sourceX: 270,
+  sourceY: 105,
+  sourceWidth: 28,
+  sourceHeight: 88,
+  x: SNOW_MANSION_X + 214,
+  y: SNOW_MANSION_Y - 10 + 105,
+  width: 56,
+  height: 88,
+} as const;
 const niallDirectionRows: Record<Direction, number> = {
   down: 0,
   downRight: 1,
@@ -115,17 +128,45 @@ function drawTori(cameraX: number, cameraY: number): void {
   context.drawImage(images.tori, TORI_X - cameraX, TORI_Y - cameraY, TORI_SIZE, TORI_SIZE);
 }
 
+function drawSnowman(cameraX: number, cameraY: number): void {
+  if (!isSnowmanFallen()) return;
+
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+
+  // Replace the upright snowman baked into the mansion artwork with nearby
+  // clean snow before drawing the fallen state over the same spot.
+  context.drawImage(
+    images.snowMansion,
+    BAKED_SNOWMAN_PATCH.sourceX,
+    BAKED_SNOWMAN_PATCH.sourceY,
+    BAKED_SNOWMAN_PATCH.sourceWidth,
+    BAKED_SNOWMAN_PATCH.sourceHeight,
+    BAKED_SNOWMAN_PATCH.x - cameraX,
+    BAKED_SNOWMAN_PATCH.y - cameraY,
+    BAKED_SNOWMAN_PATCH.width,
+    BAKED_SNOWMAN_PATCH.height,
+  );
+  context.drawImage(
+    images.snowmanFallen,
+    Math.round(SNOWMAN.x - cameraX - SNOWMAN.fallenWidth / 2),
+    Math.round(SNOWMAN.y - cameraY - SNOWMAN.fallenHeight),
+    SNOWMAN.fallenWidth,
+    SNOWMAN.fallenHeight,
+  );
+  context.restore();
+}
+
 function drawOpenDoorways(cameraX: number, cameraY: number): void {
   for (const doorway of getOpenDoorways()) {
-    const width = Math.max(8, Math.min(14, Math.round(doorway.width * 0.48)));
-    const height = Math.max(10, Math.min(18, Math.round(doorway.height * 0.62)));
-    const x = Math.round(doorway.x + doorway.width / 2 - width / 2 - cameraX);
-    const y = Math.round(doorway.y + doorway.height - height - cameraY);
-
-    context.fillStyle = '#101816';
-    context.fillRect(x, y, width, height);
-    context.fillStyle = '#263329';
-    context.fillRect(x + 2, y + 2, Math.max(1, width - 4), Math.max(1, height - 2));
+    context.drawImage(
+      images.doorOpen,
+      Math.round(doorway.x - cameraX),
+      Math.round(doorway.y - cameraY),
+      doorway.width,
+      doorway.height,
+    );
   }
 }
 
@@ -170,6 +211,7 @@ export function draw(time: number): void {
     context.drawImage(images.gymRoof, GYM_ROOF_X - cameraX - 1, GYM_ROOF_Y - cameraY + 1);
   }
   context.drawImage(images.snowMansion, SNOW_MANSION_X - cameraX, SNOW_MANSION_Y - cameraY - 10);
+  drawSnowman(cameraX, cameraY);
   context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
   context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
   context.drawImage(images.feedback, FEEDBACK_X - cameraX, FEEDBACK_Y - cameraY);
@@ -200,6 +242,15 @@ export function draw(time: number): void {
     drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
   } else {
     drawNiallAt(cameraX, cameraY, niallState.x, niallState.y, niallState.direction, niallState.frame);
+  }
+  if (isNiallAlertActive()) {
+    context.drawImage(
+      images.niallExplanationMark,
+      Math.round(niallState.x - cameraX - NIALL_EXPLANATION_MARK_WIDTH / 2),
+      Math.round(niallState.y - cameraY - NIALL.height - NIALL_EXPLANATION_MARK_HEIGHT - 4),
+      NIALL_EXPLANATION_MARK_WIDTH,
+      NIALL_EXPLANATION_MARK_HEIGHT,
+    );
   }
   if (isMikeAftermathActive()) {
     context.drawImage(

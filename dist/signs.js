@@ -10,6 +10,7 @@ export const SIGNS = [
     {
         id: 'north-directory',
         title: 'Town Directory',
+        message: SIGN_MESSAGES[0],
         x: 392,
         y: 157,
         width: 19,
@@ -18,6 +19,7 @@ export const SIGNS = [
     {
         id: 'community-billboard',
         title: 'Community Billboard',
+        message: SIGN_MESSAGES[0],
         x: 402,
         y: 420,
         width: 108,
@@ -26,6 +28,7 @@ export const SIGNS = [
     {
         id: 'music-shop-placard',
         title: 'Music Shop',
+        message: SIGN_MESSAGES[0],
         x: 197,
         y: 471,
         width: 17,
@@ -34,6 +37,7 @@ export const SIGNS = [
     {
         id: 'job-center-noticeboard',
         title: 'Job Center',
+        message: SIGN_MESSAGES[2],
         x: 1057,
         y: 803,
         width: 43,
@@ -42,6 +46,7 @@ export const SIGNS = [
     {
         id: 'east-directory',
         title: 'Riverside Sign',
+        message: SIGN_MESSAGES[0],
         x: 1156,
         y: 960,
         width: 20,
@@ -77,9 +82,9 @@ function showSign(sign) {
         return;
     activeSign = sign;
     dialogueTitle.textContent = sign.title;
-    dialogueText.textContent = SIGN_MESSAGES.join('\n\n');
+    dialogueText.textContent = sign.message;
     dialogue.hidden = false;
-    announcer.textContent = `${sign.title}: ${SIGN_MESSAGES.join(' ')}`;
+    announcer.textContent = `${sign.title}: ${sign.message}`;
 }
 function hideSign() {
     activeSign = null;

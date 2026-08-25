@@ -5,23 +5,25 @@ import type { CollisionShape } from './types.js';
 interface Sign {
   readonly id: string;
   readonly title: string;
+  readonly message: string;
   readonly x: number;
   readonly y: number;
   readonly width: number;
   readonly height: number;
 }
 
-const SIGN_MESSAGES: readonly string[] = [
+const SIGN_MESSAGES = [
   'Hey, welcome to my website! You can quick-travel by clicking the “Jump” button in the bottom-right.',
   'Click the “Inventory” button to check out everything in your extremely deep pockets. You can get new items by talking to certain folks.',
   'DC has one of the highest employment rates in the country, so helping folks find work is my side hustle.',
-];
+] as const;
 
 // World-space bounds for every fully visible, readable sign in the composed map.
 export const SIGNS: readonly Sign[] = [
   {
     id: 'north-directory',
     title: 'Town Directory',
+    message: SIGN_MESSAGES[0],
     x: 392,
     y: 157,
     width: 19,
@@ -30,6 +32,7 @@ export const SIGNS: readonly Sign[] = [
   {
     id: 'community-billboard',
     title: 'Community Billboard',
+    message: SIGN_MESSAGES[0],
     x: 402,
     y: 420,
     width: 108,
@@ -38,6 +41,7 @@ export const SIGNS: readonly Sign[] = [
   {
     id: 'music-shop-placard',
     title: 'Music Shop',
+    message: SIGN_MESSAGES[0],
     x: 197,
     y: 471,
     width: 17,
@@ -46,6 +50,7 @@ export const SIGNS: readonly Sign[] = [
   {
     id: 'job-center-noticeboard',
     title: 'Job Center',
+    message: SIGN_MESSAGES[2],
     x: 1057,
     y: 803,
     width: 43,
@@ -54,6 +59,7 @@ export const SIGNS: readonly Sign[] = [
   {
     id: 'east-directory',
     title: 'Riverside Sign',
+    message: SIGN_MESSAGES[0],
     x: 1156,
     y: 960,
     width: 20,
@@ -98,9 +104,9 @@ function showSign(sign: Sign): void {
 
   activeSign = sign;
   dialogueTitle.textContent = sign.title;
-  dialogueText.textContent = SIGN_MESSAGES.join('\n\n');
+  dialogueText.textContent = sign.message;
   dialogue.hidden = false;
-  announcer.textContent = `${sign.title}: ${SIGN_MESSAGES.join(' ')}`;
+  announcer.textContent = `${sign.title}: ${sign.message}`;
 }
 
 function hideSign(): void {

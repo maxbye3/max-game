@@ -1,11 +1,13 @@
 const IMAGE_SOURCES = {
     map: 'img/external/overworld.png?v=no-bushes-no-pink-trees',
+    doorOpen: 'img/external/door-open.png',
     billboard: 'img/external/buildings/billboard.png',
     cinema: 'img/external/buildings/cinema.png',
     musicShop: 'img/external/buildings/music-shop.png',
     gym: 'img/external/buildings/gym.png',
     gymRoof: 'img/external/buildings/gym-roof.png',
     snowMansion: 'img/external/buildings/snow-mansion.png',
+    snowmanFallen: 'img/external/snowman-fallen.png',
     jobCenter: 'img/external/buildings/job-center.png',
     artistStudio: 'img/external/buildings/artist-studio.png',
     feedback: 'img/external/buildings/feedback.png?v=91x97',
@@ -13,11 +15,12 @@ const IMAGE_SOURCES = {
     bookshop: 'img/external/buildings/bookshop.png',
     zenGarden: 'img/external/buildings/zen-garden.png',
     tori: 'img/external/buildings/tori.png',
-    spriteSheet: 'example_character/SpriteSheet.png',
+    spriteSheet: 'player/SpriteSheet.png',
     mike: 'chat/mike/overworld-avatar.png',
     mikeAftermath: 'img/external/mike-aftermath.png',
     niall: 'chat/niall/avatar.png',
     niallSprite: 'chat/niall/niall-sprite.png',
+    niallExplanationMark: 'chat/niall/explanation-mark.png',
 };
 export const images = Object.fromEntries(Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()]));
 function loadImage(image, src) {

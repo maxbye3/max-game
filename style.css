@@ -854,7 +854,7 @@ canvas {
 
 .controls {
   position: absolute;
-  left: 24px;
+  right: 24px;
   bottom: 26px;
   display: flex;
   align-items: center;
@@ -929,7 +929,7 @@ kbd {
 @media (max-width: 560px) {
   .game-shell { padding: 0; }
   canvas { border: 0; border-radius: 0; }
-  .controls { left: 12px; bottom: 12px; }
+  .controls { right: 12px; bottom: 12px; }
   .keyboard-hint { display: none; }
   .inventory-toggle { top: 12px; right: 12px; }
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }

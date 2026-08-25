@@ -1,4 +1,5 @@
 import { INTERNAL_COLLISION_BITS, INTERNAL_COLLISION_CELL_SIZE, INTERNAL_COLLISION_COLUMNS, INTERNAL_COLLISION_ROWS, } from './internal-collision-mask.js';
+import { CINEMA_COLLISION_BITS, CINEMA_COLLISION_CELL_SIZE, CINEMA_COLLISION_COLUMNS, CINEMA_COLLISION_ROWS, } from './cinema-collision-mask.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { markInternalTestVisited } from './world-state.js';
 const requireElement = (selector) => {
@@ -61,21 +62,26 @@ const INTERACTION_TARGETS = [
     { kind: 'experiments', label: 'See experiments', x: 350, y: 285, distance: 54 },
 ];
 const SHOW_COLLISIONS = new URLSearchParams(window.location.search).has('collisions');
+const enteredDoor = new URLSearchParams(window.location.search).get('door');
+const isCinemaInterior = enteredDoor === 'cinema';
 const interior = new Image();
 const collisionMask = new Image();
 const doorOverlay = new Image();
 const spriteSheet = new Image();
 const noelSprite = new Image();
-interior.src = '../img/internal/diary-lab.png';
-collisionMask.src = '../img/internal/diary-lab-collision.png';
-doorOverlay.src = '../img/internal/diary-lab-doors-out.png';
-spriteSheet.src = '../example_character/SpriteSheet.png';
+interior.src = isCinemaInterior ? '../img/internal/cinema.png?v=512x768' : '../img/internal/diary-lab.png';
+collisionMask.src = isCinemaInterior ? '../img/internal/cinema-collisions.png?v=20260825-update-2' : '../img/internal/diary-lab-collision.png';
+doorOverlay.src = isCinemaInterior ? '../img/internal/cinema-door-open.png' : '../img/internal/diary-lab-doors-out.png';
+spriteSheet.src = '../player/SpriteSheet.png';
 noelSprite.src = '../chat/noel/interior-avatar.png';
 const doorSound = new Audio('../audio/open-door.mp3');
 doorSound.preload = 'auto';
-const noelTheme = new Audio('../chat/noel/example_character/theme.mp3');
+const noelTheme = new Audio('../chat/noel/player/theme.mp3');
 noelTheme.preload = 'auto';
-const collisionBinary = atob(INTERNAL_COLLISION_BITS);
+const collisionCellSize = isCinemaInterior ? CINEMA_COLLISION_CELL_SIZE : INTERNAL_COLLISION_CELL_SIZE;
+const collisionColumns = isCinemaInterior ? CINEMA_COLLISION_COLUMNS : INTERNAL_COLLISION_COLUMNS;
+const collisionRows = isCinemaInterior ? CINEMA_COLLISION_ROWS : INTERNAL_COLLISION_ROWS;
+const collisionBinary = atob(isCinemaInterior ? CINEMA_COLLISION_BITS : INTERNAL_COLLISION_BITS);
 const collisionBits = Uint8Array.from(collisionBinary, (character) => character.charCodeAt(0));
 const directionRows = {
     down: 0,
@@ -87,10 +93,9 @@ const directionRows = {
     left: 6,
     downLeft: 7,
 };
-const enteredDoor = new URLSearchParams(window.location.search).get('door');
 const player = {
-    x: enteredDoor === 'diary-lab-right' ? 359 : 153,
-    y: 563,
+    x: isCinemaInterior ? 256 : enteredDoor === 'diary-lab-right' ? 359 : 153,
+    y: isCinemaInterior ? 650 : 563,
     direction: 'up',
     frame: 0,
     animationTime: 0,
@@ -114,7 +119,7 @@ let navigationStarted = false;
 let nearbyInteraction = null;
 let noelDialogueOpen = false;
 let noelConversationIndex = 0;
-const INTERIOR_DOORS = [
+const DIARY_LAB_DOORS = [
     {
         triggerX: 153,
         triggerY: 595,
@@ -140,6 +145,21 @@ const INTERIOR_DOORS = [
         height: 130,
     },
 ];
+const CINEMA_DOORS = [
+    {
+        triggerX: 256,
+        triggerY: 700,
+        sourceX: 0,
+        sourceY: 0,
+        sourceWidth: 241,
+        sourceHeight: 368,
+        x: 208,
+        y: 560,
+        width: 96,
+        height: 147,
+    },
+];
+const INTERIOR_DOORS = isCinemaInterior ? CINEMA_DOORS : DIARY_LAB_DOORS;
 const DOOR_OPEN_DISTANCE = 53;
 const DOOR_EXIT_DISTANCE = 18;
 const isHeld = (direction) => heldDirections.has(direction);
@@ -352,16 +372,16 @@ function bindControls() {
 function isCollisionPixel(x, y) {
     if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT)
         return true;
-    const column = Math.floor(x / INTERNAL_COLLISION_CELL_SIZE);
-    const row = Math.floor(y / INTERNAL_COLLISION_CELL_SIZE);
-    if (column >= INTERNAL_COLLISION_COLUMNS || row >= INTERNAL_COLLISION_ROWS)
+    const column = Math.floor(x / collisionCellSize);
+    const row = Math.floor(y / collisionCellSize);
+    if (column >= collisionColumns || row >= collisionRows)
         return true;
-    const cellIndex = row * INTERNAL_COLLISION_COLUMNS + column;
+    const cellIndex = row * collisionColumns + column;
     const byte = collisionBits[Math.floor(cellIndex / 8)] ?? 0;
     return (byte & (1 << (cellIndex % 8))) !== 0;
 }
 function playerCollidesAt(x, y) {
-    if (Math.hypot(x - NOEL.x, y - NOEL.y) < NOEL_COLLISION_DISTANCE)
+    if (!isCinemaInterior && Math.hypot(x - NOEL.x, y - NOEL.y) < NOEL_COLLISION_DISTANCE)
         return true;
     const halfWidth = FRAME_WIDTH * PLAYER_SCALE * 0.29;
     const footHeight = FRAME_HEIGHT * PLAYER_SCALE * 0.17;
@@ -429,6 +449,11 @@ function updatePlayer(deltaTime) {
     player.frame = Math.floor(player.animationTime * 11) % FRAME_COUNT;
 }
 function updateNearbyInteraction() {
+    if (isCinemaInterior) {
+        nearbyInteraction = null;
+        interactionPrompt.hidden = true;
+        return;
+    }
     const target = INTERACTION_TARGETS
         .map((interaction) => ({
         ...interaction,
@@ -469,11 +494,14 @@ function draw() {
     const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - viewportHeight, player.y - viewportHeight / 2)));
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(interior, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
-    context.drawImage(noelSprite, Math.round((NOEL.x - cameraX - NOEL.width / 2) * VIEW_SCALE), Math.round((NOEL.y - cameraY - NOEL.height) * VIEW_SCALE), NOEL.width * VIEW_SCALE, NOEL.height * VIEW_SCALE);
+    if (!isCinemaInterior) {
+        context.drawImage(noelSprite, Math.round((NOEL.x - cameraX - NOEL.width / 2) * VIEW_SCALE), Math.round((NOEL.y - cameraY - NOEL.height) * VIEW_SCALE), NOEL.width * VIEW_SCALE, NOEL.height * VIEW_SCALE);
+    }
     if (SHOW_COLLISIONS) {
         context.save();
         context.globalAlpha = 0.55;
-        context.drawImage(collisionMask, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
+        const collisionSourceScale = 1;
+        context.drawImage(collisionMask, cameraX * collisionSourceScale, cameraY * collisionSourceScale, viewportWidth * collisionSourceScale, viewportHeight * collisionSourceScale, 0, 0, canvas.width, canvas.height);
         context.restore();
     }
     const width = FRAME_WIDTH * PLAYER_SCALE;
@@ -505,6 +533,6 @@ Promise.all([interior.decode(), collisionMask.decode(), doorOverlay.decode(), sp
     console.error(error);
     context.fillStyle = '#f5fff6';
     context.font = '13px monospace';
-    context.fillText('Could not load the Diary Lab.', 120, 240);
+    context.fillText('Could not load the interior.', 120, 240);
 });
 //# sourceMappingURL=internal.js.map

@@ -8,16 +8,19 @@ import { releaseAllInput } from './input.js';
 import type { Direction } from './types.js';
 
 const CONTACT_DISTANCE = 30;
+const VERTICAL_SIGHT_HALF_WIDTH = 16;
+const VERTICAL_SIGHT_DISTANCE = 180;
 const CHASE_SPEED = 235;
+const NIALL_CHASE_ENABLED = false;
 const FRAME_COUNT = 4;
 const FRAME_RATE = 9;
 const BATTLE_TRANSITION_DURATION = 1350;
 
 export const NIALL = {
-  x: 430,
-  y: 684,
-  width: 44,
-  height: 66,
+  x: 792,
+  y: 391,
+  width: 28,
+  height: 40,
 } as const;
 
 const fightButton = requireElement<HTMLButtonElement>('#niall-fight-start');
@@ -39,8 +42,10 @@ export const niallState: {
 
 export const isNiallFollowing = () => hasCompletedNiallFight();
 let battleTransitionActive = false;
+let alertActive = false;
 
 export const isNiallBattleTransitionActive = () => battleTransitionActive;
+export const isNiallAlertActive = () => alertActive;
 
 export function playerCollidesWithNiall(x: number, y: number): boolean {
   void x;
@@ -85,6 +90,14 @@ function setDirection(dx: number, dy: number): void {
   }
 }
 
+function chasePlayer(deltaTime: number, dx: number, dy: number, distance: number): void {
+  setDirection(dx, dy);
+  niallState.x = Math.max(NIALL.width / 2, Math.min(WORLD_WIDTH - NIALL.width / 2, niallState.x + (dx / distance) * CHASE_SPEED * deltaTime));
+  niallState.y = Math.max(NIALL.height, Math.min(WORLD_HEIGHT, niallState.y + (dy / distance) * CHASE_SPEED * deltaTime));
+  niallState.animationTime += deltaTime;
+  niallState.frame = Math.floor(niallState.animationTime * FRAME_RATE) % FRAME_COUNT;
+}
+
 export function updateNiallInteraction(deltaTime: number, playerX: number, playerY: number): void {
   if (isNiallFollowing()) {
     fightButton.hidden = true;
@@ -95,18 +108,23 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
   fightButton.hidden = true;
   const dx = playerX - niallState.x;
   const dy = playerY - niallState.y;
+  if (!alertActive && Math.abs(dx) <= VERTICAL_SIGHT_HALF_WIDTH && dy > 0 && dy <= VERTICAL_SIGHT_DISTANCE) {
+    alertActive = true;
+    niallState.direction = 'down';
+    niallState.frame = 0;
+    releaseAllInput();
+    return;
+  }
+  if (alertActive) return;
+
   const distance = Math.hypot(dx, dy);
   if (distance <= CONTACT_DISTANCE) {
     startFight();
     return;
   }
-  if (distance === 0) return;
+  if (distance === 0 || !NIALL_CHASE_ENABLED) return;
 
-  setDirection(dx, dy);
-  niallState.x = Math.max(NIALL.width / 2, Math.min(WORLD_WIDTH - NIALL.width / 2, niallState.x + (dx / distance) * CHASE_SPEED * deltaTime));
-  niallState.y = Math.max(NIALL.height, Math.min(WORLD_HEIGHT, niallState.y + (dy / distance) * CHASE_SPEED * deltaTime));
-  niallState.animationTime += deltaTime;
-  niallState.frame = Math.floor(niallState.animationTime * FRAME_RATE) % FRAME_COUNT;
+  chasePlayer(deltaTime, dx, dy, distance);
 }
 
 export function setupNiall(): void {

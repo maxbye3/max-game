@@ -19,7 +19,7 @@ export const DOORWAYS: readonly Doorway[] = [
   { id: 'job-center', x: 1005, y: 775, width: 33, height: 34 },
   { id: 'artist-studio', x: 762, y: 788, width: 33, height: 32 },
   { id: 'cinema', x: 474, y: 800, width: 33, height: 40 },
-  { id: 'bookshop', x: 531, y: 1028, width: 35, height: 26 },
+  { id: 'bookshop', x: 542, y: 1034, width: 25, height: 30 },
   { id: 'snow-mansion', x: 792, y: 1100, width: 32, height: 32 },
   { id: 'feedback-center', x: 123, y: 1103, width: 30, height: 31 },
 ];
@@ -68,7 +68,7 @@ export function updateDoors(playerX: number, playerY: number): void {
 
   navigationStarted = true;
   markInternalTestVisited();
-  window.location.assign(`internal-test/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
+  window.location.assign(`internal/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
 }
 
 export function getOpenDoorways(): Doorway[] {

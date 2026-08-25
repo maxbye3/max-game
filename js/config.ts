@@ -37,8 +37,8 @@ export const DIARY_LAB_WIDTH = 224;
 export const DIARY_LAB_HEIGHT = 120;
 export const BOOKSHOP_X = 509;
 export const BOOKSHOP_Y = 978;
-export const BOOKSHOP_WIDTH = 89;
-export const BOOKSHOP_HEIGHT = 79;
+export const BOOKSHOP_WIDTH = 90;
+export const BOOKSHOP_HEIGHT = 99;
 
 export const HALF_WIDTH = (FRAME_WIDTH * SCALE) / 2;
 export const SPRITE_HEIGHT = FRAME_HEIGHT * SCALE;

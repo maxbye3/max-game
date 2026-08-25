@@ -3,6 +3,7 @@ import { COLLISION_SHAPES } from './collision-data.js';
 import { isDoorPassagePoint } from './doors.js';
 import { playerCollidesWithMike } from './mike.js';
 import { playerCollidesWithNiall } from './niall.js';
+import { playerCollidesWithSnowman } from './snowman.js';
 import type { CollisionShape } from './types.js';
 
 const bucketKey = (column: number, row: number) => `${column},${row}`;
@@ -51,6 +52,7 @@ export function playerCollidesAt(x: number, y: number): boolean {
   if (isDoorPassagePoint(x, y)) return false;
   if (playerCollidesWithMike(x, y)) return true;
   if (playerCollidesWithNiall(x, y)) return true;
+  if (playerCollidesWithSnowman(x, y)) return true;
 
   const footHalfWidth = Math.max(4, FRAME_WIDTH * SCALE * 0.3);
   const left = x - footHalfWidth;

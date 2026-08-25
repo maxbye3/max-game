@@ -16,7 +16,7 @@
     bookshop: "img/external/buildings/bookshop.png",
     zenGarden: "img/external/buildings/zen-garden.png",
     tori: "img/external/buildings/tori.png",
-    spriteSheet: "example_character/SpriteSheet.png"
+    spriteSheet: "player/SpriteSheet.png"
   };
   var images = Object.fromEntries(
     Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()])
@@ -302,7 +302,7 @@
     const enteredDoorway = DOORWAYS.find((doorway) => pointInsideDoorway(playerX, playerY, doorway));
     if (!enteredDoorway) return;
     navigationStarted = true;
-    window.location.assign("/internal-test");
+    window.location.assign("/internal");
   }
   function getOpenDoorways() {
     return DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));

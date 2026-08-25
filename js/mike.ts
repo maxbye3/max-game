@@ -19,7 +19,7 @@ const dialogue = requireElement<HTMLElement>('#mike-dialogue');
 const speaker = requireElement<HTMLElement>('#mike-speaker');
 const dialogueLine = requireElement<HTMLElement>('#mike-dialogue-line');
 const closeButton = requireElement<HTMLButtonElement>('#mike-dialogue-close');
-const theme = new Audio('chat/mike/example_character/theme.mp3');
+const theme = new Audio('chat/mike/player/theme.mp3');
 theme.preload = 'auto';
 
 let nearby = false;
