@@ -1,5 +1,6 @@
 import { INTERNAL_COLLISION_BITS, INTERNAL_COLLISION_CELL_SIZE, INTERNAL_COLLISION_COLUMNS, INTERNAL_COLLISION_ROWS, } from './internal-collision-mask.js';
 import { CINEMA_COLLISION_BITS, CINEMA_COLLISION_CELL_SIZE, CINEMA_COLLISION_COLUMNS, CINEMA_COLLISION_ROWS, } from './cinema-collision-mask.js';
+import { CAVE_DOOR_ID, drawColander, hasCaveColander, setCaveColanderHeld } from './colander.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { markInternalTestVisited } from './world-state.js';
 const requireElement = (selector) => {
@@ -29,6 +30,7 @@ const experimentsPanel = requireElement('#experiments-panel');
 const experimentLightbox = requireElement('#experiment-lightbox');
 const experimentLightboxImage = requireElement('#experiment-lightbox-image');
 const experimentLightboxClose = requireElement('#experiment-lightbox-close');
+const interiorExit = document.querySelector('.interior-exit');
 function requireCanvasContext(target) {
     const value = target.getContext('2d');
     if (!value)
@@ -36,40 +38,66 @@ function requireCanvasContext(target) {
     return value;
 }
 const context = requireCanvasContext(canvas);
-const WORLD_WIDTH = 512;
-const WORLD_HEIGHT = 768;
 const FRAME_WIDTH = 23;
 const FRAME_HEIGHT = 36;
 const FRAME_COUNT = 9;
 const PLAYER_SCALE = 2;
 const VIEW_SCALE = 1;
 const SPEED = 145;
+const CAVE_WIDTH = 1280;
+const CAVE_HEIGHT = 640;
+const DEFAULT_INTERIOR_WIDTH = 512;
+const DEFAULT_INTERIOR_HEIGHT = 768;
 const NOEL_FOLDER = 'chat/noel';
 const NOEL_NAME = NOEL_FOLDER.slice(NOEL_FOLDER.lastIndexOf('/') + 1);
 const NOEL_QUESTION = 'would you like to checkout some experiments Max is working on or his journal (this will require you to know his phone number)';
 const DIARY_PHONE_NUMBERS = new Set(['2026527772', '07815437754']);
 const NOEL = {
-    x: WORLD_WIDTH / 2,
-    y: WORLD_HEIGHT / 2 + 36,
+    x: DEFAULT_INTERIOR_WIDTH / 2,
+    y: DEFAULT_INTERIOR_HEIGHT / 2 + 36,
     width: 52,
     height: 72,
 };
 const NOEL_COLLISION_DISTANCE = 31;
 const NOEL_INTERACTION_DISTANCE = 62;
-const INTERACTION_TARGETS = [
-    { kind: 'noel', label: 'Talk to noel', x: NOEL.x, y: NOEL.y, distance: NOEL_INTERACTION_DISTANCE },
-    { kind: 'diary', label: 'See journal', x: 170, y: 466, distance: 54 },
-    { kind: 'experiments', label: 'See experiments', x: 350, y: 285, distance: 54 },
+const CAVE_COLANDER = {
+    x: 1035,
+    y: 584,
+    eraseX: 972,
+    eraseY: 535,
+    eraseWidth: 125,
+    eraseHeight: 92,
+};
+const CAVE_WALLS = [
+    [0, 0, CAVE_WIDTH, 93],
+    [0, 0, 132, CAVE_HEIGHT],
+    [1147, 0, 133, CAVE_HEIGHT],
 ];
 const SHOW_COLLISIONS = new URLSearchParams(window.location.search).has('collisions');
 const enteredDoor = new URLSearchParams(window.location.search).get('door');
 const isCinemaInterior = enteredDoor === 'cinema';
+const isCaveInterior = enteredDoor === CAVE_DOOR_ID || enteredDoor === 'cave';
+const WORLD_WIDTH = isCaveInterior ? CAVE_WIDTH : DEFAULT_INTERIOR_WIDTH;
+const WORLD_HEIGHT = isCaveInterior ? CAVE_HEIGHT : DEFAULT_INTERIOR_HEIGHT;
+const INTERACTION_TARGETS = [
+    ...(isCaveInterior
+        ? [{ kind: 'colander', label: 'Pick up colander', x: CAVE_COLANDER.x, y: CAVE_COLANDER.y, distance: 78 }]
+        : [
+            { kind: 'noel', label: 'Talk to noel', x: NOEL.x, y: NOEL.y, distance: NOEL_INTERACTION_DISTANCE },
+            { kind: 'diary', label: 'See journal', x: 170, y: 466, distance: 54 },
+            { kind: 'experiments', label: 'See experiments', x: 350, y: 285, distance: 54 },
+        ]),
+];
 const interior = new Image();
 const collisionMask = new Image();
 const doorOverlay = new Image();
 const spriteSheet = new Image();
 const noelSprite = new Image();
-interior.src = isCinemaInterior ? '../img/internal/cinema.png?v=512x768' : '../img/internal/diary-lab.png';
+interior.src = isCaveInterior
+    ? '../img/internal/cave.jpg?v=20260825-colander-cave'
+    : isCinemaInterior
+        ? '../img/internal/cinema.png?v=512x768'
+        : '../img/internal/diary-lab.png';
 collisionMask.src = isCinemaInterior ? '../img/internal/cinema-collisions.png?v=20260825-update-2' : '../img/internal/diary-lab-collision.png';
 doorOverlay.src = isCinemaInterior ? '../img/internal/cinema-door-open.png' : '../img/internal/diary-lab-doors-out.png';
 spriteSheet.src = '../player/SpriteSheet.png';
@@ -94,8 +122,8 @@ const directionRows = {
     downLeft: 7,
 };
 const player = {
-    x: isCinemaInterior ? 256 : enteredDoor === 'diary-lab-right' ? 359 : 153,
-    y: isCinemaInterior ? 650 : 563,
+    x: isCaveInterior ? 640 : isCinemaInterior ? 256 : enteredDoor === 'diary-lab-right' ? 359 : 153,
+    y: isCaveInterior ? 180 : isCinemaInterior ? 650 : 563,
     direction: 'up',
     frame: 0,
     animationTime: 0,
@@ -159,9 +187,32 @@ const CINEMA_DOORS = [
         height: 147,
     },
 ];
-const INTERIOR_DOORS = isCinemaInterior ? CINEMA_DOORS : DIARY_LAB_DOORS;
+const CAVE_DOORS = [
+    {
+        triggerX: 640,
+        triggerY: 116,
+        sourceX: 0,
+        sourceY: 0,
+        sourceWidth: 1,
+        sourceHeight: 1,
+        x: 630,
+        y: 92,
+        width: 20,
+        height: 32,
+    },
+];
+const INTERIOR_DOORS = isCaveInterior ? CAVE_DOORS : isCinemaInterior ? CINEMA_DOORS : DIARY_LAB_DOORS;
 const DOOR_OPEN_DISTANCE = 53;
 const DOOR_EXIT_DISTANCE = 18;
+let caveColanderHeld = hasCaveColander();
+function syncInteriorExitLink() {
+    if (!interiorExit || !enteredDoor)
+        return;
+    const params = new URLSearchParams({ door: enteredDoor });
+    if (isCaveInterior && caveColanderHeld)
+        params.set('colander', '1');
+    interiorExit.href = `../index.html?${params.toString()}`;
+}
 const isHeld = (direction) => heldDirections.has(direction);
 function holdDirection(direction) {
     if (noelDialogueOpen)
@@ -287,11 +338,30 @@ function startFeatureInteraction(kind) {
     else
         openExperimentsPanel();
 }
+function startColanderPickup() {
+    if (!isCaveInterior || noelDialogueOpen || caveColanderHeld)
+        return;
+    releaseAllInput();
+    caveColanderHeld = true;
+    setCaveColanderHeld();
+    syncInteriorExitLink();
+    nearbyInteraction = null;
+    noelDialogueOpen = true;
+    noelSpeaker.textContent = 'RED SQUARE';
+    noelDialogueLine.textContent = 'PUT THAT DOWN NOW';
+    noelDialogueQuestion.hidden = true;
+    noelDialogueOptions.hidden = true;
+    noelDialogue.hidden = false;
+    interactionPrompt.hidden = true;
+}
 function activateNearbyInteraction() {
     if (nearbyInteraction === 'noel')
         startNoelDialogue();
     else if (nearbyInteraction === 'diary' || nearbyInteraction === 'experiments') {
         startFeatureInteraction(nearbyInteraction);
+    }
+    else if (nearbyInteraction === 'colander') {
+        startColanderPickup();
     }
 }
 function bindControls() {
@@ -372,6 +442,12 @@ function bindControls() {
 function isCollisionPixel(x, y) {
     if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT)
         return true;
+    if (isCaveInterior) {
+        return CAVE_WALLS.some(([wallX, wallY, wallWidth, wallHeight]) => x >= wallX &&
+            x < wallX + wallWidth &&
+            y >= wallY &&
+            y < wallY + wallHeight);
+    }
     const column = Math.floor(x / collisionCellSize);
     const row = Math.floor(y / collisionCellSize);
     if (column >= collisionColumns || row >= collisionRows)
@@ -449,6 +525,11 @@ function updatePlayer(deltaTime) {
     player.frame = Math.floor(player.animationTime * 11) % FRAME_COUNT;
 }
 function updateNearbyInteraction() {
+    if (isCaveInterior && caveColanderHeld) {
+        nearbyInteraction = null;
+        interactionPrompt.hidden = true;
+        return;
+    }
     if (isCinemaInterior) {
         nearbyInteraction = null;
         interactionPrompt.hidden = true;
@@ -484,7 +565,8 @@ function updateDoors() {
     if (!exitDoor)
         return;
     navigationStarted = true;
-    const returnDoor = enteredDoor ? `?door=${encodeURIComponent(enteredDoor)}` : '';
+    const colanderParam = isCaveInterior && caveColanderHeld ? '&colander=1' : '';
+    const returnDoor = enteredDoor ? `?door=${encodeURIComponent(enteredDoor)}${colanderParam}` : '';
     window.location.assign(`../index.html${returnDoor}`);
 }
 function draw() {
@@ -494,20 +576,35 @@ function draw() {
     const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - viewportHeight, player.y - viewportHeight / 2)));
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(interior, cameraX, cameraY, viewportWidth, viewportHeight, 0, 0, canvas.width, canvas.height);
-    if (!isCinemaInterior) {
+    if (isCaveInterior && caveColanderHeld) {
+        context.fillStyle = '#0b0d0d';
+        context.fillRect((CAVE_COLANDER.eraseX - cameraX) * VIEW_SCALE, (CAVE_COLANDER.eraseY - cameraY) * VIEW_SCALE, CAVE_COLANDER.eraseWidth * VIEW_SCALE, CAVE_COLANDER.eraseHeight * VIEW_SCALE);
+    }
+    if (!isCinemaInterior && !isCaveInterior) {
         context.drawImage(noelSprite, Math.round((NOEL.x - cameraX - NOEL.width / 2) * VIEW_SCALE), Math.round((NOEL.y - cameraY - NOEL.height) * VIEW_SCALE), NOEL.width * VIEW_SCALE, NOEL.height * VIEW_SCALE);
     }
     if (SHOW_COLLISIONS) {
         context.save();
         context.globalAlpha = 0.55;
-        const collisionSourceScale = 1;
-        context.drawImage(collisionMask, cameraX * collisionSourceScale, cameraY * collisionSourceScale, viewportWidth * collisionSourceScale, viewportHeight * collisionSourceScale, 0, 0, canvas.width, canvas.height);
+        if (isCaveInterior) {
+            context.fillStyle = '#005cff';
+            for (const [wallX, wallY, wallWidth, wallHeight] of CAVE_WALLS) {
+                context.fillRect((wallX - cameraX) * VIEW_SCALE, (wallY - cameraY) * VIEW_SCALE, wallWidth * VIEW_SCALE, wallHeight * VIEW_SCALE);
+            }
+        }
+        else {
+            const collisionSourceScale = 1;
+            context.drawImage(collisionMask, cameraX * collisionSourceScale, cameraY * collisionSourceScale, viewportWidth * collisionSourceScale, viewportHeight * collisionSourceScale, 0, 0, canvas.width, canvas.height);
+        }
         context.restore();
     }
     const width = FRAME_WIDTH * PLAYER_SCALE;
     const height = FRAME_HEIGHT * PLAYER_SCALE;
     context.drawImage(spriteSheet, player.frame * FRAME_WIDTH, directionRows[player.direction] * FRAME_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT, Math.round((player.x - cameraX - width / 2) * VIEW_SCALE), Math.round((player.y - cameraY - height) * VIEW_SCALE), width * VIEW_SCALE, height * VIEW_SCALE);
-    if (openDoorIndex !== null) {
+    if (caveColanderHeld) {
+        drawColander(context, Math.round((player.x - cameraX + 19) * VIEW_SCALE), Math.round((player.y - cameraY - 30) * VIEW_SCALE), VIEW_SCALE);
+    }
+    if (!isCaveInterior && openDoorIndex !== null) {
         const door = INTERIOR_DOORS[openDoorIndex];
         if (door) {
             context.drawImage(doorOverlay, door.sourceX, door.sourceY, door.sourceWidth, door.sourceHeight, (door.x - cameraX) * VIEW_SCALE, (door.y - cameraY) * VIEW_SCALE, door.width * VIEW_SCALE, door.height * VIEW_SCALE);
@@ -523,8 +620,12 @@ function gameLoop(time) {
     draw();
     requestAnimationFrame(gameLoop);
 }
+syncInteriorExitLink();
 bindControls();
-Promise.all([interior.decode(), collisionMask.decode(), doorOverlay.decode(), spriteSheet.decode(), noelSprite.decode()])
+const requiredImages = isCaveInterior
+    ? [interior, spriteSheet]
+    : [interior, collisionMask, doorOverlay, spriteSheet, noelSprite];
+Promise.all(requiredImages.map((image) => image.decode()))
     .then(() => {
     context.imageSmoothingEnabled = false;
     requestAnimationFrame(gameLoop);

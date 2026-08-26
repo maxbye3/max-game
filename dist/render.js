@@ -1,4 +1,6 @@
 import { images } from './assets.js';
+import { getCaveTheftCameraCenter, getCaveThief, getCaveThiefDialogue } from './cave-thief.js';
+import { drawColander, hasCaveColander } from './colander.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import { ARTIST_STUDIO_X, ARTIST_STUDIO_Y, BILLBOARD_X, BILLBOARD_Y, BOOKSHOP_HEIGHT, BOOKSHOP_WIDTH, BOOKSHOP_X, BOOKSHOP_Y, CINEMA_X, CINEMA_Y, DIARY_LAB_HEIGHT, DIARY_LAB_WIDTH, DIARY_LAB_X, DIARY_LAB_Y, FEEDBACK_X, FEEDBACK_Y, FRAME_HEIGHT, FRAME_WIDTH, GYM_ROOF_TOGGLE_INTERVAL, GYM_ROOF_X, GYM_ROOF_Y, GYM_X, GYM_Y, JOB_CENTER_X, JOB_CENTER_Y, MUSIC_SHOP_X, MUSIC_SHOP_Y, SCALE, SHOW_COLLISION_SHAPES, SNOW_MANSION_X, SNOW_MANSION_Y, TORI_PLAYER_DEPTH_Y, TORI_SIZE, TORI_X, TORI_Y, WORLD_HEIGHT, WORLD_WIDTH, ZEN_GARDEN_X, ZEN_GARDEN_Y, } from './config.js';
 import { canvas, context } from './dom.js';
@@ -78,6 +80,56 @@ function drawOpenDoorways(cameraX, cameraY) {
         context.drawImage(images.doorOpen, Math.round(doorway.x - cameraX), Math.round(doorway.y - cameraY), doorway.width, doorway.height);
     }
 }
+function drawCaveThief(cameraX, cameraY) {
+    const thief = getCaveThief();
+    if (!thief)
+        return;
+    const left = Math.round(thief.x - cameraX - thief.size / 2);
+    const top = Math.round(thief.y - cameraY - thief.size);
+    context.fillStyle = '#111';
+    context.fillRect(left - 2, top - 2, thief.size + 4, thief.size + 4);
+    context.fillStyle = '#d71920';
+    context.fillRect(left, top, thief.size, thief.size);
+    context.fillStyle = '#ff6565';
+    context.fillRect(left + 4, top + 4, thief.size - 8, 5);
+}
+function drawSpeechBubble(text, anchorX, anchorY) {
+    context.save();
+    context.font = '12px "Press Start 2P", monospace';
+    context.textBaseline = 'top';
+    const paddingX = 10;
+    const paddingY = 8;
+    const maxWidth = 270;
+    const words = text.split(' ');
+    const lines = [];
+    let line = '';
+    for (const word of words) {
+        const nextLine = line ? `${line} ${word}` : word;
+        if (context.measureText(nextLine).width > maxWidth && line) {
+            lines.push(line);
+            line = word;
+        }
+        else {
+            line = nextLine;
+        }
+    }
+    if (line)
+        lines.push(line);
+    const textWidth = Math.min(maxWidth, Math.max(...lines.map((value) => context.measureText(value).width)));
+    const width = textWidth + paddingX * 2;
+    const height = lines.length * 18 + paddingY * 2;
+    const x = Math.round(Math.max(8, Math.min(canvas.width - width - 8, anchorX - width / 2)));
+    const y = Math.round(Math.max(8, anchorY - height - 18));
+    context.fillStyle = '#111';
+    context.fillRect(x - 3, y - 3, width + 6, height + 6);
+    context.fillStyle = '#f7f3e8';
+    context.fillRect(x, y, width, height);
+    context.fillStyle = '#111';
+    lines.forEach((value, index) => {
+        context.fillText(value, x + paddingX, y + paddingY + index * 18);
+    });
+    context.restore();
+}
 function logPlayerPosition() {
     const playerX = player.x.toFixed(1);
     const playerY = player.y.toFixed(1);
@@ -93,8 +145,9 @@ export function draw(time) {
     // Rounded so the map is sampled on whole source pixels: a fractional source
     // rect snaps at a browser-defined threshold and makes the player jitter
     // against the tiles by a pixel on every step.
-    const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, player.x - canvas.width / 2)));
-    const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, player.y - canvas.height / 2)));
+    const cameraCenter = getCaveTheftCameraCenter(player.x, player.y, time);
+    const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
+    const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
     context.drawImage(images.map, cameraX, cameraY, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
     context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
     // Canvas layers use draw order instead of CSS z-index. Drawing buildings
@@ -122,6 +175,7 @@ export function draw(time) {
     if (SHOW_COLLISION_SHAPES)
         drawCollisionShapes(cameraX, cameraY);
     drawOpenDoorways(cameraX, cameraY);
+    drawCaveThief(cameraX, cameraY);
     if (isNiallFollowing()) {
         drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
     }
@@ -154,8 +208,16 @@ export function draw(time) {
     else {
         context.drawImage(images.spriteSheet, sourceX, sourceY, FRAME_WIDTH, FRAME_HEIGHT, Math.round(player.x - cameraX - width / 2), Math.round(player.y - cameraY - height), width, height);
     }
+    if (hasCaveColander()) {
+        drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
+    }
     if (toriCoversPlayer)
         drawTori(cameraX, cameraY);
+    const thief = getCaveThief();
+    const thiefDialogue = getCaveThiefDialogue();
+    if (thief && thiefDialogue) {
+        drawSpeechBubble(thiefDialogue, thief.x - cameraX, thief.y - cameraY - thief.size);
+    }
 }
 export function drawLoadFailure() {
     context.fillStyle = '#0b1c10';

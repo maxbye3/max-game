@@ -16,12 +16,13 @@
           </div>
           <div class="battle-hp-row">
             <span>HP:</span>
-            <meter id="niall-hp" min="0" max="100" value="100"></meter>
+            <meter id="niall-hp" min="0" max="120" value="120"></meter>
           </div>
         </div>
 
-        <img id="niall-battler" class="battle-sprite enemy-sprite" src="../chat/niall/avatar.png" alt="Niall">
-        <img class="battle-sprite player-sprite" src="../player/avatar.png" alt="Protagonist">
+        <div id="battle-dice" class="battle-dice" aria-live="polite" hidden>0</div>
+        <img id="niall-battler" class="battle-sprite enemy-sprite" src="../img/battle/niall-avatar.png" alt="Niall">
+        <img class="battle-sprite player-sprite" src="../img/battle/max-avatar.png" alt="Max">
 
         <div class="battle-card player-card">
           <div class="battle-name-row">
@@ -39,12 +40,18 @@
 
       <section class="battle-console">
         <div id="battle-log" class="battle-log" aria-live="polite">A wild NIALL appeared.</div>
-        <div id="move-grid" class="move-grid" aria-label="Battle moves">
-          <button type="button" data-move="splash">Splash</button>
-          <button type="button" data-move="lecture">Lecture</button>
-          <button type="button" data-move="calm">Tell him to calm down</button>
-          <button type="button" data-move="chelsea">Chelsea</button>
-          <button type="button" data-move="reprimand">Reprimand</button>
+        <div id="move-grid" class="move-grid" aria-label="Battle actions">
+          <button type="button" data-action="attack">Attack</button>
+          <button type="button" data-action="run">Run</button>
+          <button type="button" data-action="items">Items</button>
+          <button type="button" data-action="defend">Defend</button>
+        </div>
+        <div id="item-grid" class="move-grid item-grid" aria-label="Battle items" hidden>
+          <button type="button" data-item="vape">Vape</button>
+          <button type="button" data-item="capri-sun">Capri Sun</button>
+          <button type="button" data-item="pocket-lint">Pocket lint</button>
+          <button type="button" data-item="gun">Gun</button>
+          <button class="full-row" type="button" data-action="back">Back</button>
         </div>
         <a id="bus-link" class="bus-link" href="../index.html?niall=bus" hidden>Walk to the bus</a>
       </section>

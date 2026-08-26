@@ -1,4 +1,5 @@
 import { FRAME_COUNT, HALF_WIDTH, SPEED, SPRITE_HEIGHT, WORLD_HEIGHT, WORLD_WIDTH, } from './config.js';
+import { isCaveTheftCutsceneActive } from './cave-thief.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
 import { isHoleAnimationActive } from './hole.js';
@@ -45,7 +46,11 @@ function movePlayerWithCollisions(movementX, movementY) {
     }
 }
 export function updatePlayer(deltaTime, speedMultiplier) {
-    if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallAlertActive() || isNiallBattleTransitionActive()) {
+    if (isHoleAnimationActive() ||
+        isMikeDialogueOpen() ||
+        isNiallAlertActive() ||
+        isNiallBattleTransitionActive() ||
+        isCaveTheftCutsceneActive()) {
         player.animationTime = 0;
         player.frame = 0;
         return;

@@ -1,4 +1,5 @@
 import { loadAssets } from './assets.js';
+import { setupCaveThief, updateCaveThief } from './cave-thief.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import { canvas } from './dom.js';
 import { updateDoors } from './doors.js';
@@ -17,8 +18,10 @@ function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   updatePowerups(time);
-  updatePlayer(deltaTime, getSpeedMultiplier());
+  const speedMultiplier = getSpeedMultiplier();
+  updatePlayer(deltaTime, speedMultiplier);
   updateHole(deltaTime, player);
+  updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier);
   updateMikeInteraction(player.x, player.y);
   updateNiallInteraction(deltaTime, player.x, player.y);
   updateSigns(player.x, player.y);
@@ -31,6 +34,7 @@ setupInput();
 setupInventory();
 setupMike();
 setupNiall();
+setupCaveThief();
 
 loadAssets()
   .then(() => {

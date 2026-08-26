@@ -1,4 +1,6 @@
 import { images } from './assets.js';
+import { getCaveTheftCameraCenter, getCaveThief, getCaveThiefDialogue } from './cave-thief.js';
+import { drawColander, hasCaveColander } from './colander.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import {
   ARTIST_STUDIO_X,
@@ -170,6 +172,58 @@ function drawOpenDoorways(cameraX: number, cameraY: number): void {
   }
 }
 
+function drawCaveThief(cameraX: number, cameraY: number): void {
+  const thief = getCaveThief();
+  if (!thief) return;
+
+  const left = Math.round(thief.x - cameraX - thief.size / 2);
+  const top = Math.round(thief.y - cameraY - thief.size);
+  context.fillStyle = '#111';
+  context.fillRect(left - 2, top - 2, thief.size + 4, thief.size + 4);
+  context.fillStyle = '#d71920';
+  context.fillRect(left, top, thief.size, thief.size);
+  context.fillStyle = '#ff6565';
+  context.fillRect(left + 4, top + 4, thief.size - 8, 5);
+}
+
+function drawSpeechBubble(text: string, anchorX: number, anchorY: number): void {
+  context.save();
+  context.font = '12px "Press Start 2P", monospace';
+  context.textBaseline = 'top';
+  const paddingX = 10;
+  const paddingY = 8;
+  const maxWidth = 270;
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let line = '';
+  for (const word of words) {
+    const nextLine = line ? `${line} ${word}` : word;
+    if (context.measureText(nextLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = nextLine;
+    }
+  }
+  if (line) lines.push(line);
+
+  const textWidth = Math.min(maxWidth, Math.max(...lines.map((value) => context.measureText(value).width)));
+  const width = textWidth + paddingX * 2;
+  const height = lines.length * 18 + paddingY * 2;
+  const x = Math.round(Math.max(8, Math.min(canvas.width - width - 8, anchorX - width / 2)));
+  const y = Math.round(Math.max(8, anchorY - height - 18));
+
+  context.fillStyle = '#111';
+  context.fillRect(x - 3, y - 3, width + 6, height + 6);
+  context.fillStyle = '#f7f3e8';
+  context.fillRect(x, y, width, height);
+  context.fillStyle = '#111';
+  lines.forEach((value, index) => {
+    context.fillText(value, x + paddingX, y + paddingY + index * 18);
+  });
+  context.restore();
+}
+
 function logPlayerPosition(): void {
   const playerX = player.x.toFixed(1);
   const playerY = player.y.toFixed(1);
@@ -187,8 +241,9 @@ export function draw(time: number): void {
   // Rounded so the map is sampled on whole source pixels: a fractional source
   // rect snaps at a browser-defined threshold and makes the player jitter
   // against the tiles by a pixel on every step.
-  const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, player.x - canvas.width / 2)));
-  const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, player.y - canvas.height / 2)));
+  const cameraCenter = getCaveTheftCameraCenter(player.x, player.y, time);
+  const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
+  const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
   context.drawImage(
     images.map,
     cameraX,
@@ -238,6 +293,7 @@ export function draw(time: number): void {
 
   if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
   drawOpenDoorways(cameraX, cameraY);
+  drawCaveThief(cameraX, cameraY);
   if (isNiallFollowing()) {
     drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
   } else {
@@ -309,7 +365,16 @@ export function draw(time: number): void {
       height,
     );
   }
+  if (hasCaveColander()) {
+    drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
+  }
   if (toriCoversPlayer) drawTori(cameraX, cameraY);
+
+  const thief = getCaveThief();
+  const thiefDialogue = getCaveThiefDialogue();
+  if (thief && thiefDialogue) {
+    drawSpeechBubble(thiefDialogue, thief.x - cameraX, thief.y - cameraY - thief.size);
+  }
 }
 
 export function drawLoadFailure(): void {
