@@ -21,6 +21,8 @@ const IMAGE_SOURCES = {
   niall: 'chat/niall/avatar.png',
   niallSprite: 'chat/niall/niall-sprite.png',
   niallExplanationMark: 'chat/niall/explanation-mark.png',
+  girlsSprite: 'chat/siblings/girls-sprite.png',
+  bus: 'img/external/bus.png',
 } as const;
 
 export type AssetName = keyof typeof IMAGE_SOURCES;

@@ -225,6 +225,38 @@ canvas {
   font-family: var(--font-display);
 }
 
+.cave-intro-skip {
+  position: absolute;
+  z-index: 8;
+  left: 24px;
+  bottom: 26px;
+  min-width: 140px;
+  padding: 12px 20px;
+  border: 2px solid #666;
+  border-radius: 8px;
+  color: #ccc;
+  background: #333;
+  font: 700 11px/1.4 var(--font-display);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.cave-intro-skip:hover,
+.cave-intro-skip:focus-visible {
+  border-color: #888;
+  color: #fff;
+  background: #555;
+}
+
+.cave-intro-skip:active {
+  color: #fff;
+  background: #222;
+  transform: scale(.95);
+}
+
 .sign-dialogue {
   position: absolute;
   z-index: 6;
@@ -972,6 +1004,7 @@ kbd {
   .game-shell { padding: 0; }
   canvas { border: 0; border-radius: 0; }
   .controls { right: 12px; bottom: 12px; }
+  .cave-intro-skip { left: 12px; bottom: 12px; }
   .keyboard-hint { display: none; }
   .inventory-toggle { top: 12px; right: 12px; }
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }

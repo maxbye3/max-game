@@ -347,7 +347,7 @@ function startColanderPickup() {
     syncInteriorExitLink();
     nearbyInteraction = null;
     noelDialogueOpen = true;
-    noelSpeaker.textContent = 'RED SQUARE';
+    noelSpeaker.textContent = 'THE GIRLS';
     noelDialogueLine.textContent = 'PUT THAT DOWN NOW';
     noelDialogueQuestion.hidden = true;
     noelDialogueOptions.hidden = true;

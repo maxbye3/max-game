@@ -7,10 +7,16 @@ const THIEF_SIZE = 24;
 const GRID_SIZE = 16;
 const SEQUENCE_DELAY = 5000;
 const PAN_DURATION = 1200;
+const BUS_DRIVE_DURATION = 3000;
+const BUS_STOP_DURATION = 2000;
+const BUS_SKIP_SPEED_MULTIPLIER = 10;
+const BUS_RENDER_WIDTH = 126;
+const BUS_RENDER_HEIGHT = 72;
 const MESSAGE_DURATION = 1800;
 const PATH_REFRESH_INTERVAL = 0.22;
 const MAX_PATH_EXPANSIONS = 5200;
 const MESSAGE = 'Come back here you thief!';
+const skipIntroButton = document.querySelector('#cave-intro-skip');
 const entrance = {
     x: CAVE_DOOR ? CAVE_DOOR.x + CAVE_DOOR.width / 2 : 236,
     y: CAVE_DOOR ? CAVE_DOOR.y + CAVE_DOOR.height + 16 : 284,
@@ -25,7 +31,19 @@ const state = {
     path: [],
     repathTimer: 0,
     targetCell: -1,
+    direction: 'down',
+    frame: 0,
+    animationTime: 0,
 };
+let busPlaybackRate = 1;
+function setSkipIntroVisible(visible) {
+    if (skipIntroButton)
+        skipIntroButton.hidden = !visible;
+}
+function skipBusIntro() {
+    busPlaybackRate = BUS_SKIP_SPEED_MULTIPLIER;
+    setSkipIntroVisible(false);
+}
 function readReturnedFromCave() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('door') !== CAVE_DOOR_ID || params.get('colander') !== '1')
@@ -36,21 +54,57 @@ function readReturnedFromCave() {
 export function setupCaveThief() {
     if (!readReturnedFromCave())
         return;
+    skipIntroButton?.addEventListener('click', skipBusIntro, { once: true });
     state.phase = 'waiting';
     state.returnTime = performance.now();
     state.x = entrance.x;
     state.y = entrance.y;
 }
 export function isCaveTheftCutsceneActive() {
-    return state.phase === 'panToEntrance' || state.phase === 'message' || state.phase === 'panToPlayer';
+    return state.phase === 'panToEntrance' ||
+        state.phase === 'busIn' ||
+        state.phase === 'busStopped' ||
+        state.phase === 'busOut' ||
+        state.phase === 'message' ||
+        state.phase === 'panToPlayer';
 }
 export function getCaveThiefDialogue() {
     return state.phase === 'message' ? MESSAGE : null;
 }
 export function getCaveThief() {
-    if (state.phase === 'hidden' || state.phase === 'waiting')
+    if (state.phase === 'hidden' || state.phase === 'waiting' || state.phase === 'panToEntrance' || state.phase === 'busIn') {
         return null;
-    return { x: state.x, y: state.y, size: THIEF_SIZE };
+    }
+    return {
+        x: state.x,
+        y: state.y,
+        size: THIEF_SIZE,
+        direction: state.direction,
+        frame: state.frame,
+        moving: state.phase === 'chasing',
+    };
+}
+export function getCaveBus(time) {
+    if (state.phase !== 'busIn' && state.phase !== 'busStopped' && state.phase !== 'busOut')
+        return null;
+    const startX = entrance.x + 240 + BUS_RENDER_WIDTH / 2;
+    const stopX = entrance.x;
+    const endX = entrance.x - 240 - BUS_RENDER_WIDTH / 2;
+    let x = stopX;
+    if (state.phase === 'busIn') {
+        const progress = easeInOut(Math.min(1, ((time - state.phaseStart) * busPlaybackRate) / BUS_DRIVE_DURATION));
+        x = startX + (stopX - startX) * progress;
+    }
+    else if (state.phase === 'busOut') {
+        const progress = Math.min(1, ((time - state.phaseStart) * busPlaybackRate) / BUS_DRIVE_DURATION);
+        x = stopX + (endX - stopX) * progress * progress;
+    }
+    return {
+        x,
+        y: entrance.y + 28,
+        width: BUS_RENDER_WIDTH,
+        height: BUS_RENDER_HEIGHT,
+    };
 }
 function easeInOut(t) {
     return t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
@@ -64,6 +118,8 @@ export function getCaveTheftCameraCenter(playerX, playerY, time) {
         };
     }
     if (state.phase === 'message')
+        return entrance;
+    if (state.phase === 'busIn' || state.phase === 'busStopped' || state.phase === 'busOut')
         return entrance;
     if (state.phase === 'panToPlayer') {
         const progress = easeInOut(Math.min(1, (time - state.phaseStart) / PAN_DURATION));
@@ -205,6 +261,12 @@ function updateChase(deltaTime, targetX, targetY, speedMultiplier) {
         return;
     }
     const speed = SPEED * speedMultiplier;
+    if (Math.abs(dx) > Math.abs(dy))
+        state.direction = dx < 0 ? 'left' : 'right';
+    else
+        state.direction = dy < 0 ? 'up' : 'down';
+    state.animationTime += deltaTime;
+    state.frame = Math.floor(state.animationTime * 9);
     moveWithCollisions((dx / distance) * speed * deltaTime, (dy / distance) * speed * deltaTime);
 }
 export function updateCaveThief(deltaTime, time, playerX, playerY, speedMultiplier) {
@@ -219,8 +281,25 @@ export function updateCaveThief(deltaTime, time, playerX, playerY, speedMultipli
         return;
     }
     if (state.phase === 'panToEntrance' && time - state.phaseStart >= PAN_DURATION) {
+        state.phase = 'busIn';
+        state.phaseStart = time;
+        setSkipIntroVisible(true);
+        return;
+    }
+    if (state.phase === 'busIn' && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
+        state.phase = 'busStopped';
+        state.phaseStart = time;
+        return;
+    }
+    if (state.phase === 'busStopped' && (time - state.phaseStart) * busPlaybackRate >= BUS_STOP_DURATION) {
+        state.phase = 'busOut';
+        state.phaseStart = time;
+        return;
+    }
+    if (state.phase === 'busOut' && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
         state.phase = 'message';
         state.phaseStart = time;
+        setSkipIntroVisible(false);
         return;
     }
     if (state.phase === 'message' && time - state.phaseStart >= MESSAGE_DURATION) {
@@ -232,6 +311,8 @@ export function updateCaveThief(deltaTime, time, playerX, playerY, speedMultipli
         state.phase = 'chasing';
         state.path = [];
         state.repathTimer = 0;
+        state.animationTime = 0;
+        state.frame = 0;
         return;
     }
     if (state.phase === 'chasing')

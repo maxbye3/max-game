@@ -1,6 +1,5 @@
 import { requireElement } from './dom.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
-import { hasVisitedInternalTest } from './world-state.js';
 const MIKE_FOLDER = 'chat/mike';
 const MIKE_NAME = MIKE_FOLDER.slice(MIKE_FOLDER.lastIndexOf('/') + 1);
 const INTERACTION_DISTANCE = 56;
@@ -16,16 +15,13 @@ const dialogue = requireElement('#mike-dialogue');
 const speaker = requireElement('#mike-speaker');
 const dialogueLine = requireElement('#mike-dialogue-line');
 const closeButton = requireElement('#mike-dialogue-close');
-const theme = new Audio('chat/mike/player/theme.mp3');
+const theme = new Audio('chat/mike/example_character/theme.mp3');
 theme.preload = 'auto';
 let nearby = false;
 let dialogueOpen = false;
 let conversationIndex = 0;
 export const isMikeDialogueOpen = () => dialogueOpen;
-export const isMikeAftermathActive = () => hasVisitedInternalTest();
 export function playerCollidesWithMike(x, y) {
-    if (isMikeAftermathActive())
-        return false;
     return Math.hypot(x - MIKE.x, y - MIKE.y) < COLLISION_DISTANCE;
 }
 function closeDialogue() {
@@ -51,11 +47,6 @@ function startDialogue() {
     });
 }
 export function updateMikeInteraction(playerX, playerY) {
-    if (isMikeAftermathActive()) {
-        nearby = false;
-        talkButton.hidden = true;
-        return;
-    }
     const nextNearby = Math.hypot(playerX - MIKE.x, playerY - MIKE.y) <= INTERACTION_DISTANCE;
     if (nextNearby === nearby)
         return;
@@ -63,10 +54,6 @@ export function updateMikeInteraction(playerX, playerY) {
     talkButton.hidden = !nearby || dialogueOpen;
 }
 export function setupMike() {
-    if (isMikeAftermathActive()) {
-        talkButton.hidden = true;
-        return;
-    }
     talkButton.addEventListener('click', startDialogue);
     closeButton.addEventListener('click', closeDialogue);
     window.addEventListener('keydown', (event) => {

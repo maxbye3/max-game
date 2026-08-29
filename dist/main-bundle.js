@@ -23,7 +23,9 @@
     mikeAftermath: "img/external/mike-aftermath.png",
     niall: "chat/niall/avatar.png",
     niallSprite: "chat/niall/niall-sprite.png",
-    niallExplanationMark: "chat/niall/explanation-mark.png"
+    niallExplanationMark: "chat/niall/explanation-mark.png",
+    girlsSprite: "chat/siblings/girls-sprite.png",
+    bus: "img/external/bus.png"
   };
   var images = Object.fromEntries(
     Object.keys(IMAGE_SOURCES).map((name) => [name, new Image()])
@@ -309,13 +311,6 @@
   // js/world-state.ts
   var INTERNAL_TEST_VISITED_KEY = "max-game:internal-test-visited";
   var NIALL_FIGHT_COMPLETE_KEY = "max-game:niall-fight-complete";
-  function hasVisitedInternalTest() {
-    try {
-      return window.localStorage.getItem(INTERNAL_TEST_VISITED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  }
   function markInternalTestVisited() {
     try {
       window.localStorage.setItem(INTERNAL_TEST_VISITED_KEY, "true");
@@ -407,15 +402,13 @@
   var speaker = requireElement("#mike-speaker");
   var dialogueLine = requireElement("#mike-dialogue-line");
   var closeButton = requireElement("#mike-dialogue-close");
-  var theme = new Audio("chat/mike/player/theme.mp3");
+  var theme = new Audio("chat/mike/example_character/theme.mp3");
   theme.preload = "auto";
   var nearby = false;
   var dialogueOpen = false;
   var conversationIndex = 0;
   var isMikeDialogueOpen = () => dialogueOpen;
-  var isMikeAftermathActive = () => hasVisitedInternalTest();
   function playerCollidesWithMike(x, y) {
-    if (isMikeAftermathActive()) return false;
     return Math.hypot(x - MIKE.x, y - MIKE.y) < COLLISION_DISTANCE;
   }
   function closeDialogue() {
@@ -439,21 +432,12 @@
     });
   }
   function updateMikeInteraction(playerX, playerY) {
-    if (isMikeAftermathActive()) {
-      nearby = false;
-      talkButton.hidden = true;
-      return;
-    }
     const nextNearby = Math.hypot(playerX - MIKE.x, playerY - MIKE.y) <= INTERACTION_DISTANCE;
     if (nextNearby === nearby) return;
     nearby = nextNearby;
     talkButton.hidden = !nearby || dialogueOpen;
   }
   function setupMike() {
-    if (isMikeAftermathActive()) {
-      talkButton.hidden = true;
-      return;
-    }
     talkButton.addEventListener("click", startDialogue);
     closeButton.addEventListener("click", closeDialogue);
     window.addEventListener("keydown", (event) => {
@@ -790,10 +774,16 @@
   var GRID_SIZE = 16;
   var SEQUENCE_DELAY = 5e3;
   var PAN_DURATION = 1200;
+  var BUS_DRIVE_DURATION = 3e3;
+  var BUS_STOP_DURATION = 2e3;
+  var BUS_SKIP_SPEED_MULTIPLIER = 10;
+  var BUS_RENDER_WIDTH = 126;
+  var BUS_RENDER_HEIGHT = 72;
   var MESSAGE_DURATION = 1800;
   var PATH_REFRESH_INTERVAL = 0.22;
   var MAX_PATH_EXPANSIONS = 5200;
   var MESSAGE = "Come back here you thief!";
+  var skipIntroButton = document.querySelector("#cave-intro-skip");
   var entrance = {
     x: CAVE_DOOR ? CAVE_DOOR.x + CAVE_DOOR.width / 2 : 236,
     y: CAVE_DOOR ? CAVE_DOOR.y + CAVE_DOOR.height + 16 : 284
@@ -807,8 +797,19 @@
     panFrom: { x: entrance.x, y: entrance.y },
     path: [],
     repathTimer: 0,
-    targetCell: -1
+    targetCell: -1,
+    direction: "down",
+    frame: 0,
+    animationTime: 0
   };
+  var busPlaybackRate = 1;
+  function setSkipIntroVisible(visible) {
+    if (skipIntroButton) skipIntroButton.hidden = !visible;
+  }
+  function skipBusIntro() {
+    busPlaybackRate = BUS_SKIP_SPEED_MULTIPLIER;
+    setSkipIntroVisible(false);
+  }
   function readReturnedFromCave() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("door") !== CAVE_DOOR_ID || params.get("colander") !== "1") return false;
@@ -817,20 +818,50 @@
   }
   function setupCaveThief() {
     if (!readReturnedFromCave()) return;
+    skipIntroButton?.addEventListener("click", skipBusIntro, { once: true });
     state.phase = "waiting";
     state.returnTime = performance.now();
     state.x = entrance.x;
     state.y = entrance.y;
   }
   function isCaveTheftCutsceneActive() {
-    return state.phase === "panToEntrance" || state.phase === "message" || state.phase === "panToPlayer";
+    return state.phase === "panToEntrance" || state.phase === "busIn" || state.phase === "busStopped" || state.phase === "busOut" || state.phase === "message" || state.phase === "panToPlayer";
   }
   function getCaveThiefDialogue() {
     return state.phase === "message" ? MESSAGE : null;
   }
   function getCaveThief() {
-    if (state.phase === "hidden" || state.phase === "waiting") return null;
-    return { x: state.x, y: state.y, size: THIEF_SIZE };
+    if (state.phase === "hidden" || state.phase === "waiting" || state.phase === "panToEntrance" || state.phase === "busIn") {
+      return null;
+    }
+    return {
+      x: state.x,
+      y: state.y,
+      size: THIEF_SIZE,
+      direction: state.direction,
+      frame: state.frame,
+      moving: state.phase === "chasing"
+    };
+  }
+  function getCaveBus(time) {
+    if (state.phase !== "busIn" && state.phase !== "busStopped" && state.phase !== "busOut") return null;
+    const startX = entrance.x + 240 + BUS_RENDER_WIDTH / 2;
+    const stopX = entrance.x;
+    const endX = entrance.x - 240 - BUS_RENDER_WIDTH / 2;
+    let x = stopX;
+    if (state.phase === "busIn") {
+      const progress = easeInOut(Math.min(1, (time - state.phaseStart) * busPlaybackRate / BUS_DRIVE_DURATION));
+      x = startX + (stopX - startX) * progress;
+    } else if (state.phase === "busOut") {
+      const progress = Math.min(1, (time - state.phaseStart) * busPlaybackRate / BUS_DRIVE_DURATION);
+      x = stopX + (endX - stopX) * progress * progress;
+    }
+    return {
+      x,
+      y: entrance.y + 28,
+      width: BUS_RENDER_WIDTH,
+      height: BUS_RENDER_HEIGHT
+    };
   }
   function easeInOut(t) {
     return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
@@ -844,6 +875,7 @@
       };
     }
     if (state.phase === "message") return entrance;
+    if (state.phase === "busIn" || state.phase === "busStopped" || state.phase === "busOut") return entrance;
     if (state.phase === "panToPlayer") {
       const progress = easeInOut(Math.min(1, (time - state.phaseStart) / PAN_DURATION));
       return {
@@ -971,6 +1003,10 @@
       return;
     }
     const speed = SPEED * speedMultiplier2;
+    if (Math.abs(dx) > Math.abs(dy)) state.direction = dx < 0 ? "left" : "right";
+    else state.direction = dy < 0 ? "up" : "down";
+    state.animationTime += deltaTime;
+    state.frame = Math.floor(state.animationTime * 9);
     moveWithCollisions(dx / distance * speed * deltaTime, dy / distance * speed * deltaTime);
   }
   function updateCaveThief(deltaTime, time, playerX, playerY, speedMultiplier2) {
@@ -983,8 +1019,25 @@
       return;
     }
     if (state.phase === "panToEntrance" && time - state.phaseStart >= PAN_DURATION) {
+      state.phase = "busIn";
+      state.phaseStart = time;
+      setSkipIntroVisible(true);
+      return;
+    }
+    if (state.phase === "busIn" && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
+      state.phase = "busStopped";
+      state.phaseStart = time;
+      return;
+    }
+    if (state.phase === "busStopped" && (time - state.phaseStart) * busPlaybackRate >= BUS_STOP_DURATION) {
+      state.phase = "busOut";
+      state.phaseStart = time;
+      return;
+    }
+    if (state.phase === "busOut" && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
       state.phase = "message";
       state.phaseStart = time;
+      setSkipIntroVisible(false);
       return;
     }
     if (state.phase === "message" && time - state.phaseStart >= MESSAGE_DURATION) {
@@ -996,6 +1049,8 @@
       state.phase = "chasing";
       state.path = [];
       state.repathTimer = 0;
+      state.animationTime = 0;
+      state.frame = 0;
       return;
     }
     if (state.phase === "chasing") updateChase(deltaTime, playerX, playerY, speedMultiplier2);
@@ -1277,14 +1332,49 @@
   }
 
   // js/render.ts
-  var MIKE_AFTERMATH_X = 222;
-  var MIKE_AFTERMATH_Y = 432;
-  var MIKE_AFTERMATH_WIDTH = 276;
-  var MIKE_AFTERMATH_HEIGHT = 271;
   var NIALL_SPRITE_COLUMNS = 4;
   var NIALL_SPRITE_ROWS = 7;
   var NIALL_EXPLANATION_MARK_WIDTH = 26;
   var NIALL_EXPLANATION_MARK_HEIGHT = 21;
+  var GIRLS_RENDER_WIDTH = 56;
+  var GIRLS_RENDER_HEIGHT = 44;
+  var GIRLS_IDLE_FRAMES = [
+    [181, 16, 235, 176],
+    [457, 16, 233, 176],
+    [737, 16, 233, 176],
+    [1014, 16, 235, 176]
+  ];
+  var GIRLS_WALK_FRAMES = {
+    down: [
+      [163, 206, 212, 183],
+      [416, 206, 214, 183],
+      [657, 206, 211, 183],
+      [890, 206, 198, 183],
+      [1103, 206, 180, 183],
+      [1302, 206, 193, 183]
+    ],
+    left: [
+      [148, 403, 218, 175],
+      [398, 403, 219, 175],
+      [653, 403, 226, 175],
+      [922, 403, 219, 175],
+      [1186, 403, 231, 175]
+    ],
+    right: [
+      [141, 591, 231, 179],
+      [404, 591, 230, 179],
+      [667, 591, 236, 179],
+      [939, 591, 237, 179],
+      [1211, 591, 237, 179]
+    ],
+    up: [
+      [152, 786, 200, 188],
+      [409, 786, 201, 188],
+      [679, 786, 208, 188],
+      [947, 786, 211, 188],
+      [1213, 786, 214, 188]
+    ]
+  };
   var BAKED_SNOWMAN_PATCH = {
     sourceX: 270,
     sourceY: 105,
@@ -1375,14 +1465,39 @@
   function drawCaveThief(cameraX, cameraY) {
     const thief = getCaveThief();
     if (!thief) return;
-    const left = Math.round(thief.x - cameraX - thief.size / 2);
-    const top = Math.round(thief.y - cameraY - thief.size);
-    context.fillStyle = "#111";
-    context.fillRect(left - 2, top - 2, thief.size + 4, thief.size + 4);
-    context.fillStyle = "#d71920";
-    context.fillRect(left, top, thief.size, thief.size);
-    context.fillStyle = "#ff6565";
-    context.fillRect(left + 4, top + 4, thief.size - 8, 5);
+    const frames = thief.moving ? GIRLS_WALK_FRAMES[thief.direction] : GIRLS_IDLE_FRAMES;
+    const frame = frames[thief.frame % frames.length] ?? frames[0];
+    if (!frame) return;
+    const [sourceX, sourceY, sourceWidth, sourceHeight] = frame;
+    context.save();
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(
+      images.girlsSprite,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      Math.round(thief.x - cameraX - GIRLS_RENDER_WIDTH / 2),
+      Math.round(thief.y - cameraY - GIRLS_RENDER_HEIGHT),
+      GIRLS_RENDER_WIDTH,
+      GIRLS_RENDER_HEIGHT
+    );
+    context.restore();
+  }
+  function drawCaveBus(cameraX, cameraY, time) {
+    const bus = getCaveBus(time);
+    if (!bus) return;
+    context.save();
+    context.imageSmoothingEnabled = false;
+    context.drawImage(
+      images.bus,
+      Math.round(bus.x - cameraX - bus.width / 2),
+      Math.round(bus.y - cameraY - bus.height),
+      bus.width,
+      bus.height
+    );
+    context.restore();
   }
   function drawSpeechBubble(text, anchorX, anchorY) {
     context.save();
@@ -1493,23 +1608,13 @@
         NIALL_EXPLANATION_MARK_HEIGHT
       );
     }
-    if (isMikeAftermathActive()) {
-      context.drawImage(
-        images.mikeAftermath,
-        MIKE_AFTERMATH_X - cameraX,
-        MIKE_AFTERMATH_Y - cameraY,
-        MIKE_AFTERMATH_WIDTH,
-        MIKE_AFTERMATH_HEIGHT
-      );
-    } else {
-      context.drawImage(
-        images.mike,
-        Math.round(MIKE.x - cameraX - MIKE.width / 2),
-        Math.round(MIKE.y - cameraY - MIKE.height),
-        MIKE.width,
-        MIKE.height
-      );
-    }
+    context.drawImage(
+      images.mike,
+      Math.round(MIKE.x - cameraX - MIKE.width / 2),
+      Math.round(MIKE.y - cameraY - MIKE.height),
+      MIKE.width,
+      MIKE.height
+    );
     const sourceX = player.frame * FRAME_WIDTH;
     const sourceY = directionRows[player.direction] * FRAME_HEIGHT;
     const width = FRAME_WIDTH * SCALE;
@@ -1553,6 +1658,7 @@
       drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
     }
     if (toriCoversPlayer) drawTori(cameraX, cameraY);
+    drawCaveBus(cameraX, cameraY, time);
     const thief = getCaveThief();
     const thiefDialogue = getCaveThiefDialogue();
     if (thief && thiefDialogue) {

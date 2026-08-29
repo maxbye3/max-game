@@ -1,5 +1,11 @@
 import { images } from './assets.js';
-import { getCaveTheftCameraCenter, getCaveThief, getCaveThiefDialogue } from './cave-thief.js';
+import {
+  getCaveTheftCameraCenter,
+  getCaveBus,
+  getCaveThief,
+  getCaveThiefDialogue,
+  type CaveThiefDirection,
+} from './cave-thief.js';
 import { drawColander, hasCaveColander } from './colander.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import {
@@ -46,21 +52,56 @@ import {
 import { canvas, context } from './dom.js';
 import { getOpenDoorways } from './doors.js';
 import { getHolePlayerTransform } from './hole.js';
-import { isMikeAftermathActive, MIKE } from './mike.js';
+import { MIKE } from './mike.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
 import { directionRows, player } from './player.js';
 import { isSnowmanFallen, SNOWMAN } from './snowman.js';
 import type { Direction } from './types.js';
 
-const MIKE_AFTERMATH_X = 222;
-const MIKE_AFTERMATH_Y = 432;
-const MIKE_AFTERMATH_WIDTH = 276;
-const MIKE_AFTERMATH_HEIGHT = 271;
-
 const NIALL_SPRITE_COLUMNS = 4;
 const NIALL_SPRITE_ROWS = 7;
 const NIALL_EXPLANATION_MARK_WIDTH = 26;
 const NIALL_EXPLANATION_MARK_HEIGHT = 21;
+const GIRLS_RENDER_WIDTH = 56;
+const GIRLS_RENDER_HEIGHT = 44;
+type SpriteFrame = readonly [x: number, y: number, width: number, height: number];
+const GIRLS_IDLE_FRAMES: readonly SpriteFrame[] = [
+  [181, 16, 235, 176],
+  [457, 16, 233, 176],
+  [737, 16, 233, 176],
+  [1014, 16, 235, 176],
+];
+const GIRLS_WALK_FRAMES: Record<CaveThiefDirection, readonly SpriteFrame[]> = {
+  down: [
+    [163, 206, 212, 183],
+    [416, 206, 214, 183],
+    [657, 206, 211, 183],
+    [890, 206, 198, 183],
+    [1103, 206, 180, 183],
+    [1302, 206, 193, 183],
+  ],
+  left: [
+    [148, 403, 218, 175],
+    [398, 403, 219, 175],
+    [653, 403, 226, 175],
+    [922, 403, 219, 175],
+    [1186, 403, 231, 175],
+  ],
+  right: [
+    [141, 591, 231, 179],
+    [404, 591, 230, 179],
+    [667, 591, 236, 179],
+    [939, 591, 237, 179],
+    [1211, 591, 237, 179],
+  ],
+  up: [
+    [152, 786, 200, 188],
+    [409, 786, 201, 188],
+    [679, 786, 208, 188],
+    [947, 786, 211, 188],
+    [1213, 786, 214, 188],
+  ],
+};
 const BAKED_SNOWMAN_PATCH = {
   sourceX: 270,
   sourceY: 105,
@@ -176,14 +217,41 @@ function drawCaveThief(cameraX: number, cameraY: number): void {
   const thief = getCaveThief();
   if (!thief) return;
 
-  const left = Math.round(thief.x - cameraX - thief.size / 2);
-  const top = Math.round(thief.y - cameraY - thief.size);
-  context.fillStyle = '#111';
-  context.fillRect(left - 2, top - 2, thief.size + 4, thief.size + 4);
-  context.fillStyle = '#d71920';
-  context.fillRect(left, top, thief.size, thief.size);
-  context.fillStyle = '#ff6565';
-  context.fillRect(left + 4, top + 4, thief.size - 8, 5);
+  const frames = thief.moving ? GIRLS_WALK_FRAMES[thief.direction] : GIRLS_IDLE_FRAMES;
+  const frame = frames[thief.frame % frames.length] ?? frames[0];
+  if (!frame) return;
+  const [sourceX, sourceY, sourceWidth, sourceHeight] = frame;
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  context.drawImage(
+    images.girlsSprite,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    Math.round(thief.x - cameraX - GIRLS_RENDER_WIDTH / 2),
+    Math.round(thief.y - cameraY - GIRLS_RENDER_HEIGHT),
+    GIRLS_RENDER_WIDTH,
+    GIRLS_RENDER_HEIGHT,
+  );
+  context.restore();
+}
+
+function drawCaveBus(cameraX: number, cameraY: number, time: number): void {
+  const bus = getCaveBus(time);
+  if (!bus) return;
+
+  context.save();
+  context.imageSmoothingEnabled = false;
+  context.drawImage(
+    images.bus,
+    Math.round(bus.x - cameraX - bus.width / 2),
+    Math.round(bus.y - cameraY - bus.height),
+    bus.width,
+    bus.height,
+  );
+  context.restore();
 }
 
 function drawSpeechBubble(text: string, anchorX: number, anchorY: number): void {
@@ -308,23 +376,13 @@ export function draw(time: number): void {
       NIALL_EXPLANATION_MARK_HEIGHT,
     );
   }
-  if (isMikeAftermathActive()) {
-    context.drawImage(
-      images.mikeAftermath,
-      MIKE_AFTERMATH_X - cameraX,
-      MIKE_AFTERMATH_Y - cameraY,
-      MIKE_AFTERMATH_WIDTH,
-      MIKE_AFTERMATH_HEIGHT,
-    );
-  } else {
-    context.drawImage(
-      images.mike,
-      Math.round(MIKE.x - cameraX - MIKE.width / 2),
-      Math.round(MIKE.y - cameraY - MIKE.height),
-      MIKE.width,
-      MIKE.height,
-    );
-  }
+  context.drawImage(
+    images.mike,
+    Math.round(MIKE.x - cameraX - MIKE.width / 2),
+    Math.round(MIKE.y - cameraY - MIKE.height),
+    MIKE.width,
+    MIKE.height,
+  );
 
   const sourceX = player.frame * FRAME_WIDTH;
   const sourceY = directionRows[player.direction] * FRAME_HEIGHT;
@@ -369,6 +427,7 @@ export function draw(time: number): void {
     drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
   }
   if (toriCoversPlayer) drawTori(cameraX, cameraY);
+  drawCaveBus(cameraX, cameraY, time);
 
   const thief = getCaveThief();
   const thiefDialogue = getCaveThiefDialogue();
