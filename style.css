@@ -323,11 +323,13 @@ canvas {
 }
 
 .battle-transition {
-  position: absolute;
+  position: fixed;
   z-index: 20;
-  inset: 10px;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 0;
   pointer-events: none;
   animation: battle-flash 1.35s steps(1, end) forwards;
 }
