@@ -568,7 +568,6 @@
   var VERTICAL_SIGHT_HALF_WIDTH = 16;
   var VERTICAL_SIGHT_DISTANCE = 180;
   var CHASE_SPEED = 235;
-  var NIALL_CHASE_ENABLED = false;
   var FRAME_COUNT2 = 4;
   var FRAME_RATE = 9;
   var BATTLE_TRANSITION_DURATION = 1350;
@@ -653,13 +652,12 @@
       releaseAllInput();
       return;
     }
-    if (alertActive) return;
     const distance = Math.hypot(dx, dy);
     if (distance <= CONTACT_DISTANCE) {
       startFight();
       return;
     }
-    if (distance === 0 || !NIALL_CHASE_ENABLED) return;
+    if (distance === 0 || !alertActive) return;
     chasePlayer(deltaTime, dx, dy, distance);
   }
   function setupNiall() {

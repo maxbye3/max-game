@@ -11,7 +11,6 @@ const CONTACT_DISTANCE = 30;
 const VERTICAL_SIGHT_HALF_WIDTH = 16;
 const VERTICAL_SIGHT_DISTANCE = 180;
 const CHASE_SPEED = 235;
-const NIALL_CHASE_ENABLED = false;
 const FRAME_COUNT = 4;
 const FRAME_RATE = 9;
 const BATTLE_TRANSITION_DURATION = 1350;
@@ -115,14 +114,12 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
     releaseAllInput();
     return;
   }
-  if (alertActive) return;
-
   const distance = Math.hypot(dx, dy);
   if (distance <= CONTACT_DISTANCE) {
     startFight();
     return;
   }
-  if (distance === 0 || !NIALL_CHASE_ENABLED) return;
+  if (distance === 0 || !alertActive) return;
 
   chasePlayer(deltaTime, dx, dy, distance);
 }
