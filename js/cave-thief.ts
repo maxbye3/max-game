@@ -1,5 +1,5 @@
 import { SPEED, WORLD_HEIGHT, WORLD_WIDTH } from './config.js';
-import { CAVE_DOOR_ID, hasCaveColander, setCaveColanderHeld } from './colander.js';
+import { CAVE_DOOR_ID, hasCaveColander } from './colander.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
 
@@ -7,9 +7,6 @@ type ThiefPhase =
   | 'hidden'
   | 'waiting'
   | 'panToEntrance'
-  | 'busIn'
-  | 'busStopped'
-  | 'busOut'
   | 'message'
   | 'panToPlayer'
   | 'chasing';
@@ -40,16 +37,10 @@ const THIEF_SIZE = 24;
 const GRID_SIZE = 16;
 const SEQUENCE_DELAY = 5000;
 const PAN_DURATION = 1200;
-const BUS_DRIVE_DURATION = 3000;
-const BUS_STOP_DURATION = 2000;
-const BUS_SKIP_SPEED_MULTIPLIER = 10;
-const BUS_RENDER_WIDTH = 126;
-const BUS_RENDER_HEIGHT = 72;
 const MESSAGE_DURATION = 1800;
 const PATH_REFRESH_INTERVAL = 0.22;
 const MAX_PATH_EXPANSIONS = 5200;
 const MESSAGE = 'Come back here you thief!';
-const skipIntroButton = document.querySelector<HTMLButtonElement>('#cave-intro-skip');
 
 const entrance = {
   x: CAVE_DOOR ? CAVE_DOOR.x + CAVE_DOOR.width / 2 : 236,
@@ -70,27 +61,15 @@ const state: ThiefState = {
   frame: 0,
   animationTime: 0,
 };
-let busPlaybackRate = 1;
-
-function setSkipIntroVisible(visible: boolean): void {
-  if (skipIntroButton) skipIntroButton.hidden = !visible;
-}
-
-function skipBusIntro(): void {
-  busPlaybackRate = BUS_SKIP_SPEED_MULTIPLIER;
-  setSkipIntroVisible(false);
-}
 
 function readReturnedFromCave(): boolean {
   const params = new URLSearchParams(window.location.search);
   if (params.get('door') !== CAVE_DOOR_ID || params.get('colander') !== '1') return false;
-  setCaveColanderHeld();
   return hasCaveColander();
 }
 
 export function setupCaveThief(): void {
   if (!readReturnedFromCave()) return;
-  skipIntroButton?.addEventListener('click', skipBusIntro, { once: true });
   state.phase = 'waiting';
   state.returnTime = performance.now();
   state.x = entrance.x;
@@ -99,9 +78,6 @@ export function setupCaveThief(): void {
 
 export function isCaveTheftCutsceneActive(): boolean {
   return state.phase === 'panToEntrance' ||
-    state.phase === 'busIn' ||
-    state.phase === 'busStopped' ||
-    state.phase === 'busOut' ||
     state.phase === 'message' ||
     state.phase === 'panToPlayer';
 }
@@ -118,7 +94,7 @@ export function getCaveThief(): {
   frame: number;
   moving: boolean;
 } | null {
-  if (state.phase === 'hidden' || state.phase === 'waiting' || state.phase === 'panToEntrance' || state.phase === 'busIn') {
+  if (state.phase === 'hidden' || state.phase === 'waiting' || state.phase === 'panToEntrance') {
     return null;
   }
   return {
@@ -128,34 +104,6 @@ export function getCaveThief(): {
     direction: state.direction,
     frame: state.frame,
     moving: state.phase === 'chasing',
-  };
-}
-
-export function getCaveBus(time: number): {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-} | null {
-  if (state.phase !== 'busIn' && state.phase !== 'busStopped' && state.phase !== 'busOut') return null;
-
-  const startX = entrance.x + 240 + BUS_RENDER_WIDTH / 2;
-  const stopX = entrance.x;
-  const endX = entrance.x - 240 - BUS_RENDER_WIDTH / 2;
-  let x = stopX;
-  if (state.phase === 'busIn') {
-    const progress = easeInOut(Math.min(1, ((time - state.phaseStart) * busPlaybackRate) / BUS_DRIVE_DURATION));
-    x = startX + (stopX - startX) * progress;
-  } else if (state.phase === 'busOut') {
-    const progress = Math.min(1, ((time - state.phaseStart) * busPlaybackRate) / BUS_DRIVE_DURATION);
-    x = stopX + (endX - stopX) * progress * progress;
-  }
-
-  return {
-    x,
-    y: entrance.y + 28,
-    width: BUS_RENDER_WIDTH,
-    height: BUS_RENDER_HEIGHT,
   };
 }
 
@@ -173,8 +121,6 @@ export function getCaveTheftCameraCenter(playerX: number, playerY: number, time:
   }
 
   if (state.phase === 'message') return entrance;
-
-  if (state.phase === 'busIn' || state.phase === 'busStopped' || state.phase === 'busOut') return entrance;
 
   if (state.phase === 'panToPlayer') {
     const progress = easeInOut(Math.min(1, (time - state.phaseStart) / PAN_DURATION));
@@ -352,28 +298,8 @@ export function updateCaveThief(
   }
 
   if (state.phase === 'panToEntrance' && time - state.phaseStart >= PAN_DURATION) {
-    state.phase = 'busIn';
-    state.phaseStart = time;
-    setSkipIntroVisible(true);
-    return;
-  }
-
-  if (state.phase === 'busIn' && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
-    state.phase = 'busStopped';
-    state.phaseStart = time;
-    return;
-  }
-
-  if (state.phase === 'busStopped' && (time - state.phaseStart) * busPlaybackRate >= BUS_STOP_DURATION) {
-    state.phase = 'busOut';
-    state.phaseStart = time;
-    return;
-  }
-
-  if (state.phase === 'busOut' && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
     state.phase = 'message';
     state.phaseStart = time;
-    setSkipIntroVisible(false);
     return;
   }
 

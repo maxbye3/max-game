@@ -1,24 +1,34 @@
-import { FRAME_COUNT, HALF_WIDTH, SPEED, SPRITE_HEIGHT, WORLD_HEIGHT, WORLD_WIDTH, } from './config.js';
+import { BUS_INTRO_PLAYER_START_Y, BUS_INTRO_STOP_X, FRAME_COUNT, HALF_WIDTH, SPEED, SPRITE_HEIGHT, WORLD_HEIGHT, WORLD_WIDTH, } from './config.js';
+import { isBusIntroActive } from './bus-intro.js';
 import { isCaveTheftCutsceneActive } from './cave-thief.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
 import { isHoleAnimationActive } from './hole.js';
 import { isHeld } from './input.js';
-import { isMikeDialogueOpen, MIKE } from './mike.js';
+import { isMikeDialogueOpen } from './mike.js';
 import { isNiallAlertActive, isNiallBattleTransitionActive, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
 const clampX = (x) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
 const clampY = (y) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
-const returnDoorId = new URLSearchParams(window.location.search).get('door');
+const searchParams = new URLSearchParams(window.location.search);
+const returnDoorId = searchParams.get('door');
 const returnDoor = DOORWAYS.find((doorway) => doorway.id === returnDoorId);
-const DEFAULT_START_X = MIKE.x - 42;
-const DEFAULT_START_Y = MIKE.y + 8;
-const fightReturn = new URLSearchParams(window.location.search).get('niall') === 'bus';
+const DEFAULT_START_X = BUS_INTRO_STOP_X;
+const DEFAULT_START_Y = BUS_INTRO_PLAYER_START_Y;
+const fightReturn = searchParams.get('niall') === 'bus';
 const DOOR_RETURN_OFFSET = 12;
 export const player = {
-    x: fightReturn ? NIALL.x - 42 : returnDoor ? returnDoor.x + returnDoor.width / 2 : DEFAULT_START_X,
-    y: fightReturn ? NIALL.y + 8 : returnDoor ? returnDoor.y + returnDoor.height + DOOR_RETURN_OFFSET : DEFAULT_START_Y,
-    direction: 'down',
+    x: fightReturn
+        ? NIALL.x - 42
+        : returnDoor
+            ? returnDoor.x + returnDoor.width / 2
+            : DEFAULT_START_X,
+    y: fightReturn
+        ? NIALL.y + 8
+        : returnDoor
+            ? returnDoor.y + returnDoor.height + DOOR_RETURN_OFFSET
+            : DEFAULT_START_Y,
+    direction: returnDoor || fightReturn ? 'down' : 'up',
     frame: 0,
     animationTime: 0,
 };
@@ -46,7 +56,8 @@ function movePlayerWithCollisions(movementX, movementY) {
     }
 }
 export function updatePlayer(deltaTime, speedMultiplier) {
-    if (isHoleAnimationActive() ||
+    if (isBusIntroActive() ||
+        isHoleAnimationActive() ||
         isMikeDialogueOpen() ||
         isNiallAlertActive() ||
         isNiallBattleTransitionActive() ||

@@ -4,7 +4,33 @@ export const FRAME_COUNT = 9;
 export const SCALE = 1;
 export const SPEED = 185;
 export const WORLD_WIDTH = 1254;
-export const WORLD_HEIGHT = 1254;
+export const BASE_MAP_HEIGHT = 1254;
+export const ROAD_Y = BASE_MAP_HEIGHT - 59;
+// The checked-in road panorama is a half-size, aspect-correct copy of the
+// original so its scenery stays proportional to the 23x36 player sprite.
+export const ROAD_WIDTH = 1086;
+export const ROAD_HEIGHT = 158;
+export const ROAD_X = (WORLD_WIDTH - ROAD_WIDTH) / 2 + 30;
+export const WORLD_HEIGHT = ROAD_Y + ROAD_HEIGHT;
+export const ROAD_TREE_X = ROAD_X + 403;
+export const ROAD_TREE_Y = ROAD_Y - 29;
+export const ROAD_TREE_WIDTH = 78;
+export const ROAD_TREE_HEIGHT = 107;
+export const ROAD_BUS_ROOF_X = ROAD_X + 529;
+export const ROAD_BUS_ROOF_Y = ROAD_Y + 4;
+export const ROAD_BUS_ROOF_WIDTH = 97;
+export const ROAD_BUS_ROOF_HEIGHT = 24;
+export const ROAD_FOREGROUND_DEPTH_Y = 1263;
+export const ROAD_BUS_SIGN_SOURCE_X = 641;
+export const ROAD_BUS_SIGN_SOURCE_Y = 23;
+export const ROAD_BUS_SIGN_WIDTH = 22;
+export const ROAD_BUS_SIGN_HEIGHT = 55;
+
+export const BUS_INTRO_STOP_X = 692;
+export const BUS_INTRO_BUS_BASELINE_Y = ROAD_Y + 130;
+export const BUS_INTRO_CAMERA_Y = WORLD_HEIGHT - 240;
+export const BUS_INTRO_PLAYER_START_Y = ROAD_Y + 125;
+export const BUS_INTRO_PLAYER_END_Y = ROAD_Y + 68;
 
 export const BILLBOARD_X = 402;
 export const BILLBOARD_Y = 420;
@@ -48,4 +74,4 @@ export const BOOST_MULTIPLIER = 1.6;
 export const BOOST_DURATION = 10000;
 export const RECHARGE_DURATION = 20000;
 
-export const SHOW_COLLISION_SHAPES = false;
+export const SHOW_COLLISION_SHAPES = true;

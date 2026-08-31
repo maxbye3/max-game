@@ -1,4 +1,6 @@
-const CAVE_COLANDER_KEY = 'max-game:cave-colander-held';
+// Versioned so older test URLs that granted the item without a cave pickup do
+// not carry that invalid state into the corrected theft flow.
+const CAVE_COLANDER_KEY = 'max-game:cave-colander-held-v2';
 export const CAVE_DOOR_ID = 'northwest-portal';
 export function hasCaveColander() {
     return window.localStorage.getItem(CAVE_COLANDER_KEY) === 'true';

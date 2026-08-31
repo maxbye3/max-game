@@ -1,4 +1,5 @@
 import { loadAssets } from './assets.js';
+import { setupBusIntro, updateBusIntro } from './bus-intro.js';
 import { setupCaveThief, updateCaveThief } from './cave-thief.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import { canvas } from './dom.js';
@@ -17,6 +18,7 @@ function gameLoop(time) {
     previousTime = time;
     updatePowerups(time);
     const speedMultiplier = getSpeedMultiplier();
+    updateBusIntro(deltaTime, player);
     updatePlayer(deltaTime, speedMultiplier);
     updateHole(deltaTime, player);
     updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier);
@@ -28,6 +30,7 @@ function gameLoop(time) {
     requestAnimationFrame(gameLoop);
 }
 setupInput();
+setupBusIntro();
 setupInventory();
 setupMike();
 setupNiall();

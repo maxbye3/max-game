@@ -1,7 +1,11 @@
 import { images } from './assets.js';
 import {
+  getBusIntroBus,
+  getBusIntroCameraCenter,
+  isBusIntroPlayerVisible,
+} from './bus-intro.js';
+import {
   getCaveTheftCameraCenter,
-  getCaveBus,
   getCaveThief,
   getCaveThiefDialogue,
   type CaveThiefDirection,
@@ -40,6 +44,23 @@ import {
   SHOW_COLLISION_SHAPES,
   SNOW_MANSION_X,
   SNOW_MANSION_Y,
+  ROAD_HEIGHT,
+  ROAD_BUS_ROOF_HEIGHT,
+  ROAD_BUS_ROOF_WIDTH,
+  ROAD_BUS_ROOF_X,
+  ROAD_BUS_ROOF_Y,
+  ROAD_BUS_SIGN_HEIGHT,
+  ROAD_BUS_SIGN_SOURCE_X,
+  ROAD_BUS_SIGN_SOURCE_Y,
+  ROAD_BUS_SIGN_WIDTH,
+  ROAD_FOREGROUND_DEPTH_Y,
+  ROAD_TREE_HEIGHT,
+  ROAD_TREE_WIDTH,
+  ROAD_TREE_X,
+  ROAD_TREE_Y,
+  ROAD_WIDTH,
+  ROAD_X,
+  ROAD_Y,
   TORI_PLAYER_DEPTH_Y,
   TORI_SIZE,
   TORI_X,
@@ -64,7 +85,47 @@ const NIALL_EXPLANATION_MARK_WIDTH = 26;
 const NIALL_EXPLANATION_MARK_HEIGHT = 21;
 const GIRLS_RENDER_WIDTH = 56;
 const GIRLS_RENDER_HEIGHT = 44;
+const SEAL_MODE = new URLSearchParams(window.location.search).has('seal');
+const SEAL_COLUMNS = 8;
+const SEAL_ROWS = 9;
+const SEAL_RENDER_WIDTH = 40;
+const SEAL_RENDER_HEIGHT = 52;
+const SEAL_BASELINE_OFFSET = 6;
+const sealDirectionRows: Record<Direction, number> = {
+  down: 8,
+  downRight: 7,
+  right: 2,
+  upRight: 5,
+  up: 4,
+  upLeft: 5,
+  left: 3,
+  downLeft: 0,
+};
 type SpriteFrame = readonly [x: number, y: number, width: number, height: number];
+
+function drawRoadTree(cameraX: number, cameraY: number): void {
+  context.drawImage(
+    images.roadTree,
+    ROAD_TREE_X - cameraX,
+    ROAD_TREE_Y - cameraY,
+    ROAD_TREE_WIDTH,
+    ROAD_TREE_HEIGHT,
+  );
+}
+
+function drawRoadBusSignForeground(cameraX: number, cameraY: number): void {
+  context.drawImage(
+    images.road,
+    ROAD_BUS_SIGN_SOURCE_X,
+    ROAD_BUS_SIGN_SOURCE_Y,
+    ROAD_BUS_SIGN_WIDTH,
+    ROAD_BUS_SIGN_HEIGHT,
+    ROAD_X + ROAD_BUS_SIGN_SOURCE_X - cameraX,
+    ROAD_Y + ROAD_BUS_SIGN_SOURCE_Y - cameraY,
+    ROAD_BUS_SIGN_WIDTH,
+    ROAD_BUS_SIGN_HEIGHT,
+  );
+}
 const GIRLS_IDLE_FRAMES: readonly SpriteFrame[] = [
   [181, 16, 235, 176],
   [457, 16, 233, 176],
@@ -238,8 +299,8 @@ function drawCaveThief(cameraX: number, cameraY: number): void {
   context.restore();
 }
 
-function drawCaveBus(cameraX: number, cameraY: number, time: number): void {
-  const bus = getCaveBus(time);
+function drawBusIntro(cameraX: number, cameraY: number): void {
+  const bus = getBusIntroBus();
   if (!bus) return;
 
   context.save();
@@ -309,20 +370,30 @@ export function draw(time: number): void {
   // Rounded so the map is sampled on whole source pixels: a fractional source
   // rect snaps at a browser-defined threshold and makes the player jitter
   // against the tiles by a pixel on every step.
-  const cameraCenter = getCaveTheftCameraCenter(player.x, player.y, time);
+  const cameraCenter = getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
+  const roadForegroundCoversPlayer = player.y > ROAD_FOREGROUND_DEPTH_Y;
+  context.drawImage(images.map, -cameraX, -cameraY);
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
   context.drawImage(
-    images.map,
-    cameraX,
-    cameraY,
-    canvas.width,
-    canvas.height,
-    0,
-    0,
-    canvas.width,
-    canvas.height,
+    images.road,
+    ROAD_X - cameraX,
+    ROAD_Y - cameraY,
+    ROAD_WIDTH,
+    ROAD_HEIGHT,
   );
+  if (!roadForegroundCoversPlayer) drawRoadTree(cameraX, cameraY);
+  context.drawImage(
+    images.roadBusRoof,
+    ROAD_BUS_ROOF_X - cameraX,
+    ROAD_BUS_ROOF_Y - cameraY,
+    ROAD_BUS_ROOF_WIDTH,
+    ROAD_BUS_ROOF_HEIGHT,
+  );
+  context.restore();
   context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
 
   // Canvas layers use draw order instead of CSS z-index. Drawing buildings
@@ -384,50 +455,61 @@ export function draw(time: number): void {
     MIKE.height,
   );
 
-  const sourceX = player.frame * FRAME_WIDTH;
-  const sourceY = directionRows[player.direction] * FRAME_HEIGHT;
-  const width = FRAME_WIDTH * SCALE;
-  const height = FRAME_HEIGHT * SCALE;
+  const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
+  const sourceWidth = SEAL_MODE ? playerSpriteSheet.width / SEAL_COLUMNS : FRAME_WIDTH;
+  const sourceHeight = SEAL_MODE ? playerSpriteSheet.height / SEAL_ROWS : FRAME_HEIGHT;
+  const sourceFrame = SEAL_MODE ? player.frame % SEAL_COLUMNS : player.frame;
+  const sourceRow = SEAL_MODE ? sealDirectionRows[player.direction] : directionRows[player.direction];
+  const sourceX = sourceFrame * sourceWidth;
+  const sourceY = sourceRow * sourceHeight;
+  const width = SEAL_MODE ? SEAL_RENDER_WIDTH : FRAME_WIDTH * SCALE;
+  const height = SEAL_MODE ? SEAL_RENDER_HEIGHT : FRAME_HEIGHT * SCALE;
+  const baselineOffset = SEAL_MODE ? SEAL_BASELINE_OFFSET : 0;
   const holeTransform = getHolePlayerTransform();
-  if (holeTransform) {
+  const playerVisible = isBusIntroPlayerVisible();
+  if (playerVisible && holeTransform) {
     context.save();
     context.globalAlpha = holeTransform.opacity;
     context.translate(
       Math.round(player.x - cameraX),
-      Math.round(player.y - cameraY - height / 2 + holeTransform.offsetY),
+      Math.round(player.y - cameraY - height / 2 + baselineOffset + holeTransform.offsetY),
     );
     context.rotate(holeTransform.rotation);
     context.scale(holeTransform.scale, holeTransform.scale);
     context.drawImage(
-      images.spriteSheet,
+      playerSpriteSheet,
       sourceX,
       sourceY,
-      FRAME_WIDTH,
-      FRAME_HEIGHT,
+      sourceWidth,
+      sourceHeight,
       -width / 2,
       -height / 2,
       width,
       height,
     );
     context.restore();
-  } else {
+  } else if (playerVisible) {
     context.drawImage(
-      images.spriteSheet,
+      playerSpriteSheet,
       sourceX,
       sourceY,
-      FRAME_WIDTH,
-      FRAME_HEIGHT,
+      sourceWidth,
+      sourceHeight,
       Math.round(player.x - cameraX - width / 2),
-      Math.round(player.y - cameraY - height),
+      Math.round(player.y - cameraY - height + baselineOffset),
       width,
       height,
     );
   }
-  if (hasCaveColander()) {
+  if (playerVisible && hasCaveColander()) {
     drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
   }
+  if (roadForegroundCoversPlayer) {
+    drawRoadTree(cameraX, cameraY);
+    drawRoadBusSignForeground(cameraX, cameraY);
+  }
   if (toriCoversPlayer) drawTori(cameraX, cameraY);
-  drawCaveBus(cameraX, cameraY, time);
+  drawBusIntro(cameraX, cameraY);
 
   const thief = getCaveThief();
   const thiefDialogue = getCaveThiefDialogue();

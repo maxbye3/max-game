@@ -9,6 +9,8 @@ const RAW_COLLISION_SHAPES = [
 // Clear the annotated Feedback Center doorway and tapered southern approach.
 // Subtracting these regions from the geometry also removes the blue debug fill.
 const COLLISION_CUTOUTS = [
+    // Open the central southern path where the appended road meets the old map.
+    [590, 1190, 115, 64],
     [120, 1098, 36, 39],
     [94, 1130, 68, 18],
     [104, 1148, 70, 15],

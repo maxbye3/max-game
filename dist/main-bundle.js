@@ -3,6 +3,9 @@
   // js/assets.ts
   var IMAGE_SOURCES = {
     map: "img/external/overworld.png?v=no-bushes-no-pink-trees",
+    road: "img/external/road.png",
+    roadTree: "img/external/tree.png",
+    roadBusRoof: "img/external/bus-roof.png",
     doorOpen: "img/external/door-open.png",
     billboard: "img/external/buildings/billboard.png",
     cinema: "img/external/buildings/cinema.png",
@@ -19,6 +22,7 @@
     zenGarden: "img/external/buildings/zen-garden.png",
     tori: "img/external/buildings/tori.png",
     spriteSheet: "player/SpriteSheet.png",
+    sealSpriteSheet: "player/seal-game.png",
     mike: "chat/mike/overworld-avatar.png",
     mikeAftermath: "img/external/mike-aftermath.png",
     niall: "chat/niall/avatar.png",
@@ -51,7 +55,30 @@
   var SCALE = 1;
   var SPEED = 185;
   var WORLD_WIDTH = 1254;
-  var WORLD_HEIGHT = 1254;
+  var BASE_MAP_HEIGHT = 1254;
+  var ROAD_Y = BASE_MAP_HEIGHT - 59;
+  var ROAD_WIDTH = 1086;
+  var ROAD_HEIGHT = 158;
+  var ROAD_X = (WORLD_WIDTH - ROAD_WIDTH) / 2 + 30;
+  var WORLD_HEIGHT = ROAD_Y + ROAD_HEIGHT;
+  var ROAD_TREE_X = ROAD_X + 403;
+  var ROAD_TREE_Y = ROAD_Y - 29;
+  var ROAD_TREE_WIDTH = 78;
+  var ROAD_TREE_HEIGHT = 107;
+  var ROAD_BUS_ROOF_X = ROAD_X + 529;
+  var ROAD_BUS_ROOF_Y = ROAD_Y + 4;
+  var ROAD_BUS_ROOF_WIDTH = 97;
+  var ROAD_BUS_ROOF_HEIGHT = 24;
+  var ROAD_FOREGROUND_DEPTH_Y = 1263;
+  var ROAD_BUS_SIGN_SOURCE_X = 641;
+  var ROAD_BUS_SIGN_SOURCE_Y = 23;
+  var ROAD_BUS_SIGN_WIDTH = 22;
+  var ROAD_BUS_SIGN_HEIGHT = 55;
+  var BUS_INTRO_STOP_X = 692;
+  var BUS_INTRO_BUS_BASELINE_Y = ROAD_Y + 130;
+  var BUS_INTRO_CAMERA_Y = WORLD_HEIGHT - 240;
+  var BUS_INTRO_PLAYER_START_Y = ROAD_Y + 125;
+  var BUS_INTRO_PLAYER_END_Y = ROAD_Y + 68;
   var BILLBOARD_X = 402;
   var BILLBOARD_Y = 420;
   var CINEMA_X = 431;
@@ -91,16 +118,107 @@
   var BOOST_MULTIPLIER = 1.6;
   var BOOST_DURATION = 1e4;
   var RECHARGE_DURATION = 2e4;
-  var SHOW_COLLISION_SHAPES = false;
+  var SHOW_COLLISION_SHAPES = true;
+
+  // js/bus-intro.ts
+  var DRIVE_IN_END = 3e3;
+  var PLAYER_WALK_END = 6e3;
+  var DRIVE_OUT_START = 5e3;
+  var INTRO_END = 8e3;
+  var SKIP_SPEED_MULTIPLIER = 10;
+  var BUS_WIDTH = 160;
+  var BUS_HEIGHT = 91;
+  var OFFSCREEN_DISTANCE = 320;
+  var searchParams = new URLSearchParams(window.location.search);
+  var shouldPlay = !searchParams.has("door") && searchParams.get("niall") !== "bus";
+  var skipButton = document.querySelector("#bus-intro-skip");
+  var controls = document.querySelector(".controls");
+  var inventoryToggle = document.querySelector("#inventory-toggle");
+  var active = shouldPlay;
+  var elapsed = 0;
+  var playbackRate = 1;
+  function easeInOut(value) {
+    return value < 0.5 ? 2 * value * value : 1 - (-2 * value + 2) ** 2 / 2;
+  }
+  function setGameplayUiHidden(hidden) {
+    controls?.classList.toggle("opening-intro-hidden", hidden);
+    inventoryToggle?.classList.toggle("opening-intro-hidden", hidden);
+  }
+  function finishIntro(player2) {
+    active = false;
+    player2.x = BUS_INTRO_STOP_X;
+    player2.y = BUS_INTRO_PLAYER_END_Y;
+    player2.direction = "up";
+    player2.frame = 0;
+    player2.animationTime = 0;
+    if (skipButton) skipButton.hidden = true;
+    setGameplayUiHidden(false);
+  }
+  function speedUpIntro() {
+    playbackRate = SKIP_SPEED_MULTIPLIER;
+    if (skipButton) skipButton.hidden = true;
+  }
+  function setupBusIntro() {
+    if (!active) {
+      if (skipButton) skipButton.hidden = true;
+      return;
+    }
+    setGameplayUiHidden(true);
+    if (skipButton) {
+      skipButton.hidden = false;
+      skipButton.addEventListener("click", speedUpIntro, { once: true });
+    }
+  }
+  function isBusIntroActive() {
+    return active;
+  }
+  function isBusIntroPlayerVisible() {
+    return !active || elapsed >= DRIVE_IN_END;
+  }
+  function getBusIntroCameraCenter() {
+    return active ? { x: BUS_INTRO_STOP_X, y: BUS_INTRO_CAMERA_Y } : null;
+  }
+  function getBusIntroBus() {
+    if (!active) return null;
+    const startX = BUS_INTRO_STOP_X + OFFSCREEN_DISTANCE;
+    const endX = BUS_INTRO_STOP_X - OFFSCREEN_DISTANCE;
+    let x = BUS_INTRO_STOP_X;
+    if (elapsed < DRIVE_IN_END) {
+      const progress = easeInOut(elapsed / DRIVE_IN_END);
+      x = startX + (BUS_INTRO_STOP_X - startX) * progress;
+    } else if (elapsed >= DRIVE_OUT_START) {
+      const progress = Math.min(1, (elapsed - DRIVE_OUT_START) / (INTRO_END - DRIVE_OUT_START));
+      x = BUS_INTRO_STOP_X + (endX - BUS_INTRO_STOP_X) * progress * progress;
+    }
+    return { x, y: BUS_INTRO_BUS_BASELINE_Y, width: BUS_WIDTH, height: BUS_HEIGHT };
+  }
+  function updateBusIntro(deltaTime, player2) {
+    if (!active) return;
+    elapsed += deltaTime * 1e3 * playbackRate;
+    player2.x = BUS_INTRO_STOP_X;
+    player2.direction = "up";
+    if (elapsed < DRIVE_IN_END) {
+      player2.y = BUS_INTRO_PLAYER_START_Y;
+      player2.frame = 0;
+      player2.animationTime = 0;
+    } else if (elapsed < PLAYER_WALK_END) {
+      const progress = Math.min(1, (elapsed - DRIVE_IN_END) / (PLAYER_WALK_END - DRIVE_IN_END));
+      player2.y = BUS_INTRO_PLAYER_START_Y + (BUS_INTRO_PLAYER_END_Y - BUS_INTRO_PLAYER_START_Y) * progress;
+      player2.animationTime = (elapsed - DRIVE_IN_END) / 1e3;
+      player2.frame = Math.floor(player2.animationTime * 11) % FRAME_COUNT;
+    } else {
+      player2.y = BUS_INTRO_PLAYER_END_Y;
+      player2.frame = 0;
+      player2.animationTime = 0;
+    }
+    if (elapsed >= INTRO_END) finishIntro(player2);
+  }
 
   // js/colander.ts
-  var CAVE_COLANDER_KEY = "max-game:cave-colander-held";
+  var CAVE_COLANDER_KEY = "max-game:cave-colander-held-v2";
   var CAVE_DOOR_ID = "northwest-portal";
   function hasCaveColander() {
     return window.localStorage.getItem(CAVE_COLANDER_KEY) === "true";
-  }
-  function setCaveColanderHeld() {
-    window.localStorage.setItem(CAVE_COLANDER_KEY, "true");
   }
   function drawColander(context2, centerX, topY, scale = 1) {
     const pixel = Math.max(1, scale);
@@ -265,6 +383,8 @@
     ...SIGN_COLLISION_SHAPES
   ];
   var COLLISION_CUTOUTS = [
+    // Open the central southern path where the appended road meets the old map.
+    [590, 1190, 115, 64],
     [120, 1098, 36, 39],
     [94, 1130, 68, 18],
     [104, 1148, 70, 15],
@@ -772,16 +892,10 @@
   var GRID_SIZE = 16;
   var SEQUENCE_DELAY = 5e3;
   var PAN_DURATION = 1200;
-  var BUS_DRIVE_DURATION = 3e3;
-  var BUS_STOP_DURATION = 2e3;
-  var BUS_SKIP_SPEED_MULTIPLIER = 10;
-  var BUS_RENDER_WIDTH = 126;
-  var BUS_RENDER_HEIGHT = 72;
   var MESSAGE_DURATION = 1800;
   var PATH_REFRESH_INTERVAL = 0.22;
   var MAX_PATH_EXPANSIONS = 5200;
   var MESSAGE = "Come back here you thief!";
-  var skipIntroButton = document.querySelector("#cave-intro-skip");
   var entrance = {
     x: CAVE_DOOR ? CAVE_DOOR.x + CAVE_DOOR.width / 2 : 236,
     y: CAVE_DOOR ? CAVE_DOOR.y + CAVE_DOOR.height + 16 : 284
@@ -800,36 +914,26 @@
     frame: 0,
     animationTime: 0
   };
-  var busPlaybackRate = 1;
-  function setSkipIntroVisible(visible) {
-    if (skipIntroButton) skipIntroButton.hidden = !visible;
-  }
-  function skipBusIntro() {
-    busPlaybackRate = BUS_SKIP_SPEED_MULTIPLIER;
-    setSkipIntroVisible(false);
-  }
   function readReturnedFromCave() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("door") !== CAVE_DOOR_ID || params.get("colander") !== "1") return false;
-    setCaveColanderHeld();
     return hasCaveColander();
   }
   function setupCaveThief() {
     if (!readReturnedFromCave()) return;
-    skipIntroButton?.addEventListener("click", skipBusIntro, { once: true });
     state.phase = "waiting";
     state.returnTime = performance.now();
     state.x = entrance.x;
     state.y = entrance.y;
   }
   function isCaveTheftCutsceneActive() {
-    return state.phase === "panToEntrance" || state.phase === "busIn" || state.phase === "busStopped" || state.phase === "busOut" || state.phase === "message" || state.phase === "panToPlayer";
+    return state.phase === "panToEntrance" || state.phase === "message" || state.phase === "panToPlayer";
   }
   function getCaveThiefDialogue() {
     return state.phase === "message" ? MESSAGE : null;
   }
   function getCaveThief() {
-    if (state.phase === "hidden" || state.phase === "waiting" || state.phase === "panToEntrance" || state.phase === "busIn") {
+    if (state.phase === "hidden" || state.phase === "waiting" || state.phase === "panToEntrance") {
       return null;
     }
     return {
@@ -841,41 +945,20 @@
       moving: state.phase === "chasing"
     };
   }
-  function getCaveBus(time) {
-    if (state.phase !== "busIn" && state.phase !== "busStopped" && state.phase !== "busOut") return null;
-    const startX = entrance.x + 240 + BUS_RENDER_WIDTH / 2;
-    const stopX = entrance.x;
-    const endX = entrance.x - 240 - BUS_RENDER_WIDTH / 2;
-    let x = stopX;
-    if (state.phase === "busIn") {
-      const progress = easeInOut(Math.min(1, (time - state.phaseStart) * busPlaybackRate / BUS_DRIVE_DURATION));
-      x = startX + (stopX - startX) * progress;
-    } else if (state.phase === "busOut") {
-      const progress = Math.min(1, (time - state.phaseStart) * busPlaybackRate / BUS_DRIVE_DURATION);
-      x = stopX + (endX - stopX) * progress * progress;
-    }
-    return {
-      x,
-      y: entrance.y + 28,
-      width: BUS_RENDER_WIDTH,
-      height: BUS_RENDER_HEIGHT
-    };
-  }
-  function easeInOut(t) {
+  function easeInOut2(t) {
     return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
   }
   function getCaveTheftCameraCenter(playerX, playerY, time) {
     if (state.phase === "panToEntrance") {
-      const progress = easeInOut(Math.min(1, (time - state.phaseStart) / PAN_DURATION));
+      const progress = easeInOut2(Math.min(1, (time - state.phaseStart) / PAN_DURATION));
       return {
         x: state.panFrom.x + (entrance.x - state.panFrom.x) * progress,
         y: state.panFrom.y + (entrance.y - state.panFrom.y) * progress
       };
     }
     if (state.phase === "message") return entrance;
-    if (state.phase === "busIn" || state.phase === "busStopped" || state.phase === "busOut") return entrance;
     if (state.phase === "panToPlayer") {
-      const progress = easeInOut(Math.min(1, (time - state.phaseStart) / PAN_DURATION));
+      const progress = easeInOut2(Math.min(1, (time - state.phaseStart) / PAN_DURATION));
       return {
         x: entrance.x + (playerX - entrance.x) * progress,
         y: entrance.y + (playerY - entrance.y) * progress
@@ -1017,25 +1100,8 @@
       return;
     }
     if (state.phase === "panToEntrance" && time - state.phaseStart >= PAN_DURATION) {
-      state.phase = "busIn";
-      state.phaseStart = time;
-      setSkipIntroVisible(true);
-      return;
-    }
-    if (state.phase === "busIn" && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
-      state.phase = "busStopped";
-      state.phaseStart = time;
-      return;
-    }
-    if (state.phase === "busStopped" && (time - state.phaseStart) * busPlaybackRate >= BUS_STOP_DURATION) {
-      state.phase = "busOut";
-      state.phaseStart = time;
-      return;
-    }
-    if (state.phase === "busOut" && (time - state.phaseStart) * busPlaybackRate >= BUS_DRIVE_DURATION) {
       state.phase = "message";
       state.phaseStart = time;
-      setSkipIntroVisible(false);
       return;
     }
     if (state.phase === "message" && time - state.phaseStart >= MESSAGE_DURATION) {
@@ -1055,7 +1121,7 @@
   }
 
   // js/inventory.ts
-  var inventoryToggle = requireElement("#inventory-toggle");
+  var inventoryToggle2 = requireElement("#inventory-toggle");
   var inventoryPanel = requireElement("#inventory-panel");
   var inventoryClose = requireElement("#inventory-close");
   var inventoryItem = requireElement("#inventory-item");
@@ -1094,13 +1160,13 @@
   function setInventoryOpen(isOpen) {
     const hadFocusInside = inventoryPanel.contains(document.activeElement);
     inventoryPanel.hidden = !isOpen;
-    inventoryToggle.setAttribute("aria-expanded", String(isOpen));
-    if (!isOpen && hadFocusInside) inventoryToggle.focus();
+    inventoryToggle2.setAttribute("aria-expanded", String(isOpen));
+    if (!isOpen && hadFocusInside) inventoryToggle2.focus();
   }
   function setupInventory() {
     setItemReady(true);
     setItemActionsOpen(false);
-    inventoryToggle.addEventListener("click", () => setInventoryOpen(inventoryPanel.hidden));
+    inventoryToggle2.addEventListener("click", () => setInventoryOpen(inventoryPanel.hidden));
     inventoryClose.addEventListener("click", () => setInventoryOpen(false));
     inventoryItem.addEventListener("click", () => {
       if (!hasPowerSandwich) return;
@@ -1261,16 +1327,17 @@
   // js/player.ts
   var clampX = (x) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
   var clampY = (y) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
-  var returnDoorId = new URLSearchParams(window.location.search).get("door");
+  var searchParams2 = new URLSearchParams(window.location.search);
+  var returnDoorId = searchParams2.get("door");
   var returnDoor = DOORWAYS.find((doorway) => doorway.id === returnDoorId);
-  var DEFAULT_START_X = MIKE.x - 42;
-  var DEFAULT_START_Y = MIKE.y + 8;
-  var fightReturn = new URLSearchParams(window.location.search).get("niall") === "bus";
+  var DEFAULT_START_X = BUS_INTRO_STOP_X;
+  var DEFAULT_START_Y = BUS_INTRO_PLAYER_START_Y;
+  var fightReturn = searchParams2.get("niall") === "bus";
   var DOOR_RETURN_OFFSET = 12;
   var player = {
     x: fightReturn ? NIALL.x - 42 : returnDoor ? returnDoor.x + returnDoor.width / 2 : DEFAULT_START_X,
     y: fightReturn ? NIALL.y + 8 : returnDoor ? returnDoor.y + returnDoor.height + DOOR_RETURN_OFFSET : DEFAULT_START_Y,
-    direction: "down",
+    direction: returnDoor || fightReturn ? "down" : "up",
     frame: 0,
     animationTime: 0
   };
@@ -1296,7 +1363,7 @@
     }
   }
   function updatePlayer(deltaTime, speedMultiplier2) {
-    if (isHoleAnimationActive() || isMikeDialogueOpen() || isNiallAlertActive() || isNiallBattleTransitionActive() || isCaveTheftCutsceneActive()) {
+    if (isBusIntroActive() || isHoleAnimationActive() || isMikeDialogueOpen() || isNiallAlertActive() || isNiallBattleTransitionActive() || isCaveTheftCutsceneActive()) {
       player.animationTime = 0;
       player.frame = 0;
       return;
@@ -1336,6 +1403,44 @@
   var NIALL_EXPLANATION_MARK_HEIGHT = 21;
   var GIRLS_RENDER_WIDTH = 56;
   var GIRLS_RENDER_HEIGHT = 44;
+  var SEAL_MODE = new URLSearchParams(window.location.search).has("seal");
+  var SEAL_COLUMNS = 8;
+  var SEAL_ROWS = 9;
+  var SEAL_RENDER_WIDTH = 40;
+  var SEAL_RENDER_HEIGHT = 52;
+  var SEAL_BASELINE_OFFSET = 6;
+  var sealDirectionRows = {
+    down: 8,
+    downRight: 7,
+    right: 2,
+    upRight: 5,
+    up: 4,
+    upLeft: 5,
+    left: 3,
+    downLeft: 0
+  };
+  function drawRoadTree(cameraX, cameraY) {
+    context.drawImage(
+      images.roadTree,
+      ROAD_TREE_X - cameraX,
+      ROAD_TREE_Y - cameraY,
+      ROAD_TREE_WIDTH,
+      ROAD_TREE_HEIGHT
+    );
+  }
+  function drawRoadBusSignForeground(cameraX, cameraY) {
+    context.drawImage(
+      images.road,
+      ROAD_BUS_SIGN_SOURCE_X,
+      ROAD_BUS_SIGN_SOURCE_Y,
+      ROAD_BUS_SIGN_WIDTH,
+      ROAD_BUS_SIGN_HEIGHT,
+      ROAD_X + ROAD_BUS_SIGN_SOURCE_X - cameraX,
+      ROAD_Y + ROAD_BUS_SIGN_SOURCE_Y - cameraY,
+      ROAD_BUS_SIGN_WIDTH,
+      ROAD_BUS_SIGN_HEIGHT
+    );
+  }
   var GIRLS_IDLE_FRAMES = [
     [181, 16, 235, 176],
     [457, 16, 233, 176],
@@ -1483,8 +1588,8 @@
     );
     context.restore();
   }
-  function drawCaveBus(cameraX, cameraY, time) {
-    const bus = getCaveBus(time);
+  function drawBusIntro(cameraX, cameraY) {
+    const bus = getBusIntroBus();
     if (!bus) return;
     context.save();
     context.imageSmoothingEnabled = false;
@@ -1543,20 +1648,30 @@
   function draw(time) {
     context.clearRect(0, 0, canvas.width, canvas.height);
     logPlayerPosition();
-    const cameraCenter = getCaveTheftCameraCenter(player.x, player.y, time);
+    const cameraCenter = getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
     const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
     const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
+    const roadForegroundCoversPlayer = player.y > ROAD_FOREGROUND_DEPTH_Y;
+    context.drawImage(images.map, -cameraX, -cameraY);
+    context.save();
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
     context.drawImage(
-      images.map,
-      cameraX,
-      cameraY,
-      canvas.width,
-      canvas.height,
-      0,
-      0,
-      canvas.width,
-      canvas.height
+      images.road,
+      ROAD_X - cameraX,
+      ROAD_Y - cameraY,
+      ROAD_WIDTH,
+      ROAD_HEIGHT
     );
+    if (!roadForegroundCoversPlayer) drawRoadTree(cameraX, cameraY);
+    context.drawImage(
+      images.roadBusRoof,
+      ROAD_BUS_ROOF_X - cameraX,
+      ROAD_BUS_ROOF_Y - cameraY,
+      ROAD_BUS_ROOF_WIDTH,
+      ROAD_BUS_ROOF_HEIGHT
+    );
+    context.restore();
     context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
     context.drawImage(images.cinema, CINEMA_X - cameraX, CINEMA_Y - cameraY);
     context.drawImage(images.musicShop, MUSIC_SHOP_X - cameraX, MUSIC_SHOP_Y - cameraY);
@@ -1613,50 +1728,61 @@
       MIKE.width,
       MIKE.height
     );
-    const sourceX = player.frame * FRAME_WIDTH;
-    const sourceY = directionRows[player.direction] * FRAME_HEIGHT;
-    const width = FRAME_WIDTH * SCALE;
-    const height = FRAME_HEIGHT * SCALE;
+    const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
+    const sourceWidth = SEAL_MODE ? playerSpriteSheet.width / SEAL_COLUMNS : FRAME_WIDTH;
+    const sourceHeight = SEAL_MODE ? playerSpriteSheet.height / SEAL_ROWS : FRAME_HEIGHT;
+    const sourceFrame = SEAL_MODE ? player.frame % SEAL_COLUMNS : player.frame;
+    const sourceRow = SEAL_MODE ? sealDirectionRows[player.direction] : directionRows[player.direction];
+    const sourceX = sourceFrame * sourceWidth;
+    const sourceY = sourceRow * sourceHeight;
+    const width = SEAL_MODE ? SEAL_RENDER_WIDTH : FRAME_WIDTH * SCALE;
+    const height = SEAL_MODE ? SEAL_RENDER_HEIGHT : FRAME_HEIGHT * SCALE;
+    const baselineOffset = SEAL_MODE ? SEAL_BASELINE_OFFSET : 0;
     const holeTransform = getHolePlayerTransform();
-    if (holeTransform) {
+    const playerVisible = isBusIntroPlayerVisible();
+    if (playerVisible && holeTransform) {
       context.save();
       context.globalAlpha = holeTransform.opacity;
       context.translate(
         Math.round(player.x - cameraX),
-        Math.round(player.y - cameraY - height / 2 + holeTransform.offsetY)
+        Math.round(player.y - cameraY - height / 2 + baselineOffset + holeTransform.offsetY)
       );
       context.rotate(holeTransform.rotation);
       context.scale(holeTransform.scale, holeTransform.scale);
       context.drawImage(
-        images.spriteSheet,
+        playerSpriteSheet,
         sourceX,
         sourceY,
-        FRAME_WIDTH,
-        FRAME_HEIGHT,
+        sourceWidth,
+        sourceHeight,
         -width / 2,
         -height / 2,
         width,
         height
       );
       context.restore();
-    } else {
+    } else if (playerVisible) {
       context.drawImage(
-        images.spriteSheet,
+        playerSpriteSheet,
         sourceX,
         sourceY,
-        FRAME_WIDTH,
-        FRAME_HEIGHT,
+        sourceWidth,
+        sourceHeight,
         Math.round(player.x - cameraX - width / 2),
-        Math.round(player.y - cameraY - height),
+        Math.round(player.y - cameraY - height + baselineOffset),
         width,
         height
       );
     }
-    if (hasCaveColander()) {
+    if (playerVisible && hasCaveColander()) {
       drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
     }
+    if (roadForegroundCoversPlayer) {
+      drawRoadTree(cameraX, cameraY);
+      drawRoadBusSignForeground(cameraX, cameraY);
+    }
     if (toriCoversPlayer) drawTori(cameraX, cameraY);
-    drawCaveBus(cameraX, cameraY, time);
+    drawBusIntro(cameraX, cameraY);
     const thief = getCaveThief();
     const thiefDialogue = getCaveThiefDialogue();
     if (thief && thiefDialogue) {
@@ -1679,6 +1805,7 @@
     previousTime = time;
     updatePowerups(time);
     const speedMultiplier2 = getSpeedMultiplier();
+    updateBusIntro(deltaTime, player);
     updatePlayer(deltaTime, speedMultiplier2);
     updateHole(deltaTime, player);
     updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier2);
@@ -1690,6 +1817,7 @@
     requestAnimationFrame(gameLoop);
   }
   setupInput();
+  setupBusIntro();
   setupInventory();
   setupMike();
   setupNiall();
