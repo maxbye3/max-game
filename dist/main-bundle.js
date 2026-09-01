@@ -2,12 +2,15 @@
 (() => {
   // js/assets.ts
   var IMAGE_SOURCES = {
-    map: "img/external/overworld.png?v=no-bushes-no-pink-trees",
+    map: "img/external/overworld.png?v=riverside-sign-bookstore",
     road: "img/external/road.png",
     roadTree: "img/external/tree.png",
     roadBusRoof: "img/external/bus-roof.png",
+    gate: "img/external/gate.png",
+    musicShopSign: "img/external/music-shop-sign.png",
     doorOpen: "img/external/door-open.png",
     billboard: "img/external/buildings/billboard.png",
+    billboardUnfinished: "img/external/billboard-unfinished.png",
     cinema: "img/external/buildings/cinema.png",
     musicShop: "img/external/buildings/music-shop.png",
     gym: "img/external/buildings/gym.png",
@@ -22,7 +25,7 @@
     zenGarden: "img/external/buildings/zen-garden.png",
     tori: "img/external/buildings/tori.png",
     spriteSheet: "player/SpriteSheet.png",
-    sealSpriteSheet: "player/seal-game.png",
+    sealSpriteSheet: "player/seal-game.png?v=20260831-transparent",
     mike: "chat/mike/overworld-avatar.png",
     mikeAftermath: "img/external/mike-aftermath.png",
     niall: "chat/niall/avatar.png",
@@ -74,6 +77,11 @@
   var ROAD_BUS_SIGN_SOURCE_Y = 23;
   var ROAD_BUS_SIGN_WIDTH = 22;
   var ROAD_BUS_SIGN_HEIGHT = 55;
+  var GATE_X = 1044;
+  var GATE_Y = 1128;
+  var GATE_WIDTH = 108;
+  var GATE_HEIGHT = 60;
+  var GATE_PLAYER_DEPTH_Y = 1176.2;
   var BUS_INTRO_STOP_X = 692;
   var BUS_INTRO_BUS_BASELINE_Y = ROAD_Y + 130;
   var BUS_INTRO_CAMERA_Y = WORLD_HEIGHT - 240;
@@ -81,10 +89,18 @@
   var BUS_INTRO_PLAYER_END_Y = ROAD_Y + 68;
   var BILLBOARD_X = 402;
   var BILLBOARD_Y = 420;
+  var BILLBOARD_SCREEN_X = BILLBOARD_X + 12;
+  var BILLBOARD_SCREEN_Y = BILLBOARD_Y + 9;
+  var BILLBOARD_SCREEN_WIDTH = 89;
+  var BILLBOARD_SCREEN_HEIGHT = 34;
   var CINEMA_X = 431;
   var CINEMA_Y = 705;
   var MUSIC_SHOP_X = 197;
   var MUSIC_SHOP_Y = 354;
+  var MUSIC_SHOP_SIGN_X = 700;
+  var MUSIC_SHOP_SIGN_Y = 950;
+  var MUSIC_SHOP_SIGN_WIDTH = 17;
+  var MUSIC_SHOP_SIGN_HEIGHT = 25;
   var GYM_X = 979;
   var GYM_Y = 442;
   var GYM_ROOF_X = GYM_X + 8;
@@ -268,7 +284,7 @@
   // js/signs.ts
   var SIGN_MESSAGES = [
     "Hey, welcome to my website! You can quick-travel by clicking the \u201CJump\u201D button in the bottom-right.",
-    "Click the \u201CInventory\u201D button to check out everything in your extremely deep pockets. You can get new items by talking to certain folks.",
+    "People add things to your inventory as you talk to them click the inventory button to use it",
     "DC has one of the highest employment rates in the country, so helping folks find work is my side hustle."
   ];
   var SIGNS = [
@@ -292,12 +308,12 @@
     },
     {
       id: "music-shop-placard",
-      title: "Music Shop",
-      message: SIGN_MESSAGES[0],
-      x: 197,
-      y: 471,
-      width: 17,
-      height: 25
+      title: "Inventory",
+      message: SIGN_MESSAGES[1],
+      x: MUSIC_SHOP_SIGN_X,
+      y: MUSIC_SHOP_SIGN_Y,
+      width: MUSIC_SHOP_SIGN_WIDTH,
+      height: MUSIC_SHOP_SIGN_HEIGHT
     },
     {
       id: "job-center-noticeboard",
@@ -310,12 +326,12 @@
     },
     {
       id: "east-directory",
-      title: "Riverside Sign",
+      title: "Fast travel",
       message: SIGN_MESSAGES[0],
-      x: 1156,
-      y: 960,
-      width: 20,
-      height: 20
+      x: 610,
+      y: 1151,
+      width: 25,
+      height: 23
     }
   ];
   var SIGN_COLLISION_SHAPES = SIGNS.map(
@@ -383,8 +399,18 @@
     ...SIGN_COLLISION_SHAPES
   ];
   var COLLISION_CUTOUTS = [
-    // Open the central southern path where the appended road meets the old map.
-    [590, 1190, 115, 64],
+    // Remove every generated/manual obstacle in the western garden. Its clean,
+    // red-box collision bounds are added back after all cutouts are applied.
+    [140, 560, 224, 304],
+    // Clear the stray vertical collision strip immediately east of the Music Shop.
+    [328, 448, 24, 80],
+    // Remove the two generated collision blocks flanking the southern road entrance.
+    [333, 1190, 726, 64],
+    // Clear the removed southwest tree pyramid and both adjoining paved paths.
+    [176, 1074, 144, 124],
+    [170, 1156, 8, 12],
+    [315, 1062, 50, 192],
+    [160, 1188, 193, 66],
     [120, 1098, 36, 39],
     [94, 1130, 68, 18],
     [104, 1148, 70, 15],
@@ -423,10 +449,32 @@
     }
     return pieces;
   }
-  var COLLISION_SHAPES2 = COLLISION_CUTOUTS.reduce(
+  var MAP_COLLISION_SHAPES = COLLISION_CUTOUTS.reduce(
     (shapes, cutout) => shapes.flatMap((shape) => subtractCollisionShape(shape, cutout)),
     [...RAW_COLLISION_SHAPES]
   );
+  var ROAD_COLLISION_SHAPES = [
+    [ROAD_BUS_ROOF_X, ROAD_Y + 30, ROAD_BUS_ROOF_WIDTH, 15],
+    [
+      ROAD_X + ROAD_BUS_SIGN_SOURCE_X,
+      ROAD_Y + ROAD_BUS_SIGN_SOURCE_Y,
+      ROAD_BUS_SIGN_WIDTH,
+      ROAD_BUS_SIGN_HEIGHT
+    ]
+  ];
+  var WESTERN_GARDEN_COLLISION_SHAPES = [
+    [152, 576, 88, 40],
+    [272, 576, 80, 40],
+    [152, 576, 32, 272],
+    [328, 576, 24, 272],
+    [152, 808, 88, 40],
+    [272, 808, 80, 40]
+  ];
+  var COLLISION_SHAPES2 = [
+    ...MAP_COLLISION_SHAPES,
+    ...WESTERN_GARDEN_COLLISION_SHAPES,
+    ...ROAD_COLLISION_SHAPES
+  ];
 
   // js/world-state.ts
   var INTERNAL_TEST_VISITED_KEY = "max-game:internal-test-visited";
@@ -490,7 +538,9 @@
     if (!enteredDoorway) return;
     navigationStarted = true;
     markInternalTestVisited();
-    window.location.assign(`internal/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
+    const params = new URLSearchParams({ door: enteredDoorway.id });
+    if (new URLSearchParams(window.location.search).has("seal")) params.set("seal", "1");
+    window.location.assign(`internal/index.html?${params.toString()}`);
   }
   function getOpenDoorways() {
     return DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));
@@ -501,7 +551,7 @@
 
   // js/mike-dialogue.ts
   var MIKE_DIALOGUE_LINES = [
-    "Oh, there you are. I was beginning to think you'd got lost.",
+    "Mike here \u2014 welcome to my corner of the map, Max.",
     "You're back. Did the suspiciously powerful sandwich work?",
     "Three conversations? We're basically best friends now."
   ];
@@ -509,6 +559,7 @@
   // js/mike.ts
   var MIKE_FOLDER = "chat/mike";
   var MIKE_NAME = MIKE_FOLDER.slice(MIKE_FOLDER.lastIndexOf("/") + 1);
+  var MIKE_DIALOGUE_INDEX_KEY = "max-game:mike-dialogue-index";
   var INTERACTION_DISTANCE = 56;
   var COLLISION_DISTANCE = 27;
   var MIKE = {
@@ -521,29 +572,51 @@
   var dialogue2 = requireElement("#mike-dialogue");
   var speaker = requireElement("#mike-speaker");
   var dialogueLine = requireElement("#mike-dialogue-line");
+  var nextButton = requireElement("#mike-dialogue-next");
   var closeButton = requireElement("#mike-dialogue-close");
   var theme = new Audio("chat/mike/example_character/theme.mp3");
   theme.preload = "auto";
   var nearby = false;
   var dialogueOpen = false;
-  var conversationIndex = 0;
-  var isMikeDialogueOpen = () => dialogueOpen;
+  var dialogueLineIndex = 0;
+  var fallbackNextDialogueIndex = 0;
+  function loadNextDialogueIndex() {
+    try {
+      const storedIndex = Number.parseInt(window.localStorage.getItem(MIKE_DIALOGUE_INDEX_KEY) ?? "0", 10);
+      return Number.isFinite(storedIndex) && storedIndex >= 0 ? storedIndex % MIKE_DIALOGUE_LINES.length : 0;
+    } catch {
+      return fallbackNextDialogueIndex;
+    }
+  }
+  function saveNextDialogueIndex(index) {
+    fallbackNextDialogueIndex = index;
+    try {
+      window.localStorage.setItem(MIKE_DIALOGUE_INDEX_KEY, String(index));
+    } catch {
+    }
+  }
   function playerCollidesWithMike(x, y) {
     return Math.hypot(x - MIKE.x, y - MIKE.y) < COLLISION_DISTANCE;
   }
   function closeDialogue() {
     dialogueOpen = false;
     dialogue2.hidden = true;
+    nextButton.hidden = true;
     theme.pause();
     theme.currentTime = 0;
-    talkButton.hidden = !nearby;
+    talkButton.hidden = true;
+  }
+  function showDialogueLine() {
+    dialogueLine.textContent = MIKE_DIALOGUE_LINES[dialogueLineIndex] ?? "";
+    nextButton.hidden = true;
   }
   function startDialogue() {
     if (!nearby || dialogueOpen) return;
     dialogueOpen = true;
+    dialogueLineIndex = loadNextDialogueIndex();
+    saveNextDialogueIndex((dialogueLineIndex + 1) % MIKE_DIALOGUE_LINES.length);
     speaker.textContent = MIKE_NAME;
-    dialogueLine.textContent = MIKE_DIALOGUE_LINES[conversationIndex % MIKE_DIALOGUE_LINES.length] ?? "";
-    conversationIndex += 1;
+    showDialogueLine();
     dialogue2.hidden = false;
     talkButton.hidden = true;
     theme.pause();
@@ -555,20 +628,16 @@
     const nextNearby = Math.hypot(playerX - MIKE.x, playerY - MIKE.y) <= INTERACTION_DISTANCE;
     if (nextNearby === nearby) return;
     nearby = nextNearby;
-    talkButton.hidden = !nearby || dialogueOpen;
+    talkButton.hidden = true;
+    if (nearby) startDialogue();
+    else if (dialogueOpen) closeDialogue();
   }
   function setupMike() {
-    talkButton.addEventListener("click", startDialogue);
     closeButton.addEventListener("click", closeDialogue);
     window.addEventListener("keydown", (event) => {
       if (event.code === "Escape" && dialogueOpen) {
         event.preventDefault();
         closeDialogue();
-        return;
-      }
-      if ((event.code === "KeyE" || event.code === "Enter" || event.code === "Space") && nearby) {
-        event.preventDefault();
-        startDialogue();
       }
     });
   }
@@ -690,7 +759,7 @@
   var CHASE_SPEED = 235;
   var FRAME_COUNT2 = 4;
   var FRAME_RATE = 9;
-  var BATTLE_TRANSITION_DURATION = 1350;
+  var BATTLE_TRANSITION_DURATION = 2700;
   var NIALL = {
     x: 792,
     y: 391,
@@ -731,7 +800,7 @@
     }
     gameShell.append(transition);
     window.setTimeout(() => {
-      window.location.assign("niall-fight/");
+      window.location.assign("niall-fight/index.html");
     }, BATTLE_TRANSITION_DURATION);
   }
   function setDirection(dx, dy) {
@@ -1363,7 +1432,7 @@
     }
   }
   function updatePlayer(deltaTime, speedMultiplier2) {
-    if (isBusIntroActive() || isHoleAnimationActive() || isMikeDialogueOpen() || isNiallAlertActive() || isNiallBattleTransitionActive() || isCaveTheftCutsceneActive()) {
+    if (isBusIntroActive() || isHoleAnimationActive() || isNiallAlertActive() || isNiallBattleTransitionActive() || isCaveTheftCutsceneActive()) {
       player.animationTime = 0;
       player.frame = 0;
       return;
@@ -1405,10 +1474,13 @@
   var GIRLS_RENDER_HEIGHT = 44;
   var SEAL_MODE = new URLSearchParams(window.location.search).has("seal");
   var SEAL_COLUMNS = 8;
-  var SEAL_ROWS = 9;
   var SEAL_RENDER_WIDTH = 40;
   var SEAL_RENDER_HEIGHT = 52;
   var SEAL_BASELINE_OFFSET = 6;
+  var SEAL_FRAME_X = [0, 130, 254, 380, 506, 630, 754, 881];
+  var SEAL_FRAME_WIDTH = [130, 124, 126, 126, 124, 124, 127, 126];
+  var SEAL_ROW_Y = [0, 162, 323, 486, 646, 805, 970, 1134, 1290];
+  var SEAL_ROW_HEIGHT = [162, 161, 163, 160, 159, 165, 164, 156, 164];
   var sealDirectionRows = {
     down: 8,
     downRight: 7,
@@ -1428,6 +1500,15 @@
       ROAD_TREE_HEIGHT
     );
   }
+  function drawRoadBusRoof(cameraX, cameraY) {
+    context.drawImage(
+      images.roadBusRoof,
+      ROAD_BUS_ROOF_X - cameraX,
+      ROAD_BUS_ROOF_Y - cameraY,
+      ROAD_BUS_ROOF_WIDTH,
+      ROAD_BUS_ROOF_HEIGHT
+    );
+  }
   function drawRoadBusSignForeground(cameraX, cameraY) {
     context.drawImage(
       images.road,
@@ -1439,6 +1520,15 @@
       ROAD_Y + ROAD_BUS_SIGN_SOURCE_Y - cameraY,
       ROAD_BUS_SIGN_WIDTH,
       ROAD_BUS_SIGN_HEIGHT
+    );
+  }
+  function drawGate(cameraX, cameraY) {
+    context.drawImage(
+      images.gate,
+      GATE_X - cameraX,
+      GATE_Y - cameraY,
+      GATE_WIDTH,
+      GATE_HEIGHT
     );
   }
   var GIRLS_IDLE_FRAMES = [
@@ -1647,11 +1737,12 @@
   }
   function draw(time) {
     context.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.dataset.playerVariant = SEAL_MODE ? "seal" : "default";
     logPlayerPosition();
     const cameraCenter = getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
     const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
     const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
-    const roadForegroundCoversPlayer = player.y > ROAD_FOREGROUND_DEPTH_Y;
+    const roadForegroundCoversPlayer = player.y <= ROAD_FOREGROUND_DEPTH_Y;
     context.drawImage(images.map, -cameraX, -cameraY);
     context.save();
     context.imageSmoothingEnabled = true;
@@ -1663,16 +1754,23 @@
       ROAD_WIDTH,
       ROAD_HEIGHT
     );
-    if (!roadForegroundCoversPlayer) drawRoadTree(cameraX, cameraY);
-    context.drawImage(
-      images.roadBusRoof,
-      ROAD_BUS_ROOF_X - cameraX,
-      ROAD_BUS_ROOF_Y - cameraY,
-      ROAD_BUS_ROOF_WIDTH,
-      ROAD_BUS_ROOF_HEIGHT
-    );
+    if (!roadForegroundCoversPlayer) {
+      drawRoadTree(cameraX, cameraY);
+      drawRoadBusRoof(cameraX, cameraY);
+    }
     context.restore();
     context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
+    context.save();
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(
+      images.billboardUnfinished,
+      BILLBOARD_SCREEN_X - cameraX,
+      BILLBOARD_SCREEN_Y - cameraY,
+      BILLBOARD_SCREEN_WIDTH,
+      BILLBOARD_SCREEN_HEIGHT
+    );
+    context.restore();
     context.drawImage(images.cinema, CINEMA_X - cameraX, CINEMA_Y - cameraY);
     context.drawImage(images.musicShop, MUSIC_SHOP_X - cameraX, MUSIC_SHOP_Y - cameraY);
     context.drawImage(images.gym, GYM_X - cameraX, GYM_Y - cameraY);
@@ -1680,6 +1778,13 @@
       context.drawImage(images.gymRoof, GYM_ROOF_X - cameraX - 1, GYM_ROOF_Y - cameraY + 1);
     }
     context.drawImage(images.snowMansion, SNOW_MANSION_X - cameraX, SNOW_MANSION_Y - cameraY - 10);
+    context.drawImage(
+      images.musicShopSign,
+      MUSIC_SHOP_SIGN_X - cameraX,
+      MUSIC_SHOP_SIGN_Y - cameraY,
+      MUSIC_SHOP_SIGN_WIDTH,
+      MUSIC_SHOP_SIGN_HEIGHT
+    );
     drawSnowman(cameraX, cameraY);
     context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
     context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
@@ -1702,6 +1807,8 @@
     );
     context.imageSmoothingEnabled = false;
     context.drawImage(images.zenGarden, ZEN_GARDEN_X - cameraX, ZEN_GARDEN_Y - cameraY);
+    const gateCoversPlayer = player.y < GATE_PLAYER_DEPTH_Y;
+    if (!gateCoversPlayer) drawGate(cameraX, cameraY);
     const toriCoversPlayer = player.y < TORI_PLAYER_DEPTH_Y;
     if (!toriCoversPlayer) drawTori(cameraX, cameraY);
     if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
@@ -1729,12 +1836,12 @@
       MIKE.height
     );
     const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
-    const sourceWidth = SEAL_MODE ? playerSpriteSheet.width / SEAL_COLUMNS : FRAME_WIDTH;
-    const sourceHeight = SEAL_MODE ? playerSpriteSheet.height / SEAL_ROWS : FRAME_HEIGHT;
     const sourceFrame = SEAL_MODE ? player.frame % SEAL_COLUMNS : player.frame;
     const sourceRow = SEAL_MODE ? sealDirectionRows[player.direction] : directionRows[player.direction];
-    const sourceX = sourceFrame * sourceWidth;
-    const sourceY = sourceRow * sourceHeight;
+    const sourceX = SEAL_MODE ? SEAL_FRAME_X[sourceFrame] ?? 0 : sourceFrame * FRAME_WIDTH;
+    const sourceY = SEAL_MODE ? SEAL_ROW_Y[sourceRow] ?? 0 : sourceRow * FRAME_HEIGHT;
+    const sourceWidth = SEAL_MODE ? SEAL_FRAME_WIDTH[sourceFrame] ?? 126 : FRAME_WIDTH;
+    const sourceHeight = SEAL_MODE ? SEAL_ROW_HEIGHT[sourceRow] ?? 162 : FRAME_HEIGHT;
     const width = SEAL_MODE ? SEAL_RENDER_WIDTH : FRAME_WIDTH * SCALE;
     const height = SEAL_MODE ? SEAL_RENDER_HEIGHT : FRAME_HEIGHT * SCALE;
     const baselineOffset = SEAL_MODE ? SEAL_BASELINE_OFFSET : 0;
@@ -1779,9 +1886,11 @@
     }
     if (roadForegroundCoversPlayer) {
       drawRoadTree(cameraX, cameraY);
+      drawRoadBusRoof(cameraX, cameraY);
       drawRoadBusSignForeground(cameraX, cameraY);
     }
     if (toriCoversPlayer) drawTori(cameraX, cameraY);
+    if (gateCoversPlayer) drawGate(cameraX, cameraY);
     drawBusIntro(cameraX, cameraY);
     const thief = getCaveThief();
     const thiefDialogue = getCaveThiefDialogue();

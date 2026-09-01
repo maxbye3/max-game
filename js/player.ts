@@ -14,7 +14,6 @@ import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
 import { isHoleAnimationActive } from './hole.js';
 import { isHeld } from './input.js';
-import { isMikeDialogueOpen } from './mike.js';
 import { isNiallAlertActive, isNiallBattleTransitionActive, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
@@ -75,7 +74,6 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   if (
     isBusIntroActive() ||
     isHoleAnimationActive() ||
-    isMikeDialogueOpen() ||
     isNiallAlertActive() ||
     isNiallBattleTransitionActive() ||
     isCaveTheftCutsceneActive()

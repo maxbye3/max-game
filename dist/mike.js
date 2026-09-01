@@ -2,6 +2,7 @@ import { requireElement } from './dom.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
 const MIKE_FOLDER = 'chat/mike';
 const MIKE_NAME = MIKE_FOLDER.slice(MIKE_FOLDER.lastIndexOf('/') + 1);
+const MIKE_DIALOGUE_INDEX_KEY = 'max-game:mike-dialogue-index';
 const INTERACTION_DISTANCE = 56;
 const COLLISION_DISTANCE = 27;
 export const MIKE = {
@@ -14,30 +15,57 @@ const talkButton = requireElement('#mike-talk');
 const dialogue = requireElement('#mike-dialogue');
 const speaker = requireElement('#mike-speaker');
 const dialogueLine = requireElement('#mike-dialogue-line');
+const nextButton = requireElement('#mike-dialogue-next');
 const closeButton = requireElement('#mike-dialogue-close');
 const theme = new Audio('chat/mike/example_character/theme.mp3');
 theme.preload = 'auto';
 let nearby = false;
 let dialogueOpen = false;
-let conversationIndex = 0;
-export const isMikeDialogueOpen = () => dialogueOpen;
+let dialogueLineIndex = 0;
+let fallbackNextDialogueIndex = 0;
+function loadNextDialogueIndex() {
+    try {
+        const storedIndex = Number.parseInt(window.localStorage.getItem(MIKE_DIALOGUE_INDEX_KEY) ?? '0', 10);
+        return Number.isFinite(storedIndex) && storedIndex >= 0
+            ? storedIndex % MIKE_DIALOGUE_LINES.length
+            : 0;
+    }
+    catch {
+        return fallbackNextDialogueIndex;
+    }
+}
+function saveNextDialogueIndex(index) {
+    fallbackNextDialogueIndex = index;
+    try {
+        window.localStorage.setItem(MIKE_DIALOGUE_INDEX_KEY, String(index));
+    }
+    catch {
+        // Dialogue still cycles for this page when storage is unavailable.
+    }
+}
 export function playerCollidesWithMike(x, y) {
     return Math.hypot(x - MIKE.x, y - MIKE.y) < COLLISION_DISTANCE;
 }
 function closeDialogue() {
     dialogueOpen = false;
     dialogue.hidden = true;
+    nextButton.hidden = true;
     theme.pause();
     theme.currentTime = 0;
-    talkButton.hidden = !nearby;
+    talkButton.hidden = true;
+}
+function showDialogueLine() {
+    dialogueLine.textContent = MIKE_DIALOGUE_LINES[dialogueLineIndex] ?? '';
+    nextButton.hidden = true;
 }
 function startDialogue() {
     if (!nearby || dialogueOpen)
         return;
     dialogueOpen = true;
+    dialogueLineIndex = loadNextDialogueIndex();
+    saveNextDialogueIndex((dialogueLineIndex + 1) % MIKE_DIALOGUE_LINES.length);
     speaker.textContent = MIKE_NAME;
-    dialogueLine.textContent = MIKE_DIALOGUE_LINES[conversationIndex % MIKE_DIALOGUE_LINES.length] ?? '';
-    conversationIndex += 1;
+    showDialogueLine();
     dialogue.hidden = false;
     talkButton.hidden = true;
     theme.pause();
@@ -51,20 +79,18 @@ export function updateMikeInteraction(playerX, playerY) {
     if (nextNearby === nearby)
         return;
     nearby = nextNearby;
-    talkButton.hidden = !nearby || dialogueOpen;
+    talkButton.hidden = true;
+    if (nearby)
+        startDialogue();
+    else if (dialogueOpen)
+        closeDialogue();
 }
 export function setupMike() {
-    talkButton.addEventListener('click', startDialogue);
     closeButton.addEventListener('click', closeDialogue);
     window.addEventListener('keydown', (event) => {
         if (event.code === 'Escape' && dialogueOpen) {
             event.preventDefault();
             closeDialogue();
-            return;
-        }
-        if ((event.code === 'KeyE' || event.code === 'Enter' || event.code === 'Space') && nearby) {
-            event.preventDefault();
-            startDialogue();
         }
     });
 }

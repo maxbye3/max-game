@@ -3,7 +3,7 @@ import { getBusIntroBus, getBusIntroCameraCenter, isBusIntroPlayerVisible, } fro
 import { getCaveTheftCameraCenter, getCaveThief, getCaveThiefDialogue, } from './cave-thief.js';
 import { drawColander, hasCaveColander } from './colander.js';
 import { COLLISION_SHAPES } from './collision-data.js';
-import { ARTIST_STUDIO_X, ARTIST_STUDIO_Y, BILLBOARD_X, BILLBOARD_Y, BOOKSHOP_HEIGHT, BOOKSHOP_WIDTH, BOOKSHOP_X, BOOKSHOP_Y, CINEMA_X, CINEMA_Y, DIARY_LAB_HEIGHT, DIARY_LAB_WIDTH, DIARY_LAB_X, DIARY_LAB_Y, FEEDBACK_X, FEEDBACK_Y, FRAME_HEIGHT, FRAME_WIDTH, GYM_ROOF_TOGGLE_INTERVAL, GYM_ROOF_X, GYM_ROOF_Y, GYM_X, GYM_Y, JOB_CENTER_X, JOB_CENTER_Y, MUSIC_SHOP_X, MUSIC_SHOP_Y, SCALE, SHOW_COLLISION_SHAPES, SNOW_MANSION_X, SNOW_MANSION_Y, ROAD_HEIGHT, ROAD_BUS_ROOF_HEIGHT, ROAD_BUS_ROOF_WIDTH, ROAD_BUS_ROOF_X, ROAD_BUS_ROOF_Y, ROAD_BUS_SIGN_HEIGHT, ROAD_BUS_SIGN_SOURCE_X, ROAD_BUS_SIGN_SOURCE_Y, ROAD_BUS_SIGN_WIDTH, ROAD_FOREGROUND_DEPTH_Y, ROAD_TREE_HEIGHT, ROAD_TREE_WIDTH, ROAD_TREE_X, ROAD_TREE_Y, ROAD_WIDTH, ROAD_X, ROAD_Y, TORI_PLAYER_DEPTH_Y, TORI_SIZE, TORI_X, TORI_Y, WORLD_HEIGHT, WORLD_WIDTH, ZEN_GARDEN_X, ZEN_GARDEN_Y, } from './config.js';
+import { ARTIST_STUDIO_X, ARTIST_STUDIO_Y, BILLBOARD_X, BILLBOARD_Y, BILLBOARD_SCREEN_HEIGHT, BILLBOARD_SCREEN_WIDTH, BILLBOARD_SCREEN_X, BILLBOARD_SCREEN_Y, BOOKSHOP_HEIGHT, BOOKSHOP_WIDTH, BOOKSHOP_X, BOOKSHOP_Y, CINEMA_X, CINEMA_Y, DIARY_LAB_HEIGHT, DIARY_LAB_WIDTH, DIARY_LAB_X, DIARY_LAB_Y, FEEDBACK_X, FEEDBACK_Y, FRAME_HEIGHT, FRAME_WIDTH, GATE_HEIGHT, GATE_PLAYER_DEPTH_Y, GATE_WIDTH, GATE_X, GATE_Y, GYM_ROOF_TOGGLE_INTERVAL, GYM_ROOF_X, GYM_ROOF_Y, GYM_X, GYM_Y, JOB_CENTER_X, JOB_CENTER_Y, MUSIC_SHOP_X, MUSIC_SHOP_Y, MUSIC_SHOP_SIGN_HEIGHT, MUSIC_SHOP_SIGN_WIDTH, MUSIC_SHOP_SIGN_X, MUSIC_SHOP_SIGN_Y, SCALE, SHOW_COLLISION_SHAPES, SNOW_MANSION_X, SNOW_MANSION_Y, ROAD_HEIGHT, ROAD_BUS_ROOF_HEIGHT, ROAD_BUS_ROOF_WIDTH, ROAD_BUS_ROOF_X, ROAD_BUS_ROOF_Y, ROAD_BUS_SIGN_HEIGHT, ROAD_BUS_SIGN_SOURCE_X, ROAD_BUS_SIGN_SOURCE_Y, ROAD_BUS_SIGN_WIDTH, ROAD_FOREGROUND_DEPTH_Y, ROAD_TREE_HEIGHT, ROAD_TREE_WIDTH, ROAD_TREE_X, ROAD_TREE_Y, ROAD_WIDTH, ROAD_X, ROAD_Y, TORI_PLAYER_DEPTH_Y, TORI_SIZE, TORI_X, TORI_Y, WORLD_HEIGHT, WORLD_WIDTH, ZEN_GARDEN_X, ZEN_GARDEN_Y, } from './config.js';
 import { canvas, context } from './dom.js';
 import { getOpenDoorways } from './doors.js';
 import { getHolePlayerTransform } from './hole.js';
@@ -19,10 +19,13 @@ const GIRLS_RENDER_WIDTH = 56;
 const GIRLS_RENDER_HEIGHT = 44;
 const SEAL_MODE = new URLSearchParams(window.location.search).has('seal');
 const SEAL_COLUMNS = 8;
-const SEAL_ROWS = 9;
 const SEAL_RENDER_WIDTH = 40;
 const SEAL_RENDER_HEIGHT = 52;
 const SEAL_BASELINE_OFFSET = 6;
+const SEAL_FRAME_X = [0, 130, 254, 380, 506, 630, 754, 881];
+const SEAL_FRAME_WIDTH = [130, 124, 126, 126, 124, 124, 127, 126];
+const SEAL_ROW_Y = [0, 162, 323, 486, 646, 805, 970, 1134, 1290];
+const SEAL_ROW_HEIGHT = [162, 161, 163, 160, 159, 165, 164, 156, 164];
 const sealDirectionRows = {
     down: 8,
     downRight: 7,
@@ -36,8 +39,14 @@ const sealDirectionRows = {
 function drawRoadTree(cameraX, cameraY) {
     context.drawImage(images.roadTree, ROAD_TREE_X - cameraX, ROAD_TREE_Y - cameraY, ROAD_TREE_WIDTH, ROAD_TREE_HEIGHT);
 }
+function drawRoadBusRoof(cameraX, cameraY) {
+    context.drawImage(images.roadBusRoof, ROAD_BUS_ROOF_X - cameraX, ROAD_BUS_ROOF_Y - cameraY, ROAD_BUS_ROOF_WIDTH, ROAD_BUS_ROOF_HEIGHT);
+}
 function drawRoadBusSignForeground(cameraX, cameraY) {
     context.drawImage(images.road, ROAD_BUS_SIGN_SOURCE_X, ROAD_BUS_SIGN_SOURCE_Y, ROAD_BUS_SIGN_WIDTH, ROAD_BUS_SIGN_HEIGHT, ROAD_X + ROAD_BUS_SIGN_SOURCE_X - cameraX, ROAD_Y + ROAD_BUS_SIGN_SOURCE_Y - cameraY, ROAD_BUS_SIGN_WIDTH, ROAD_BUS_SIGN_HEIGHT);
+}
+function drawGate(cameraX, cameraY) {
+    context.drawImage(images.gate, GATE_X - cameraX, GATE_Y - cameraY, GATE_WIDTH, GATE_HEIGHT);
 }
 const GIRLS_IDLE_FRAMES = [
     [181, 16, 235, 176],
@@ -210,6 +219,7 @@ function logPlayerPosition() {
 }
 export function draw(time) {
     context.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.dataset.playerVariant = SEAL_MODE ? 'seal' : 'default';
     logPlayerPosition();
     // Rounded so the map is sampled on whole source pixels: a fractional source
     // rect snaps at a browser-defined threshold and makes the player jitter
@@ -217,17 +227,23 @@ export function draw(time) {
     const cameraCenter = getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
     const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
     const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
-    const roadForegroundCoversPlayer = player.y > ROAD_FOREGROUND_DEPTH_Y;
+    const roadForegroundCoversPlayer = player.y <= ROAD_FOREGROUND_DEPTH_Y;
     context.drawImage(images.map, -cameraX, -cameraY);
     context.save();
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
     context.drawImage(images.road, ROAD_X - cameraX, ROAD_Y - cameraY, ROAD_WIDTH, ROAD_HEIGHT);
-    if (!roadForegroundCoversPlayer)
+    if (!roadForegroundCoversPlayer) {
         drawRoadTree(cameraX, cameraY);
-    context.drawImage(images.roadBusRoof, ROAD_BUS_ROOF_X - cameraX, ROAD_BUS_ROOF_Y - cameraY, ROAD_BUS_ROOF_WIDTH, ROAD_BUS_ROOF_HEIGHT);
+        drawRoadBusRoof(cameraX, cameraY);
+    }
     context.restore();
     context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
+    context.save();
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(images.billboardUnfinished, BILLBOARD_SCREEN_X - cameraX, BILLBOARD_SCREEN_Y - cameraY, BILLBOARD_SCREEN_WIDTH, BILLBOARD_SCREEN_HEIGHT);
+    context.restore();
     // Canvas layers use draw order instead of CSS z-index. Drawing buildings
     // after the map keeps them above the houses baked into the overworld image.
     context.drawImage(images.cinema, CINEMA_X - cameraX, CINEMA_Y - cameraY);
@@ -237,6 +253,7 @@ export function draw(time) {
         context.drawImage(images.gymRoof, GYM_ROOF_X - cameraX - 1, GYM_ROOF_Y - cameraY + 1);
     }
     context.drawImage(images.snowMansion, SNOW_MANSION_X - cameraX, SNOW_MANSION_Y - cameraY - 10);
+    context.drawImage(images.musicShopSign, MUSIC_SHOP_SIGN_X - cameraX, MUSIC_SHOP_SIGN_Y - cameraY, MUSIC_SHOP_SIGN_WIDTH, MUSIC_SHOP_SIGN_HEIGHT);
     drawSnowman(cameraX, cameraY);
     context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
     context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
@@ -247,6 +264,9 @@ export function draw(time) {
     context.drawImage(images.diaryLab, DIARY_LAB_X - cameraX, DIARY_LAB_Y - cameraY, DIARY_LAB_WIDTH, DIARY_LAB_HEIGHT);
     context.imageSmoothingEnabled = false;
     context.drawImage(images.zenGarden, ZEN_GARDEN_X - cameraX, ZEN_GARDEN_Y - cameraY);
+    const gateCoversPlayer = player.y < GATE_PLAYER_DEPTH_Y;
+    if (!gateCoversPlayer)
+        drawGate(cameraX, cameraY);
     const toriCoversPlayer = player.y < TORI_PLAYER_DEPTH_Y;
     if (!toriCoversPlayer)
         drawTori(cameraX, cameraY);
@@ -265,12 +285,12 @@ export function draw(time) {
     }
     context.drawImage(images.mike, Math.round(MIKE.x - cameraX - MIKE.width / 2), Math.round(MIKE.y - cameraY - MIKE.height), MIKE.width, MIKE.height);
     const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
-    const sourceWidth = SEAL_MODE ? playerSpriteSheet.width / SEAL_COLUMNS : FRAME_WIDTH;
-    const sourceHeight = SEAL_MODE ? playerSpriteSheet.height / SEAL_ROWS : FRAME_HEIGHT;
     const sourceFrame = SEAL_MODE ? player.frame % SEAL_COLUMNS : player.frame;
     const sourceRow = SEAL_MODE ? sealDirectionRows[player.direction] : directionRows[player.direction];
-    const sourceX = sourceFrame * sourceWidth;
-    const sourceY = sourceRow * sourceHeight;
+    const sourceX = SEAL_MODE ? (SEAL_FRAME_X[sourceFrame] ?? 0) : sourceFrame * FRAME_WIDTH;
+    const sourceY = SEAL_MODE ? (SEAL_ROW_Y[sourceRow] ?? 0) : sourceRow * FRAME_HEIGHT;
+    const sourceWidth = SEAL_MODE ? (SEAL_FRAME_WIDTH[sourceFrame] ?? 126) : FRAME_WIDTH;
+    const sourceHeight = SEAL_MODE ? (SEAL_ROW_HEIGHT[sourceRow] ?? 162) : FRAME_HEIGHT;
     const width = SEAL_MODE ? SEAL_RENDER_WIDTH : FRAME_WIDTH * SCALE;
     const height = SEAL_MODE ? SEAL_RENDER_HEIGHT : FRAME_HEIGHT * SCALE;
     const baselineOffset = SEAL_MODE ? SEAL_BASELINE_OFFSET : 0;
@@ -293,10 +313,13 @@ export function draw(time) {
     }
     if (roadForegroundCoversPlayer) {
         drawRoadTree(cameraX, cameraY);
+        drawRoadBusRoof(cameraX, cameraY);
         drawRoadBusSignForeground(cameraX, cameraY);
     }
     if (toriCoversPlayer)
         drawTori(cameraX, cameraY);
+    if (gateCoversPlayer)
+        drawGate(cameraX, cameraY);
     drawBusIntro(cameraX, cameraY);
     const thief = getCaveThief();
     const thiefDialogue = getCaveThiefDialogue();

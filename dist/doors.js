@@ -51,7 +51,10 @@ export function updateDoors(playerX, playerY) {
         return;
     navigationStarted = true;
     markInternalTestVisited();
-    window.location.assign(`internal/index.html?door=${encodeURIComponent(enteredDoorway.id)}`);
+    const params = new URLSearchParams({ door: enteredDoorway.id });
+    if (new URLSearchParams(window.location.search).has('seal'))
+        params.set('seal', '1');
+    window.location.assign(`internal/index.html?${params.toString()}`);
 }
 export function getOpenDoorways() {
     return DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));

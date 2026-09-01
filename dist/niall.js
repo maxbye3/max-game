@@ -8,7 +8,7 @@ const VERTICAL_SIGHT_DISTANCE = 180;
 const CHASE_SPEED = 235;
 const FRAME_COUNT = 4;
 const FRAME_RATE = 9;
-const BATTLE_TRANSITION_DURATION = 1350;
+const BATTLE_TRANSITION_DURATION = 2700;
 export const NIALL = {
     x: 792,
     y: 391,
@@ -50,7 +50,7 @@ function startFight() {
     }
     gameShell.append(transition);
     window.setTimeout(() => {
-        window.location.assign('niall-fight/');
+        window.location.assign('niall-fight/index.html');
     }, BATTLE_TRANSITION_DURATION);
 }
 function setDirection(dx, dy) {

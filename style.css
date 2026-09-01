@@ -333,7 +333,7 @@ canvas {
   overflow: hidden;
   border-radius: 0;
   pointer-events: none;
-  animation: battle-flash 1.35s steps(1, end) forwards;
+  animation: battle-flash 2.7s steps(1, end) forwards;
 }
 
 .battle-transition::before,
@@ -348,13 +348,13 @@ canvas {
   background:
     radial-gradient(circle at center, transparent 0 18%, #111 19% 100%),
     repeating-linear-gradient(90deg, rgb(255 255 255 / 0%) 0 12px, rgb(255 255 255 / 45%) 12px 16px);
-  animation: battle-iris 1.35s cubic-bezier(.72, 0, .22, 1) forwards;
+  animation: battle-iris 2.7s cubic-bezier(.72, 0, .22, 1) forwards;
 }
 
 .battle-transition::after {
   mix-blend-mode: screen;
   background: #fff;
-  animation: battle-white-pulse 1.35s steps(1, end) forwards;
+  animation: battle-white-pulse 2.7s steps(1, end) forwards;
 }
 
 .battle-transition span {
@@ -366,8 +366,8 @@ canvas {
   background: #111;
   transform: scaleX(0);
   transform-origin: left center;
-  animation: battle-band-close .62s cubic-bezier(.66, 0, .25, 1) forwards;
-  animation-delay: calc(.38s + var(--band-index) * 22ms);
+  animation: battle-band-close 1.24s cubic-bezier(.66, 0, .25, 1) forwards;
+  animation-delay: calc(.76s + var(--band-index) * 44ms);
 }
 
 .battle-transition span:nth-child(even) {
@@ -755,6 +755,27 @@ canvas {
   outline: none;
 }
 
+.npc-dialogue-next {
+  display: block;
+  margin: 12px 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid #8eaf93;
+  border-radius: 5px;
+  color: #17321c;
+  background: var(--accent);
+  font: 8px/1.5 var(--font-pixel);
+  cursor: pointer;
+}
+
+.npc-dialogue-next[hidden] { display: none; }
+
+.npc-dialogue-next:hover,
+.npc-dialogue-next:focus-visible {
+  border-color: #f5fff6;
+  outline: none;
+  background: #b8e493;
+}
+
 .npc-dialogue-close {
   width: 28px;
   height: 28px;
@@ -947,7 +968,7 @@ canvas {
 }
 
 .dpad {
-  display: grid;
+  display: none;
   grid-template-columns: repeat(3, 34px);
   grid-template-rows: repeat(3, 34px);
   gap: 2px;
@@ -1004,12 +1025,16 @@ kbd {
   font-weight: 700;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  .dpad { display: grid; }
+  .keyboard-hint { display: none; }
+}
+
 @media (max-width: 560px) {
   .game-shell { padding: 0; }
   canvas { border: 0; border-radius: 0; }
   .controls { right: 12px; bottom: 12px; }
   .bus-intro-skip { left: 12px; bottom: 12px; }
-  .keyboard-hint { display: none; }
   .inventory-toggle { top: 12px; right: 12px; }
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }
   .sign-dialogue { top: 12px; width: calc(100% - 24px); }

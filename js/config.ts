@@ -26,6 +26,12 @@ export const ROAD_BUS_SIGN_SOURCE_Y = 23;
 export const ROAD_BUS_SIGN_WIDTH = 22;
 export const ROAD_BUS_SIGN_HEIGHT = 55;
 
+export const GATE_X = 1044;
+export const GATE_Y = 1128;
+export const GATE_WIDTH = 108;
+export const GATE_HEIGHT = 60;
+export const GATE_PLAYER_DEPTH_Y = 1176.2;
+
 export const BUS_INTRO_STOP_X = 692;
 export const BUS_INTRO_BUS_BASELINE_Y = ROAD_Y + 130;
 export const BUS_INTRO_CAMERA_Y = WORLD_HEIGHT - 240;
@@ -34,10 +40,18 @@ export const BUS_INTRO_PLAYER_END_Y = ROAD_Y + 68;
 
 export const BILLBOARD_X = 402;
 export const BILLBOARD_Y = 420;
+export const BILLBOARD_SCREEN_X = BILLBOARD_X + 12;
+export const BILLBOARD_SCREEN_Y = BILLBOARD_Y + 9;
+export const BILLBOARD_SCREEN_WIDTH = 89;
+export const BILLBOARD_SCREEN_HEIGHT = 34;
 export const CINEMA_X = 431;
 export const CINEMA_Y = 705;
 export const MUSIC_SHOP_X = 197;
 export const MUSIC_SHOP_Y = 354;
+export const MUSIC_SHOP_SIGN_X = 700;
+export const MUSIC_SHOP_SIGN_Y = 950;
+export const MUSIC_SHOP_SIGN_WIDTH = 17;
+export const MUSIC_SHOP_SIGN_HEIGHT = 25;
 export const GYM_X = 979;
 export const GYM_Y = 442;
 export const GYM_ROOF_X = GYM_X + 8;

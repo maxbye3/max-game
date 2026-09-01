@@ -1,4 +1,12 @@
-import { FRAME_HEIGHT, FRAME_WIDTH, SCALE } from './config.js';
+import {
+  FRAME_HEIGHT,
+  FRAME_WIDTH,
+  MUSIC_SHOP_SIGN_HEIGHT,
+  MUSIC_SHOP_SIGN_WIDTH,
+  MUSIC_SHOP_SIGN_X,
+  MUSIC_SHOP_SIGN_Y,
+  SCALE,
+} from './config.js';
 import { requireElement } from './dom.js';
 import type { CollisionShape } from './types.js';
 
@@ -14,7 +22,7 @@ interface Sign {
 
 const SIGN_MESSAGES = [
   'Hey, welcome to my website! You can quick-travel by clicking the “Jump” button in the bottom-right.',
-  'Click the “Inventory” button to check out everything in your extremely deep pockets. You can get new items by talking to certain folks.',
+  'People add things to your inventory as you talk to them click the inventory button to use it',
   'DC has one of the highest employment rates in the country, so helping folks find work is my side hustle.',
 ] as const;
 
@@ -40,12 +48,12 @@ export const SIGNS: readonly Sign[] = [
   },
   {
     id: 'music-shop-placard',
-    title: 'Music Shop',
-    message: SIGN_MESSAGES[0],
-    x: 197,
-    y: 471,
-    width: 17,
-    height: 25,
+    title: 'Inventory',
+    message: SIGN_MESSAGES[1],
+    x: MUSIC_SHOP_SIGN_X,
+    y: MUSIC_SHOP_SIGN_Y,
+    width: MUSIC_SHOP_SIGN_WIDTH,
+    height: MUSIC_SHOP_SIGN_HEIGHT,
   },
   {
     id: 'job-center-noticeboard',
@@ -58,12 +66,12 @@ export const SIGNS: readonly Sign[] = [
   },
   {
     id: 'east-directory',
-    title: 'Riverside Sign',
+    title: 'Fast travel',
     message: SIGN_MESSAGES[0],
-    x: 1156,
-    y: 960,
-    width: 20,
-    height: 20,
+    x: 610,
+    y: 1151,
+    width: 25,
+    height: 23,
   },
 ];
 
