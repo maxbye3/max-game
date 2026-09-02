@@ -8,6 +8,7 @@ const IMAGE_SOURCES = {
   doorOpen: 'img/external/door-open.png',
   billboard: 'img/external/buildings/billboard.png',
   billboardUnfinished: 'img/external/billboard-unfinished.png',
+  tv: 'img/external/buildings/tv.png',
   cinema: 'img/external/buildings/cinema.png',
   musicShop: 'img/external/buildings/music-shop.png',
   gym: 'img/external/buildings/gym.png',
@@ -24,8 +25,7 @@ const IMAGE_SOURCES = {
   spriteSheet: 'player/SpriteSheet.png',
   sealSpriteSheet: 'player/seal-game.png?v=20260831-transparent',
   mike: 'chat/mike/overworld-avatar.png',
-  mikeAftermath: 'img/external/mike-aftermath.png',
-  niall: 'chat/niall/avatar.png',
+  rei: 'chat/rei/avatar.png',
   niallSprite: 'chat/niall/niall-sprite.png',
   niallExplanationMark: 'chat/niall/explanation-mark.png',
   girlsSprite: 'chat/siblings/girls-sprite.png',
@@ -38,19 +38,32 @@ export const images = Object.fromEntries(
   (Object.keys(IMAGE_SOURCES) as AssetName[]).map((name) => [name, new Image()]),
 ) as Record<AssetName, HTMLImageElement>;
 
-function loadImage(image: HTMLImageElement, src: string): Promise<unknown> {
+function loadImage(image: HTMLImageElement, src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // decode() keeps the 1254x1254 map's bitmap expansion off the first frame's
     // animation callback; it is optional, so a failure there is not fatal.
-    image.onload = () => resolve(image.decode?.().catch(() => {}));
+    image.onload = async () => {
+      await image.decode?.().catch(() => {});
+      resolve();
+    };
     image.onerror = () => reject(new Error(`Failed to load ${src}`));
     image.src = src;
   });
 }
 
-export function loadAssets(): Promise<unknown[]> {
-  return Promise.all(
-    (Object.entries(IMAGE_SOURCES) as Array<[AssetName, string]>).map(([name, src]) =>
-      loadImage(images[name], src)),
+const OPTIONAL_ASSETS: readonly AssetName[] = ['billboardUnfinished', 'girlsSprite'];
+
+export async function loadAssets(): Promise<void> {
+  const sealMode = new URLSearchParams(window.location.search).has('seal');
+  const blockingAssets = (Object.keys(IMAGE_SOURCES) as AssetName[]).filter((name) =>
+    !OPTIONAL_ASSETS.includes(name) &&
+    name !== (sealMode ? 'spriteSheet' : 'sealSpriteSheet'),
   );
+  await Promise.all(blockingAssets.map((name) => loadImage(images[name], IMAGE_SOURCES[name])));
+
+  OPTIONAL_ASSETS.forEach((name) => {
+    void loadImage(images[name], IMAGE_SOURCES[name]).catch((error: unknown) => {
+      console.warn(`Optional asset could not be loaded: ${name}`, error);
+    });
+  });
 }

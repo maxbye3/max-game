@@ -1,4 +1,6 @@
 import {
+  BILLBOARD_X,
+  BILLBOARD_Y,
   FRAME_HEIGHT,
   FRAME_WIDTH,
   MUSIC_SHOP_SIGN_HEIGHT,
@@ -38,15 +40,6 @@ export const SIGNS: readonly Sign[] = [
     height: 20,
   },
   {
-    id: 'community-billboard',
-    title: 'Community Billboard',
-    message: SIGN_MESSAGES[0],
-    x: 402,
-    y: 420,
-    width: 108,
-    height: 61,
-  },
-  {
     id: 'music-shop-placard',
     title: 'Inventory',
     message: SIGN_MESSAGES[1],
@@ -75,9 +68,12 @@ export const SIGNS: readonly Sign[] = [
   },
 ];
 
-export const SIGN_COLLISION_SHAPES: readonly CollisionShape[] = SIGNS.map(
-  ({ x, y, width, height }) => [x, y, width, height] as const,
-);
+export const SIGN_COLLISION_SHAPES: readonly CollisionShape[] = [
+  ...SIGNS.map(({ x, y, width, height }) => [x, y, width, height] as const),
+  // The billboard remains a solid map object even though it is no longer an
+  // interactive sign; Rei now owns the interaction in front of it.
+  [BILLBOARD_X, BILLBOARD_Y, 108, 61],
+];
 
 const dialogue = requireElement<HTMLElement>('#sign-dialogue');
 const dialogueTitle = requireElement<HTMLElement>('#sign-dialogue-title');

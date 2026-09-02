@@ -1,7 +1,9 @@
 import { SPEED, WORLD_HEIGHT, WORLD_WIDTH } from './config.js';
+import { buildThiefPath, thiefPathCell, type PathPoint } from './cave-thief-path.js';
 import { CAVE_DOOR_ID, hasCaveColander } from './colander.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
+import { moveWithCollisions } from './movement.js';
 
 type ThiefPhase =
   | 'hidden'
@@ -12,10 +14,7 @@ type ThiefPhase =
   | 'chasing';
 export type CaveThiefDirection = 'down' | 'left' | 'right' | 'up';
 
-interface CameraCenter {
-  x: number;
-  y: number;
-}
+type CameraCenter = PathPoint;
 
 interface ThiefState {
   phase: ThiefPhase;
@@ -34,12 +33,10 @@ interface ThiefState {
 
 const CAVE_DOOR = DOORWAYS.find((doorway) => doorway.id === CAVE_DOOR_ID);
 const THIEF_SIZE = 24;
-const GRID_SIZE = 16;
 const SEQUENCE_DELAY = 5000;
 const PAN_DURATION = 1200;
 const MESSAGE_DURATION = 1800;
 const PATH_REFRESH_INTERVAL = 0.22;
-const MAX_PATH_EXPANSIONS = 5200;
 const MESSAGE = 'Come back here you thief!';
 
 const entrance = {
@@ -144,123 +141,14 @@ function isBlocked(x: number, y: number): boolean {
   );
 }
 
-function moveWithCollisions(movementX: number, movementY: number): void {
-  const steps = Math.max(1, Math.ceil(Math.max(Math.abs(movementX), Math.abs(movementY)) / 4));
-  const stepX = movementX / steps;
-  const stepY = movementY / steps;
-
-  for (let step = 0; step < steps; step += 1) {
-    const nextX = state.x + stepX;
-    if (!isBlocked(nextX, state.y)) state.x = nextX;
-
-    const nextY = state.y + stepY;
-    if (!isBlocked(state.x, nextY)) state.y = nextY;
-  }
-}
-
-function cellFor(x: number, y: number): number {
-  const columns = Math.ceil(WORLD_WIDTH / GRID_SIZE);
-  const column = Math.max(0, Math.min(columns - 1, Math.floor(x / GRID_SIZE)));
-  const row = Math.max(0, Math.min(Math.ceil(WORLD_HEIGHT / GRID_SIZE) - 1, Math.floor(y / GRID_SIZE)));
-  return row * columns + column;
-}
-
-function cellCenter(cell: number): CameraCenter {
-  const columns = Math.ceil(WORLD_WIDTH / GRID_SIZE);
-  const column = cell % columns;
-  const row = Math.floor(cell / columns);
-  return {
-    x: column * GRID_SIZE + GRID_SIZE / 2,
-    y: row * GRID_SIZE + GRID_SIZE / 2,
-  };
-}
-
-function nearestPassableCell(startCell: number): number {
-  if (!isBlocked(cellCenter(startCell).x, cellCenter(startCell).y)) return startCell;
-
-  const columns = Math.ceil(WORLD_WIDTH / GRID_SIZE);
-  const rows = Math.ceil(WORLD_HEIGHT / GRID_SIZE);
-  const startColumn = startCell % columns;
-  const startRow = Math.floor(startCell / columns);
-  for (let radius = 1; radius <= 8; radius += 1) {
-    for (let row = startRow - radius; row <= startRow + radius; row += 1) {
-      for (let column = startColumn - radius; column <= startColumn + radius; column += 1) {
-        if (column < 0 || column >= columns || row < 0 || row >= rows) continue;
-        const cell = row * columns + column;
-        const center = cellCenter(cell);
-        if (!isBlocked(center.x, center.y)) return cell;
-      }
-    }
-  }
-  return startCell;
-}
-
-function rebuildPath(targetX: number, targetY: number): void {
-  const columns = Math.ceil(WORLD_WIDTH / GRID_SIZE);
-  const rows = Math.ceil(WORLD_HEIGHT / GRID_SIZE);
-  const startCell = nearestPassableCell(cellFor(state.x, state.y));
-  const goalCell = nearestPassableCell(cellFor(targetX, targetY));
-  state.targetCell = goalCell;
-  if (startCell === goalCell) {
-    state.path = [{ x: targetX, y: targetY }];
-    return;
-  }
-
-  const queue = [startCell];
-  const cameFrom = new Map<number, number>();
-  cameFrom.set(startCell, startCell);
-  let cursor = 0;
-  let found = false;
-
-  while (cursor < queue.length && cursor < MAX_PATH_EXPANSIONS) {
-    const cell = queue[cursor];
-    cursor += 1;
-    if (cell === undefined) continue;
-    if (cell === goalCell) {
-      found = true;
-      break;
-    }
-
-    const column = cell % columns;
-    const row = Math.floor(cell / columns);
-    const neighbors = [
-      [column + 1, row],
-      [column - 1, row],
-      [column, row + 1],
-      [column, row - 1],
-    ] as const;
-
-    for (const [nextColumn, nextRow] of neighbors) {
-      if (nextColumn < 0 || nextColumn >= columns || nextRow < 0 || nextRow >= rows) continue;
-      const nextCell = nextRow * columns + nextColumn;
-      if (cameFrom.has(nextCell)) continue;
-      const center = cellCenter(nextCell);
-      if (isBlocked(center.x, center.y)) continue;
-      cameFrom.set(nextCell, cell);
-      queue.push(nextCell);
-    }
-  }
-
-  if (!found) {
-    state.path = [{ x: targetX, y: targetY }];
-    return;
-  }
-
-  const path: CameraCenter[] = [];
-  let current = goalCell;
-  while (current !== startCell) {
-    path.push(cellCenter(current));
-    current = cameFrom.get(current) ?? startCell;
-  }
-  state.path = path.reverse().slice(0, 18);
-}
-
 function updateChase(deltaTime: number, targetX: number, targetY: number, speedMultiplier: number): void {
   state.repathTimer -= deltaTime;
-  const targetCell = cellFor(targetX, targetY);
+  const targetCell = thiefPathCell(targetX, targetY);
   if (state.repathTimer <= 0 || targetCell !== state.targetCell || state.path.length === 0) {
     state.repathTimer = PATH_REFRESH_INTERVAL;
-    rebuildPath(targetX, targetY);
+    const path = buildThiefPath(state.x, state.y, targetX, targetY, isBlocked);
+    state.targetCell = path.targetCell;
+    state.path = path.points;
   }
 
   const waypoint = state.path[0] ?? { x: targetX, y: targetY };
@@ -277,7 +165,12 @@ function updateChase(deltaTime: number, targetX: number, targetY: number, speedM
   else state.direction = dy < 0 ? 'up' : 'down';
   state.animationTime += deltaTime;
   state.frame = Math.floor(state.animationTime * 9);
-  moveWithCollisions((dx / distance) * speed * deltaTime, (dy / distance) * speed * deltaTime);
+  moveWithCollisions(
+    state,
+    (dx / distance) * speed * deltaTime,
+    (dy / distance) * speed * deltaTime,
+    isBlocked,
+  );
 }
 
 export function updateCaveThief(

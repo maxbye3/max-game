@@ -1,49 +1,10 @@
-import { markNiallFightComplete } from './world-state.js';
-
-type BattleSide = 'player' | 'niall';
-
-interface NiallAttack {
-  readonly damage: number;
-  readonly fomo?: boolean;
-  readonly message: string;
-}
-
-const PLAYER_MAX_HP = 100;
-const NIALL_MAX_HP = 120;
-
-const niallAttacks: readonly NiallAttack[] = [
-  {
-    damage: 10,
-    message: 'NIALL used HEADBUTT.',
-  },
-  {
-    damage: 0,
-    message: 'NIALL opened a RED STRIPE. It did nothing.',
-  },
-  {
-    damage: 0,
-    fomo: true,
-    message: 'NIALL set up a game of SMASH. MAX got FOMO.',
-  },
-  {
-    damage: 10,
-    message: 'NIALL posted a food pic on WhatsApp.',
-  },
-  {
-    damage: 10,
-    message: 'TALLULAH attacked.',
-  },
-  {
-    damage: 20,
-    message: 'NIALL stayed at your house for two weeks.',
-  },
-];
-
-function requireElement<T extends Element>(selector: string): T {
-  const element = document.querySelector<T>(selector);
-  if (!element) throw new Error(`Missing Niall fight UI: ${selector}`);
-  return element;
-}
+import { getBattleResult, type BattleOutcome } from './battle-outcome.js';
+import { requireElement } from './elements.js';
+import {
+  chooseNiallAttack,
+  NiallBattle,
+} from './niall-battle.js';
+import { setNiallQuestState } from './world-state.js';
 
 const playerHpMeter = requireElement<HTMLMeterElement>('#player-hp');
 const niallHpMeter = requireElement<HTMLMeterElement>('#niall-hp');
@@ -55,17 +16,8 @@ const itemGrid = requireElement<HTMLElement>('#item-grid');
 const busLink = requireElement<HTMLAnchorElement>('#bus-link');
 const battleDice = requireElement<HTMLElement>('#battle-dice');
 
-let playerHp = PLAYER_MAX_HP;
-let niallHp = NIALL_MAX_HP;
-let fomoStacks = 0;
-let battleOver = false;
-let waitingForNiall = false;
-let defending = false;
+const battle = new NiallBattle();
 let runInterval: number | null = null;
-
-function clamp(value: number, max: number): number {
-  return Math.max(0, Math.min(max, value));
-}
 
 function setControlsDisabled(disabled: boolean): void {
   document.querySelectorAll<HTMLButtonElement>('.move-grid button').forEach((button) => {
@@ -74,103 +26,69 @@ function setControlsDisabled(disabled: boolean): void {
 }
 
 function renderBattle(): void {
-  playerHpMeter.value = playerHp;
-  niallHpMeter.value = niallHp;
-  playerHpText.textContent = String(playerHp);
-  fomoStatus.textContent = `FOMO: ${fomoStacks}`;
-  fomoStatus.classList.toggle('active', fomoStacks > 0);
-  setControlsDisabled(battleOver || waitingForNiall);
+  playerHpMeter.value = battle.playerHp;
+  niallHpMeter.value = battle.niallHp;
+  playerHpText.textContent = String(battle.playerHp);
+  fomoStatus.textContent = `FOMO: ${battle.fomoStacks}`;
+  fomoStatus.classList.toggle('active', battle.fomoStacks > 0);
+  setControlsDisabled(!battle.canAct);
 }
 
 function appendLog(message: string): void {
   battleLog.textContent = message;
 }
 
-function damage(side: BattleSide, amount: number): void {
-  if (side === 'player') playerHp = clamp(playerHp - amount, PLAYER_MAX_HP);
-  else niallHp = clamp(niallHp - amount, NIALL_MAX_HP);
-}
-
-function healPlayer(amount: number): void {
-  playerHp = clamp(playerHp + amount, PLAYER_MAX_HP);
-}
-
-function finishBattle(winner: BattleSide): void {
-  battleOver = true;
-  waitingForNiall = false;
-  defending = false;
-  markNiallFightComplete();
+function finishBattle(outcome: BattleOutcome): void {
+  const result = getBattleResult(outcome);
+  battle.finish();
   actionGrid.hidden = true;
   itemGrid.hidden = true;
+  busLink.textContent = result.linkLabel;
+  busLink.href = result.href;
   busLink.hidden = false;
-  appendLog(
-    winner === 'player'
-      ? 'NIALL fainted. NIALL offered to walk you to the bus.'
-      : 'MAX fainted. NIALL offered to walk you to the bus.',
-  );
-  renderBattle();
-}
-
-function finishRun(): void {
-  battleOver = true;
-  waitingForNiall = false;
-  actionGrid.hidden = true;
-  itemGrid.hidden = true;
-  busLink.textContent = 'Back to the map';
-  busLink.href = '../index.html';
-  busLink.hidden = false;
-  appendLog('You tried to runaway and you were... Successful!');
+  if (result.niallQuestState) setNiallQuestState(result.niallQuestState);
+  appendLog(result.message);
   renderBattle();
 }
 
 function applyFomoDamage(): boolean {
-  if (fomoStacks === 0) return false;
-  const amount = fomoStacks * 10;
-  damage('player', amount);
-  appendLog(`FOMO hurt MAX for ${amount} damage.`);
+  if (battle.fomoStacks === 0) return false;
+  const amount = battle.applyFomoDamage();
+  appendLog(`FOMO hurt PLAYER for ${amount} damage.`);
   renderBattle();
-  if (playerHp <= 0) {
-    finishBattle('niall');
+  if (battle.playerHp <= 0) {
+    finishBattle('defeat');
     return true;
   }
   return false;
 }
 
-function chooseNiallAttack(): NiallAttack {
-  const index = Math.floor(Math.random() * niallAttacks.length);
-  return niallAttacks[index] ?? niallAttacks[0]!;
-}
-
 function niallTurn(): void {
-  if (battleOver) return;
-  waitingForNiall = false;
+  if (battle.battleOver) return;
   const attack = chooseNiallAttack();
-  const attackDamage = defending ? Math.floor(attack.damage / 2) : attack.damage;
-  defending = false;
-  if (attack.fomo) fomoStacks = Math.min(2, fomoStacks + 1);
-  damage('player', attackDamage);
-  appendLog(attack.damage > 0 && attackDamage !== attack.damage
-    ? `${attack.message} MAX defended. Damage was halved.`
+  const result = battle.applyNiallAttack(attack);
+  appendLog(result.defended
+    ? `${attack.message} PLAYER defended. Damage was halved.`
     : attack.message);
   renderBattle();
-  if (playerHp <= 0) {
-    finishBattle('niall');
+  if (battle.playerHp <= 0) {
+    finishBattle('defeat');
     return;
   }
   window.setTimeout(() => {
-    if (!battleOver) applyFomoDamage();
+    if (!battle.battleOver) applyFomoDamage();
   }, 850);
 }
 
 function queueNiallTurn(): void {
-  if (battleOver) return;
-  waitingForNiall = true;
+  if (battle.battleOver) return;
+  battle.queueNiallTurn();
   renderBattle();
   window.setTimeout(niallTurn, 850);
 }
 
 function attack(): void {
-  if (battleOver || waitingForNiall) return;
+  if (!battle.canAct) return;
   battleDice.hidden = false;
   battleDice.classList.remove('shake');
   void battleDice.offsetWidth;
@@ -181,11 +99,11 @@ function attack(): void {
   window.setTimeout(() => {
     const amount = Math.floor(Math.random() * 61);
     battleDice.textContent = String(amount);
-    damage('niall', amount);
-    appendLog(`MAX rolled ${amount}. NIALL took ${amount} damage.`);
+    battle.damageNiall(amount);
+    appendLog(`PLAYER rolled ${amount}. NIALL took ${amount} damage.`);
     renderBattle();
-    if (niallHp <= 0) {
-      finishBattle('player');
+    if (battle.niallHp <= 0) {
+      finishBattle('victory');
       return;
     }
     queueNiallTurn();
@@ -193,8 +111,8 @@ function attack(): void {
 }
 
 function run(): void {
-  if (battleOver || waitingForNiall) return;
-  waitingForNiall = true;
+  if (!battle.canAct) return;
+  battle.queueNiallTurn();
   let dots = 1;
   appendLog('You tried to runaway and you were.');
   renderBattle();
@@ -206,58 +124,59 @@ function run(): void {
   window.setTimeout(() => {
     if (runInterval !== null) window.clearInterval(runInterval);
     runInterval = null;
-    finishRun();
+    finishBattle('escape');
   }, 3000);
 }
 
 function showItems(): void {
-  if (battleOver || waitingForNiall) return;
+  if (!battle.canAct) return;
   actionGrid.hidden = true;
   itemGrid.hidden = false;
   appendLog('Choose an item.');
 }
 
 function showActions(): void {
-  if (battleOver || waitingForNiall) return;
+  if (!battle.canAct) return;
   itemGrid.hidden = true;
   actionGrid.hidden = false;
-  appendLog('What will MAX do?');
+  appendLog('What will PLAYER do?');
 }
 
 function defend(): void {
-  if (battleOver || waitingForNiall) return;
-  defending = true;
-  appendLog('MAX curled into fetal position.');
-  queueNiallTurn();
+  if (!battle.canAct) return;
+  battle.defend();
+  appendLog('PLAYER curled into fetal position.');
+  renderBattle();
+  window.setTimeout(niallTurn, 850);
 }
 
 function useItem(item: string): void {
-  if (battleOver || waitingForNiall) return;
+  if (!battle.canAct) return;
   itemGrid.hidden = true;
   actionGrid.hidden = false;
 
   if (item === 'vape') {
-    appendLog('MAX used VAPE. NIALL took it and appreciated it.');
+    appendLog('PLAYER used VAPE. NIALL took it and appreciated it.');
     queueNiallTurn();
     return;
   }
   if (item === 'capri-sun') {
-    healPlayer(50);
-    appendLog('MAX used CAPRI SUN. MAX recovered 50 HP.');
+    battle.healPlayer(50);
+    appendLog('PLAYER used CAPRI SUN. PLAYER recovered 50 HP.');
     queueNiallTurn();
     return;
   }
   if (item === 'pocket-lint') {
-    appendLog('MAX used POCKET LINT. NIALL looked at it and shrugged.');
+    appendLog('PLAYER used POCKET LINT. NIALL looked at it and shrugged.');
     queueNiallTurn();
     return;
   }
   if (item === 'gun') {
-    damage('niall', 50);
-    appendLog('MAX used GUN. NIALL took 50 damage. It was super effective.');
+    battle.damageNiall(50);
+    appendLog('PLAYER used GUN. NIALL took 50 damage. It was super effective.');
     renderBattle();
-    if (niallHp <= 0) {
-      finishBattle('player');
+    if (battle.niallHp <= 0) {
+      finishBattle('victory');
       return;
     }
     queueNiallTurn();

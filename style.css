@@ -736,8 +736,10 @@ canvas {
 
 .npc-dialogue-options[hidden] { display: none; }
 
-.npc-dialogue-options button {
+.npc-dialogue-options button,
+.npc-dialogue-options a {
   width: 100%;
+  box-sizing: border-box;
   padding: 9px 10px;
   border: 1px solid #8eaf93;
   border-radius: 5px;
@@ -745,11 +747,14 @@ canvas {
   background: #294b31;
   font: 8px/1.5 var(--font-pixel);
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
 
 .npc-dialogue-options button:hover,
-.npc-dialogue-options button:focus-visible {
+.npc-dialogue-options button:focus-visible,
+.npc-dialogue-options a:hover,
+.npc-dialogue-options a:focus-visible {
   color: #17321c;
   background: var(--accent);
   outline: none;

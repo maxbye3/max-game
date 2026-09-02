@@ -11,85 +11,18 @@ import {
   type CaveThiefDirection,
 } from './cave-thief.js';
 import { drawColander, hasCaveColander } from './colander.js';
-import { COLLISION_SHAPES } from './collision-data.js';
 import {
-  ARTIST_STUDIO_X,
-  ARTIST_STUDIO_Y,
-  BILLBOARD_X,
-  BILLBOARD_Y,
-  BILLBOARD_SCREEN_HEIGHT,
-  BILLBOARD_SCREEN_WIDTH,
-  BILLBOARD_SCREEN_X,
-  BILLBOARD_SCREEN_Y,
-  BOOKSHOP_HEIGHT,
-  BOOKSHOP_WIDTH,
-  BOOKSHOP_X,
-  BOOKSHOP_Y,
-  CINEMA_X,
-  CINEMA_Y,
-  DIARY_LAB_HEIGHT,
-  DIARY_LAB_WIDTH,
-  DIARY_LAB_X,
-  DIARY_LAB_Y,
-  FEEDBACK_X,
-  FEEDBACK_Y,
-  FRAME_HEIGHT,
-  FRAME_WIDTH,
-  GATE_HEIGHT,
-  GATE_PLAYER_DEPTH_Y,
-  GATE_WIDTH,
-  GATE_X,
-  GATE_Y,
-  GYM_ROOF_TOGGLE_INTERVAL,
-  GYM_ROOF_X,
-  GYM_ROOF_Y,
-  GYM_X,
-  GYM_Y,
-  JOB_CENTER_X,
-  JOB_CENTER_Y,
-  MUSIC_SHOP_X,
-  MUSIC_SHOP_Y,
-  MUSIC_SHOP_SIGN_HEIGHT,
-  MUSIC_SHOP_SIGN_WIDTH,
-  MUSIC_SHOP_SIGN_X,
-  MUSIC_SHOP_SIGN_Y,
   SCALE,
-  SHOW_COLLISION_SHAPES,
-  SNOW_MANSION_X,
-  SNOW_MANSION_Y,
-  ROAD_HEIGHT,
-  ROAD_BUS_ROOF_HEIGHT,
-  ROAD_BUS_ROOF_WIDTH,
-  ROAD_BUS_ROOF_X,
-  ROAD_BUS_ROOF_Y,
-  ROAD_BUS_SIGN_HEIGHT,
-  ROAD_BUS_SIGN_SOURCE_X,
-  ROAD_BUS_SIGN_SOURCE_Y,
-  ROAD_BUS_SIGN_WIDTH,
-  ROAD_FOREGROUND_DEPTH_Y,
-  ROAD_TREE_HEIGHT,
-  ROAD_TREE_WIDTH,
-  ROAD_TREE_X,
-  ROAD_TREE_Y,
-  ROAD_WIDTH,
-  ROAD_X,
-  ROAD_Y,
-  TORI_PLAYER_DEPTH_Y,
-  TORI_SIZE,
-  TORI_X,
-  TORI_Y,
   WORLD_HEIGHT,
   WORLD_WIDTH,
-  ZEN_GARDEN_X,
-  ZEN_GARDEN_Y,
 } from './config.js';
 import { canvas, context } from './dom.js';
-import { getOpenDoorways } from './doors.js';
 import { getHolePlayerTransform } from './hole.js';
-import { MIKE } from './mike.js';
+import { MIKE, REI } from './npcs.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
-import { directionRows, player } from './player.js';
-import { isSnowmanFallen, SNOWMAN } from './snowman.js';
+import { player } from './player.js';
+import { getPlayerSpriteFrame } from './player-sprite.js';
+import { drawWorldBackground, drawWorldForeground } from './overworld-props-render.js';
 import type { Direction } from './types.js';
 
 const NIALL_SPRITE_COLUMNS = 4;
@@ -98,69 +31,13 @@ const NIALL_EXPLANATION_MARK_WIDTH = 26;
 const NIALL_EXPLANATION_MARK_HEIGHT = 21;
 const GIRLS_RENDER_WIDTH = 56;
 const GIRLS_RENDER_HEIGHT = 44;
-const SEAL_MODE = new URLSearchParams(window.location.search).has('seal');
-const SEAL_COLUMNS = 8;
-const SEAL_RENDER_WIDTH = 40;
-const SEAL_RENDER_HEIGHT = 52;
-const SEAL_BASELINE_OFFSET = 6;
-const SEAL_FRAME_X = [0, 130, 254, 380, 506, 630, 754, 881] as const;
-const SEAL_FRAME_WIDTH = [130, 124, 126, 126, 124, 124, 127, 126] as const;
-const SEAL_ROW_Y = [0, 162, 323, 486, 646, 805, 970, 1134, 1290] as const;
-const SEAL_ROW_HEIGHT = [162, 161, 163, 160, 159, 165, 164, 156, 164] as const;
-const sealDirectionRows: Record<Direction, number> = {
-  down: 8,
-  downRight: 7,
-  right: 2,
-  upRight: 5,
-  up: 4,
-  upLeft: 5,
-  left: 3,
-  downLeft: 0,
-};
+const searchParams = new URLSearchParams(window.location.search);
+const SEAL_MODE = searchParams.has('seal');
+const LOG_PLAYER_POSITION = searchParams.has('debug-position');
 type SpriteFrame = readonly [x: number, y: number, width: number, height: number];
 
-function drawRoadTree(cameraX: number, cameraY: number): void {
-  context.drawImage(
-    images.roadTree,
-    ROAD_TREE_X - cameraX,
-    ROAD_TREE_Y - cameraY,
-    ROAD_TREE_WIDTH,
-    ROAD_TREE_HEIGHT,
-  );
-}
-
-function drawRoadBusRoof(cameraX: number, cameraY: number): void {
-  context.drawImage(
-    images.roadBusRoof,
-    ROAD_BUS_ROOF_X - cameraX,
-    ROAD_BUS_ROOF_Y - cameraY,
-    ROAD_BUS_ROOF_WIDTH,
-    ROAD_BUS_ROOF_HEIGHT,
-  );
-}
-
-function drawRoadBusSignForeground(cameraX: number, cameraY: number): void {
-  context.drawImage(
-    images.road,
-    ROAD_BUS_SIGN_SOURCE_X,
-    ROAD_BUS_SIGN_SOURCE_Y,
-    ROAD_BUS_SIGN_WIDTH,
-    ROAD_BUS_SIGN_HEIGHT,
-    ROAD_X + ROAD_BUS_SIGN_SOURCE_X - cameraX,
-    ROAD_Y + ROAD_BUS_SIGN_SOURCE_Y - cameraY,
-    ROAD_BUS_SIGN_WIDTH,
-    ROAD_BUS_SIGN_HEIGHT,
-  );
-}
-
-function drawGate(cameraX: number, cameraY: number): void {
-  context.drawImage(
-    images.gate,
-    GATE_X - cameraX,
-    GATE_Y - cameraY,
-    GATE_WIDTH,
-    GATE_HEIGHT,
-  );
+function isImageReady(image: HTMLImageElement): boolean {
+  return image.complete && image.naturalWidth > 0;
 }
 const GIRLS_IDLE_FRAMES: readonly SpriteFrame[] = [
   [181, 16, 235, 176],
@@ -199,16 +76,6 @@ const GIRLS_WALK_FRAMES: Record<CaveThiefDirection, readonly SpriteFrame[]> = {
     [1213, 786, 214, 188],
   ],
 };
-const BAKED_SNOWMAN_PATCH = {
-  sourceX: 270,
-  sourceY: 105,
-  sourceWidth: 28,
-  sourceHeight: 88,
-  x: SNOW_MANSION_X + 214,
-  y: SNOW_MANSION_Y - 10 + 105,
-  width: 56,
-  height: 88,
-} as const;
 const niallDirectionRows: Record<Direction, number> = {
   down: 0,
   downRight: 1,
@@ -250,69 +117,9 @@ function drawNiallAt(
   context.restore();
 }
 
-function drawCollisionShapes(cameraX: number, cameraY: number): void {
-  context.fillStyle = 'rgba(0, 92, 255, 0.62)';
-  for (const [shapeX, shapeY, shapeWidth, shapeHeight] of COLLISION_SHAPES) {
-    if (
-      shapeX + shapeWidth < cameraX ||
-      shapeX > cameraX + canvas.width ||
-      shapeY + shapeHeight < cameraY ||
-      shapeY > cameraY + canvas.height
-    ) continue;
-
-    context.fillRect(shapeX - cameraX, shapeY - cameraY, shapeWidth, shapeHeight);
-  }
-}
-
-function drawTori(cameraX: number, cameraY: number): void {
-  context.drawImage(images.tori, TORI_X - cameraX, TORI_Y - cameraY, TORI_SIZE, TORI_SIZE);
-}
-
-function drawSnowman(cameraX: number, cameraY: number): void {
-  if (!isSnowmanFallen()) return;
-
-  context.save();
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
-
-  // Replace the upright snowman baked into the mansion artwork with nearby
-  // clean snow before drawing the fallen state over the same spot.
-  context.drawImage(
-    images.snowMansion,
-    BAKED_SNOWMAN_PATCH.sourceX,
-    BAKED_SNOWMAN_PATCH.sourceY,
-    BAKED_SNOWMAN_PATCH.sourceWidth,
-    BAKED_SNOWMAN_PATCH.sourceHeight,
-    BAKED_SNOWMAN_PATCH.x - cameraX,
-    BAKED_SNOWMAN_PATCH.y - cameraY,
-    BAKED_SNOWMAN_PATCH.width,
-    BAKED_SNOWMAN_PATCH.height,
-  );
-  context.drawImage(
-    images.snowmanFallen,
-    Math.round(SNOWMAN.x - cameraX - SNOWMAN.fallenWidth / 2),
-    Math.round(SNOWMAN.y - cameraY - SNOWMAN.fallenHeight),
-    SNOWMAN.fallenWidth,
-    SNOWMAN.fallenHeight,
-  );
-  context.restore();
-}
-
-function drawOpenDoorways(cameraX: number, cameraY: number): void {
-  for (const doorway of getOpenDoorways()) {
-    context.drawImage(
-      images.doorOpen,
-      Math.round(doorway.x - cameraX),
-      Math.round(doorway.y - cameraY),
-      doorway.width,
-      doorway.height,
-    );
-  }
-}
-
 function drawCaveThief(cameraX: number, cameraY: number): void {
   const thief = getCaveThief();
-  if (!thief) return;
+  if (!thief || !isImageReady(images.girlsSprite)) return;
 
   const frames = thief.moving ? GIRLS_WALK_FRAMES[thief.direction] : GIRLS_IDLE_FRAMES;
   const frame = frames[thief.frame % frames.length] ?? frames[0];
@@ -402,7 +209,7 @@ function logPlayerPosition(): void {
 export function draw(time: number): void {
   context.clearRect(0, 0, canvas.width, canvas.height);
   canvas.dataset.playerVariant = SEAL_MODE ? 'seal' : 'default';
-  logPlayerPosition();
+  if (LOG_PLAYER_POSITION) logPlayerPosition();
 
   // Rounded so the map is sampled on whole source pixels: a fractional source
   // rect snaps at a browser-defined threshold and makes the player jitter
@@ -410,81 +217,7 @@ export function draw(time: number): void {
   const cameraCenter = getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
-  const roadForegroundCoversPlayer = player.y <= ROAD_FOREGROUND_DEPTH_Y;
-  context.drawImage(images.map, -cameraX, -cameraY);
-  context.save();
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
-  context.drawImage(
-    images.road,
-    ROAD_X - cameraX,
-    ROAD_Y - cameraY,
-    ROAD_WIDTH,
-    ROAD_HEIGHT,
-  );
-  if (!roadForegroundCoversPlayer) {
-    drawRoadTree(cameraX, cameraY);
-    drawRoadBusRoof(cameraX, cameraY);
-  }
-  context.restore();
-  context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
-  context.save();
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
-  context.drawImage(
-    images.billboardUnfinished,
-    BILLBOARD_SCREEN_X - cameraX,
-    BILLBOARD_SCREEN_Y - cameraY,
-    BILLBOARD_SCREEN_WIDTH,
-    BILLBOARD_SCREEN_HEIGHT,
-  );
-  context.restore();
-
-  // Canvas layers use draw order instead of CSS z-index. Drawing buildings
-  // after the map keeps them above the houses baked into the overworld image.
-  context.drawImage(images.cinema, CINEMA_X - cameraX, CINEMA_Y - cameraY);
-  context.drawImage(images.musicShop, MUSIC_SHOP_X - cameraX, MUSIC_SHOP_Y - cameraY);
-  context.drawImage(images.gym, GYM_X - cameraX, GYM_Y - cameraY);
-  if (Math.floor(time / GYM_ROOF_TOGGLE_INTERVAL) % 2 === 0) {
-    context.drawImage(images.gymRoof, GYM_ROOF_X - cameraX - 1, GYM_ROOF_Y - cameraY + 1);
-  }
-  context.drawImage(images.snowMansion, SNOW_MANSION_X - cameraX, SNOW_MANSION_Y - cameraY - 10);
-  context.drawImage(
-    images.musicShopSign,
-    MUSIC_SHOP_SIGN_X - cameraX,
-    MUSIC_SHOP_SIGN_Y - cameraY,
-    MUSIC_SHOP_SIGN_WIDTH,
-    MUSIC_SHOP_SIGN_HEIGHT,
-  );
-  drawSnowman(cameraX, cameraY);
-  context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
-  context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
-  context.drawImage(images.feedback, FEEDBACK_X - cameraX, FEEDBACK_Y - cameraY);
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
-  context.drawImage(
-    images.bookshop,
-    BOOKSHOP_X - cameraX,
-    BOOKSHOP_Y - cameraY,
-    BOOKSHOP_WIDTH,
-    BOOKSHOP_HEIGHT,
-  );
-  context.drawImage(
-    images.diaryLab,
-    DIARY_LAB_X - cameraX,
-    DIARY_LAB_Y - cameraY,
-    DIARY_LAB_WIDTH,
-    DIARY_LAB_HEIGHT,
-  );
-  context.imageSmoothingEnabled = false;
-  context.drawImage(images.zenGarden, ZEN_GARDEN_X - cameraX, ZEN_GARDEN_Y - cameraY);
-  const gateCoversPlayer = player.y < GATE_PLAYER_DEPTH_Y;
-  if (!gateCoversPlayer) drawGate(cameraX, cameraY);
-  const toriCoversPlayer = player.y < TORI_PLAYER_DEPTH_Y;
-  if (!toriCoversPlayer) drawTori(cameraX, cameraY);
-
-  if (SHOW_COLLISION_SHAPES) drawCollisionShapes(cameraX, cameraY);
-  drawOpenDoorways(cameraX, cameraY);
+  const worldDepth = drawWorldBackground(time, cameraX, cameraY, player.y);
   drawCaveThief(cameraX, cameraY);
   if (isNiallFollowing()) {
     drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
@@ -507,17 +240,17 @@ export function draw(time: number): void {
     MIKE.width,
     MIKE.height,
   );
+  context.drawImage(
+    images.rei,
+    Math.round(REI.x - cameraX - REI.width / 2),
+    Math.round(REI.y - cameraY - REI.height),
+    REI.width,
+    REI.height,
+  );
 
   const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
-  const sourceFrame = SEAL_MODE ? player.frame % SEAL_COLUMNS : player.frame;
-  const sourceRow = SEAL_MODE ? sealDirectionRows[player.direction] : directionRows[player.direction];
-  const sourceX = SEAL_MODE ? (SEAL_FRAME_X[sourceFrame] ?? 0) : sourceFrame * FRAME_WIDTH;
-  const sourceY = SEAL_MODE ? (SEAL_ROW_Y[sourceRow] ?? 0) : sourceRow * FRAME_HEIGHT;
-  const sourceWidth = SEAL_MODE ? (SEAL_FRAME_WIDTH[sourceFrame] ?? 126) : FRAME_WIDTH;
-  const sourceHeight = SEAL_MODE ? (SEAL_ROW_HEIGHT[sourceRow] ?? 162) : FRAME_HEIGHT;
-  const width = SEAL_MODE ? SEAL_RENDER_WIDTH : FRAME_WIDTH * SCALE;
-  const height = SEAL_MODE ? SEAL_RENDER_HEIGHT : FRAME_HEIGHT * SCALE;
-  const baselineOffset = SEAL_MODE ? SEAL_BASELINE_OFFSET : 0;
+  const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, SCALE);
+  const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
   const holeTransform = getHolePlayerTransform();
   const playerVisible = isBusIntroPlayerVisible();
   if (playerVisible && holeTransform) {
@@ -557,13 +290,7 @@ export function draw(time: number): void {
   if (playerVisible && hasCaveColander()) {
     drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
   }
-  if (roadForegroundCoversPlayer) {
-    drawRoadTree(cameraX, cameraY);
-    drawRoadBusRoof(cameraX, cameraY);
-    drawRoadBusSignForeground(cameraX, cameraY);
-  }
-  if (toriCoversPlayer) drawTori(cameraX, cameraY);
-  if (gateCoversPlayer) drawGate(cameraX, cameraY);
+  drawWorldForeground(cameraX, cameraY, worldDepth);
   drawBusIntro(cameraX, cameraY);
 
   const thief = getCaveThief();

@@ -7,8 +7,8 @@ import { updateDoors } from './doors.js';
 import { setupInput } from './input.js';
 import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
-import { setupMike, updateMikeInteraction } from './mike.js';
-import { setupNiall, updateNiallInteraction } from './niall.js';
+import { updateNiallInteraction } from './niall.js';
+import { setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
 import { updateSigns } from './signs.js';
@@ -24,7 +24,7 @@ function gameLoop(time: number): void {
   updatePlayer(deltaTime, speedMultiplier);
   updateHole(deltaTime, player);
   updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier);
-  updateMikeInteraction(player.x, player.y);
+  updateNpcInteractions(player.x, player.y);
   updateNiallInteraction(deltaTime, player.x, player.y);
   updateSigns(player.x, player.y);
   updateDoors(player.x, player.y);
@@ -35,8 +35,7 @@ function gameLoop(time: number): void {
 setupInput();
 setupBusIntro();
 setupInventory();
-setupMike();
-setupNiall();
+setupNpcInteractions();
 setupCaveThief();
 
 loadAssets()

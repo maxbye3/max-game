@@ -6,7 +6,9 @@ const OUTPUTS = [
   {
     source: 'chat/niall/avatar.png',
     target: 'img/battle/niall-avatar.png',
-    threshold: 34,
+    // Keep Niall's dark hair and jacket intact; the previous threshold treated
+    // those connected pixels as part of the black background.
+    threshold: 5,
   },
   {
     source: 'player/avatar.png',

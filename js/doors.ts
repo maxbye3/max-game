@@ -1,5 +1,3 @@
-import { markInternalTestVisited } from './world-state.js';
-
 export interface Doorway {
   readonly id: string;
   readonly x: number;
@@ -67,7 +65,6 @@ export function updateDoors(playerX: number, playerY: number): void {
   if (!enteredDoorway) return;
 
   navigationStarted = true;
-  markInternalTestVisited();
   const params = new URLSearchParams({ door: enteredDoorway.id });
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
   window.location.assign(`internal/index.html?${params.toString()}`);

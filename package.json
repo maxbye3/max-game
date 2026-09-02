@@ -4,17 +4,16 @@
   "private": true,
   "description": "Max's Overworld - a browser overworld game",
   "scripts": {
-    "build": "npm run generate:dialogues && npm run generate:battle-avatars && tsc && npm run bundle",
-    "bundle": "esbuild js/main.ts js/internal.ts js/niall-fight.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife",
+    "build": "npm run generate:dialogues && npm run generate:battle-avatars && npm run typecheck && npm test && npm run bundle",
+    "clean:dist": "node scripts/clean-dist.mjs",
+    "bundle": "npm run clean:dist && esbuild js/main.ts js/internal.ts js/niall-fight.ts --bundle --minify --outdir=dist --entry-names=[name]-bundle --format=iife",
     "extend:internal-collision": "node scripts/extend-internal-collision.mjs && npm run generate:internal-collision",
     "generate:internal-collision": "node scripts/generate-internal-collision.mjs",
-    "generate:dialogues": "npm run generate:noel-dialogue && npm run generate:mike-dialogue",
+    "generate:dialogues": "node scripts/generate-dialogues.mjs",
     "generate:battle-avatars": "node scripts/generate-battle-avatars.mjs",
-    "generate:mike-dialogue": "node scripts/generate-mike-dialogue.mjs",
-    "generate:noel-dialogue": "node scripts/generate-noel-dialogue.mjs",
     "optimize:internal-assets": "node scripts/optimize-internal-assets.mjs",
-    "watch": "npm run generate:dialogues && esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
-    "watch:bundle": "npm run generate:dialogues && esbuild js/main.ts js/internal.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
+    "watch": "npm run generate:dialogues && npm run clean:dist && esbuild js/main.ts js/internal.ts js/niall-fight.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
+    "test": "node scripts/run-tests.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

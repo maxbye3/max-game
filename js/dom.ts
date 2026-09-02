@@ -1,9 +1,5 @@
-/** Looks up a required element up front, so a markup change fails loudly. */
-export function requireElement<T extends Element>(selector: string): T {
-  const element = document.querySelector<T>(selector);
-  if (!element) throw new Error(`Missing required element: ${selector}`);
-  return element;
-}
+import { requireElement } from './elements.js';
+export { requireElement } from './elements.js';
 
 export const canvas = requireElement<HTMLCanvasElement>('#game');
 

@@ -1,34 +1,25 @@
-const INTERNAL_TEST_VISITED_KEY = 'max-game:internal-test-visited';
-const NIALL_FIGHT_COMPLETE_KEY = 'max-game:niall-fight-complete';
+import { readStorage, writeStorage } from './storage.js';
 
-export function hasVisitedInternalTest(): boolean {
-  try {
-    return window.localStorage.getItem(INTERNAL_TEST_VISITED_KEY) === 'true';
-  } catch {
-    return false;
-  }
+export type NiallQuestState = 'hostile' | 'following' | 'busStop';
+
+const NIALL_QUEST_STATE_KEY = 'max-game:niall-quest-state';
+const LEGACY_NIALL_FIGHT_COMPLETE_KEY = 'max-game:niall-fight-complete';
+const LEGACY_NIALL_AT_BUS_STOP_KEY = 'max-game:niall-at-bus-stop';
+
+function isNiallQuestState(value: string | null): value is NiallQuestState {
+  return value === 'hostile' || value === 'following' || value === 'busStop';
 }
 
-export function markInternalTestVisited(): void {
-  try {
-    window.localStorage.setItem(INTERNAL_TEST_VISITED_KEY, 'true');
-  } catch {
-    // The game still works when storage is unavailable (for example, a locked-down file URL).
-  }
+export function getNiallQuestState(): NiallQuestState {
+  const storedState = readStorage(NIALL_QUEST_STATE_KEY);
+  if (isNiallQuestState(storedState)) return storedState;
+
+  // Preserve progress made before the quest was represented by one canonical state.
+  if (readStorage(LEGACY_NIALL_AT_BUS_STOP_KEY) === 'true') return 'busStop';
+  if (readStorage(LEGACY_NIALL_FIGHT_COMPLETE_KEY) === 'true') return 'following';
+  return 'hostile';
 }
 
-export function hasCompletedNiallFight(): boolean {
-  try {
-    return window.localStorage.getItem(NIALL_FIGHT_COMPLETE_KEY) === 'true';
-  } catch {
-    return false;
-  }
-}
-
-export function markNiallFightComplete(): void {
-  try {
-    window.localStorage.setItem(NIALL_FIGHT_COMPLETE_KEY, 'true');
-  } catch {
-    // The follow state is a bonus; the battle page still works without storage.
-  }
+export function setNiallQuestState(state: NiallQuestState): void {
+  writeStorage(NIALL_QUEST_STATE_KEY, state);
 }

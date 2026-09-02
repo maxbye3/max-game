@@ -13,8 +13,9 @@
 ## Commands
 
 - Run `npm run typecheck` after TypeScript changes.
+- Run `npm test` for focused progression, sprite, and build-entry checks.
 - Run `npm run build` after changing files in `js/` so `dist/` stays in sync.
-- Use `npm run watch` or `npm run watch:bundle` for active browser iteration.
+- Use `npm run watch` for active browser iteration; it watches all three game entry points.
 - A plain static server is enough to test the game, for example `python3 -m http.server`.
 
 ## Editing rules
