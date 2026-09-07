@@ -32,7 +32,7 @@ export class InteriorDoorsController {
     const nextOpenDoorIndex = this.scene.doors.findIndex((door) =>
       Math.hypot(playerX - door.triggerX, playerY - door.triggerY) <= OPEN_DISTANCE,
     );
-    if (nextOpenDoorIndex >= 0 && nextOpenDoorIndex !== this.openDoorIndex) {
+    if (this.scene.kind !== 'cave' && nextOpenDoorIndex >= 0 && nextOpenDoorIndex !== this.openDoorIndex) {
       this.sound.currentTime = 0;
       void this.sound.play().catch(() => {
         // Audio can be rejected until the browser observes a keyboard or pointer gesture.
@@ -68,8 +68,12 @@ export class InteriorDoorsController {
     cameraY: number,
     scale: number,
   ): void {
-    if (!this.scene.doorOverlaySource || this.openDoorIndex === null) return;
-    const door = this.scene.doors[this.openDoorIndex];
+    if (!this.scene.doorOverlaySource) return;
+    // The cinema uses an open doorway artwork as its permanent foreground
+    // layer; it must cover the player even when they are not at the exit yet.
+    const overlayDoorIndex = this.scene.kind === 'cinema' ? 0 : this.openDoorIndex;
+    if (overlayDoorIndex === null) return;
+    const door = this.scene.doors[overlayDoorIndex];
     if (!door) return;
     context.drawImage(
       overlay,

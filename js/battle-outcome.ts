@@ -22,9 +22,10 @@ const RESULTS: Record<BattleOutcome, BattleResult> = {
     href: '../index.html',
   },
   escape: {
-    message: 'You tried to run away and you were... Successful!',
-    linkLabel: 'Back to the map',
-    href: '../index.html',
+    message: "Alright, I'll walk you back to the bus.",
+    linkLabel: 'Walk to the bus',
+    href: '../index.html?niall=bus',
+    niallQuestState: 'following',
   },
 };
 

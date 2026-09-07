@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Transform</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .interior-exit {
+        position: absolute;
+        z-index: 8;
+        top: 24px;
+        left: 24px;
+        padding: 10px 12px;
+        border: 1px solid rgb(255 255 255 / 35%);
+        border-radius: 10px;
+        color: var(--text);
+        background: rgb(var(--panel-rgb) / 88%);
+        font: 10px/1.4 var(--font-pixel);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="game-shell cave-shell">
+      <canvas id="game" width="640" height="320" aria-label="Caught by Maddy and Marina"></canvas>
+      <a class="interior-exit" href="index.html">Exit</a>
+    </main>
+    <script src="dist/transform-bundle.js"></script>
+  </body>
+</html>

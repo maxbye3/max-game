@@ -25,8 +25,6 @@ const COLLISION_CUTOUTS: readonly CollisionShape[] = [
   // Remove every generated/manual obstacle in the western garden. Its clean,
   // red-box collision bounds are added back after all cutouts are applied.
   [140, 560, 224, 304],
-  // Clear the stray vertical collision strip immediately east of the Music Shop.
-  [328, 448, 24, 80],
   // Remove the two generated collision blocks flanking the southern road entrance.
   [333, 1190, 726, 64],
   // Clear the removed southwest tree pyramid and both adjoining paved paths.

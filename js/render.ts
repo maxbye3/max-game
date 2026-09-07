@@ -18,7 +18,7 @@ import {
 } from './config.js';
 import { canvas, context } from './dom.js';
 import { getHolePlayerTransform } from './hole.js';
-import { MIKE, REI } from './npcs.js';
+import { ADAM, ED, MIKE, REI } from './npcs.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
 import { player } from './player.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
@@ -233,6 +233,9 @@ export function draw(time: number): void {
       NIALL_EXPLANATION_MARK_HEIGHT,
     );
   }
+  // Keep the static NPC avatar sprites on the same crisp nearest-neighbor
+  // path as Mike; animated sprites and dialogue portraits remain untouched.
+  context.imageSmoothingEnabled = false;
   context.drawImage(
     images.mike,
     Math.round(MIKE.x - cameraX - MIKE.width / 2),
@@ -246,6 +249,20 @@ export function draw(time: number): void {
     Math.round(REI.y - cameraY - REI.height),
     REI.width,
     REI.height,
+  );
+  context.drawImage(
+    images.adam,
+    Math.round(ADAM.x - cameraX - ADAM.width / 2),
+    Math.round(ADAM.y - cameraY - ADAM.height),
+    ADAM.width,
+    ADAM.height,
+  );
+  context.drawImage(
+    images.ed,
+    Math.round(ED.x - cameraX - ED.width / 2),
+    Math.round(ED.y - cameraY - ED.height),
+    ED.width,
+    ED.height,
   );
 
   const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;

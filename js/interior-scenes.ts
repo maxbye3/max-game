@@ -169,7 +169,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
     return {
       kind: 'cinema', title: 'Cinema', ariaLabel: 'Cinema interior',
       width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 1,
-      backgroundSource: '../img/internal/cinema.png?v=20260831-six-seat-audience',
+      backgroundSource: '../img/internal/cinema-popcorn-redrawn.png?v=20260902-clean-popcorn',
       collisionMaskSource: '../img/internal/cinema-collisions.png?v=20260831-no-bottom-bench',
       doorOverlaySource: '../img/internal/cinema-open-door.png',
       collision: CINEMA_COLLISION,

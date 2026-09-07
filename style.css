@@ -57,6 +57,12 @@ body {
   padding: 10px;
 }
 
+.game-shell.cave-shell {
+  width: min(100vw, 196dvh);
+  height: auto;
+  aspect-ratio: 2 / 1;
+}
+
 canvas {
   display: block;
   width: 100%;
@@ -404,6 +410,42 @@ canvas {
   to { transform: scaleX(1); }
 }
 
+.quest-accepted-overlay {
+  position: fixed;
+  z-index: 21;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100dvh;
+  pointer-events: none;
+  background: rgb(0 0 0 / 0%);
+  animation: quest-accepted-backdrop 3.2s ease forwards;
+}
+
+.quest-accepted-overlay img {
+  width: min(82vw, 520px);
+  image-rendering: pixelated;
+  filter: drop-shadow(0 10px 0 rgb(0 0 0 / 35%));
+  scale: 0.85;
+  opacity: 0;
+  animation: quest-accepted-pop 3.2s cubic-bezier(.2, 1.4, .4, 1) forwards;
+}
+
+@keyframes quest-accepted-backdrop {
+  0% { background: rgb(0 0 0 / 0%); }
+  10%, 78% { background: rgb(0 0 0 / 55%); }
+  100% { background: rgb(0 0 0 / 0%); }
+}
+
+@keyframes quest-accepted-pop {
+  0% { scale: 0.85; opacity: 0; }
+  12% { scale: 1.04; opacity: 1; }
+  18% { scale: 1; opacity: 1; }
+  80% { scale: 1; opacity: 1; }
+  100% { scale: 1.05; opacity: 0; }
+}
+
 .battle-body {
   display: grid;
   min-height: 100dvh;
@@ -428,9 +470,9 @@ canvas {
   position: relative;
   min-height: 0;
   background:
-    linear-gradient(#f4f5ee 0 60%, #dfe5dc 60% 61%, transparent 61%),
+    radial-gradient(circle at 78% 31%, #cbd4c8 0 13%, transparent 14%),
     radial-gradient(ellipse at 23% 76%, #cbd4c8 0 15%, transparent 16%),
-    radial-gradient(ellipse at 78% 31%, #cbd4c8 0 13%, transparent 14%);
+    linear-gradient(#f4f5ee 0 60%, #dfe5dc 60% 61%, transparent 61%);
 }
 
 .battle-card {

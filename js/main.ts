@@ -1,6 +1,10 @@
 import { loadAssets } from './assets.js';
 import { setupBusIntro, updateBusIntro } from './bus-intro.js';
-import { setupCaveThief, updateCaveThief } from './cave-thief.js';
+import {
+  isCaveThiefPursuitActive,
+  setupCaveThief,
+  updateCaveThief,
+} from './cave-thief.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import { canvas } from './dom.js';
 import { updateDoors } from './doors.js';
@@ -25,7 +29,9 @@ function gameLoop(time: number): void {
   updateHole(deltaTime, player);
   updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier);
   updateNpcInteractions(player.x, player.y);
-  updateNiallInteraction(deltaTime, player.x, player.y);
+  if (!isCaveThiefPursuitActive()) {
+    updateNiallInteraction(deltaTime, player.x, player.y);
+  }
   updateSigns(player.x, player.y);
   updateDoors(player.x, player.y);
   draw(time);

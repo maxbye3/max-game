@@ -1,6 +1,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 const dialogues = [
+  { name: 'ADAM', source: '../chat/adam/player/dialogue.txt', output: '../js/adam-dialogue.ts' },
+  { name: 'ED', source: '../chat/ed/player/dialogue.txt', output: '../js/ed-dialogue.ts' },
   { name: 'MIKE', source: '../chat/mike/player/dialogue.txt', output: '../js/mike-dialogue.ts' },
   { name: 'NOEL', source: '../chat/noel/player/dialogue.txt', output: '../js/noel-dialogue.ts' },
   { name: 'REI', source: '../chat/rei/player/dialogue.txt', output: '../js/rei-dialogue.ts' },

@@ -1,7 +1,9 @@
 export const CAVE_SIBLINGS = {
   x: 320,
   startY: 45,
-  endY: 112,
+  // Tall enough that the sprite's top clears the 47px-tall top wall band at
+  // rest; a smaller endY left their hair rendering inside the rock texture.
+  endY: 132,
   width: 96,
   height: 83,
   interactionDistance: 86,
@@ -30,7 +32,7 @@ interface CaveSiblingsView {
 }
 
 const ENTRANCE_DURATION = 1.35;
-const FINAL_DARKNESS_ALPHA = 0.2;
+const FINAL_DARKNESS_ALPHA = 0.68;
 const DIALOGUES: Record<DialogueSequence, readonly DialogueLine[]> = {
   welcome: [
     { speaker: 'Maddy', line: 'welcome.' },
@@ -49,13 +51,12 @@ const DIALOGUES: Record<DialogueSequence, readonly DialogueLine[]> = {
   ],
 };
 const DIALOGUE_DURATION: Record<DialogueSequence, number> = {
-  welcome: 3000,
+  welcome: 5000,
   warning: 1500,
 };
 
 export class CaveSiblingsController {
   private readonly voices: Record<Speaker, HTMLAudioElement>;
-  private readonly startedVoices = new Set<Speaker>();
   private entranceElapsed = 0;
   private dialoguePhase: DialoguePhase = 'idle';
   private dialogueSequence: DialogueSequence = 'welcome';
@@ -114,10 +115,9 @@ export class CaveSiblingsController {
     this.stopVoices();
   }
 
-  declineWebsite(): void {
+  declineWebsite(time: number): void {
     this.completedWhileNearby = true;
-    this.dialoguePhase = 'complete';
-    this.stopVoices();
+    this.beginDialogue('warning', time);
   }
 
   notePageLeft(): void {
@@ -174,7 +174,6 @@ export class CaveSiblingsController {
 
   private beginDialogue(sequence: DialogueSequence, time: number): void {
     this.stopVoices();
-    this.startedVoices.clear();
     this.dialogueSequence = sequence;
     this.dialogueStartedAt = time;
     this.dialogueLineIndex = -1;
@@ -187,9 +186,20 @@ export class CaveSiblingsController {
     if (!dialogue) return;
     this.dialogueLineIndex = index;
     this.view.showLine(dialogue);
-    if (this.startedVoices.has(dialogue.speaker)) return;
-    this.startedVoices.add(dialogue.speaker);
-    void this.voices[dialogue.speaker].play().catch(() => {
+    this.playVoice(dialogue.speaker);
+  }
+
+  // Only the speaker whose line is currently shown should be heard: pause
+  // the other sibling's clip (without losing their place) and resume this
+  // one from wherever it left off, only rewinding once it's fully ended.
+  private playVoice(speaker: Speaker): void {
+    (Object.keys(this.voices) as Speaker[]).forEach((other) => {
+      if (other === speaker) return;
+      this.voices[other].pause();
+    });
+    const voice = this.voices[speaker];
+    if (voice.ended) voice.currentTime = 0;
+    void voice.play().catch(() => {
       // Browsers may reject audio until movement provides a keyboard or pointer gesture.
     });
   }

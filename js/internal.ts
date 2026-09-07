@@ -1,4 +1,4 @@
-import { drawColander, hasCaveColander, setCaveColanderHeld } from './colander.js';
+import { drawColander, hasCaveColander } from './colander.js';
 import {
   CAVE_SIBLINGS,
   CAVE_SIBLINGS_IDLE_FRAME,
@@ -11,6 +11,7 @@ import { canvas, context, requireElement } from './dom.js';
 import { DirectionInputController } from './input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
+import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import {
@@ -58,12 +59,23 @@ const WORLD_WIDTH = scene.width;
 const WORLD_HEIGHT = scene.height;
 const INTERACTION_TARGETS = scene.interactions;
 
+if (isCaveInterior) {
+  // The cave is wider than it is tall, so it gets its own non-square canvas
+  // sized to its true aspect ratio instead of being stretched into the
+  // square shell every other interior uses.
+  canvas.width = WORLD_WIDTH;
+  canvas.height = WORLD_HEIGHT;
+  context.imageSmoothingEnabled = false;
+  requireElement<HTMLElement>('.game-shell').classList.add('cave-shell');
+}
+
 const interior = new Image();
 const collisionMask = new Image();
 const doorOverlay = new Image();
 const spriteSheet = new Image();
 const noelSprite = new Image();
 const siblingsSprite = new Image();
+const musicHouseNpcs = MUSIC_HOUSE_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 interior.src = scene.backgroundSource;
 if (scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
 if (scene.doorOverlaySource) doorOverlay.src = scene.doorOverlaySource;
@@ -72,9 +84,22 @@ spriteSheet.src = SEAL_MODE
   : '../player/SpriteSheet.png';
 if (isDiaryLabInterior) noelSprite.src = '../chat/noel/interior-avatar.png';
 if (isCaveInterior) siblingsSprite.src = '../chat/siblings/girls-sprite.png';
+if (isMusicShopInterior) {
+  musicHouseNpcs.forEach((npc) => {
+    npc.image.src = npc.source;
+  });
+}
 const noelTheme = new Audio();
 if (isDiaryLabInterior) noelTheme.src = '../chat/noel/player/theme.mp3';
 noelTheme.preload = 'auto';
+// Both sisters shout the colander warning together, so both clips play at once.
+const colanderWarningVoices = [
+  new Audio('../chat/siblings/maddy.mp3'),
+  new Audio('../chat/siblings/marina.mp3'),
+];
+colanderWarningVoices.forEach((voice) => {
+  voice.preload = 'auto';
+});
 
 const player = {
   x: scene.playerStart.x,
@@ -167,6 +192,10 @@ function closeNoelDialogue(): void {
   noelTheme.pause();
   noelTheme.currentTime = 0;
   noelTheme.onended = null;
+  colanderWarningVoices.forEach((voice) => {
+    voice.pause();
+    voice.currentTime = 0;
+  });
   interactionPrompt.hidden = nearbyInteraction === null || nearbyInteraction === 'siblings';
 }
 
@@ -236,8 +265,10 @@ function startFeatureInteraction(kind: 'diary' | 'experiments'): void {
 function startColanderPickup(): void {
   if (!isCaveInterior || noelDialogueOpen || caveColanderHeld) return;
   input.releaseAll();
+  // Stop any in-progress Maddy/Marina line before this hardcoded prompt
+  // takes over the shared dialogue UI, so voices never overlap it.
+  caveSiblings?.closeDialogue();
   caveColanderHeld = true;
-  setCaveColanderHeld();
   interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
   nearbyInteraction = null;
   noelDialogueOpen = true;
@@ -249,6 +280,13 @@ function startColanderPickup(): void {
   noelDialogueOptions.hidden = true;
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
+  colanderWarningVoices.forEach((voice) => {
+    voice.pause();
+    voice.currentTime = 0;
+    void voice.play().catch(() => {
+      // Browsers may reject audio until movement provides a keyboard or pointer gesture.
+    });
+  });
 }
 
 function activateNearbyInteraction(): void {
@@ -299,8 +337,9 @@ function bindControls(): void {
     closeNoelDialogue();
   });
   siblingsDeclineButton.addEventListener('click', () => {
-    caveSiblings?.declineWebsite();
-    closeNoelDialogue();
+    siblingsDialogueOptions.hidden = true;
+    caveSiblings?.declineWebsite(performance.now());
+    showSiblingsDialogue();
   });
   diaryLabFeatures.bind(openFeature, closeNoelDialogue);
 
@@ -392,17 +431,20 @@ function updateNearbyInteraction(): void {
 }
 
 function draw(): void {
-  const viewportWidth = Math.min(WORLD_WIDTH, canvas.width / VIEW_SCALE);
-  const viewportHeight = Math.min(WORLD_HEIGHT, canvas.height / VIEW_SCALE);
+  // The cave is small enough to show in full with no camera panning at all;
+  // every other interior is bigger than the canvas and keeps scrolling.
+  const viewportWidth = isCaveInterior ? WORLD_WIDTH : Math.min(WORLD_WIDTH, canvas.width / VIEW_SCALE);
+  const viewportHeight = isCaveInterior ? WORLD_HEIGHT : Math.min(WORLD_HEIGHT, canvas.height / VIEW_SCALE);
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - viewportWidth, player.x - viewportWidth / 2)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - viewportHeight, player.y - viewportHeight / 2)));
-  const renderOffsetX = Math.round((canvas.width - viewportWidth * VIEW_SCALE) / 2);
-  const renderOffsetY = Math.round((canvas.height - viewportHeight * VIEW_SCALE) / 2);
+  // Stretch the viewport to fill the canvas on both axes so a world smaller
+  // than the canvas (the cave) shows in full with no letterboxed black bars.
+  const scaleX = canvas.width / viewportWidth;
+  const scaleY = canvas.height / viewportHeight;
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = '#0b0d0d';
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.save();
-  context.translate(renderOffsetX, renderOffsetY);
   const interiorSourceScale = scene.sourceScale;
   context.drawImage(
     interior,
@@ -412,16 +454,19 @@ function draw(): void {
     viewportHeight * interiorSourceScale,
     0,
     0,
-    viewportWidth * VIEW_SCALE,
-    viewportHeight * VIEW_SCALE,
+    viewportWidth * scaleX,
+    viewportHeight * scaleY,
   );
-  if (isCaveInterior && caveColanderHeld) {
+  if (isCaveInterior) {
+    // The background art bakes in a colander graphic that the darkness
+    // overlay would otherwise dim; always erase it here and redraw it (below,
+    // after the overlay) so it stays fully lit like the player.
     context.fillStyle = '#0b0d0d';
     context.fillRect(
-      (CAVE_COLANDER.eraseX - cameraX) * VIEW_SCALE,
-      (CAVE_COLANDER.eraseY - cameraY) * VIEW_SCALE,
-      CAVE_COLANDER.eraseWidth * VIEW_SCALE,
-      CAVE_COLANDER.eraseHeight * VIEW_SCALE,
+      (CAVE_COLANDER.eraseX - cameraX) * scaleX,
+      (CAVE_COLANDER.eraseY - cameraY) * scaleY,
+      CAVE_COLANDER.eraseWidth * scaleX,
+      CAVE_COLANDER.eraseHeight * scaleY,
     );
   }
 
@@ -437,10 +482,10 @@ function draw(): void {
         sourceY,
         sourceWidth,
         sourceHeight,
-        Math.round((CAVE_SIBLINGS.x - cameraX - CAVE_SIBLINGS.width / 2) * VIEW_SCALE),
-        Math.round(((caveSiblings?.y ?? CAVE_SIBLINGS.endY) - cameraY - CAVE_SIBLINGS.height) * VIEW_SCALE),
-        CAVE_SIBLINGS.width * VIEW_SCALE,
-        CAVE_SIBLINGS.height * VIEW_SCALE,
+        Math.round((CAVE_SIBLINGS.x - cameraX - CAVE_SIBLINGS.width / 2) * scaleX),
+        Math.round(((caveSiblings?.y ?? CAVE_SIBLINGS.endY) - cameraY - CAVE_SIBLINGS.height) * scaleY),
+        CAVE_SIBLINGS.width * scaleX,
+        CAVE_SIBLINGS.height * scaleY,
       );
     }
   }
@@ -448,11 +493,25 @@ function draw(): void {
   if (isDiaryLabInterior) {
     context.drawImage(
       noelSprite,
-      Math.round((NOEL.x - cameraX - NOEL.width / 2) * VIEW_SCALE),
-      Math.round((NOEL.y - cameraY - NOEL.height) * VIEW_SCALE),
-      NOEL.width * VIEW_SCALE,
-      NOEL.height * VIEW_SCALE,
+      Math.round((NOEL.x - cameraX - NOEL.width / 2) * scaleX),
+      Math.round((NOEL.y - cameraY - NOEL.height) * scaleY),
+      NOEL.width * scaleX,
+      NOEL.height * scaleY,
     );
+  }
+  if (isMusicShopInterior) {
+    context.save();
+    context.imageSmoothingEnabled = false;
+    musicHouseNpcs.forEach((npc) => {
+      context.drawImage(
+        npc.image,
+        Math.round((npc.x - cameraX - npc.width / 2) * scaleX),
+        Math.round((npc.y - cameraY - npc.height) * scaleY),
+        npc.width * scaleX,
+        npc.height * scaleY,
+      );
+    });
+    context.restore();
   }
   if (SHOW_COLLISIONS) {
     context.save();
@@ -461,10 +520,10 @@ function draw(): void {
       context.fillStyle = '#005cff';
       for (const [wallX, wallY, wallWidth, wallHeight] of CAVE_WALLS) {
         context.fillRect(
-          (wallX - cameraX) * VIEW_SCALE,
-          (wallY - cameraY) * VIEW_SCALE,
-          wallWidth * VIEW_SCALE,
-          wallHeight * VIEW_SCALE,
+          (wallX - cameraX) * scaleX,
+          (wallY - cameraY) * scaleY,
+          wallWidth * scaleX,
+          wallHeight * scaleY,
         );
       }
     } else if (isMusicShopInterior) {
@@ -479,10 +538,10 @@ function draw(): void {
           const y = row * collision.cellSize;
           if (!collision.isBlocked(x + collision.cellSize / 2, y + collision.cellSize / 2)) continue;
           context.fillRect(
-            (x - cameraX) * VIEW_SCALE,
-            (y - cameraY) * VIEW_SCALE,
-            collision.cellSize * VIEW_SCALE,
-            collision.cellSize * VIEW_SCALE,
+            (x - cameraX) * scaleX,
+            (y - cameraY) * scaleY,
+            collision.cellSize * scaleX,
+            collision.cellSize * scaleY,
           );
         }
       }
@@ -503,6 +562,25 @@ function draw(): void {
     context.restore();
   }
 
+  if (isCaveInterior) {
+    // Darken the environment and the siblings but never the player, who
+    // should stay fully visible regardless of how dark the cave gets.
+    context.save();
+    context.globalAlpha = caveSiblings?.darknessAlpha ?? 0.2;
+    context.fillStyle = '#000';
+    context.fillRect(0, 0, viewportWidth * scaleX, viewportHeight * scaleY);
+    context.restore();
+  }
+
+  if (isCaveInterior && !caveColanderHeld) {
+    drawColander(
+      context,
+      Math.round((CAVE_COLANDER.x - cameraX) * scaleX),
+      Math.round((CAVE_COLANDER.eraseY + 12 - cameraY) * scaleY),
+      Math.min(scaleX, scaleY),
+    );
+  }
+
   const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, PLAYER_SCALE);
   const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
   context.drawImage(
@@ -511,28 +589,21 @@ function draw(): void {
     sourceY,
     sourceWidth,
     sourceHeight,
-    Math.round((player.x - cameraX - width / 2) * VIEW_SCALE),
-    Math.round((player.y - cameraY - height + baselineOffset) * VIEW_SCALE),
-    width * VIEW_SCALE,
-    height * VIEW_SCALE,
+    Math.round((player.x - cameraX - width / 2) * scaleX),
+    Math.round((player.y - cameraY - height + baselineOffset) * scaleY),
+    width * scaleX,
+    height * scaleY,
   );
   if (caveColanderHeld) {
     drawColander(
       context,
-      Math.round((player.x - cameraX + 19) * VIEW_SCALE),
-      Math.round((player.y - cameraY - 30) * VIEW_SCALE),
-      VIEW_SCALE,
+      Math.round((player.x - cameraX + 19) * scaleX),
+      Math.round((player.y - cameraY - 30) * scaleY),
+      Math.min(scaleX, scaleY),
     );
   }
 
-  interiorDoors.drawOverlay(context, doorOverlay, cameraX, cameraY, VIEW_SCALE);
-  if (isCaveInterior) {
-    context.save();
-    context.globalAlpha = caveSiblings?.darknessAlpha ?? 0.2;
-    context.fillStyle = '#000';
-    context.fillRect(0, 0, viewportWidth * VIEW_SCALE, viewportHeight * VIEW_SCALE);
-    context.restore();
-  }
+  interiorDoors.drawOverlay(context, doorOverlay, cameraX, cameraY, scaleX);
   context.restore();
 }
 
@@ -557,6 +628,7 @@ const requiredImages = [
   ...(scene.doorOverlaySource ? [doorOverlay] : []),
   ...(isDiaryLabInterior ? [noelSprite] : []),
   ...(isCaveInterior ? [siblingsSprite] : []),
+  ...(isMusicShopInterior ? musicHouseNpcs.map((npc) => npc.image) : []),
 ];
 
 Promise.all(requiredImages.map((image) => image.decode()))

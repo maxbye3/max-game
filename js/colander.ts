@@ -1,15 +1,11 @@
-// Versioned so older test URLs that granted the item without a cave pickup do
-// not carry that invalid state into the corrected theft flow.
-const CAVE_COLANDER_KEY = 'max-game:cave-colander-held-v2';
-
 export const CAVE_DOOR_ID = 'northwest-portal';
 
+// The colander always starts back on the ground in the cave: holding it is
+// only ever carried forward through the `colander=1` URL param set on the
+// way out of the cave, never persisted to storage, so it resets on the next
+// visit instead of being permanently remembered.
 export function hasCaveColander(): boolean {
-  return window.localStorage.getItem(CAVE_COLANDER_KEY) === 'true';
-}
-
-export function setCaveColanderHeld(): void {
-  window.localStorage.setItem(CAVE_COLANDER_KEY, 'true');
+  return new URLSearchParams(window.location.search).get('colander') === '1';
 }
 
 export function drawColander(context: CanvasRenderingContext2D, centerX: number, topY: number, scale = 1): void {

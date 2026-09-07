@@ -1,5 +1,6 @@
 import { SPEED, WORLD_HEIGHT, WORLD_WIDTH } from './config.js';
 import { buildThiefPath, thiefPathCell, type PathPoint } from './cave-thief-path.js';
+import { easeInOut, playMessageVoices, startCatchTransition } from './cave-thief-cutscene.js';
 import { CAVE_DOOR_ID, hasCaveColander } from './colander.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
@@ -11,7 +12,8 @@ type ThiefPhase =
   | 'panToEntrance'
   | 'message'
   | 'panToPlayer'
-  | 'chasing';
+  | 'chasing'
+  | 'caught';
 export type CaveThiefDirection = 'down' | 'left' | 'right' | 'up';
 
 type CameraCenter = PathPoint;
@@ -37,11 +39,18 @@ const SEQUENCE_DELAY = 5000;
 const PAN_DURATION = 1200;
 const MESSAGE_DURATION = 1800;
 const PATH_REFRESH_INTERVAL = 0.22;
+// Measured against the map art: the tiled path outside the cave door gives
+// way to the pond at world y=~320, so anything close to 56 here landed the
+// sisters' feet right on (or in) the water. This keeps them on dry path.
+const SPAWN_OUTSIDE_CAVE_OFFSET = 41;
 const MESSAGE = 'Come back here you thief!';
+const CATCH_DISTANCE = 28;
 
 const entrance = {
   x: CAVE_DOOR ? CAVE_DOOR.x + CAVE_DOOR.width / 2 : 236,
-  y: CAVE_DOOR ? CAVE_DOOR.y + CAVE_DOOR.height + 16 : 284,
+  y: CAVE_DOOR
+    ? CAVE_DOOR.y + CAVE_DOOR.height + SPAWN_OUTSIDE_CAVE_OFFSET
+    : 324,
 };
 
 const state: ThiefState = {
@@ -79,6 +88,11 @@ export function isCaveTheftCutsceneActive(): boolean {
     state.phase === 'panToPlayer';
 }
 
+/** The returned-from-cave sequence owns hostile encounters until the chase ends. */
+export function isCaveThiefPursuitActive(): boolean {
+  return state.phase !== 'hidden';
+}
+
 export function getCaveThiefDialogue(): string | null {
   return state.phase === 'message' ? MESSAGE : null;
 }
@@ -102,10 +116,6 @@ export function getCaveThief(): {
     frame: state.frame,
     moving: state.phase === 'chasing',
   };
-}
-
-function easeInOut(t: number): number {
-  return t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
 }
 
 export function getCaveTheftCameraCenter(playerX: number, playerY: number, time: number): CameraCenter {
@@ -141,7 +151,18 @@ function isBlocked(x: number, y: number): boolean {
   );
 }
 
+function triggerCatch(): void {
+  if (state.phase !== 'chasing') return;
+  state.phase = 'caught';
+  startCatchTransition();
+}
+
 function updateChase(deltaTime: number, targetX: number, targetY: number, speedMultiplier: number): void {
+  if (Math.hypot(targetX - state.x, targetY - state.y) < CATCH_DISTANCE) {
+    triggerCatch();
+    return;
+  }
+
   state.repathTimer -= deltaTime;
   const targetCell = thiefPathCell(targetX, targetY);
   if (state.repathTimer <= 0 || targetCell !== state.targetCell || state.path.length === 0) {
@@ -193,6 +214,7 @@ export function updateCaveThief(
   if (state.phase === 'panToEntrance' && time - state.phaseStart >= PAN_DURATION) {
     state.phase = 'message';
     state.phaseStart = time;
+    playMessageVoices();
     return;
   }
 

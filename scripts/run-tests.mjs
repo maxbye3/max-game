@@ -17,7 +17,12 @@ try {
   const battle = await loadModule('battle-outcome', 'js/battle-outcome.ts');
   assert.equal(battle.getBattleResult('victory').niallQuestState, 'following');
   assert.equal(battle.getBattleResult('defeat').niallQuestState, undefined);
-  assert.equal(battle.getBattleResult('escape').niallQuestState, undefined);
+  assert.deepEqual(battle.getBattleResult('escape'), {
+    message: "Alright, I'll walk you back to the bus.",
+    linkLabel: 'Walk to the bus',
+    href: '../index.html?niall=bus',
+    niallQuestState: 'following',
+  });
 
   const niallBattle = await loadModule('niall-battle', 'js/niall-battle.ts');
   const fight = new niallBattle.NiallBattle();
@@ -38,6 +43,30 @@ try {
   const openPath = thiefPath.buildThiefPath(8, 8, 72, 8, () => false);
   assert.equal(openPath.targetCell, thiefPath.thiefPathCell(72, 8));
   assert.ok(openPath.points.length > 0);
+
+  globalThis.Audio = class {
+    preload = '';
+    currentTime = 0;
+    play() { return Promise.resolve(); }
+    pause() {}
+  };
+  const caveSiblings = await loadModule('cave-siblings', 'js/cave-siblings.ts');
+  const siblingEvents = [];
+  const siblings = new caveSiblings.CaveSiblingsController({
+    showLine: ({ speaker, line }) => siblingEvents.push(`${speaker}: ${line}`),
+    showOptions: () => siblingEvents.push('options'),
+    closeDialogue: () => siblingEvents.push('closed'),
+  });
+  siblings.update(1.35, 0);
+  assert.equal(siblings.startWelcome(1000), true);
+  siblings.update(0, 5999);
+  assert.equal(siblingEvents.includes('options'), false);
+  siblings.update(0, 6000);
+  assert.equal(siblingEvents.at(-1), 'options');
+  siblings.declineWebsite(7000);
+  assert.equal(siblingEvents.at(-1), 'Maddy: do not');
+  siblings.update(0, 8500);
+  assert.equal(siblingEvents.at(-1), 'closed');
 
   const values = new Map();
   globalThis.window = {
