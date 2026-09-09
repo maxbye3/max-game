@@ -1,3 +1,5 @@
+import { hasCaveColander } from './colander.js';
+
 export interface Doorway {
   readonly id: string;
   readonly x: number;
@@ -66,6 +68,7 @@ export function updateDoors(playerX: number, playerY: number): void {
 
   navigationStarted = true;
   const params = new URLSearchParams({ door: enteredDoorway.id });
+  if (hasCaveColander()) params.set('colander', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
   window.location.assign(`internal/index.html?${params.toString()}`);
 }

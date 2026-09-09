@@ -86,7 +86,7 @@ export class InteriorDoorsController {
   private returnUrl(): string {
     const params = new URLSearchParams();
     if (this.options.enteredDoor) params.set('door', this.options.enteredDoor);
-    if (this.scene.kind === 'cave' && this.options.hasCaveColander()) params.set('colander', '1');
+    if (this.options.hasCaveColander()) params.set('colander', '1');
     if (this.options.sealMode) params.set('seal', '1');
     return `../index.html${params.size > 0 ? `?${params.toString()}` : ''}`;
   }

@@ -11,6 +11,7 @@ import { updateDoors } from './doors.js';
 import { setupInput } from './input.js';
 import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
+import { isJumpMenuOpen, setupJump } from './jump.js';
 import { updateNiallInteraction } from './niall.js';
 import { setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
@@ -27,6 +28,11 @@ function gameLoop(time: number): void {
   updateBusIntro(deltaTime, player);
   updatePlayer(deltaTime, speedMultiplier);
   updateHole(deltaTime, player);
+  if (isJumpMenuOpen()) {
+    draw(time);
+    requestAnimationFrame(gameLoop);
+    return;
+  }
   updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier);
   updateNpcInteractions(player.x, player.y);
   if (!isCaveThiefPursuitActive()) {
@@ -41,6 +47,7 @@ function gameLoop(time: number): void {
 setupInput();
 setupBusIntro();
 setupInventory();
+setupJump();
 setupNpcInteractions();
 setupCaveThief();
 

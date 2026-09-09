@@ -7,6 +7,18 @@ import {
 import { CAVE_SIBLINGS } from './cave-siblings.js';
 import { CAVE_DOOR_ID } from './colander.js';
 import {
+  BOOKSHOP_COLLISION_BITS,
+  BOOKSHOP_COLLISION_CELL_SIZE,
+  BOOKSHOP_COLLISION_COLUMNS,
+  BOOKSHOP_COLLISION_ROWS,
+} from './bookshop-collision-mask.js';
+import {
+  GYM_COLLISION_BITS,
+  GYM_COLLISION_CELL_SIZE,
+  GYM_COLLISION_COLUMNS,
+  GYM_COLLISION_ROWS,
+} from './gym-collision-mask.js';
+import {
   INTERNAL_COLLISION_BITS,
   INTERNAL_COLLISION_CELL_SIZE,
   INTERNAL_COLLISION_COLUMNS,
@@ -18,9 +30,15 @@ import {
   MUSIC_HOUSE_COLLISION_COLUMNS,
   MUSIC_HOUSE_COLLISION_ROWS,
 } from './music-house-collision-mask.js';
+import {
+  MANSION_COLLISION_BITS,
+  MANSION_COLLISION_CELL_SIZE,
+  MANSION_COLLISION_COLUMNS,
+  MANSION_COLLISION_ROWS,
+} from './mansion-collision-mask.js';
 
-export type InteriorKind = 'diaryLab' | 'cinema' | 'musicShop' | 'cave';
-export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings';
+export type InteriorKind = 'diaryLab' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave';
+export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -128,6 +146,24 @@ const MUSIC_SHOP_DOORS: readonly InteriorDoor[] = [{
   x: 272, y: 660, width: 1, height: 1,
 }];
 
+const GYM_DOORS: readonly InteriorDoor[] = [{
+  triggerX: 256, triggerY: 620, exitX: 256, exitY: 650,
+  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
+  x: 256, y: 620, width: 1, height: 1,
+}];
+
+const BOOKSHOP_DOORS: readonly InteriorDoor[] = [{
+  triggerX: 256, triggerY: 610, exitX: 256, exitY: 645,
+  sourceX: 0, sourceY: 0, sourceWidth: 1024, sourceHeight: 1536,
+  x: 208, y: 558, width: 95, height: 130,
+}];
+
+const MANSION_DOORS: readonly InteriorDoor[] = [{
+  triggerX: 256, triggerY: 620, exitX: 256, exitY: 650,
+  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
+  x: 256, y: 620, width: 1, height: 1,
+}];
+
 const DIARY_COLLISION: CollisionGrid = {
   bits: INTERNAL_COLLISION_BITS,
   cellSize: INTERNAL_COLLISION_CELL_SIZE,
@@ -145,6 +181,24 @@ const MUSIC_COLLISION: CollisionGrid = {
   cellSize: MUSIC_HOUSE_COLLISION_CELL_SIZE,
   columns: MUSIC_HOUSE_COLLISION_COLUMNS,
   rows: MUSIC_HOUSE_COLLISION_ROWS,
+};
+const GYM_COLLISION: CollisionGrid = {
+  bits: GYM_COLLISION_BITS,
+  cellSize: GYM_COLLISION_CELL_SIZE,
+  columns: GYM_COLLISION_COLUMNS,
+  rows: GYM_COLLISION_ROWS,
+};
+const BOOKSHOP_COLLISION: CollisionGrid = {
+  bits: BOOKSHOP_COLLISION_BITS,
+  cellSize: BOOKSHOP_COLLISION_CELL_SIZE,
+  columns: BOOKSHOP_COLLISION_COLUMNS,
+  rows: BOOKSHOP_COLLISION_ROWS,
+};
+const MANSION_COLLISION: CollisionGrid = {
+  bits: MANSION_COLLISION_BITS,
+  cellSize: MANSION_COLLISION_CELL_SIZE,
+  columns: MANSION_COLLISION_COLUMNS,
+  rows: MANSION_COLLISION_ROWS,
 };
 
 export function getInteriorScene(enteredDoor: string | null): InteriorScene {
@@ -186,8 +240,50 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       backgroundSource: '../img/internal/internal-music.png?v=20260831-interior',
       collision: MUSIC_COLLISION,
       doors: MUSIC_SHOP_DOORS,
-      interactions: [],
+      interactions: [
+        // Andy is behind the decks, so his interaction point sits just in
+        // front of the booth where the player can reach it.
+        { kind: 'andy', label: 'Talk to Andy', x: 258, y: 352, distance: 108 },
+        { kind: 'aliya', label: 'Talk to Aliya', x: 130, y: 350, distance: 82 },
+      ],
       playerStart: { x: 272, y: 625 },
+    };
+  }
+
+  if (enteredDoor === 'gym') {
+    return {
+      kind: 'gym', title: 'Gym', ariaLabel: 'Gym interior',
+      width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
+      backgroundSource: '../img/internal/internal-gym.png',
+      collision: GYM_COLLISION,
+      doors: GYM_DOORS,
+      interactions: [],
+      playerStart: { x: 256, y: 575 },
+    };
+  }
+
+  if (enteredDoor === 'bookshop') {
+    return {
+      kind: 'bookshop', title: 'Bookshop', ariaLabel: 'Bookshop interior',
+      width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 1,
+      backgroundSource: '../img/internal/bookshop-internal.png',
+      doorOverlaySource: '../img/internal/bookshop-door-open.png',
+      collision: BOOKSHOP_COLLISION,
+      doors: BOOKSHOP_DOORS,
+      interactions: [],
+      playerStart: { x: 256, y: 560 },
+    };
+  }
+
+  if (enteredDoor === 'snow-mansion') {
+    return {
+      kind: 'mansion', title: 'Snow Mansion', ariaLabel: 'Snow Mansion interior',
+      width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 1,
+      backgroundSource: '../img/internal/mansion.png',
+      collision: MANSION_COLLISION,
+      doors: MANSION_DOORS,
+      interactions: [],
+      playerStart: { x: 256, y: 575 },
     };
   }
 

@@ -22,6 +22,7 @@ const shouldPlay = !searchParams.has('door') && searchParams.get('niall') !== 'b
 const skipButton = document.querySelector<HTMLButtonElement>('#bus-intro-skip');
 const controls = document.querySelector<HTMLElement>('.controls');
 const inventoryToggle = document.querySelector<HTMLElement>('#inventory-toggle');
+const jumpToggle = document.querySelector<HTMLElement>('#jump-toggle');
 
 let active = shouldPlay;
 let elapsed = 0;
@@ -34,6 +35,7 @@ function easeInOut(value: number): number {
 function setGameplayUiHidden(hidden: boolean): void {
   controls?.classList.toggle('opening-intro-hidden', hidden);
   inventoryToggle?.classList.toggle('opening-intro-hidden', hidden);
+  jumpToggle?.classList.toggle('opening-intro-hidden', hidden);
 }
 
 function finishIntro(player: Player): void {

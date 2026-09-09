@@ -37,6 +37,11 @@ const COLLISION_CUTOUTS: readonly CollisionShape[] = [
   [104, 1148, 70, 15],
   [115, 1163, 63, 15],
   [130, 1178, 49, 14],
+  // Adam and Ed are conversation triggers, not physical obstacles. Clear
+  // narrow paths through their bench slots so walking into either sprite
+  // starts dialogue without trapping the player below the bench collision.
+  [170, 870, 50, 100],
+  [230, 870, 50, 100],
 ];
 
 function subtractCollisionShape(

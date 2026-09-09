@@ -1,0 +1,16 @@
+export const ADAM_FACTS = [
+  'The club were originally called Dial Square before becoming Royal Arsenal and later Woolwich Arsenal.',
+  'Arsenal played at Highbury for 93 years, from 1913 until 2006.',
+  "The cannon on Arsenal's badge comes from the club's origins at the Royal Arsenal weapons factory.",
+  "The 2003–04 'Invincibles' recorded 26 wins, 12 draws and 0 defeats in the Premier League. The unbeaten league run eventually reached 49 matches, lasting from May 2003 to October 2004.",
+  'Arsenal won the league and FA Cup Double in 1970–71, 1997–98 and 2001–02.',
+  'Wenger was the first non-British manager to win the English top-flight title.',
+  "Arsenal won the league at White Hart Lane, Tottenham's home ground, in both 1971 and 2004.",
+  'Arsenal needed to beat Liverpool by two clear goals at Anfield in that 1989 title decider and won 2–0.',
+  "Arsenal's famous white sleeves were introduced in the 1930s during Herbert Chapman's time as manager (from 1925 to 1934).",
+  'Arsenal is the only London football club to have a London Underground station named directly after it.',
+  "Arsenal reached the 2006 Champions League final without conceding a goal in ten consecutive Champions League matches. We don't talk about the final.",
+  "Goalkeeper Jens Lehmann went 853 minutes without conceding during Arsenal's run to the 2006 Champions League final.",
+  "Arsenal's 7–0 win over Everton in 2005 was the final match in which all three members of the Invincibles-era attacking trio of Henry, Bergkamp and Pires scored together.",
+  'Arsenal have spent more consecutive seasons in the English top flight than any other club, having been there continuously since 1919.',
+] as const;

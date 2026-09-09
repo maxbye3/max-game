@@ -265,6 +265,94 @@ canvas {
 
 .opening-intro-hidden { display: none !important; }
 
+.jump-toggle {
+  position: absolute;
+  z-index: 8;
+  left: 24px;
+  bottom: 26px;
+  min-width: 86px;
+  padding: 12px 16px;
+  border: 2px solid #f5fff6;
+  border-radius: 8px;
+  color: #17120b;
+  background: var(--accent);
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 55%);
+  font: 9px/1.5 var(--font-pixel);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.jump-toggle:hover,
+.jump-toggle:focus-visible,
+.jump-option:hover,
+.jump-option:focus-visible,
+.jump-close:hover,
+.jump-close:focus-visible {
+  color: #17321c;
+  background: #f5fff6;
+  outline: none;
+}
+
+.jump-panel {
+  position: absolute;
+  z-index: 10;
+  left: 24px;
+  bottom: 82px;
+  width: min(310px, calc(100% - 48px));
+  max-height: min(430px, calc(100% - 116px));
+  overflow-y: auto;
+  padding: 14px;
+  border: 2px solid #f5fff6;
+  border-radius: 8px;
+  color: #f5fff6;
+  background: rgb(3 10 6 / 96%);
+  box-shadow: 5px 5px 0 rgb(0 0 0 / 55%);
+}
+
+.jump-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.jump-header h2 {
+  margin: 0;
+  color: var(--accent);
+  font: 10px/1.5 var(--font-pixel);
+}
+
+.jump-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 5px;
+  color: #f5fff6;
+  background: #294b31;
+  font: 20px/1 var(--font-display);
+  cursor: pointer;
+}
+
+.jump-options {
+  display: grid;
+  gap: 7px;
+}
+
+.jump-option {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #8eaf93;
+  border-radius: 5px;
+  color: #f5fff6;
+  background: #294b31;
+  font: 8px/1.6 var(--font-pixel);
+  text-align: left;
+  cursor: pointer;
+}
+
 .sign-dialogue {
   position: absolute;
   z-index: 6;
@@ -308,6 +396,22 @@ canvas {
   margin: 0;
   font: 9px/1.8 var(--font-pixel);
   white-space: pre-line;
+}
+
+.sign-dialogue-signature {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.sign-dialogue-signature[hidden] {
+  display: none;
+}
+
+.sign-dialogue-signature img {
+  display: block;
+  width: 104px;
+  height: auto;
 }
 
 .npc-talk {
@@ -1082,6 +1186,8 @@ kbd {
   canvas { border: 0; border-radius: 0; }
   .controls { right: 12px; bottom: 12px; }
   .bus-intro-skip { left: 12px; bottom: 12px; }
+  .jump-toggle { left: 12px; bottom: 12px; }
+  .jump-panel { left: 12px; bottom: 68px; width: calc(100% - 24px); }
   .inventory-toggle { top: 12px; right: 12px; }
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }
   .sign-dialogue { top: 12px; width: calc(100% - 24px); }

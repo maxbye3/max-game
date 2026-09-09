@@ -11,6 +11,7 @@ import { canvas, context, requireElement } from './dom.js';
 import { DirectionInputController } from './input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
+import { GYM_NPCS } from './gym-npcs.js';
 import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
@@ -36,6 +37,10 @@ const noelDialogueOptions = requireElement<HTMLElement>('#noel-dialogue-options'
 const siblingsDialogueOptions = requireElement<HTMLElement>('#siblings-dialogue-options');
 const siblingsViewWebsite = requireElement<HTMLAnchorElement>('#siblings-view-website');
 const siblingsDeclineButton = requireElement<HTMLButtonElement>('#siblings-decline');
+const musicDialogueOptions = requireElement<HTMLElement>('#music-dialogue-options');
+const musicSpotify = requireElement<HTMLAnchorElement>('#music-spotify');
+const musicYoutube = requireElement<HTMLAnchorElement>('#music-youtube');
+const musicDeclineButton = requireElement<HTMLButtonElement>('#music-decline');
 const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-close');
 const noelDeclineButton = requireElement<HTMLButtonElement>('#noel-decline');
 
@@ -51,6 +56,8 @@ const enteredDoor = searchParams.get('door');
 const scene = getInteriorScene(enteredDoor);
 const isCinemaInterior = scene.kind === 'cinema';
 const isMusicShopInterior = scene.kind === 'musicShop';
+const isGymInterior = scene.kind === 'gym';
+const isBookshopInterior = scene.kind === 'bookshop';
 const isCaveInterior = scene.kind === 'cave';
 const isDiaryLabInterior = scene.kind === 'diaryLab';
 document.title = scene.title;
@@ -76,6 +83,7 @@ const spriteSheet = new Image();
 const noelSprite = new Image();
 const siblingsSprite = new Image();
 const musicHouseNpcs = MUSIC_HOUSE_NPCS.map((npc) => ({ ...npc, image: new Image() }));
+const gymNpcs = GYM_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 interior.src = scene.backgroundSource;
 if (scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
 if (scene.doorOverlaySource) doorOverlay.src = scene.doorOverlaySource;
@@ -86,6 +94,11 @@ if (isDiaryLabInterior) noelSprite.src = '../chat/noel/interior-avatar.png';
 if (isCaveInterior) siblingsSprite.src = '../chat/siblings/girls-sprite.png';
 if (isMusicShopInterior) {
   musicHouseNpcs.forEach((npc) => {
+    npc.image.src = npc.source;
+  });
+}
+if (isGymInterior) {
+  gymNpcs.forEach((npc) => {
     npc.image.src = npc.source;
   });
 }
@@ -151,6 +164,7 @@ const cinemaAudience = isCinemaInterior
       noelDialogueNext.hidden = true;
       noelDialogueQuestion.hidden = true;
       noelDialogueOptions.hidden = true;
+      musicDialogueOptions.hidden = true;
       noelDialogue.hidden = false;
       interactionPrompt.hidden = true;
     },
@@ -188,6 +202,7 @@ function closeNoelDialogue(): void {
   noelDialogueNext.hidden = true;
   noelDialogueOptions.hidden = true;
   siblingsDialogueOptions.hidden = true;
+  musicDialogueOptions.hidden = true;
   diaryLabFeatures.hide();
   noelTheme.pause();
   noelTheme.currentTime = 0;
@@ -278,6 +293,7 @@ function startColanderPickup(): void {
   noelDialogueNext.hidden = true;
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
+  musicDialogueOptions.hidden = true;
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
   colanderWarningVoices.forEach((voice) => {
@@ -289,6 +305,25 @@ function startColanderPickup(): void {
   });
 }
 
+function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
+  if (nearbyInteraction !== kind || noelDialogueOpen) return;
+
+  input.releaseAll();
+  noelDialogueOpen = true;
+  noelDialogueFollowsProximity = false;
+  noelSpeaker.textContent = kind === 'andy' ? 'Andy' : 'Aliya';
+  noelDialogueLine.textContent = kind === 'andy'
+    ? "Would you like to hear Max's music?"
+    : "When is Andy done? It's my turn to DJ.";
+  noelDialogueNext.hidden = true;
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
+  siblingsDialogueOptions.hidden = true;
+  musicDialogueOptions.hidden = kind !== 'andy';
+  noelDialogue.hidden = false;
+  interactionPrompt.hidden = true;
+}
+
 function activateNearbyInteraction(): void {
   if (nearbyInteraction === 'noel') startNoelDialogue();
   else if (nearbyInteraction === 'siblings') startSiblingsDialogue(performance.now());
@@ -296,6 +331,8 @@ function activateNearbyInteraction(): void {
     startFeatureInteraction(nearbyInteraction);
   } else if (nearbyInteraction === 'colander') {
     startColanderPickup();
+  } else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') {
+    startMusicHouseDialogue(nearbyInteraction);
   }
 }
 
@@ -341,6 +378,9 @@ function bindControls(): void {
     caveSiblings?.declineWebsite(performance.now());
     showSiblingsDialogue();
   });
+  musicSpotify.addEventListener('click', closeNoelDialogue);
+  musicYoutube.addEventListener('click', closeNoelDialogue);
+  musicDeclineButton.addEventListener('click', closeNoelDialogue);
   diaryLabFeatures.bind(openFeature, closeNoelDialogue);
 
   input.setup();
@@ -430,6 +470,27 @@ function updateNearbyInteraction(): void {
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
 
+function drawSceneryNpcs(
+  npcs: readonly { x: number; y: number; width: number; height: number; image: HTMLImageElement }[],
+  cameraX: number,
+  cameraY: number,
+  scaleX: number,
+  scaleY: number,
+): void {
+  context.save();
+  context.imageSmoothingEnabled = false;
+  npcs.forEach((npc) => {
+    context.drawImage(
+      npc.image,
+      Math.round((npc.x - cameraX - npc.width / 2) * scaleX),
+      Math.round((npc.y - cameraY - npc.height) * scaleY),
+      npc.width * scaleX,
+      npc.height * scaleY,
+    );
+  });
+  context.restore();
+}
+
 function draw(): void {
   // The cave is small enough to show in full with no camera panning at all;
   // every other interior is bigger than the canvas and keeps scrolling.
@@ -500,18 +561,10 @@ function draw(): void {
     );
   }
   if (isMusicShopInterior) {
-    context.save();
-    context.imageSmoothingEnabled = false;
-    musicHouseNpcs.forEach((npc) => {
-      context.drawImage(
-        npc.image,
-        Math.round((npc.x - cameraX - npc.width / 2) * scaleX),
-        Math.round((npc.y - cameraY - npc.height) * scaleY),
-        npc.width * scaleX,
-        npc.height * scaleY,
-      );
-    });
-    context.restore();
+    drawSceneryNpcs(musicHouseNpcs, cameraX, cameraY, scaleX, scaleY);
+  }
+  if (isGymInterior) {
+    drawSceneryNpcs(gymNpcs, cameraX, cameraY, scaleX, scaleY);
   }
   if (SHOW_COLLISIONS) {
     context.save();
@@ -526,7 +579,7 @@ function draw(): void {
           wallHeight * scaleY,
         );
       }
-    } else if (isMusicShopInterior) {
+    } else if (isMusicShopInterior || isGymInterior || isBookshopInterior || scene.kind === 'mansion') {
       context.fillStyle = '#005cff';
       const firstColumn = Math.max(0, Math.floor(cameraX / collision.cellSize));
       const lastColumn = Math.min(collision.columns - 1, Math.ceil((cameraX + viewportWidth) / collision.cellSize));
@@ -629,6 +682,7 @@ const requiredImages = [
   ...(isDiaryLabInterior ? [noelSprite] : []),
   ...(isCaveInterior ? [siblingsSprite] : []),
   ...(isMusicShopInterior ? musicHouseNpcs.map((npc) => npc.image) : []),
+  ...(isGymInterior ? gymNpcs.map((npc) => npc.image) : []),
 ];
 
 Promise.all(requiredImages.map((image) => image.decode()))

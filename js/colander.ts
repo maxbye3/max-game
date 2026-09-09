@@ -1,9 +1,8 @@
 export const CAVE_DOOR_ID = 'northwest-portal';
 
-// The colander always starts back on the ground in the cave: holding it is
-// only ever carried forward through the `colander=1` URL param set on the
-// way out of the cave, never persisted to storage, so it resets on the next
-// visit instead of being permanently remembered.
+// The colander starts on the ground in the cave. Once picked up, it travels
+// through map and interior URLs as `colander=1`, never through storage, so a
+// fresh visit still resets it to the cave.
 export function hasCaveColander(): boolean {
   return new URLSearchParams(window.location.search).get('colander') === '1';
 }

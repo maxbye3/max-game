@@ -20,24 +20,27 @@ interface Sign {
   readonly y: number;
   readonly width: number;
   readonly height: number;
+  readonly signed?: boolean;
 }
 
 const SIGN_MESSAGES = [
-  'Hey, welcome to my website! You can quick-travel by clicking the “Jump” button in the bottom-right.',
-  'People add things to your inventory as you talk to them click the inventory button to use it',
+  'Hey, welcome to my website! You can quick-travel by clicking the “Jump” button in the bottom-right. Hit me if you have questions!',
+  'People add things to your inventory as you talk to them click the inventory button to use it. Hope this helped!',
   'DC has one of the highest employment rates in the country, so helping folks find work is my side hustle.',
+  "Max is going to be adding more people, places, things so check back soon! Have ideas and don't have me on whatsapp? Jump on over to the Feedback Center - he would love to hear them.",
 ] as const;
 
 // World-space bounds for every fully visible, readable sign in the composed map.
 export const SIGNS: readonly Sign[] = [
   {
     id: 'north-directory',
-    title: 'Town Directory',
-    message: SIGN_MESSAGES[0],
+    title: 'Check back for more',
+    message: SIGN_MESSAGES[3],
     x: 392,
     y: 157,
     width: 19,
     height: 20,
+    signed: true,
   },
   {
     id: 'music-shop-placard',
@@ -47,6 +50,7 @@ export const SIGNS: readonly Sign[] = [
     y: MUSIC_SHOP_SIGN_Y,
     width: MUSIC_SHOP_SIGN_WIDTH,
     height: MUSIC_SHOP_SIGN_HEIGHT,
+    signed: true,
   },
   {
     id: 'job-center-noticeboard',
@@ -65,6 +69,7 @@ export const SIGNS: readonly Sign[] = [
     y: 1151,
     width: 25,
     height: 23,
+    signed: true,
   },
 ];
 
@@ -78,6 +83,7 @@ export const SIGN_COLLISION_SHAPES: readonly CollisionShape[] = [
 const dialogue = requireElement<HTMLElement>('#sign-dialogue');
 const dialogueTitle = requireElement<HTMLElement>('#sign-dialogue-title');
 const dialogueText = requireElement<HTMLElement>('#sign-dialogue-text');
+const dialogueSignature = requireElement<HTMLElement>('#sign-dialogue-signature');
 const announcer = requireElement<HTMLElement>('#announcer');
 
 const READ_DISTANCE = 46;
@@ -109,6 +115,7 @@ function showSign(sign: Sign): void {
   activeSign = sign;
   dialogueTitle.textContent = sign.title;
   dialogueText.textContent = sign.message;
+  dialogueSignature.hidden = !sign.signed;
   dialogue.hidden = false;
   announcer.textContent = `${sign.title}: ${sign.message}`;
 }
@@ -116,6 +123,7 @@ function showSign(sign: Sign): void {
 function hideSign(): void {
   activeSign = null;
   dialogue.hidden = true;
+  dialogueSignature.hidden = true;
 }
 
 /** Called with each attempted player position so contact opens the sign immediately. */

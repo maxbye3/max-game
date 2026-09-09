@@ -1,5 +1,7 @@
 import { requireElement } from './dom.js';
 import { ADAM_DIALOGUE_LINES } from './adam-dialogue.js';
+import { ADAM_FACTS } from './adam-facts.js';
+import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
 import { REI_DIALOGUE_LINES } from './rei-dialogue.js';
@@ -14,7 +16,10 @@ interface NpcDefinition {
   readonly height: number;
   readonly interactionDistance: number;
   readonly collisionDistance: number;
+  readonly blocksMovement?: boolean;
   readonly dialogueLines: readonly string[];
+  readonly getDialogueLine?: () => Promise<string>;
+  readonly followUpLine?: () => string;
   // Said after the rotating greeting, every time the player walks up.
   readonly requestLine?: string;
   readonly themeSource: string;
@@ -30,6 +35,7 @@ export const ADAM: NpcDefinition = {
   interactionDistance: 56,
   collisionDistance: 24,
   dialogueLines: ADAM_DIALOGUE_LINES,
+  followUpLine: nextAdamFact,
   themeSource: 'chat/adam/player/theme.mp3',
 };
 
@@ -43,6 +49,7 @@ export const ED: NpcDefinition = {
   interactionDistance: 56,
   collisionDistance: 24,
   dialogueLines: ED_DIALOGUE_LINES,
+  getDialogueLine: getNextArsenalFixtureDialogue,
   themeSource: 'chat/ed/player/theme.mp3',
 };
 
@@ -55,6 +62,7 @@ export const MIKE: NpcDefinition = {
   height: 46,
   interactionDistance: 56,
   collisionDistance: 27,
+  blocksMovement: true,
   dialogueLines: MIKE_DIALOGUE_LINES,
   themeSource: 'chat/mike/example_character/theme.mp3',
 };
@@ -68,6 +76,7 @@ export const REI: NpcDefinition = {
   height: 35,
   interactionDistance: 56,
   collisionDistance: 27,
+  blocksMovement: true,
   dialogueLines: REI_DIALOGUE_LINES,
   requestLine: 'I need some red paint to finish this sign. Help me find some',
   themeSource: 'chat/rei/player/theme.mp3',
@@ -80,12 +89,13 @@ const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
 const gameShell = requireElement<HTMLElement>('.game-shell');
-const fallbackDialogueIndexes = new Map<NpcDefinition['id'], number>();
+const fallbackDialogueIndexes = new Map<string, number>();
 
 const QUEST_ACCEPTED_OVERLAY_DURATION = 3200;
 
 let activeNpc: NpcDefinition | null = null;
 let pendingRequestLine: string | null = null;
+let pendingFollowUpLine: string | null = null;
 let requestLineShown = false;
 let nearbyNpc: NpcDefinition | null = null;
 let theme: HTMLAudioElement | null = null;
@@ -112,19 +122,29 @@ function dialogueIndexKey(npc: NpcDefinition): string {
   return `max-game:${npc.id}-dialogue-index`;
 }
 
-function nextDialogueIndex(npc: NpcDefinition): number {
-  const fallback = fallbackDialogueIndexes.get(npc.id) ?? 0;
-  const stored = Number.parseInt(readStorage(dialogueIndexKey(npc)) ?? String(fallback), 10);
-  const current = Number.isFinite(stored) && stored >= 0 ? stored % npc.dialogueLines.length : 0;
-  const next = (current + 1) % npc.dialogueLines.length;
-  fallbackDialogueIndexes.set(npc.id, next);
-  writeStorage(dialogueIndexKey(npc), String(next));
+function nextStoredIndex(key: string, length: number): number {
+  const fallback = fallbackDialogueIndexes.get(key) ?? 0;
+  const stored = Number.parseInt(readStorage(key) ?? String(fallback), 10);
+  const current = Number.isFinite(stored) && stored >= 0 ? stored % length : 0;
+  const next = (current + 1) % length;
+  fallbackDialogueIndexes.set(key, next);
+  writeStorage(key, String(next));
   return current;
+}
+
+function nextDialogueIndex(npc: NpcDefinition): number {
+  return nextStoredIndex(dialogueIndexKey(npc), npc.dialogueLines.length);
+}
+
+function nextAdamFact(): string {
+  const index = nextStoredIndex('max-game:adam-fact-index', ADAM_FACTS.length);
+  return ADAM_FACTS[index] ?? '';
 }
 
 function closeDialogue(): void {
   activeNpc = null;
   pendingRequestLine = null;
+  pendingFollowUpLine = null;
   requestLineShown = false;
   dialogue.hidden = true;
   nextButton.hidden = true;
@@ -145,6 +165,13 @@ function showRequestLine(): void {
   nextButton.hidden = false;
 }
 
+function showFollowUpLine(): void {
+  if (!pendingFollowUpLine) return;
+  dialogueLine.textContent = pendingFollowUpLine;
+  pendingFollowUpLine = null;
+  nextButton.hidden = true;
+}
+
 function acceptQuest(): void {
   requestLineShown = false;
   showQuestAcceptedOverlay();
@@ -154,18 +181,32 @@ function acceptQuest(): void {
 function advanceDialogue(): void {
   if (pendingRequestLine) {
     showRequestLine();
+  } else if (pendingFollowUpLine) {
+    showFollowUpLine();
   } else if (requestLineShown) {
     acceptQuest();
   }
 }
 
+function showDialogueLine(npc: NpcDefinition): void {
+  if (!npc.getDialogueLine) {
+    dialogueLine.textContent = npc.dialogueLines[nextDialogueIndex(npc)] ?? '';
+    return;
+  }
+  dialogueLine.textContent = 'Checking Arsenal’s next game...';
+  void npc.getDialogueLine().then((line) => {
+    if (activeNpc === npc) dialogueLine.textContent = line;
+  });
+}
+
 function openDialogue(npc: NpcDefinition): void {
   activeNpc = npc;
   pendingRequestLine = npc.requestLine ?? null;
+  pendingFollowUpLine = npc.followUpLine?.() ?? null;
   requestLineShown = false;
   speaker.textContent = npc.name;
-  dialogueLine.textContent = npc.dialogueLines[nextDialogueIndex(npc)] ?? '';
-  nextButton.hidden = pendingRequestLine === null;
+  showDialogueLine(npc);
+  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null;
   dialogue.hidden = false;
   theme = new Audio(npc.themeSource);
   theme.preload = 'auto';
@@ -185,7 +226,9 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
 }
 
 export function playerCollidesWithNpc(x: number, y: number): boolean {
-  return NPCS.some((npc) => Math.hypot(x - npc.x, y - npc.y) < npc.collisionDistance);
+  return NPCS.some((npc) =>
+    npc.blocksMovement && Math.hypot(x - npc.x, y - npc.y) < npc.collisionDistance,
+  );
 }
 
 export function setupNpcInteractions(): void {
@@ -198,7 +241,7 @@ export function setupNpcInteractions(): void {
       closeDialogue();
       return;
     }
-    if ((pendingRequestLine || requestLineShown) && (event.code === 'Enter' || event.code === 'Space')) {
+    if ((pendingRequestLine || pendingFollowUpLine || requestLineShown) && (event.code === 'Enter' || event.code === 'Space')) {
       event.preventDefault();
       advanceDialogue();
     }
