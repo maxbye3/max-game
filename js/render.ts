@@ -18,7 +18,7 @@ import {
 } from './config.js';
 import { canvas, context } from './dom.js';
 import { getHolePlayerTransform } from './hole.js';
-import { ADAM, ED, MIKE, REI } from './npcs.js';
+import { ADAM, ALEX_S, ED, MIKE, REI } from './npcs.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
 import { player } from './player.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
@@ -263,6 +263,13 @@ export function draw(time: number): void {
     Math.round(ED.y - cameraY - ED.height),
     ED.width,
     ED.height,
+  );
+  context.drawImage(
+    images.alexS,
+    Math.round(ALEX_S.x - cameraX - ALEX_S.width / 2),
+    Math.round(ALEX_S.y - cameraY - ALEX_S.height),
+    ALEX_S.width,
+    ALEX_S.height,
   );
 
   const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;

@@ -38,7 +38,7 @@ import {
 } from './mansion-collision-mask.js';
 
 export type InteriorKind = 'diaryLab' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave';
-export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya';
+export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -270,7 +270,9 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       doorOverlaySource: '../img/internal/bookshop-door-open.png',
       collision: BOOKSHOP_COLLISION,
       doors: BOOKSHOP_DOORS,
-      interactions: [],
+      interactions: [
+        { kind: 'lucy', label: 'Talk to Lucy', x: 256, y: 286, distance: 68 },
+      ],
       playerStart: { x: 256, y: 560 },
     };
   }
@@ -282,7 +284,9 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       backgroundSource: '../img/internal/mansion.png',
       collision: MANSION_COLLISION,
       doors: MANSION_DOORS,
-      interactions: [],
+      interactions: [
+        { kind: 'noel', label: 'Talk to noel', x: NOEL.x, y: NOEL.y, distance: 62 },
+      ],
       playerStart: { x: 256, y: 575 },
     };
   }

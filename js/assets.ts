@@ -28,6 +28,7 @@ const IMAGE_SOURCES = {
   rei: 'chat/rei/overworld-avatar.png',
   adam: 'chat/adam/avatar.png',
   ed: 'chat/ed/avatar.png',
+  alexS: 'chat/alex s/avatar.png',
   niallSprite: 'chat/niall/niall-sprite.png',
   niallExplanationMark: 'chat/niall/explanation-mark.png',
   girlsSprite: 'chat/siblings/girls-sprite.png',

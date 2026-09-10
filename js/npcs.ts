@@ -1,6 +1,7 @@
 import { requireElement } from './dom.js';
 import { ADAM_DIALOGUE_LINES } from './adam-dialogue.js';
 import { ADAM_FACTS } from './adam-facts.js';
+import { ALEX_S_DIALOGUE_LINES } from './alex-s-dialogue.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
@@ -8,7 +9,7 @@ import { REI_DIALOGUE_LINES } from './rei-dialogue.js';
 import { readStorage, writeStorage } from './storage.js';
 
 interface NpcDefinition {
-  readonly id: 'adam' | 'ed' | 'mike' | 'rei';
+  readonly id: 'adam' | 'ed' | 'mike' | 'rei' | 'alexS';
   readonly name: string;
   readonly x: number;
   readonly y: number;
@@ -82,7 +83,21 @@ export const REI: NpcDefinition = {
   themeSource: 'chat/rei/player/theme.mp3',
 };
 
-const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI];
+export const ALEX_S: NpcDefinition = {
+  id: 'alexS',
+  name: 'Alex S',
+  x: 780,
+  y: 1263,
+  width: 42,
+  height: 58,
+  interactionDistance: 58,
+  collisionDistance: 25,
+  blocksMovement: true,
+  dialogueLines: ALEX_S_DIALOGUE_LINES,
+  themeSource: 'chat/alex s/theme.mp3',
+};
+
+const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, ALEX_S];
 const dialogue = requireElement<HTMLElement>('#npc-dialogue');
 const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');

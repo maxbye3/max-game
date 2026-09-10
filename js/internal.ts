@@ -12,6 +12,7 @@ import { DirectionInputController } from './input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { GYM_NPCS } from './gym-npcs.js';
+import { LucyController } from './lucy.js';
 import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
@@ -24,7 +25,6 @@ import {
 } from './interior-scenes.js';
 import type { Direction } from './types.js';
 import { moveWithCollisions } from './movement.js';
-
 const searchParams = new URLSearchParams(window.location.search);
 const SEAL_MODE = searchParams.has('seal');
 const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt');
@@ -43,7 +43,6 @@ const musicYoutube = requireElement<HTMLAnchorElement>('#music-youtube');
 const musicDeclineButton = requireElement<HTMLButtonElement>('#music-decline');
 const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-close');
 const noelDeclineButton = requireElement<HTMLButtonElement>('#noel-decline');
-
 const FRAME_COUNT = SEAL_MODE ? 8 : 9;
 const PLAYER_SCALE = 2;
 const VIEW_SCALE = 1;
@@ -58,6 +57,7 @@ const isCinemaInterior = scene.kind === 'cinema';
 const isMusicShopInterior = scene.kind === 'musicShop';
 const isGymInterior = scene.kind === 'gym';
 const isBookshopInterior = scene.kind === 'bookshop';
+const isMansionInterior = scene.kind === 'mansion';
 const isCaveInterior = scene.kind === 'cave';
 const isDiaryLabInterior = scene.kind === 'diaryLab';
 document.title = scene.title;
@@ -65,7 +65,6 @@ canvas.setAttribute('aria-label', scene.ariaLabel);
 const WORLD_WIDTH = scene.width;
 const WORLD_HEIGHT = scene.height;
 const INTERACTION_TARGETS = scene.interactions;
-
 if (isCaveInterior) {
   // The cave is wider than it is tall, so it gets its own non-square canvas
   // sized to its true aspect ratio instead of being stretched into the
@@ -75,7 +74,6 @@ if (isCaveInterior) {
   context.imageSmoothingEnabled = false;
   requireElement<HTMLElement>('.game-shell').classList.add('cave-shell');
 }
-
 const interior = new Image();
 const collisionMask = new Image();
 const doorOverlay = new Image();
@@ -90,7 +88,7 @@ if (scene.doorOverlaySource) doorOverlay.src = scene.doorOverlaySource;
 spriteSheet.src = SEAL_MODE
   ? '../player/seal-game.png?v=20260831-transparent'
   : '../player/SpriteSheet.png';
-if (isDiaryLabInterior) noelSprite.src = '../chat/noel/interior-avatar.png';
+if (isDiaryLabInterior || isMansionInterior) noelSprite.src = '../chat/noel/interior-avatar.png';
 if (isCaveInterior) siblingsSprite.src = '../chat/siblings/girls-sprite.png';
 if (isMusicShopInterior) {
   musicHouseNpcs.forEach((npc) => {
@@ -113,7 +111,6 @@ const colanderWarningVoices = [
 colanderWarningVoices.forEach((voice) => {
   voice.preload = 'auto';
 });
-
 const player = {
   x: scene.playerStart.x,
   y: scene.playerStart.y,
@@ -121,7 +118,6 @@ const player = {
   frame: 0,
   animationTime: 0,
 };
-
 let previousTime = 0;
 let nearbyInteraction: InteractionKind | null = null;
 let noelDialogueOpen = false;
@@ -131,7 +127,7 @@ const input = new DirectionInputController({
   canHold: () => !noelDialogueOpen || noelDialogueFollowsProximity,
 });
 const diaryLabFeatures = new DiaryLabFeatures();
-
+const lucy = isBookshopInterior ? new LucyController(noelDialogueLine, noelDialogueNext) : null;
 let caveColanderHeld = hasCaveColander();
 const interiorDoors = new InteriorDoorsController(scene, {
   enteredDoor,
@@ -171,19 +167,16 @@ const cinemaAudience = isCinemaInterior
     closeDialogue: () => closeNoelDialogue(),
   })
   : null;
-
 function finishNoelIntroduction(): void {
   noelDialogueNext.hidden = true;
   noelDialogueQuestion.textContent = NOEL_QUESTION;
   noelDialogueQuestion.hidden = false;
   noelDialogueOptions.hidden = false;
 }
-
 function showNoelDialogueLine(): void {
   noelDialogueLine.textContent = NOEL_DIALOGUE_LINES[noelDialogueLineIndex] ?? '';
   noelDialogueNext.hidden = false;
 }
-
 function showNextNoelDialogueLine(): void {
   if (!noelDialogueOpen) return;
   if (noelDialogueLineIndex < NOEL_DIALOGUE_LINES.length - 1) {
@@ -193,7 +186,6 @@ function showNextNoelDialogueLine(): void {
   }
   finishNoelIntroduction();
 }
-
 function closeNoelDialogue(): void {
   caveSiblings?.closeDialogue();
   noelDialogueOpen = false;
@@ -207,13 +199,13 @@ function closeNoelDialogue(): void {
   noelTheme.pause();
   noelTheme.currentTime = 0;
   noelTheme.onended = null;
+  lucy?.stop();
   colanderWarningVoices.forEach((voice) => {
     voice.pause();
     voice.currentTime = 0;
   });
   interactionPrompt.hidden = nearbyInteraction === null || nearbyInteraction === 'siblings';
 }
-
 function showSiblingsDialogue(): void {
   noelDialogueNext.hidden = true;
   noelDialogueQuestion.hidden = true;
@@ -222,7 +214,6 @@ function showSiblingsDialogue(): void {
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
 }
-
 function startSiblingsDialogue(time: number): void {
   if (
     nearbyInteraction !== 'siblings' ||
@@ -233,7 +224,6 @@ function startSiblingsDialogue(time: number): void {
   noelDialogueFollowsProximity = true;
   showSiblingsDialogue();
 }
-
 function startSiblingsWebsiteReturnDialogue(): void {
   if (!caveSiblings?.canResumeAfterWebsite) return;
   if (noelDialogueOpen) closeNoelDialogue();
@@ -242,7 +232,6 @@ function startSiblingsWebsiteReturnDialogue(): void {
   noelDialogueFollowsProximity = true;
   showSiblingsDialogue();
 }
-
 function startNoelDialogue(): void {
   if (nearbyInteraction !== 'noel' || noelDialogueOpen) return;
   noelDialogueOpen = true;
@@ -254,7 +243,6 @@ function startNoelDialogue(): void {
   noelDialogueOptions.hidden = true;
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
-
   noelTheme.pause();
   noelTheme.currentTime = 0;
   noelTheme.onended = null;
@@ -262,7 +250,20 @@ function startNoelDialogue(): void {
     // Browsers may reject audio until a real keyboard or pointer gesture.
   });
 }
-
+function startLucyDialogue(): void {
+  if (nearbyInteraction !== 'lucy' || noelDialogueOpen) return;
+  input.releaseAll();
+  noelDialogueOpen = true;
+  noelDialogueFollowsProximity = true;
+  noelSpeaker.textContent = 'Lucy';
+  lucy?.start();
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
+  siblingsDialogueOptions.hidden = true;
+  musicDialogueOptions.hidden = true;
+  noelDialogue.hidden = false;
+  interactionPrompt.hidden = true;
+}
 function openFeature(kind: 'diary' | 'experiments'): void {
   input.releaseAll();
   noelDialogueOpen = true;
@@ -272,11 +273,9 @@ function openFeature(kind: 'diary' | 'experiments'): void {
   noelDialogue.hidden = true;
   diaryLabFeatures.open(kind);
 }
-
 function startFeatureInteraction(kind: 'diary' | 'experiments'): void {
   if (!noelDialogueOpen) openFeature(kind);
 }
-
 function startColanderPickup(): void {
   if (!isCaveInterior || noelDialogueOpen || caveColanderHeld) return;
   input.releaseAll();
@@ -304,10 +303,8 @@ function startColanderPickup(): void {
     });
   });
 }
-
 function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
   if (nearbyInteraction !== kind || noelDialogueOpen) return;
-
   input.releaseAll();
   noelDialogueOpen = true;
   noelDialogueFollowsProximity = false;
@@ -323,7 +320,6 @@ function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
 }
-
 function activateNearbyInteraction(): void {
   if (nearbyInteraction === 'noel') startNoelDialogue();
   else if (nearbyInteraction === 'siblings') startSiblingsDialogue(performance.now());
@@ -333,9 +329,10 @@ function activateNearbyInteraction(): void {
     startColanderPickup();
   } else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') {
     startMusicHouseDialogue(nearbyInteraction);
+  } else if (nearbyInteraction === 'lucy') {
+    startLucyDialogue();
   }
 }
-
 function bindControls(): void {
   window.addEventListener('keydown', (event) => {
     if (event.ctrlKey || event.metaKey || event.altKey) {
@@ -366,7 +363,10 @@ function bindControls(): void {
     startSiblingsWebsiteReturnDialogue();
   });
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
-  noelDialogueNext.addEventListener('click', showNextNoelDialogueLine);
+  noelDialogueNext.addEventListener('click', () => {
+    if (nearbyInteraction === 'lucy') lucy?.next();
+    else showNextNoelDialogueLine();
+  });
   noelDialogueClose.addEventListener('click', closeNoelDialogue);
   noelDeclineButton.addEventListener('click', closeNoelDialogue);
   siblingsViewWebsite.addEventListener('click', () => {
@@ -382,10 +382,8 @@ function bindControls(): void {
   musicYoutube.addEventListener('click', closeNoelDialogue);
   musicDeclineButton.addEventListener('click', closeNoelDialogue);
   diaryLabFeatures.bind(openFeature, closeNoelDialogue);
-
   input.setup();
 }
-
 function updatePlayer(deltaTime: number): void {
   if (caveSiblings?.isEntering) {
     player.animationTime = 0;
@@ -399,13 +397,11 @@ function updatePlayer(deltaTime: number): void {
   if (input.isHeld('right')) dx += 1;
   if (input.isHeld('up')) dy -= 1;
   if (input.isHeld('down')) dy += 1;
-
   if (dx === 0 && dy === 0) {
     player.animationTime = 0;
     player.frame = 0;
     return;
   }
-
   const length = Math.hypot(dx, dy);
   moveWithCollisions(
     player,
@@ -413,7 +409,6 @@ function updatePlayer(deltaTime: number): void {
     (dy / length) * SPEED * deltaTime,
     (x, y) => collision.playerIsBlocked(x, y),
   );
-
   if (dx < 0 && dy < 0) player.direction = 'upLeft';
   else if (dx > 0 && dy < 0) player.direction = 'upRight';
   else if (dx < 0 && dy > 0) player.direction = 'downLeft';
@@ -422,11 +417,9 @@ function updatePlayer(deltaTime: number): void {
   else if (dx > 0) player.direction = 'right';
   else if (dy < 0) player.direction = 'up';
   else player.direction = 'down';
-
   player.animationTime += deltaTime;
   player.frame = Math.floor(player.animationTime * 11) % FRAME_COUNT;
 }
-
 function updateNearbyInteraction(): void {
   if (isCinemaInterior) {
     nearbyInteraction = null;
@@ -450,7 +443,7 @@ function updateNearbyInteraction(): void {
     caveSiblings?.leaveRange();
   }
   if (
-    (previousInteraction === 'noel' || previousInteraction === 'siblings') &&
+    (previousInteraction === 'noel' || previousInteraction === 'siblings' || previousInteraction === 'lucy') &&
     nextInteraction !== previousInteraction &&
     noelDialogueOpen &&
     noelDialogueFollowsProximity
@@ -469,7 +462,6 @@ function updateNearbyInteraction(): void {
   if (target) interactionPrompt.textContent = target.label;
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
-
 function drawSceneryNpcs(
   npcs: readonly { x: number; y: number; width: number; height: number; image: HTMLImageElement }[],
   cameraX: number,
@@ -490,7 +482,6 @@ function drawSceneryNpcs(
   });
   context.restore();
 }
-
 function draw(): void {
   // The cave is small enough to show in full with no camera panning at all;
   // every other interior is bigger than the canvas and keeps scrolling.
@@ -530,7 +521,6 @@ function draw(): void {
       CAVE_COLANDER.eraseHeight * scaleY,
     );
   }
-
   if (isCaveInterior) {
     const frame = caveSiblings?.isEntering
       ? CAVE_SIBLINGS_WALK_FRAMES[caveSiblings.walkFrame]
@@ -550,8 +540,7 @@ function draw(): void {
       );
     }
   }
-
-  if (isDiaryLabInterior) {
+  if (isDiaryLabInterior || isMansionInterior) {
     context.drawImage(
       noelSprite,
       Math.round((NOEL.x - cameraX - NOEL.width / 2) * scaleX),
@@ -565,6 +554,11 @@ function draw(): void {
   }
   if (isGymInterior) {
     drawSceneryNpcs(gymNpcs, cameraX, cameraY, scaleX, scaleY);
+  }
+  if (isBookshopInterior) {
+    drawSceneryNpcs([
+      { x: 256, y: 286, width: 42, height: 75, image: lucy!.sprite },
+    ], cameraX, cameraY, scaleX, scaleY);
   }
   if (SHOW_COLLISIONS) {
     context.save();
@@ -614,7 +608,6 @@ function draw(): void {
     }
     context.restore();
   }
-
   if (isCaveInterior) {
     // Darken the environment and the siblings but never the player, who
     // should stay fully visible regardless of how dark the cave gets.
@@ -624,7 +617,6 @@ function draw(): void {
     context.fillRect(0, 0, viewportWidth * scaleX, viewportHeight * scaleY);
     context.restore();
   }
-
   if (isCaveInterior && !caveColanderHeld) {
     drawColander(
       context,
@@ -633,7 +625,6 @@ function draw(): void {
       Math.min(scaleX, scaleY),
     );
   }
-
   const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, PLAYER_SCALE);
   const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
   context.drawImage(
@@ -655,11 +646,9 @@ function draw(): void {
       Math.min(scaleX, scaleY),
     );
   }
-
   interiorDoors.drawOverlay(context, doorOverlay, cameraX, cameraY, scaleX);
   context.restore();
 }
-
 function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
@@ -670,21 +659,19 @@ function gameLoop(time: number): void {
   draw();
   requestAnimationFrame(gameLoop);
 }
-
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
 bindControls();
-
 const requiredImages = [
   interior,
   spriteSheet,
   ...(scene.collisionMaskSource ? [collisionMask] : []),
   ...(scene.doorOverlaySource ? [doorOverlay] : []),
-  ...(isDiaryLabInterior ? [noelSprite] : []),
+  ...(isDiaryLabInterior || isMansionInterior ? [noelSprite] : []),
+  ...(lucy ? [lucy.sprite] : []),
   ...(isCaveInterior ? [siblingsSprite] : []),
   ...(isMusicShopInterior ? musicHouseNpcs.map((npc) => npc.image) : []),
   ...(isGymInterior ? gymNpcs.map((npc) => npc.image) : []),
 ];
-
 Promise.all(requiredImages.map((image) => image.decode()))
   .then(() => {
     context.imageSmoothingEnabled = false;
