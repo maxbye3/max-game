@@ -12,6 +12,7 @@ import { setupInput } from './input.js';
 import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
+import { setupMusicPlayer } from './music-player.js';
 import { updateNiallInteraction } from './niall.js';
 import { setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
@@ -48,6 +49,7 @@ setupInput();
 setupBusIntro();
 setupInventory();
 setupJump();
+setupMusicPlayer();
 setupNpcInteractions();
 setupCaveThief();
 
