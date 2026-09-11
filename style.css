@@ -566,6 +566,10 @@ canvas {
   height: auto;
 }
 
+.sign-dialogue-signature img[hidden] {
+  display: none;
+}
+
 .npc-talk {
   position: absolute;
   z-index: 7;

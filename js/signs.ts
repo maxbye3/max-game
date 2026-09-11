@@ -100,6 +100,8 @@ const dialogue = requireElement<HTMLElement>('#sign-dialogue');
 const dialogueTitle = requireElement<HTMLElement>('#sign-dialogue-title');
 const dialogueText = requireElement<HTMLElement>('#sign-dialogue-text');
 const dialogueSignature = requireElement<HTMLElement>('#sign-dialogue-signature');
+const signatureImage = requireElement<HTMLImageElement>('#sign-dialogue-signature-image');
+const busImage = requireElement<HTMLImageElement>('#sign-dialogue-bus-image');
 const announcer = requireElement<HTMLElement>('#announcer');
 
 const READ_DISTANCE = 46;
@@ -131,7 +133,11 @@ function showSign(sign: Sign): void {
   activeSign = sign;
   dialogueTitle.textContent = sign.title;
   dialogueText.textContent = sign.message;
-  dialogueSignature.hidden = !sign.signed;
+  const isBusStop = sign.id === 'bus-stop';
+  const hasSignature = sign.id !== 'bus-stop' && sign.id !== 'job-center-noticeboard';
+  dialogueSignature.hidden = !isBusStop && !hasSignature;
+  signatureImage.hidden = isBusStop;
+  busImage.hidden = !isBusStop;
   dialogue.hidden = false;
   announcer.textContent = `${sign.title}: ${sign.message}`;
 }
@@ -140,6 +146,8 @@ function hideSign(): void {
   activeSign = null;
   dialogue.hidden = true;
   dialogueSignature.hidden = true;
+  signatureImage.hidden = true;
+  busImage.hidden = true;
 }
 
 /** Called with each attempted player position so contact opens the sign immediately. */

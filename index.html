@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=20260908-signed-signs" />
+    <link rel="stylesheet" href="style.css?v=20260910-sign-variants-2" />
   </head>
   <body>
     <main class="game-shell">
@@ -60,7 +60,8 @@
         </div>
         <p id="sign-dialogue-text"></p>
         <div id="sign-dialogue-signature" class="sign-dialogue-signature" hidden>
-          <img src="img/external/bus.png" alt="Bus">
+          <img id="sign-dialogue-signature-image" src="img/external/signature.png" alt="Max's signature">
+          <img id="sign-dialogue-bus-image" src="img/external/bus.png" alt="Bus" hidden>
         </div>
       </section>
       <section id="npc-dialogue" class="npc-dialogue" aria-live="polite" hidden>
@@ -115,6 +116,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=20260908-signed-signs"></script>
+    <script src="dist/main-bundle.js?v=20260910-sign-variants"></script>
   </body>
 </html>
