@@ -96,7 +96,6 @@ export const NOEL = {
   y: DEFAULT_HEIGHT / 2 + 36,
   width: 52,
   height: 72,
-  collisionDistance: 31,
 } as const;
 
 export const CAVE_COLANDER = {

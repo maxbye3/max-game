@@ -26,7 +26,7 @@ interface DialogueLine {
 }
 
 interface CaveSiblingsView {
-  readonly showLine: (dialogue: DialogueLine) => void;
+  readonly showLine: (dialogue: DialogueLine, index: number, total: number) => void;
   readonly showOptions: () => void;
   readonly closeDialogue: () => void;
 }
@@ -185,7 +185,7 @@ export class CaveSiblingsController {
     const dialogue = DIALOGUES[this.dialogueSequence][index];
     if (!dialogue) return;
     this.dialogueLineIndex = index;
-    this.view.showLine(dialogue);
+    this.view.showLine(dialogue, index, DIALOGUES[this.dialogueSequence].length);
     this.playVoice(dialogue.speaker);
   }
 

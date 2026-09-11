@@ -60,7 +60,7 @@
         </div>
         <p id="sign-dialogue-text"></p>
         <div id="sign-dialogue-signature" class="sign-dialogue-signature" hidden>
-          <img src="img/external/signature.png" alt="Max's signature">
+          <img src="img/external/bus.png" alt="Bus">
         </div>
       </section>
       <section id="npc-dialogue" class="npc-dialogue" aria-live="polite" hidden>
@@ -68,27 +68,35 @@
           <h2 id="npc-speaker"></h2>
           <button id="npc-dialogue-close" class="npc-dialogue-close" type="button" aria-label="Close dialogue">×</button>
         </header>
-        <p id="npc-dialogue-line"></p>
-        <button id="npc-dialogue-next" class="npc-dialogue-next" type="button" hidden>Next</button>
+        <div class="dialogue-line-row">
+          <p id="npc-dialogue-line"></p>
+          <span id="npc-dialogue-progress" class="dialogue-progress" aria-live="polite"></span>
+        </div>
+        <p id="npc-gift-confirmation" class="dialogue-gift-confirmation" hidden></p>
+        <button id="npc-dialogue-next" class="npc-dialogue-next" type="button" aria-label="Next dialogue line" hidden>&gt;</button>
       </section>
       <section id="inventory-panel" class="inventory-panel" aria-label="Inventory" hidden>
         <div class="inventory-header">
           <h2>Inventory</h2>
           <button id="inventory-close" class="inventory-close" type="button" aria-label="Close inventory">×</button>
         </div>
-        <button id="inventory-item" class="inventory-item" type="button" aria-expanded="false" aria-controls="item-actions">
-          <img src="player/item.png" alt="Suspiciously powerful sandwich" />
-          <span class="item-text">
-            <strong>Power Sandwich</strong>
-            <small id="item-status">Ready to use</small>
-          </span>
-          <span id="ready-badge" class="ready-badge">Ready</span>
-        </button>
+        <div class="inventory-item-row">
+          <button id="inventory-item" class="inventory-item" type="button" aria-expanded="false" aria-controls="item-actions">
+            <img src="player/item.png" alt="Suspiciously powerful sandwich" />
+            <span class="item-text">
+              <strong>Power Sandwich</strong>
+              <small id="item-status">Ready to use</small>
+            </span>
+            <span id="ready-badge" class="ready-badge">Ready</span>
+          </button>
+          <button id="delete-item" class="inventory-delete" type="button">Delete</button>
+        </div>
         <div class="recharge-track" aria-hidden="true"><span id="recharge-fill"></span></div>
         <div id="item-actions" class="item-actions" hidden>
           <p>Makes the protagonist move 60% faster for 10 seconds.</p>
           <button id="use-item" type="button">Use item</button>
         </div>
+        <div id="gift-items" class="gift-items" aria-label="Collected gifts"></div>
         <p id="inventory-message" class="inventory-message"></p>
       </section>
       <div class="controls">

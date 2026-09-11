@@ -31,8 +31,12 @@
           <h2 id="noel-speaker"></h2>
           <button id="noel-dialogue-close" class="npc-dialogue-close" type="button" aria-label="Close dialogue">×</button>
         </header>
-        <p id="noel-dialogue-line"></p>
-        <button id="noel-dialogue-next" class="npc-dialogue-next" type="button" hidden>Next</button>
+        <div class="dialogue-line-row">
+          <p id="noel-dialogue-line"></p>
+          <span id="noel-dialogue-progress" class="dialogue-progress" aria-live="polite"></span>
+        </div>
+        <p id="noel-gift-confirmation" class="dialogue-gift-confirmation" hidden></p>
+        <button id="noel-dialogue-next" class="npc-dialogue-next" type="button" aria-label="Next dialogue line" hidden>&gt;</button>
         <p id="noel-dialogue-question" class="npc-dialogue-question" hidden></p>
         <div id="noel-dialogue-options" class="npc-dialogue-options" hidden>
           <button id="noel-read-diary" type="button" data-noel-choice="diary">Read diary</button>

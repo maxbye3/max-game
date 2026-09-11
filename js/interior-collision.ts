@@ -1,4 +1,4 @@
-import { CAVE_WALLS, NOEL, type InteriorScene } from './interior-scenes.js';
+import { CAVE_WALLS, type InteriorScene } from './interior-scenes.js';
 
 const PLAYER_FRAME_WIDTH = 23;
 const PLAYER_FRAME_HEIGHT = 36;
@@ -38,11 +38,6 @@ export class InteriorCollision {
   }
 
   playerIsBlocked(x: number, y: number): boolean {
-    if (
-      this.scene.kind === 'diaryLab' &&
-      Math.hypot(x - NOEL.x, y - NOEL.y) < NOEL.collisionDistance
-    ) return true;
-
     const halfWidth = PLAYER_FRAME_WIDTH * PLAYER_SCALE * 0.29;
     const footHeight = PLAYER_FRAME_HEIGHT * PLAYER_SCALE * 0.17;
     const left = x - halfWidth;

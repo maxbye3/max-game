@@ -1,10 +1,14 @@
 import { BOOST_DURATION, BOOST_MULTIPLIER, RECHARGE_DURATION } from './config.js';
 import { requireElement } from './dom.js';
+import { getCollectedGifts } from './inventory-gifts.js';
+import { removeGift } from './inventory-gifts.js';
+import { readStorage, writeStorage } from './storage.js';
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
 const inventoryClose = requireElement<HTMLButtonElement>('#inventory-close');
 const inventoryItem = requireElement<HTMLButtonElement>('#inventory-item');
+const deleteItemButton = requireElement<HTMLButtonElement>('#delete-item');
 const itemActions = requireElement<HTMLElement>('#item-actions');
 const useItemButton = requireElement<HTMLButtonElement>('#use-item');
 const inventoryMessage = requireElement<HTMLElement>('#inventory-message');
@@ -14,6 +18,7 @@ const itemStatus = requireElement<HTMLElement>('#item-status');
 const readyBadge = requireElement<HTMLElement>('#ready-badge');
 const rechargeFill = requireElement<HTMLElement>('#recharge-fill');
 const announcer = requireElement<HTMLElement>('#announcer');
+const giftItems = requireElement<HTMLElement>('#gift-items');
 
 /**
  * The visible copy sits inside the inventory panel, which is hidden most of the
@@ -28,18 +33,55 @@ function announce(message: string): void {
 let speedMultiplier = 1;
 let speedBoostEndsAt = 0;
 let hasPowerSandwich = true;
+let sandwichDeleted = readStorage('max-game:power-sandwich-deleted') === 'true';
 let itemRechargesAt = 0;
 
 export const getSpeedMultiplier = () => speedMultiplier;
 
 function setItemReady(isReady: boolean): void {
   hasPowerSandwich = isReady;
-  inventoryCount.textContent = isReady ? '1' : '0';
+  inventoryCount.textContent = String((isReady ? 1 : 0) + getCollectedGifts().length);
   inventoryItem.disabled = !isReady;
   inventoryItem.classList.toggle('item-ready', isReady);
   readyBadge.hidden = !isReady;
   rechargeFill.style.width = isReady ? '100%' : '0%';
-  itemStatus.textContent = isReady ? 'Ready to use' : 'Recharging';
+  itemStatus.textContent = sandwichDeleted ? 'Deleted' : isReady ? 'Ready to use' : 'Recharging';
+  deleteItemButton.disabled = sandwichDeleted;
+}
+
+function renderGiftItems(): void {
+  giftItems.replaceChildren();
+  getCollectedGifts().forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'inventory-gift';
+    const image = document.createElement('img');
+    image.src = item.imageSource;
+    image.alt = item.name;
+    const text = document.createElement('span');
+    text.className = 'item-text';
+    const name = document.createElement('strong');
+    name.textContent = item.name;
+    text.append(name);
+    const actions = document.createElement('span');
+    actions.className = 'inventory-gift-actions';
+    const useButton = document.createElement('button');
+    useButton.type = 'button';
+    useButton.textContent = 'Use';
+    useButton.addEventListener('click', () => {
+      announce(`${item.name}: ${item.description}`);
+      removeGift(item);
+    });
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', () => {
+      removeGift(item);
+      announce(`${item.name} deleted.`);
+    });
+    actions.append(useButton, deleteButton);
+    card.append(image, text, actions);
+    giftItems.append(card);
+  });
 }
 
 function setItemActionsOpen(isOpen: boolean): void {
@@ -56,14 +98,36 @@ function setInventoryOpen(isOpen: boolean): void {
 }
 
 export function setupInventory(): void {
-  setItemReady(true);
+  renderGiftItems();
+  setItemReady(!sandwichDeleted);
   setItemActionsOpen(false);
+  window.addEventListener('max-game:inventory-gift-added', () => {
+    renderGiftItems();
+    setItemReady(hasPowerSandwich);
+    inventoryToggle.classList.remove('inventory-added-wobble');
+    void inventoryToggle.offsetWidth;
+    inventoryToggle.classList.add('inventory-added-wobble');
+    window.setTimeout(() => inventoryToggle.classList.remove('inventory-added-wobble'), 1000);
+  });
+  window.addEventListener('max-game:inventory-gift-removed', () => {
+    renderGiftItems();
+    setItemReady(hasPowerSandwich);
+  });
 
   inventoryToggle.addEventListener('click', () => setInventoryOpen(inventoryPanel.hidden));
   inventoryClose.addEventListener('click', () => setInventoryOpen(false));
   inventoryItem.addEventListener('click', () => {
     if (!hasPowerSandwich) return;
     setItemActionsOpen(itemActions.hidden);
+  });
+  deleteItemButton.addEventListener('click', () => {
+    if (sandwichDeleted) return;
+    sandwichDeleted = true;
+    writeStorage('max-game:power-sandwich-deleted', 'true');
+    itemRechargesAt = 0;
+    setItemReady(false);
+    setItemActionsOpen(false);
+    announce('Power Sandwich deleted.');
   });
 
   useItemButton.addEventListener('click', () => {

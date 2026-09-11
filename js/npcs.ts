@@ -4,6 +4,7 @@ import { ADAM_FACTS } from './adam-facts.js';
 import { ALEX_S_DIALOGUE_LINES } from './alex-s-dialogue.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
+import { addGift, hasGift, nextGiftLine, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
 import { REI_DIALOGUE_LINES } from './rei-dialogue.js';
 import { readStorage, writeStorage } from './storage.js';
@@ -16,8 +17,7 @@ interface NpcDefinition {
   readonly width: number;
   readonly height: number;
   readonly interactionDistance: number;
-  readonly collisionDistance: number;
-  readonly blocksMovement?: boolean;
+  readonly itemGift?: GiftItem;
   readonly dialogueLines: readonly string[];
   readonly getDialogueLine?: () => Promise<string>;
   readonly followUpLine?: () => string;
@@ -34,7 +34,6 @@ export const ADAM: NpcDefinition = {
   width: 37,
   height: 60,
   interactionDistance: 56,
-  collisionDistance: 24,
   dialogueLines: ADAM_DIALOGUE_LINES,
   followUpLine: nextAdamFact,
   themeSource: 'chat/adam/player/theme.mp3',
@@ -48,7 +47,6 @@ export const ED: NpcDefinition = {
   width: 25,
   height: 54,
   interactionDistance: 56,
-  collisionDistance: 24,
   dialogueLines: ED_DIALOGUE_LINES,
   getDialogueLine: getNextArsenalFixtureDialogue,
   themeSource: 'chat/ed/player/theme.mp3',
@@ -62,8 +60,7 @@ export const MIKE: NpcDefinition = {
   width: 40,
   height: 46,
   interactionDistance: 56,
-  collisionDistance: 27,
-  blocksMovement: true,
+  itemGift: GIFT_ITEMS[0]!,
   dialogueLines: MIKE_DIALOGUE_LINES,
   themeSource: 'chat/mike/example_character/theme.mp3',
 };
@@ -76,8 +73,6 @@ export const REI: NpcDefinition = {
   width: 35,
   height: 35,
   interactionDistance: 56,
-  collisionDistance: 27,
-  blocksMovement: true,
   dialogueLines: REI_DIALOGUE_LINES,
   requestLine: 'I need some red paint to finish this sign. Help me find some',
   themeSource: 'chat/rei/player/theme.mp3',
@@ -91,8 +86,7 @@ export const ALEX_S: NpcDefinition = {
   width: 20,
   height: 46,
   interactionDistance: 58,
-  collisionDistance: 25,
-  blocksMovement: true,
+  itemGift: GIFT_ITEMS[1]!,
   dialogueLines: ALEX_S_DIALOGUE_LINES,
   themeSource: 'chat/alex s/theme.mp3',
 };
@@ -101,6 +95,8 @@ const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, ALEX_S];
 const dialogue = requireElement<HTMLElement>('#npc-dialogue');
 const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');
+const dialogueProgress = requireElement<HTMLElement>('#npc-dialogue-progress');
+const giftConfirmation = requireElement<HTMLElement>('#npc-gift-confirmation');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
 const gameShell = requireElement<HTMLElement>('.game-shell');
@@ -111,6 +107,10 @@ const QUEST_ACCEPTED_OVERLAY_DURATION = 3200;
 let activeNpc: NpcDefinition | null = null;
 let pendingRequestLine: string | null = null;
 let pendingFollowUpLine: string | null = null;
+let pendingGiftLine: string | null = null;
+let pendingGiftItem: GiftItem | null = null;
+let pendingGiftConfirmation: string | null = null;
+let currentDialogueLineIndex = 0;
 let requestLineShown = false;
 let nearbyNpc: NpcDefinition | null = null;
 let theme: HTMLAudioElement | null = null;
@@ -160,9 +160,14 @@ function closeDialogue(): void {
   activeNpc = null;
   pendingRequestLine = null;
   pendingFollowUpLine = null;
+  pendingGiftLine = null;
+  pendingGiftItem = null;
+  pendingGiftConfirmation = null;
   requestLineShown = false;
   dialogue.hidden = true;
   nextButton.hidden = true;
+  dialogueProgress.hidden = true;
+  giftConfirmation.hidden = true;
   if (theme) {
     theme.pause();
     theme.currentTime = 0;
@@ -175,15 +180,31 @@ function showRequestLine(): void {
   dialogueLine.textContent = pendingRequestLine;
   pendingRequestLine = null;
   requestLineShown = true;
+  dialogueProgress.hidden = true;
+  giftConfirmation.hidden = true;
   // Keep Next visible so the player advances to the quest prompt themselves,
   // instead of that only happening as a side effect of closing the dialogue.
   nextButton.hidden = false;
+}
+
+function showGiftLine(): void {
+  if (!pendingGiftLine) return;
+  dialogueLine.textContent = pendingGiftLine;
+  pendingGiftLine = null;
+  const giftWasAdded = pendingGiftItem ? addGift(pendingGiftItem) : false;
+  pendingGiftItem = null;
+  dialogueProgress.hidden = true;
+  giftConfirmation.textContent = giftWasAdded ? pendingGiftConfirmation : '';
+  pendingGiftConfirmation = null;
+  giftConfirmation.hidden = !giftWasAdded;
+  nextButton.hidden = true;
 }
 
 function showFollowUpLine(): void {
   if (!pendingFollowUpLine) return;
   dialogueLine.textContent = pendingFollowUpLine;
   pendingFollowUpLine = null;
+  dialogueProgress.hidden = true;
   nextButton.hidden = true;
 }
 
@@ -198,17 +219,30 @@ function advanceDialogue(): void {
     showRequestLine();
   } else if (pendingFollowUpLine) {
     showFollowUpLine();
+  } else if (pendingGiftLine) {
+    showGiftLine();
   } else if (requestLineShown) {
     acceptQuest();
+  } else if (activeNpc && activeNpc.dialogueLines.length > 1) {
+    currentDialogueLineIndex = (currentDialogueLineIndex + 1) % activeNpc.dialogueLines.length;
+    dialogueLine.textContent = activeNpc.dialogueLines[currentDialogueLineIndex] ?? '';
+    dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${activeNpc.dialogueLines.length}`;
+    dialogueProgress.hidden = false;
   }
 }
 
 function showDialogueLine(npc: NpcDefinition): void {
   if (!npc.getDialogueLine) {
-    dialogueLine.textContent = npc.dialogueLines[nextDialogueIndex(npc)] ?? '';
+    const lineIndex = nextDialogueIndex(npc);
+    currentDialogueLineIndex = lineIndex;
+    dialogueLine.textContent = npc.dialogueLines[lineIndex] ?? '';
+    dialogueProgress.textContent = `${lineIndex + 1}/${npc.dialogueLines.length}`;
+    dialogueProgress.hidden = false;
     return;
   }
+  dialogueProgress.hidden = true;
   dialogueLine.textContent = 'Checking Arsenal’s next game...';
+  nextButton.hidden = true;
   void npc.getDialogueLine().then((line) => {
     if (activeNpc === npc) dialogueLine.textContent = line;
   });
@@ -218,10 +252,14 @@ function openDialogue(npc: NpcDefinition): void {
   activeNpc = npc;
   pendingRequestLine = npc.requestLine ?? null;
   pendingFollowUpLine = npc.followUpLine?.() ?? null;
+  pendingGiftItem = npc.itemGift && !hasGift(npc.itemGift) ? npc.itemGift : null;
+  pendingGiftLine = pendingGiftItem ? nextGiftLine() : null;
+  pendingGiftConfirmation = pendingGiftLine ? 'An item has been added to your inventory.' : null;
+  giftConfirmation.hidden = true;
   requestLineShown = false;
   speaker.textContent = npc.name;
   showDialogueLine(npc);
-  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null;
+  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingGiftLine === null && npc.dialogueLines.length <= 1;
   dialogue.hidden = false;
   theme = new Audio(npc.themeSource);
   theme.preload = 'auto';
@@ -238,12 +276,6 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
   nearbyNpc = nextNearbyNpc;
   closeDialogue();
   if (nearbyNpc) openDialogue(nearbyNpc);
-}
-
-export function playerCollidesWithNpc(x: number, y: number): boolean {
-  return NPCS.some((npc) =>
-    npc.blocksMovement && Math.hypot(x - npc.x, y - npc.y) < npc.collisionDistance,
-  );
 }
 
 export function setupNpcInteractions(): void {

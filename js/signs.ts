@@ -7,6 +7,12 @@ import {
   MUSIC_SHOP_SIGN_WIDTH,
   MUSIC_SHOP_SIGN_X,
   MUSIC_SHOP_SIGN_Y,
+  ROAD_BUS_SIGN_HEIGHT,
+  ROAD_BUS_SIGN_SOURCE_X,
+  ROAD_BUS_SIGN_SOURCE_Y,
+  ROAD_BUS_SIGN_WIDTH,
+  ROAD_X,
+  ROAD_Y,
   SCALE,
 } from './config.js';
 import { requireElement } from './dom.js';
@@ -70,6 +76,16 @@ export const SIGNS: readonly Sign[] = [
     width: 25,
     height: 23,
     signed: true,
+  },
+  {
+    id: 'bus-stop',
+    title: 'Bus Stop',
+    message: 'The bus to DC is coming in the new year.',
+    x: ROAD_X + ROAD_BUS_SIGN_SOURCE_X,
+    y: ROAD_Y + ROAD_BUS_SIGN_SOURCE_Y,
+    width: ROAD_BUS_SIGN_WIDTH,
+    height: ROAD_BUS_SIGN_HEIGHT,
+    signed: false,
   },
 ];
 

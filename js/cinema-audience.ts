@@ -1,7 +1,7 @@
 import { readStorage, writeStorage } from './storage.js';
 
 interface CinemaAudienceView {
-  readonly openDialogue: (line: string) => void;
+  readonly openDialogue: (line: string, index: number, total: number) => void;
   readonly closeDialogue: () => void;
 }
 
@@ -50,10 +50,13 @@ export class CinemaAudienceController {
     const previousAudienceIndex = this.nearbyAudienceIndex;
     this.nearbyAudienceIndex = nextAudienceIndex;
     if (previousAudienceIndex !== null && dialogueOpen) this.view.closeDialogue();
-    if (nextAudienceIndex !== null) this.view.openDialogue(this.nextDialogueLine());
+    if (nextAudienceIndex !== null) {
+      const { line, index } = this.nextDialogueLine();
+      this.view.openDialogue(line, index, DIALOGUE_LINES.length);
+    }
   }
 
-  private nextDialogueLine(): string {
+  private nextDialogueLine(): { line: string; index: number } {
     const stored = Number.parseInt(
       readStorage(DIALOGUE_INDEX_KEY) ?? String(this.fallbackDialogueIndex),
       10,
@@ -62,6 +65,6 @@ export class CinemaAudienceController {
     const next = (current + 1) % DIALOGUE_LINES.length;
     this.fallbackDialogueIndex = next;
     writeStorage(DIALOGUE_INDEX_KEY, String(next));
-    return DIALOGUE_LINES[current] ?? '';
+    return { line: DIALOGUE_LINES[current] ?? '', index: current };
   }
 }

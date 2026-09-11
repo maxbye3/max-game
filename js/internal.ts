@@ -31,6 +31,8 @@ const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt
 const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
 const noelSpeaker = requireElement<HTMLElement>('#noel-speaker');
 const noelDialogueLine = requireElement<HTMLElement>('#noel-dialogue-line');
+const noelDialogueProgress = requireElement<HTMLElement>('#noel-dialogue-progress');
+const noelGiftConfirmation = requireElement<HTMLElement>('#noel-gift-confirmation');
 const noelDialogueNext = requireElement<HTMLButtonElement>('#noel-dialogue-next');
 const noelDialogueQuestion = requireElement<HTMLElement>('#noel-dialogue-question');
 const noelDialogueOptions = requireElement<HTMLElement>('#noel-dialogue-options');
@@ -66,9 +68,6 @@ const WORLD_WIDTH = scene.width;
 const WORLD_HEIGHT = scene.height;
 const INTERACTION_TARGETS = scene.interactions;
 if (isCaveInterior) {
-  // The cave is wider than it is tall, so it gets its own non-square canvas
-  // sized to its true aspect ratio instead of being stretched into the
-  // square shell every other interior uses.
   canvas.width = WORLD_WIDTH;
   canvas.height = WORLD_HEIGHT;
   context.imageSmoothingEnabled = false;
@@ -103,7 +102,6 @@ if (isGymInterior) {
 const noelTheme = new Audio();
 if (isDiaryLabInterior) noelTheme.src = '../chat/noel/player/theme.mp3';
 noelTheme.preload = 'auto';
-// Both sisters shout the colander warning together, so both clips play at once.
 const colanderWarningVoices = [
   new Audio('../chat/siblings/maddy.mp3'),
   new Audio('../chat/siblings/marina.mp3'),
@@ -127,7 +125,9 @@ const input = new DirectionInputController({
   canHold: () => !noelDialogueOpen || noelDialogueFollowsProximity,
 });
 const diaryLabFeatures = new DiaryLabFeatures();
-const lucy = isBookshopInterior ? new LucyController(noelDialogueLine, noelDialogueNext) : null;
+const lucy = isBookshopInterior
+  ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation)
+  : null;
 let caveColanderHeld = hasCaveColander();
 const interiorDoors = new InteriorDoorsController(scene, {
   enteredDoor,
@@ -140,9 +140,11 @@ const collision = new InteriorCollision(
 );
 const caveSiblings = isCaveInterior
   ? new CaveSiblingsController({
-    showLine: ({ speaker, line }) => {
+    showLine: ({ speaker, line }, index, total) => {
       noelSpeaker.textContent = speaker;
       noelDialogueLine.textContent = line;
+      noelDialogueProgress.textContent = `${index + 1}/${total}`;
+      noelDialogueProgress.hidden = false;
     },
     showOptions: () => {
       siblingsDialogueOptions.hidden = false;
@@ -152,11 +154,13 @@ const caveSiblings = isCaveInterior
   : null;
 const cinemaAudience = isCinemaInterior
   ? new CinemaAudienceController({
-    openDialogue: (line) => {
+    openDialogue: (line, index, total) => {
       noelDialogueOpen = true;
       noelDialogueFollowsProximity = true;
       noelSpeaker.textContent = 'cinema audience';
       noelDialogueLine.textContent = line;
+      noelDialogueProgress.textContent = `${index + 1}/${total}`;
+      noelDialogueProgress.hidden = false;
       noelDialogueNext.hidden = true;
       noelDialogueQuestion.hidden = true;
       noelDialogueOptions.hidden = true;
@@ -175,6 +179,8 @@ function finishNoelIntroduction(): void {
 }
 function showNoelDialogueLine(): void {
   noelDialogueLine.textContent = NOEL_DIALOGUE_LINES[noelDialogueLineIndex] ?? '';
+  noelDialogueProgress.textContent = `${noelDialogueLineIndex + 1}/${NOEL_DIALOGUE_LINES.length}`;
+  noelDialogueProgress.hidden = false;
   noelDialogueNext.hidden = false;
 }
 function showNextNoelDialogueLine(): void {
@@ -192,6 +198,8 @@ function closeNoelDialogue(): void {
   noelDialogueFollowsProximity = false;
   noelDialogue.hidden = true;
   noelDialogueNext.hidden = true;
+  noelDialogueProgress.hidden = true;
+  noelGiftConfirmation.hidden = true;
   noelDialogueOptions.hidden = true;
   siblingsDialogueOptions.hidden = true;
   musicDialogueOptions.hidden = true;
@@ -207,6 +215,8 @@ function closeNoelDialogue(): void {
   interactionPrompt.hidden = nearbyInteraction === null || nearbyInteraction === 'siblings';
 }
 function showSiblingsDialogue(): void {
+  noelDialogueProgress.hidden = true;
+  noelGiftConfirmation.hidden = true;
   noelDialogueNext.hidden = true;
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
@@ -289,6 +299,8 @@ function startColanderPickup(): void {
   noelDialogueFollowsProximity = false;
   noelSpeaker.textContent = 'THE GIRLS';
   noelDialogueLine.textContent = 'PUT THAT DOWN NOW';
+  noelDialogueProgress.hidden = true;
+  noelGiftConfirmation.hidden = true;
   noelDialogueNext.hidden = true;
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
@@ -312,6 +324,8 @@ function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
   noelDialogueLine.textContent = kind === 'andy'
     ? "Would you like to hear Max's music?"
     : "When is Andy done? It's my turn to DJ.";
+  noelDialogueProgress.hidden = true;
+  noelGiftConfirmation.hidden = true;
   noelDialogueNext.hidden = true;
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
@@ -681,5 +695,4 @@ Promise.all(requiredImages.map((image) => image.decode()))
     console.error(error);
     context.fillStyle = '#f5fff6';
     context.font = '13px monospace';
-    context.fillText('Could not load the interior.', 120, 240);
-  });
+    context.fillText('Could not load the interior.', 120, 240); });
