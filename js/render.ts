@@ -17,12 +17,15 @@ import {
   WORLD_WIDTH,
 } from './config.js';
 import { canvas, context } from './dom.js';
+import { GEORGIA, georgiaState } from './georgia.js';
+import { getGymTimCutsceneDialogue } from './gym-tim-cutscene.js';
 import { getHolePlayerTransform } from './hole.js';
-import { ADAM, ALEX_S, ED, MIKE, REI } from './npcs.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
+import { drawOverworldNpcs } from './overworld-npcs-render.js';
 import { player } from './player.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from './overworld-props-render.js';
+import { drawSpeechBubble } from './speech-bubble.js';
 import type { Direction } from './types.js';
 
 const NIALL_SPRITE_COLUMNS = 4;
@@ -158,41 +161,25 @@ function drawBusIntro(cameraX: number, cameraY: number): void {
   context.restore();
 }
 
-function drawSpeechBubble(text: string, anchorX: number, anchorY: number): void {
+function drawGeorgia(cameraX: number, cameraY: number): void {
+  if (!isImageReady(images.georgia)) return;
+  const sourceSize = Math.min(images.georgia.width, images.georgia.height);
+  const sourceX = Math.floor((images.georgia.width - sourceSize) / 2);
+  const sourceY = Math.floor((images.georgia.height - sourceSize) / 2);
+  const bob = georgiaState.moving ? Math.sin(georgiaState.animationTime * 12) * 1.5 : 0;
   context.save();
-  context.font = '12px "Press Start 2P", monospace';
-  context.textBaseline = 'top';
-  const paddingX = 10;
-  const paddingY = 8;
-  const maxWidth = 270;
-  const words = text.split(' ');
-  const lines: string[] = [];
-  let line = '';
-  for (const word of words) {
-    const nextLine = line ? `${line} ${word}` : word;
-    if (context.measureText(nextLine).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = nextLine;
-    }
-  }
-  if (line) lines.push(line);
-
-  const textWidth = Math.min(maxWidth, Math.max(...lines.map((value) => context.measureText(value).width)));
-  const width = textWidth + paddingX * 2;
-  const height = lines.length * 18 + paddingY * 2;
-  const x = Math.round(Math.max(8, Math.min(canvas.width - width - 8, anchorX - width / 2)));
-  const y = Math.round(Math.max(8, anchorY - height - 18));
-
-  context.fillStyle = '#111';
-  context.fillRect(x - 3, y - 3, width + 6, height + 6);
-  context.fillStyle = '#f7f3e8';
-  context.fillRect(x, y, width, height);
-  context.fillStyle = '#111';
-  lines.forEach((value, index) => {
-    context.fillText(value, x + paddingX, y + paddingY + index * 18);
-  });
+  context.imageSmoothingEnabled = false;
+  context.drawImage(
+    images.georgia,
+    sourceX,
+    sourceY,
+    sourceSize,
+    sourceSize,
+    Math.round(georgiaState.x - cameraX - GEORGIA.width / 2),
+    Math.round(georgiaState.y - cameraY - GEORGIA.height + bob),
+    GEORGIA.width,
+    GEORGIA.height,
+  );
   context.restore();
 }
 
@@ -219,6 +206,7 @@ export function draw(time: number): void {
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
   const worldDepth = drawWorldBackground(time, cameraX, cameraY, player.y);
   drawCaveThief(cameraX, cameraY);
+  drawGeorgia(cameraX, cameraY);
   if (isNiallFollowing()) {
     drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
   } else {
@@ -233,44 +221,7 @@ export function draw(time: number): void {
       NIALL_EXPLANATION_MARK_HEIGHT,
     );
   }
-  // Keep the static NPC avatar sprites on the same crisp nearest-neighbor
-  // path as Mike; animated sprites and dialogue portraits remain untouched.
-  context.imageSmoothingEnabled = false;
-  context.drawImage(
-    images.mike,
-    Math.round(MIKE.x - cameraX - MIKE.width / 2),
-    Math.round(MIKE.y - cameraY - MIKE.height),
-    MIKE.width,
-    MIKE.height,
-  );
-  context.drawImage(
-    images.rei,
-    Math.round(REI.x - cameraX - REI.width / 2),
-    Math.round(REI.y - cameraY - REI.height),
-    REI.width,
-    REI.height,
-  );
-  context.drawImage(
-    images.adam,
-    Math.round(ADAM.x - cameraX - ADAM.width / 2),
-    Math.round(ADAM.y - cameraY - ADAM.height),
-    ADAM.width,
-    ADAM.height,
-  );
-  context.drawImage(
-    images.ed,
-    Math.round(ED.x - cameraX - ED.width / 2),
-    Math.round(ED.y - cameraY - ED.height),
-    ED.width,
-    ED.height,
-  );
-  context.drawImage(
-    images.alexS,
-    Math.round(ALEX_S.x - cameraX - ALEX_S.width / 2),
-    Math.round(ALEX_S.y - cameraY - ALEX_S.height),
-    ALEX_S.width,
-    ALEX_S.height,
-  );
+  drawOverworldNpcs(context, cameraX, cameraY);
 
   const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
   const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, SCALE);
@@ -320,7 +271,11 @@ export function draw(time: number): void {
   const thief = getCaveThief();
   const thiefDialogue = getCaveThiefDialogue();
   if (thief && thiefDialogue) {
-    drawSpeechBubble(thiefDialogue, thief.x - cameraX, thief.y - cameraY - thief.size);
+    drawSpeechBubble(context, thiefDialogue, thief.x - cameraX, thief.y - cameraY - thief.size);
+  }
+  const gymTimDialogue = getGymTimCutsceneDialogue();
+  if (gymTimDialogue) {
+    drawSpeechBubble(context, gymTimDialogue.text, gymTimDialogue.x - cameraX, gymTimDialogue.y - cameraY);
   }
 }
 

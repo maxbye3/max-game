@@ -6,11 +6,13 @@ import {
   CaveSiblingsController,
 } from './cave-siblings.js';
 import { CinemaAudienceController } from './cinema-audience.js';
+import { BOOKSHOP_NPCS } from './bookshop-npcs.js';
 import { DiaryLabFeatures } from './diary-lab-features.js';
 import { canvas, context, requireElement } from './dom.js';
 import { DirectionInputController } from './input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
+import { drawSceneryNpcs } from './interior-scenery-npcs.js';
 import { GYM_NPCS } from './gym-npcs.js';
 import { LucyController } from './lucy.js';
 import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
@@ -79,6 +81,7 @@ const doorOverlay = new Image();
 const spriteSheet = new Image();
 const noelSprite = new Image();
 const siblingsSprite = new Image();
+const bookshopNpcs = BOOKSHOP_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 const musicHouseNpcs = MUSIC_HOUSE_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 const gymNpcs = GYM_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 interior.src = scene.backgroundSource;
@@ -89,6 +92,11 @@ spriteSheet.src = SEAL_MODE
   : '../player/SpriteSheet.png';
 if (isDiaryLabInterior || isMansionInterior) noelSprite.src = '../chat/noel/interior-avatar.png';
 if (isCaveInterior) siblingsSprite.src = '../chat/siblings/girls-sprite.png';
+if (isBookshopInterior) {
+  bookshopNpcs.forEach((npc) => {
+    npc.image.src = npc.source;
+  });
+}
 if (isMusicShopInterior) {
   musicHouseNpcs.forEach((npc) => {
     npc.image.src = npc.source;
@@ -476,26 +484,6 @@ function updateNearbyInteraction(): void {
   if (target) interactionPrompt.textContent = target.label;
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
-function drawSceneryNpcs(
-  npcs: readonly { x: number; y: number; width: number; height: number; image: HTMLImageElement }[],
-  cameraX: number,
-  cameraY: number,
-  scaleX: number,
-  scaleY: number,
-): void {
-  context.save();
-  context.imageSmoothingEnabled = false;
-  npcs.forEach((npc) => {
-    context.drawImage(
-      npc.image,
-      Math.round((npc.x - cameraX - npc.width / 2) * scaleX),
-      Math.round((npc.y - cameraY - npc.height) * scaleY),
-      npc.width * scaleX,
-      npc.height * scaleY,
-    );
-  });
-  context.restore();
-}
 function draw(): void {
   // The cave is small enough to show in full with no camera panning at all;
   // every other interior is bigger than the canvas and keeps scrolling.
@@ -564,13 +552,14 @@ function draw(): void {
     );
   }
   if (isMusicShopInterior) {
-    drawSceneryNpcs(musicHouseNpcs, cameraX, cameraY, scaleX, scaleY);
+    drawSceneryNpcs(context, musicHouseNpcs, cameraX, cameraY, scaleX, scaleY);
   }
   if (isGymInterior) {
-    drawSceneryNpcs(gymNpcs, cameraX, cameraY, scaleX, scaleY);
+    drawSceneryNpcs(context, gymNpcs, cameraX, cameraY, scaleX, scaleY);
   }
   if (isBookshopInterior) {
-    drawSceneryNpcs([
+    drawSceneryNpcs(context, [
+      ...bookshopNpcs,
       { x: 256, y: 286, width: 42, height: 75, image: lucy!.sprite },
     ], cameraX, cameraY, scaleX, scaleY);
   }
@@ -682,6 +671,7 @@ const requiredImages = [
   ...(scene.doorOverlaySource ? [doorOverlay] : []),
   ...(isDiaryLabInterior || isMansionInterior ? [noelSprite] : []),
   ...(lucy ? [lucy.sprite] : []),
+  ...(isBookshopInterior ? bookshopNpcs.map((npc) => npc.image) : []),
   ...(isCaveInterior ? [siblingsSprite] : []),
   ...(isMusicShopInterior ? musicHouseNpcs.map((npc) => npc.image) : []),
   ...(isGymInterior ? gymNpcs.map((npc) => npc.image) : []),

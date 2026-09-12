@@ -8,11 +8,14 @@ import {
 import { COLLISION_SHAPES } from './collision-data.js';
 import { canvas } from './dom.js';
 import { updateDoors } from './doors.js';
+import { updateGeorgia } from './georgia.js';
+import { updateGymTimCutscene } from './gym-tim-cutscene.js';
 import { setupInput } from './input.js';
 import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from './music-player.js';
+import { loadMapCharacters } from './map-characters.js';
 import { updateNiallInteraction } from './niall.js';
 import { setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
@@ -35,6 +38,8 @@ function gameLoop(time: number): void {
     return;
   }
   updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier);
+  updateGeorgia(deltaTime);
+  updateGymTimCutscene(deltaTime, player);
   updateNpcInteractions(player.x, player.y);
   if (!isCaveThiefPursuitActive()) {
     updateNiallInteraction(deltaTime, player.x, player.y);
@@ -53,7 +58,7 @@ setupMusicPlayer();
 setupNpcInteractions();
 setupCaveThief();
 
-loadAssets()
+Promise.all([loadAssets(), loadMapCharacters()])
   .then(() => {
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES.length);
     requestAnimationFrame(gameLoop);
