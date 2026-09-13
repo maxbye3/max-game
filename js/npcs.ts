@@ -7,7 +7,9 @@ import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
 import { addGift, hasGift, nextGiftLine, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
 import { REI_DIALOGUE_LINES } from './rei-dialogue.js';
+import { hideSignDialogue } from './signs.js';
 import { readStorage, writeStorage } from './storage.js';
+import { setProfileImage } from './profile-images.js';
 
 interface NpcDefinition {
   readonly id: 'adam' | 'ed' | 'mike' | 'rei' | 'alexS';
@@ -95,6 +97,7 @@ const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, ALEX_S];
 const dialogue = requireElement<HTMLElement>('#npc-dialogue');
 const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');
+const dialogueProfile = requireElement<HTMLImageElement>('#npc-dialogue-profile');
 const dialogueProgress = requireElement<HTMLElement>('#npc-dialogue-progress');
 const giftConfirmation = requireElement<HTMLElement>('#npc-gift-confirmation');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
@@ -114,6 +117,10 @@ let currentDialogueLineIndex = 0;
 let requestLineShown = false;
 let nearbyNpc: NpcDefinition | null = null;
 let theme: HTMLAudioElement | null = null;
+
+export function isNpcDialogueOpen(): boolean {
+  return activeNpc !== null;
+}
 
 function showQuestAcceptedOverlay(): void {
   const overlay = document.createElement('div');
@@ -165,6 +172,7 @@ function closeDialogue(): void {
   pendingGiftConfirmation = null;
   requestLineShown = false;
   dialogue.hidden = true;
+  dialogueProfile.hidden = true;
   nextButton.hidden = true;
   dialogueProgress.hidden = true;
   giftConfirmation.hidden = true;
@@ -249,6 +257,7 @@ function showDialogueLine(npc: NpcDefinition): void {
 }
 
 function openDialogue(npc: NpcDefinition): void {
+  hideSignDialogue();
   activeNpc = npc;
   pendingRequestLine = npc.requestLine ?? null;
   pendingFollowUpLine = npc.followUpLine?.() ?? null;
@@ -258,6 +267,7 @@ function openDialogue(npc: NpcDefinition): void {
   giftConfirmation.hidden = true;
   requestLineShown = false;
   speaker.textContent = npc.name;
+  setProfileImage(dialogueProfile, npc.name);
   showDialogueLine(npc);
   nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingGiftLine === null && npc.dialogueLines.length <= 1;
   dialogue.hidden = false;

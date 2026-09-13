@@ -1025,9 +1025,22 @@ canvas {
 
 .dialogue-line-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
 }
+
+.dialogue-profile {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  image-rendering: pixelated;
+  border: 1px solid #8eaf93;
+  border-radius: 4px;
+  background: #294b31;
+}
+
+.dialogue-profile[hidden] { display: none; }
 
 .dialogue-line-row p {
   flex: 1;

@@ -5,13 +5,13 @@ import { readPng, writePng } from './png.mjs';
 const OUTPUTS = [
   {
     source: 'chat/alex w/avatar.png',
-    target: 'chat/alex w/bookshop-sprite.png',
+    target: 'chat/alex w/map-sprite.png',
     height: 82,
     threshold: 48,
   },
   {
     source: 'chat/helen/avatar.png',
-    target: 'chat/helen/bookshop-sprite.png',
+    target: 'chat/helen/map-sprite.png',
     height: 84,
     threshold: 48,
   },

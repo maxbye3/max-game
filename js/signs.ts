@@ -142,7 +142,7 @@ function showSign(sign: Sign): void {
   announcer.textContent = `${sign.title}: ${sign.message}`;
 }
 
-function hideSign(): void {
+export function hideSignDialogue(): void {
   activeSign = null;
   dialogue.hidden = true;
   dialogueSignature.hidden = true;
@@ -175,6 +175,6 @@ export function updateSigns(playerX: number, playerY: number): void {
   if (nearestSign && nearestDistance <= READ_DISTANCE) {
     showSign(nearestSign);
   } else if (activeSign && distanceToSign(playerX, playerY, activeSign) > DISMISS_DISTANCE) {
-    hideSign();
+    hideSignDialogue();
   }
 }

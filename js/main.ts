@@ -17,7 +17,7 @@ import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from './music-player.js';
 import { loadMapCharacters } from './map-characters.js';
 import { updateNiallInteraction } from './niall.js';
-import { setupNpcInteractions, updateNpcInteractions } from './npcs.js';
+import { isNpcDialogueOpen, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
 import { updateSigns } from './signs.js';
@@ -44,7 +44,9 @@ function gameLoop(time: number): void {
   if (!isCaveThiefPursuitActive()) {
     updateNiallInteraction(deltaTime, player.x, player.y);
   }
-  updateSigns(player.x, player.y);
+  if (!isNpcDialogueOpen()) {
+    updateSigns(player.x, player.y);
+  }
   updateDoors(player.x, player.y);
   draw(time);
   requestAnimationFrame(gameLoop);

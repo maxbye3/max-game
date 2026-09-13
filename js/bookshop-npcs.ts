@@ -10,14 +10,14 @@ export interface BookshopNpc {
 // the reading rug so they feel present without blocking shelves or the exit.
 export const BOOKSHOP_NPCS: readonly BookshopNpc[] = [
   {
-    source: '../chat/alex w/bookshop-sprite.png',
+    source: '../chat/alex w/map-sprite.png',
     x: 160,
     y: 500,
     width: 56,
     height: 82,
   },
   {
-    source: '../chat/helen/bookshop-sprite.png',
+    source: '../chat/helen/map-sprite.png',
     x: 350,
     y: 505,
     width: 47,

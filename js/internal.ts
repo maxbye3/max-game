@@ -26,13 +26,14 @@ import {
   type InteractionKind,
 } from './interior-scenes.js';
 import type { Direction } from './types.js';
-import { moveWithCollisions } from './movement.js';
+import { moveWithCollisions } from './movement.js'; import { setProfileImage } from './profile-images.js';
 const searchParams = new URLSearchParams(window.location.search);
 const SEAL_MODE = searchParams.has('seal');
 const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt');
 const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
 const noelSpeaker = requireElement<HTMLElement>('#noel-speaker');
 const noelDialogueLine = requireElement<HTMLElement>('#noel-dialogue-line');
+const noelDialogueProfile = requireElement<HTMLImageElement>('#noel-dialogue-profile');
 const noelDialogueProgress = requireElement<HTMLElement>('#noel-dialogue-progress');
 const noelGiftConfirmation = requireElement<HTMLElement>('#noel-gift-confirmation');
 const noelDialogueNext = requireElement<HTMLButtonElement>('#noel-dialogue-next');
@@ -48,8 +49,7 @@ const musicDeclineButton = requireElement<HTMLButtonElement>('#music-decline');
 const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-close');
 const noelDeclineButton = requireElement<HTMLButtonElement>('#noel-decline');
 const FRAME_COUNT = SEAL_MODE ? 8 : 9;
-const PLAYER_SCALE = 2;
-const VIEW_SCALE = 1;
+const PLAYER_SCALE = 2; const VIEW_SCALE = 1;
 const SPEED = 145;
 const NOEL_FOLDER = 'chat/noel';
 const NOEL_NAME = NOEL_FOLDER.slice(NOEL_FOLDER.lastIndexOf('/') + 1);
@@ -149,7 +149,7 @@ const collision = new InteriorCollision(
 const caveSiblings = isCaveInterior
   ? new CaveSiblingsController({
     showLine: ({ speaker, line }, index, total) => {
-      noelSpeaker.textContent = speaker;
+      noelSpeaker.textContent = speaker; setProfileImage(noelDialogueProfile, speaker, '../');
       noelDialogueLine.textContent = line;
       noelDialogueProgress.textContent = `${index + 1}/${total}`;
       noelDialogueProgress.hidden = false;
@@ -165,7 +165,7 @@ const cinemaAudience = isCinemaInterior
     openDialogue: (line, index, total) => {
       noelDialogueOpen = true;
       noelDialogueFollowsProximity = true;
-      noelSpeaker.textContent = 'cinema audience';
+      noelSpeaker.textContent = 'cinema audience'; setProfileImage(noelDialogueProfile, 'cinema audience', '../');
       noelDialogueLine.textContent = line;
       noelDialogueProgress.textContent = `${index + 1}/${total}`;
       noelDialogueProgress.hidden = false;
@@ -255,7 +255,7 @@ function startNoelDialogue(): void {
   noelDialogueOpen = true;
   noelDialogueFollowsProximity = true;
   noelDialogueLineIndex = 0;
-  noelSpeaker.textContent = NOEL_NAME;
+  noelSpeaker.textContent = NOEL_NAME; setProfileImage(noelDialogueProfile, NOEL_NAME, '../');
   showNoelDialogueLine();
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
@@ -273,7 +273,7 @@ function startLucyDialogue(): void {
   input.releaseAll();
   noelDialogueOpen = true;
   noelDialogueFollowsProximity = true;
-  noelSpeaker.textContent = 'Lucy';
+  noelSpeaker.textContent = 'Lucy'; setProfileImage(noelDialogueProfile, 'Lucy', '../');
   lucy?.start();
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
@@ -305,7 +305,7 @@ function startColanderPickup(): void {
   nearbyInteraction = null;
   noelDialogueOpen = true;
   noelDialogueFollowsProximity = false;
-  noelSpeaker.textContent = 'THE GIRLS';
+  noelSpeaker.textContent = 'THE GIRLS'; setProfileImage(noelDialogueProfile, 'Maddy', '../');
   noelDialogueLine.textContent = 'PUT THAT DOWN NOW';
   noelDialogueProgress.hidden = true;
   noelGiftConfirmation.hidden = true;
@@ -328,7 +328,7 @@ function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
   input.releaseAll();
   noelDialogueOpen = true;
   noelDialogueFollowsProximity = false;
-  noelSpeaker.textContent = kind === 'andy' ? 'Andy' : 'Aliya';
+  noelSpeaker.textContent = kind === 'andy' ? 'Andy' : 'Aliya'; setProfileImage(noelDialogueProfile, kind === 'andy' ? 'Andy' : 'Aliya', '../');
   noelDialogueLine.textContent = kind === 'andy'
     ? "Would you like to hear Max's music?"
     : "When is Andy done? It's my turn to DJ.";
