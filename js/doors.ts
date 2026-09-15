@@ -30,6 +30,7 @@ const doorSound = new Audio('audio/open-door.mp3');
 doorSound.preload = 'auto';
 
 let openDoorIds = new Set<string>();
+let hasSyncedInitialDoorState = false;
 let navigationStarted = false;
 
 function distanceToDoorway(x: number, y: number, doorway: Doorway): number {
@@ -59,8 +60,15 @@ export function updateDoors(playerX: number, playerY: number): void {
       .map((doorway) => doorway.id),
   );
 
-  if ([...nextOpenDoorIds].some((id) => !openDoorIds.has(id))) playDoorSound();
+  // Arriving via a `?door=` link spawns the player right next to that
+  // doorway, so skip the very first check — otherwise it looks like the
+  // player just walked up and the sound plays again on top of the one that
+  // already fired on the page they navigated from.
+  if (hasSyncedInitialDoorState && [...nextOpenDoorIds].some((id) => !openDoorIds.has(id))) {
+    playDoorSound();
+  }
   openDoorIds = nextOpenDoorIds;
+  hasSyncedInitialDoorState = true;
 
   if (navigationStarted) return;
   const enteredDoorway = DOORWAYS.find((doorway) => pointInsideDoorway(playerX, playerY, doorway));

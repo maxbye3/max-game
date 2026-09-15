@@ -15,6 +15,7 @@ interface InteriorDoorOptions {
 export class InteriorDoorsController {
   private readonly sound = new Audio('../audio/open-door.mp3');
   private openDoorIndex: number | null = null;
+  private hasSyncedInitialDoorState = false;
   private navigationStarted = false;
 
   constructor(
@@ -32,13 +33,23 @@ export class InteriorDoorsController {
     const nextOpenDoorIndex = this.scene.doors.findIndex((door) =>
       Math.hypot(playerX - door.triggerX, playerY - door.triggerY) <= OPEN_DISTANCE,
     );
-    if (this.scene.kind !== 'cave' && nextOpenDoorIndex >= 0 && nextOpenDoorIndex !== this.openDoorIndex) {
+    // Entering a scene spawns the player right next to its entrance door, so
+    // skip the very first check — otherwise it looks like the player just
+    // walked up and the sound plays again on top of the one that already
+    // fired on the overworld page they navigated from.
+    if (
+      this.hasSyncedInitialDoorState &&
+      this.scene.kind !== 'cave' &&
+      nextOpenDoorIndex >= 0 &&
+      nextOpenDoorIndex !== this.openDoorIndex
+    ) {
       this.sound.currentTime = 0;
       void this.sound.play().catch(() => {
         // Audio can be rejected until the browser observes a keyboard or pointer gesture.
       });
     }
     this.openDoorIndex = nextOpenDoorIndex >= 0 ? nextOpenDoorIndex : null;
+    this.hasSyncedInitialDoorState = true;
 
     if (this.navigationStarted) return;
     const exitDoor = this.scene.doors.find((door) =>
