@@ -25,6 +25,7 @@ const IMAGE_SOURCES = {
   spriteSheet: 'player/SpriteSheet.png',
   sealSpriteSheet: 'player/seal-game.png?v=20260831-transparent',
   georgia: 'chat/georgia/avatar.png',
+  georgiaBike: 'chat/georgia/georgie-bike.png',
   mike: 'chat/mike/overworld-avatar.png',
   rei: 'chat/rei/overworld-avatar.png',
   adam: 'chat/adam/avatar.png',

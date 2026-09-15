@@ -13,16 +13,18 @@ interface GeorgiaState {
   animationTime: number;
 }
 
-const WALK_SPEED = 72;
+const CYCLE_SPEED = 160;
 const COLLISION_DISTANCE = 24;
 const COLLISION_PADDING = 2;
 const MIN_ACTION_TIME = 0.75;
 const MAX_ACTION_TIME = 2.4;
 const IDLE_CHANCE = 0.28;
 
+// Start point for Georgia's bike loop: the path crossing just west of the
+// lake, measured against the map art.
 export const GEORGIA = {
-  x: 650,
-  y: 840,
+  x: 1035,
+  y: 385,
   width: 40,
   height: 46,
 } as const;
@@ -89,8 +91,8 @@ export function updateGeorgia(deltaTime: number): void {
   georgiaState.animationTime += deltaTime;
   moveWithCollisions(
     georgiaState,
-    dx * WALK_SPEED * deltaTime,
-    dy * WALK_SPEED * deltaTime,
+    dx * CYCLE_SPEED * deltaTime,
+    dy * CYCLE_SPEED * deltaTime,
     collidesWithWorld,
   );
   clampToWorld();

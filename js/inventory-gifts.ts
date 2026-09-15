@@ -31,7 +31,7 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     id: 'alex-s-item',
     name: "Alex S's item",
     imageSource: 'chat/alex s/item.png',
-    description: 'Makes the protagonist move 20% faster.',
+    description: 'Creates the apocalypse.',
   },
   {
     id: 'lucy-item',

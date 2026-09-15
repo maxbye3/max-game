@@ -1,8 +1,11 @@
-import { BOOST_DURATION, BOOST_MULTIPLIER, RECHARGE_DURATION } from './config.js';
+import { APOCALYPSE_DURATION, BOOST_DURATION, BOOST_MULTIPLIER, RECHARGE_DURATION } from './config.js';
 import { requireElement } from './dom.js';
 import { getCollectedGifts } from './inventory-gifts.js';
 import { removeGift } from './inventory-gifts.js';
 import { readStorage, writeStorage } from './storage.js';
+
+const gameShell = requireElement<HTMLElement>('.game-shell');
+const METEOR_COUNT = 14;
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
@@ -28,6 +31,68 @@ const giftItems = requireElement<HTMLElement>('#gift-items');
 function announce(message: string): void {
   inventoryMessage.textContent = message;
   announcer.textContent = message;
+}
+
+function playApocalypseRumble(): void {
+  const AudioContextClass = window.AudioContext;
+  const audioContext = new AudioContextClass();
+  const rumble = audioContext.createOscillator();
+  const rumbleGain = audioContext.createGain();
+  const noise = audioContext.createBufferSource();
+  const noiseFilter = audioContext.createBiquadFilter();
+  const noiseGain = audioContext.createGain();
+  const duration = 2.4;
+  const noiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * duration), audioContext.sampleRate);
+  const noiseSamples = noiseBuffer.getChannelData(0);
+
+  for (let index = 0; index < noiseSamples.length; index += 1) {
+    const fade = 1 - index / noiseSamples.length;
+    noiseSamples[index] = (Math.random() * 2 - 1) * fade;
+  }
+
+  rumble.type = 'sawtooth';
+  rumble.frequency.setValueAtTime(55, audioContext.currentTime);
+  rumble.frequency.exponentialRampToValueAtTime(28, audioContext.currentTime + duration);
+  rumbleGain.gain.setValueAtTime(0.18, audioContext.currentTime);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+
+  noise.buffer = noiseBuffer;
+  noiseFilter.type = 'lowpass';
+  noiseFilter.frequency.value = 320;
+  noiseGain.gain.setValueAtTime(0.16, audioContext.currentTime);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+
+  rumble.connect(rumbleGain);
+  rumbleGain.connect(audioContext.destination);
+  noise.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(audioContext.destination);
+  rumble.start();
+  noise.start();
+  rumble.stop(audioContext.currentTime + duration);
+  noise.stop(audioContext.currentTime + duration);
+  rumble.addEventListener('ended', () => void audioContext.close(), { once: true });
+}
+
+function triggerApocalypse(): void {
+  const overlay = document.createElement('div');
+  overlay.className = 'apocalypse-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  for (let index = 0; index < METEOR_COUNT; index += 1) {
+    const meteor = document.createElement('span');
+    meteor.className = 'apocalypse-meteor';
+    meteor.style.setProperty('--meteor-x', `${Math.round(Math.random() * 100)}%`);
+    meteor.style.setProperty('--meteor-delay', `${(Math.random() * 1.6).toFixed(2)}s`);
+    overlay.append(meteor);
+  }
+  gameShell.append(overlay);
+  gameShell.classList.add('apocalypse-shake');
+  window.setTimeout(() => {
+    overlay.remove();
+    gameShell.classList.remove('apocalypse-shake');
+  }, APOCALYPSE_DURATION);
+
+  playApocalypseRumble();
 }
 
 let speedMultiplier = 1;
@@ -69,6 +134,7 @@ function renderGiftItems(): void {
     useButton.textContent = 'Use';
     useButton.addEventListener('click', () => {
       announce(`${item.name}: ${item.description}`);
+      if (item.id === 'alex-s-item') triggerApocalypse();
       removeGift(item);
     });
     const deleteButton = document.createElement('button');

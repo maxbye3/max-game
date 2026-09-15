@@ -92,4 +92,6 @@ export const BOOST_MULTIPLIER = 1.6;
 export const BOOST_DURATION = 10000;
 export const RECHARGE_DURATION = 20000;
 
+export const APOCALYPSE_DURATION = 6000;
+
 export const SHOW_COLLISION_SHAPES = true;
