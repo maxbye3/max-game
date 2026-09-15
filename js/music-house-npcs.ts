@@ -10,14 +10,14 @@ export interface MusicHouseNpc {
 // the Music House artwork. These are scenery characters, not interactables.
 export const MUSIC_HOUSE_NPCS: readonly MusicHouseNpc[] = [
   {
-    source: '../chat/andy/overworld-sprite.png',
+    source: '../chat/andy/map-sprite.png',
     x: 258,
     y: 280,
     width: 90,
     height: 100,
   },
   {
-    source: '../chat/aliya/overworld-sprite.png',
+    source: '../chat/aliya/map-sprite.png',
     x: 130,
     y: 350,
     width: 51,
