@@ -3,38 +3,32 @@ import { dirname, resolve } from 'node:path';
 import { readPng, writePng } from './png.mjs';
 
 const CHARACTERS = [
-  ['adam', 'chat/adam/avatar.png', 60],
-  ['alex s', 'chat/alex s/avatar.png', 46],
-  ['alex w', 'chat/alex w/avatar.png', 82],
-  ['alice', 'chat/alice/avatar.png', 52],
-  ['aliya', 'chat/aliya/avatar.png', 80],
-  ['andy', 'chat/andy/avatar.png', 100],
-  ['bochra', 'chat/bochra/avatar.png', 52],
-  ['chris', 'chat/chris/avatar.png', 52],
-  ['dan', 'chat/dan/avatar.png', 52],
-  ['ed', 'chat/ed/avatar.png', 54],
-  // Georgia's current avatar is kept in the player subfolder.
-  ['georgia', 'chat/georgia/player/avatar.png', 46],
-  ['helen', 'chat/helen/avatar.png', 84],
-  ['joe', 'chat/joe/avatar.png', 52],
-  ['josh', 'chat/josh/avatar.png', 52],
-  ['ju', 'chat/ju/avatar.png', 52],
-  ['julian', 'chat/julian/avatar.png', 82],
-  ['katie', 'chat/katie/avatar.png', 52],
-  ['katy', 'chat/katy/avatar.png', 52],
-  ['lucy', 'chat/lucy/avatar.png', 75],
-  ['maddy', 'chat/maddy/avatar.png', 52],
-  ['marina d', 'chat/marina d/avatar.png', 52],
-  ['mason', 'chat/mason/avatar.png', 52],
-  ['meli', 'chat/meli/avatar.png', 52],
-  ['mike', 'chat/mike/avatar.png', 46],
-  ['niall', 'chat/niall/avatar.png', 40],
-  ['noel', 'chat/noel/avatar.png', 72],
-  ['oscar', 'chat/oscar/avatar.png', 52],
-  ['rei', 'chat/rei/avatar.png', 35],
-  ['sam', 'chat/sam/avatar.png', 52],
-  ['tim', 'chat/tim/avatar.png', 82],
+  ['alex w', 'chat/alex w/player/avatar.png'],
+  ['alice', 'chat/alice/player/avatar.png'],
+  ['aliya', 'chat/aliya/example/avatar.png'],
+  ['andy', 'chat/andy/player/avatar.png'],
+  ['bochra', 'chat/bochra/player/avatar.png'],
+  ['chris', 'chat/chris/player/avatar.png'],
+  ['dan', 'chat/dan/player/avatar.png'],
+  ['helen', 'chat/helen/player/avatar.png'],
+  ['joe', 'chat/joe/player/avatar.png'],
+  ['josh', 'chat/josh/example/avatar.png'],
+  ['ju', 'chat/ju/player/avatar.png'],
+  ['julian', 'chat/julian/player/avatar.png'],
+  ['katie', 'chat/katie/player/avatar.png'],
+  ['katy', 'chat/katy/player/avatar.png'],
+  ['lucy', 'chat/lucy/player/avatar.png'],
+  ['maddy', 'chat/maddy/example/avatar.png'],
+  ['marina d', 'chat/marina d/player/avatar.png'],
+  ['mason', 'chat/mason/player/avatar.png'],
+  ['meli', 'chat/meli/player/avatar.png'],
+  ['noel', 'chat/noel/player/avatar.png'],
+  ['oscar', 'chat/oscar/player/avatar.png'],
+  ['sam', 'chat/sam/player/avatar.png'],
+  ['tim', 'chat/tim/player/avatar.png'],
 ];
+
+const TARGET_HEIGHT = 52;
 const BACKGROUND_THRESHOLD = 56;
 
 function pixelOffset(image, x, y) {
@@ -161,10 +155,10 @@ function scaleToHeight(image, targetHeight) {
   return { width, height, colorType: 6, bpp: 4, pixels };
 }
 
-for (const [name, source, targetHeight] of CHARACTERS) {
+for (const [name, source] of CHARACTERS) {
   const target = `chat/${name}/map-sprite.png`;
   const image = readPng(readFileSync(resolve(source)));
-  const sprite = scaleToHeight(cropToAlpha(makeTransparent(image)), targetHeight);
+  const sprite = scaleToHeight(cropToAlpha(makeTransparent(image)), TARGET_HEIGHT);
   mkdirSync(dirname(resolve(target)), { recursive: true });
   writeFileSync(resolve(target), writePng(sprite));
   console.log(`Generated ${target}`);

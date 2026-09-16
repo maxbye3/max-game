@@ -15,7 +15,7 @@ export class LucyController {
     private readonly dialogueProgress: HTMLElement,
     private readonly giftConfirmation: HTMLElement,
   ) {
-    this.sprite.src = '../chat/lucy/map-sprite.png';
+    this.sprite.src = '../chat/lucy/avatar.png';
     this.theme.preload = 'auto';
   }
 

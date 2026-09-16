@@ -81,7 +81,6 @@ const doorOverlay = new Image();
 const spriteSheet = new Image();
 const noelSprite = new Image();
 const siblingsSprite = new Image();
-const musicDjMachine = new Image();
 const bookshopNpcs = BOOKSHOP_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 const musicHouseNpcs = MUSIC_HOUSE_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 const gymNpcs = GYM_NPCS.map((npc) => ({ ...npc, image: new Image() }));
@@ -91,9 +90,8 @@ if (scene.doorOverlaySource) doorOverlay.src = scene.doorOverlaySource;
 spriteSheet.src = SEAL_MODE
   ? '../player/seal-game.png?v=20260831-transparent'
   : '../player/SpriteSheet.png';
-if (isDiaryLabInterior || isMansionInterior) noelSprite.src = '../chat/noel/map-sprite.png';
+if (isDiaryLabInterior || isMansionInterior) noelSprite.src = '../chat/noel/interior-avatar.png';
 if (isCaveInterior) siblingsSprite.src = '../chat/siblings/girls-sprite.png';
-if (isMusicShopInterior) musicDjMachine.src = '../img/internal/music-dj-machine.png';
 if (isBookshopInterior) {
   bookshopNpcs.forEach((npc) => {
     npc.image.src = npc.source;
@@ -652,13 +650,6 @@ function draw(): void {
     );
   }
   interiorDoors.drawOverlay(context, doorOverlay, cameraX, cameraY, scaleX);
-  if (isMusicShopInterior) context.drawImage(
-      musicDjMachine,
-      Math.round((247 - cameraX) * scaleX),
-      Math.round((254 - cameraY) * scaleY),
-      48 * scaleX,
-      30 * scaleY,
-    );
   context.restore();
 }
 function gameLoop(time: number): void {
@@ -682,7 +673,7 @@ const requiredImages = [
   ...(lucy ? [lucy.sprite] : []),
   ...(isBookshopInterior ? bookshopNpcs.map((npc) => npc.image) : []),
   ...(isCaveInterior ? [siblingsSprite] : []),
-  ...(isMusicShopInterior ? [...musicHouseNpcs.map((npc) => npc.image), musicDjMachine] : []),
+  ...(isMusicShopInterior ? musicHouseNpcs.map((npc) => npc.image) : []),
   ...(isGymInterior ? gymNpcs.map((npc) => npc.image) : []),
 ];
 Promise.all(requiredImages.map((image) => image.decode()))
