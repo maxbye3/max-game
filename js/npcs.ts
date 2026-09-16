@@ -2,6 +2,7 @@ import { requireElement } from './dom.js';
 import { ADAM_DIALOGUE_LINES } from './adam-dialogue.js';
 import { ADAM_FACTS } from './adam-facts.js';
 import { ALEX_S_DIALOGUE_LINES } from './alex-s-dialogue.js';
+import { KATY_DIALOGUE_LINES } from './katy-dialogue.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
 import { addGift, hasGift, nextGiftLine, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
@@ -12,7 +13,7 @@ import { readStorage, writeStorage } from './storage.js';
 import { setProfileImage } from './profile-images.js';
 
 interface NpcDefinition {
-  readonly id: 'adam' | 'ed' | 'mike' | 'rei' | 'alexS';
+  readonly id: 'adam' | 'ed' | 'mike' | 'rei' | 'alexS' | 'katy';
   readonly name: string;
   readonly x: number;
   readonly y: number;
@@ -72,8 +73,8 @@ export const REI: NpcDefinition = {
   name: 'rei',
   x: 456,
   y: 500,
-  width: 35,
-  height: 35,
+  width: 32,
+  height: 45,
   interactionDistance: 56,
   dialogueLines: REI_DIALOGUE_LINES,
   requestLine: 'I need some red paint to finish this sign. Help me find some',
@@ -93,7 +94,20 @@ export const ALEX_S: NpcDefinition = {
   themeSource: 'chat/alex s/theme.mp3',
 };
 
-const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, ALEX_S];
+export const KATY: NpcDefinition = {
+  id: 'katy',
+  name: 'Katy',
+  x: 422,
+  y: 640,
+  width: 35,
+  height: 52,
+  interactionDistance: 58,
+  itemGift: GIFT_ITEMS[2]!,
+  dialogueLines: KATY_DIALOGUE_LINES,
+  themeSource: 'chat/katy/theme.m4a',
+};
+
+const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, ALEX_S, KATY];
 const dialogue = requireElement<HTMLElement>('#npc-dialogue');
 const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');

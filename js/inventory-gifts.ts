@@ -34,6 +34,12 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     description: 'Creates the apocalypse.',
   },
   {
+    id: 'katy-item',
+    name: "Katy's item",
+    imageSource: 'chat/katy/item.png',
+    description: 'Character trips over occasionally',
+  },
+  {
     id: 'lucy-item',
     name: "Lucy's item",
     imageSource: 'chat/lucy/item.png',

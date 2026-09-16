@@ -89,6 +89,17 @@ try {
   assert.equal(sprites.getPlayerSpriteFrame(true, 'down', 0, 2).sourceY, 1290);
   assert.equal(sprites.getPlayerSpriteFrame(true, 'left', 0, 2).sourceY, 486);
 
+  const katyPower = await loadModule('katy-power', 'js/katy-power.ts');
+  katyPower.activateKatyPower(1000);
+  assert.equal(katyPower.katyPowerSecondsLeft(1000), 10);
+  assert.equal(katyPower.updateKatyPower(1699, true), false);
+  assert.equal(katyPower.isPlayerTripping(1699), false);
+  katyPower.updateKatyPower(1700, true);
+  assert.equal(katyPower.isPlayerTripping(1700), true);
+  assert.equal(katyPower.isPlayerTripping(2351), false);
+  assert.equal(katyPower.updateKatyPower(11000, true), true);
+  assert.equal(katyPower.katyPowerSecondsLeft(11000), 0);
+
   const packageJson = JSON.parse(await readFile('package.json', 'utf8'));
   for (const entry of ['js/main.ts', 'js/internal.ts', 'js/niall-fight.ts']) {
     assert.match(packageJson.scripts.watch, new RegExp(entry.replace('.', '\\.')));

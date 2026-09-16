@@ -2,10 +2,18 @@ import { APOCALYPSE_DURATION, BOOST_DURATION, BOOST_MULTIPLIER, RECHARGE_DURATIO
 import { requireElement } from './dom.js';
 import { getCollectedGifts } from './inventory-gifts.js';
 import { removeGift } from './inventory-gifts.js';
+import {
+  activateKatyPower,
+  katyPowerSecondsLeft,
+  KATY_POWER_DURATION,
+  updateKatyPower,
+} from './katy-power.js';
 import { readStorage, writeStorage } from './storage.js';
 
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const METEOR_COUNT = 14;
+const ALEX_THEME_DURATION = 10_000;
+const KATY_THEME_SOURCE = 'chat/katy/theme.m4a';
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
@@ -74,7 +82,7 @@ function playApocalypseRumble(): void {
   rumble.addEventListener('ended', () => void audioContext.close(), { once: true });
 }
 
-function triggerApocalypse(): void {
+function triggerApocalypse(onExpired?: () => void): void {
   const overlay = document.createElement('div');
   overlay.className = 'apocalypse-overlay';
   overlay.setAttribute('aria-hidden', 'true');
@@ -90,9 +98,43 @@ function triggerApocalypse(): void {
   window.setTimeout(() => {
     overlay.remove();
     gameShell.classList.remove('apocalypse-shake');
+    onExpired?.();
   }, APOCALYPSE_DURATION);
 
   playApocalypseRumble();
+}
+
+function playAlexTheme(): void {
+  alexTheme?.pause();
+  alexTheme = new Audio('chat/alex s/theme.mp3');
+  alexTheme.preload = 'auto';
+  void alexTheme.play().catch(() => {
+    // Browsers may reject audio outside a user gesture.
+  });
+  window.setTimeout(() => {
+    alexTheme?.pause();
+    if (alexTheme) alexTheme.currentTime = 0;
+    alexTheme = null;
+  }, ALEX_THEME_DURATION);
+}
+
+function stopKatyTheme(): void {
+  if (katyThemeTimeout) window.clearTimeout(katyThemeTimeout);
+  katyThemeTimeout = 0;
+  katyTheme?.pause();
+  if (katyTheme) katyTheme.currentTime = 0;
+  katyTheme = null;
+}
+
+function playKatyTheme(): void {
+  stopKatyTheme();
+  katyTheme = new Audio(KATY_THEME_SOURCE);
+  katyTheme.preload = 'auto';
+  katyTheme.loop = true;
+  void katyTheme.play().catch(() => {
+    // Browsers may reject audio outside a user gesture.
+  });
+  katyThemeTimeout = window.setTimeout(stopKatyTheme, KATY_POWER_DURATION);
 }
 
 let speedMultiplier = 1;
@@ -100,6 +142,10 @@ let speedBoostEndsAt = 0;
 let hasPowerSandwich = true;
 let sandwichDeleted = readStorage('max-game:power-sandwich-deleted') === 'true';
 let itemRechargesAt = 0;
+let alexTheme: HTMLAudioElement | null = null;
+let katyTheme: HTMLAudioElement | null = null;
+let katyThemeTimeout = 0;
+let katyItemDescription = '';
 
 export const getSpeedMultiplier = () => speedMultiplier;
 
@@ -133,8 +179,20 @@ function renderGiftItems(): void {
     useButton.type = 'button';
     useButton.textContent = 'Use';
     useButton.addEventListener('click', () => {
-      announce(`${item.name}: ${item.description}`);
-      if (item.id === 'alex-s-item') triggerApocalypse();
+      if (item.id === 'alex-s-item') {
+        playAlexTheme();
+        triggerApocalypse(() => announce(`${item.name}: ${item.description}`));
+      } else if (item.id === 'katy-item') {
+        const now = performance.now();
+        activateKatyPower(now);
+        playKatyTheme();
+        katyItemDescription = `${item.name}: ${item.description}`;
+        powerupStatus.textContent = 'Katy effect 10.0s';
+        powerupStatus.hidden = false;
+        announce("Katy's item activated.");
+      } else {
+        announce(`${item.name}: ${item.description}`);
+      }
       removeGift(item);
     });
     const deleteButton = document.createElement('button');
@@ -246,5 +304,18 @@ export function updatePowerups(now: number): void {
       setItemReady(true);
       announce('The Power Sandwich is ready to use again!');
     }
+  }
+
+  const katyEffectExpired = updateKatyPower(now);
+  const katySecondsLeft = katyPowerSecondsLeft(now);
+  if (katySecondsLeft > 0) {
+    const status = `Katy effect ${katySecondsLeft.toFixed(1)}s`;
+    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
+    powerupStatus.hidden = false;
+  } else if (katyEffectExpired) {
+    stopKatyTheme();
+    if (speedBoostEndsAt === 0) powerupStatus.hidden = true;
+    if (katyItemDescription) announce(katyItemDescription);
+    katyItemDescription = '';
   }
 }

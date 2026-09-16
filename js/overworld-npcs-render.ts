@@ -1,5 +1,5 @@
 import { images } from './assets.js';
-import { ADAM, ALEX_S, ED, MIKE, REI } from './npcs.js';
+import { ADAM, ALEX_S, ED, KATY, MIKE, REI } from './npcs.js';
 import { drawMapCharacters } from './map-characters.js';
 import { drawGymTimCutscene, shouldHideMapTim } from './gym-tim-cutscene.js';
 
@@ -33,6 +33,7 @@ export function drawOverworldNpcs(
   drawNpc(context, images.adam, ADAM, cameraX, cameraY);
   drawNpc(context, images.ed, ED, cameraX, cameraY);
   drawNpc(context, images.alexS, ALEX_S, cameraX, cameraY);
+  drawNpc(context, images.katy, KATY, cameraX, cameraY);
   drawGymTimCutscene(context, images.timMap, cameraX, cameraY);
   context.restore();
 }

@@ -11,19 +11,17 @@ export interface MapCharacter extends MapCharacterDefinition {
 }
 
 export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
-  { name: 'Alice', source: 'chat/alice/map-sprite.png', x: 438, y: 430, height: 52 },
-  { name: 'Bochra', source: 'chat/bochra/map-sprite.png', x: 480, y: 430, height: 52 },
-  { name: 'Dan', source: 'chat/dan/map-sprite.png', x: 522, y: 430, height: 52 },
-  { name: 'Joe', source: 'chat/joe/map-sprite.png', x: 736, y: 418, height: 52 },
-  { name: 'Josh', source: 'chat/josh/map-sprite.png', x: 782, y: 418, height: 52 },
-  { name: 'Katie', source: 'chat/katie/map-sprite.png', x: 830, y: 418, height: 52 },
-  { name: 'Katy', source: 'chat/katy/map-sprite.png', x: 402, y: 570, height: 52 },
-  { name: 'Mason', source: 'chat/mason/map-sprite.png', x: 450, y: 570, height: 52 },
-  { name: 'Meli', source: 'chat/meli/map-sprite.png', x: 498, y: 570, height: 52 },
-  { name: 'Oscar', source: 'chat/oscar/map-sprite.png', x: 776, y: 574, height: 52 },
-  { name: 'Sam', source: 'chat/sam/map-sprite.png', x: 824, y: 574, height: 52 },
-  { name: 'Chris', source: 'chat/chris/map-sprite.png', x: 655, y: 270, height: 52 },
-  { name: 'Ju', source: 'chat/ju/map-sprite.png', x: 914, y: 322, height: 52 },
+  { name: 'Alice', source: 'chat/alice/map-sprite.png', x: 220, y: 530, height: 52 },
+  { name: 'Bochra', source: 'chat/bochra/map-sprite.png', x: 1114, y: 322, height: 52 },
+  { name: 'Dan', source: 'chat/dan/map-sprite.png', x: 1114, y: 322, height: 48 },
+  { name: 'Joe', source: 'chat/joe/map-sprite.png', x: 1080, y: 1070, height: 52 },
+  { name: 'Katie', source: 'chat/katie/map-sprite.png', x: 1130, y: 1018, height: 52 },
+  { name: 'Mason', source: 'chat/mason/map-sprite.png', x: 820, y: 570, height: 69 },
+  { name: 'Meli', source: 'chat/meli/map-sprite.png', x: 858, y: 570, height: 69 },
+  { name: 'Oscar', source: 'chat/oscar/map-sprite.png', x: 336, y: 864, height: 52 },
+  { name: 'Sam', source: 'chat/sam/map-sprite.png', x: 324, y: 974, height: 52 },
+  { name: 'Chris', source: 'chat/chris/map-sprite.png', x: 475, y: 270, height: 52 },
+  { name: 'Ju', source: 'chat/ju/map-sprite.png', x: 1114, y: 322, height: 52 },
 ];
 
 export const mapCharacters: readonly MapCharacter[] = MAP_CHARACTER_DEFINITIONS.map((character) => ({

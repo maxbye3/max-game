@@ -31,6 +31,7 @@ const IMAGE_SOURCES = {
   adam: 'chat/adam/avatar.png',
   ed: 'chat/ed/avatar.png',
   alexS: 'chat/alex s/avatar.png',
+  katy: 'chat/katy/map-sprite.png',
   timMap: 'chat/tim/map-sprite.png',
   niallSprite: 'chat/niall/niall-sprite.png',
   niallExplanationMark: 'chat/niall/explanation-mark.png',

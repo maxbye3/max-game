@@ -20,6 +20,7 @@ import { canvas, context } from './dom.js';
 import { georgiaState } from './georgia.js';
 import { getGymTimCutsceneDialogue } from './gym-tim-cutscene.js';
 import { getHolePlayerTransform } from './hole.js';
+import { isPlayerTripping } from './katy-power.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
 import { drawOverworldNpcs } from './overworld-npcs-render.js';
 import { player } from './player.js';
@@ -246,6 +247,25 @@ export function draw(time: number): void {
     );
     context.rotate(holeTransform.rotation);
     context.scale(holeTransform.scale, holeTransform.scale);
+    context.drawImage(
+      playerSpriteSheet,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      -width / 2,
+      -height / 2,
+      width,
+      height,
+    );
+    context.restore();
+  } else if (playerVisible && isPlayerTripping(time)) {
+    context.save();
+    context.translate(
+      Math.round(player.x - cameraX),
+      Math.round(player.y - cameraY - width / 2),
+    );
+    context.rotate(Math.PI / 2);
     context.drawImage(
       playerSpriteSheet,
       sourceX,

@@ -15,6 +15,7 @@ import { DOORWAYS } from './doors.js';
 import { isHoleAnimationActive } from './hole.js';
 import { isHeld } from './input.js';
 import { isJumpMenuOpen } from './jump.js';
+import { isPlayerTripping } from './katy-power.js';
 import { isGymTimCutsceneBlockingPlayer } from './gym-tim-cutscene.js';
 import { isNiallAlertActive, isNiallBattleTransitionActive, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
@@ -82,6 +83,12 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
     isNiallBattleTransitionActive() ||
     isCaveTheftCutsceneActive()
   ) {
+    player.animationTime = 0;
+    player.frame = 0;
+    return;
+  }
+
+  if (isPlayerTripping()) {
     player.animationTime = 0;
     player.frame = 0;
     return;
