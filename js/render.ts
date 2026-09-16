@@ -17,7 +17,7 @@ import {
   WORLD_WIDTH,
 } from './config.js';
 import { canvas, context } from './dom.js';
-import { georgiaState } from './georgia.js';
+import { GEORGIA, georgiaState } from './georgia.js';
 import { getGymTimCutsceneDialogue } from './gym-tim-cutscene.js';
 import { getHolePlayerTransform } from './hole.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from './niall.js';
@@ -26,14 +26,7 @@ import { player } from './player.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from './overworld-props-render.js';
 import { drawSpeechBubble } from './speech-bubble.js';
-import type { Direction } from './types.js';
 
-const NIALL_SPRITE_COLUMNS = 4;
-const NIALL_SPRITE_FRAME_HEIGHT = 283;
-// The submitted sheet has transparent padding between rows, but its rows are
-// packed vertically rather than starting at equal 283px intervals. Keep the
-// source rectangles explicit so later rows do not clip into the row above.
-const NIALL_SPRITE_ROW_Y = [0, 270, 531, 793, 1054, 1320, 1597] as const;
 const NIALL_EXPLANATION_MARK_WIDTH = 26;
 const NIALL_EXPLANATION_MARK_HEIGHT = 21;
 const GIRLS_RENDER_WIDTH = 56;
@@ -83,44 +76,16 @@ const GIRLS_WALK_FRAMES: Record<CaveThiefDirection, readonly SpriteFrame[]> = {
     [1213, 786, 214, 188],
   ],
 };
-const niallDirectionRows: Record<Direction, number> = {
-  down: 0,
-  downRight: 3,
-  right: 2,
-  upRight: 6,
-  upLeft: 6,
-  left: 1,
-  up: 5,
-  downLeft: 4,
-};
-
 function drawNiallAt(
   cameraX: number,
   cameraY: number,
   x: number,
   y: number,
-  direction: Direction,
-  frame: number,
 ): void {
-  const column = frame % NIALL_SPRITE_COLUMNS;
-  const sourceX = Math.floor((column * images.niallSprite.width) / NIALL_SPRITE_COLUMNS);
-  const nextSourceX = Math.floor(((column + 1) * images.niallSprite.width) / NIALL_SPRITE_COLUMNS);
-  const sourceWidth = nextSourceX - sourceX;
-  const sourceY = NIALL_SPRITE_ROW_Y[niallDirectionRows[direction]] ?? 0;
-  const sourceHeight = Math.min(
-    NIALL_SPRITE_FRAME_HEIGHT,
-    images.niallSprite.height - sourceY,
-  );
-
   context.save();
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
+  context.imageSmoothingEnabled = false;
   context.drawImage(
     images.niallSprite,
-    sourceX,
-    sourceY,
-    sourceWidth,
-    sourceHeight,
     Math.round(x - cameraX - NIALL.width / 2),
     Math.round(y - cameraY - NIALL.height),
     NIALL.width,
@@ -170,25 +135,18 @@ function drawBusIntro(cameraX: number, cameraY: number): void {
   context.restore();
 }
 
-const GEORGIA_BIKE_RENDER_WIDTH = 50;
-const GEORGIA_BIKE_RENDER_HEIGHT = 51;
-
 function drawGeorgia(cameraX: number, cameraY: number): void {
-  if (!isImageReady(images.georgiaBike)) return;
+  if (!isImageReady(images.georgia)) return;
   const bob = georgiaState.moving ? Math.sin(georgiaState.animationTime * 12) * 1.5 : 0;
-  // The source art faces left, so mirror it when Georgia rides to the right.
-  const facingRight = georgiaState.direction === 'right';
-  const drawX = Math.round(georgiaState.x - cameraX - GEORGIA_BIKE_RENDER_WIDTH / 2);
-  const drawY = Math.round(georgiaState.y - cameraY - GEORGIA_BIKE_RENDER_HEIGHT + bob);
   context.save();
   context.imageSmoothingEnabled = false;
-  if (facingRight) {
-    context.translate(drawX + GEORGIA_BIKE_RENDER_WIDTH, drawY);
-    context.scale(-1, 1);
-    context.drawImage(images.georgiaBike, 0, 0, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
-  } else {
-    context.drawImage(images.georgiaBike, drawX, drawY, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
-  }
+  context.drawImage(
+    images.georgia,
+    Math.round(georgiaState.x - cameraX - GEORGIA.width / 2),
+    Math.round(georgiaState.y - cameraY - GEORGIA.height + bob),
+    GEORGIA.width,
+    GEORGIA.height,
+  );
   context.restore();
 }
 
@@ -217,9 +175,9 @@ export function draw(time: number): void {
   drawCaveThief(cameraX, cameraY);
   drawGeorgia(cameraX, cameraY);
   if (isNiallFollowing()) {
-    drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
+    drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12);
   } else {
-    drawNiallAt(cameraX, cameraY, niallState.x, niallState.y, niallState.direction, niallState.frame);
+    drawNiallAt(cameraX, cameraY, niallState.x, niallState.y);
   }
   if (isNiallAlertActive()) {
     context.drawImage(
