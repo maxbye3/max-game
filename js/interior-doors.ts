@@ -31,7 +31,7 @@ export class InteriorDoorsController {
 
   update(playerX: number, playerY: number): void {
     const nextOpenDoorIndex = this.scene.doors.findIndex((door) =>
-      Math.hypot(playerX - door.triggerX, playerY - door.triggerY) <= OPEN_DISTANCE,
+      Math.hypot(playerX - door.triggerX, playerY - door.triggerY) <= (door.openDistance ?? OPEN_DISTANCE),
     );
     // Entering a scene spawns the player right next to its entrance door, so
     // skip the very first check — otherwise it looks like the player just
@@ -65,8 +65,8 @@ export class InteriorDoorsController {
     const door = this.scene.doors[this.openDoorIndex];
     return Boolean(
       door &&
-      x >= door.triggerX - PASSAGE_HALF_WIDTH &&
-      x <= door.triggerX + PASSAGE_HALF_WIDTH &&
+      x >= door.triggerX - (door.passageHalfWidth ?? PASSAGE_HALF_WIDTH) &&
+      x <= door.triggerX + (door.passageHalfWidth ?? PASSAGE_HALF_WIDTH) &&
       y >= door.triggerY - PASSAGE_TOP_OFFSET &&
       y <= door.exitY + PASSAGE_BOTTOM_OFFSET,
     );

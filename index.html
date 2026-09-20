@@ -9,6 +9,8 @@
   <body>
     <main class="game-shell">
       <canvas id="game" width="480" height="480" aria-label="Overworld game map"></canvas>
+      <button id="tim-cutscene-next" class="tim-cutscene-next" type="button" hidden>Next &gt;</button>
+      <button id="tim-route-debug-reset" class="tim-route-debug-reset" type="button">↻ Reset Tim route</button>
       <button id="music-toggle" class="music-toggle" type="button" aria-expanded="false" aria-controls="music-panel">
         ♪ Music
       </button>
@@ -22,26 +24,30 @@
           <h2>Music player</h2>
           <button id="music-close" class="music-close" type="button" aria-label="Close music player">×</button>
         </div>
-        <label class="music-select-label" for="music-select">Choose a song</label>
-        <select id="music-select" class="music-select">
-          <option value="">Select a song</option>
-          <option value="Africa">Africa</option>
-          <option value="Dear Abe">Dear Abe</option>
-          <option value="Sundays">Sundays</option>
-          <option value="Too much duolingo">Too much duolingo</option>
-          <option value="Outer wildeds">Outer wildeds</option>
-          <option value="One dimensional man">One dimensional man</option>
-          <option value="Nowimfallingasleep">Nowimfallingasleep</option>
-          <option value="Lemon jelly">Lemon jelly</option>
-        </select>
-        <div class="music-controls">
-          <button id="music-play-pause" class="music-play-pause" type="button" disabled>Play</button>
-          <label class="music-volume" for="music-volume">
-            <span>Volume</span>
-            <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.7" />
-          </label>
+        <div id="music-controls-group">
+          <label class="music-select-label" for="music-select">Choose a song</label>
+          <select id="music-select" class="music-select">
+            <option value="">Select a song</option>
+            <option value="Africa">Africa</option>
+            <option value="Dear Abe">Dear Abe</option>
+            <option value="Sundays">Sundays</option>
+            <option value="Too much duolingo">Too much duolingo</option>
+            <option value="Outer wildeds">Outer wildeds</option>
+            <option value="One dimensional man">One dimensional man</option>
+            <option value="Nowimfallingasleep">Nowimfallingasleep</option>
+            <option value="Lemon jelly">Lemon jelly</option>
+          </select>
+          <div class="music-controls">
+            <button id="music-play-pause" class="music-play-pause" type="button" disabled>Play</button>
+            <label class="music-volume" for="music-volume">
+              <span>Volume</span>
+              <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.7" />
+            </label>
+          </div>
         </div>
         <p id="music-status" class="music-status" aria-live="polite">Choose a song to start playing.</p>
+        <!-- TEMP: testing-only toggle, remove before shipping -->
+        <button id="walkman-debug-toggle" type="button" style="margin-top:8px;font-size:10px;opacity:0.6;">TEMP: toggle walkman</button>
       </section>
       <div id="powerup-status" class="powerup-status" hidden></div>
       <button id="bus-intro-skip" class="bus-intro-skip" type="button" hidden>⏩ Skip intro</button>

@@ -5,6 +5,7 @@ export type NiallQuestState = 'hostile' | 'following' | 'busStop';
 const NIALL_QUEST_STATE_KEY = 'max-game:niall-quest-state';
 const LEGACY_NIALL_FIGHT_COMPLETE_KEY = 'max-game:niall-fight-complete';
 const LEGACY_NIALL_AT_BUS_STOP_KEY = 'max-game:niall-at-bus-stop';
+const INTERIOR_VISITED_KEY = 'max-game:interior-visited';
 
 function isNiallQuestState(value: string | null): value is NiallQuestState {
   return value === 'hostile' || value === 'following' || value === 'busStop';
@@ -22,4 +23,12 @@ export function getNiallQuestState(): NiallQuestState {
 
 export function setNiallQuestState(state: NiallQuestState): void {
   writeStorage(NIALL_QUEST_STATE_KEY, state);
+}
+
+export function hasVisitedInterior(): boolean {
+  return readStorage(INTERIOR_VISITED_KEY) === 'true';
+}
+
+export function markInteriorVisited(): void {
+  writeStorage(INTERIOR_VISITED_KEY, 'true');
 }

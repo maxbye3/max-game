@@ -27,6 +27,7 @@ import { player } from './player.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from './overworld-props-render.js';
 import { drawSpeechBubble } from './speech-bubble.js';
+import { hasVisitedInterior } from './world-state.js';
 import type { Direction } from './types.js';
 
 const NIALL_SPRITE_COLUMNS = 4;
@@ -39,6 +40,10 @@ const NIALL_EXPLANATION_MARK_WIDTH = 26;
 const NIALL_EXPLANATION_MARK_HEIGHT = 21;
 const GIRLS_RENDER_WIDTH = 56;
 const GIRLS_RENDER_HEIGHT = 44;
+const MIKE_AFTERMATH_X = 212;
+const MIKE_AFTERMATH_Y = 439;
+const MIKE_AFTERMATH_WIDTH = 275;
+const MIKE_AFTERMATH_HEIGHT = 271;
 const searchParams = new URLSearchParams(window.location.search);
 const SEAL_MODE = searchParams.has('seal');
 const LOG_PLAYER_POSITION = searchParams.has('debug-position');
@@ -193,6 +198,17 @@ function drawGeorgia(cameraX: number, cameraY: number): void {
   context.restore();
 }
 
+function drawMikeAftermath(cameraX: number, cameraY: number): void {
+  if (!hasVisitedInterior() || !isImageReady(images.mikeAftermath)) return;
+  context.drawImage(
+    images.mikeAftermath,
+    MIKE_AFTERMATH_X - cameraX,
+    MIKE_AFTERMATH_Y - cameraY,
+    MIKE_AFTERMATH_WIDTH,
+    MIKE_AFTERMATH_HEIGHT,
+  );
+}
+
 function logPlayerPosition(): void {
   const playerX = player.x.toFixed(1);
   const playerY = player.y.toFixed(1);
@@ -215,6 +231,7 @@ export function draw(time: number): void {
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
   const worldDepth = drawWorldBackground(time, cameraX, cameraY, player.y);
+  drawMikeAftermath(cameraX, cameraY);
   drawCaveThief(cameraX, cameraY);
   drawGeorgia(cameraX, cameraY);
   if (isNiallFollowing()) {
@@ -303,9 +320,7 @@ export function draw(time: number): void {
     drawSpeechBubble(context, thiefDialogue, thief.x - cameraX, thief.y - cameraY - thief.size);
   }
   const gymTimDialogue = getGymTimCutsceneDialogue();
-  if (gymTimDialogue) {
-    drawSpeechBubble(context, gymTimDialogue.text, gymTimDialogue.x - cameraX, gymTimDialogue.y - cameraY);
-  }
+  if (gymTimDialogue) drawSpeechBubble(context, gymTimDialogue.text, gymTimDialogue.x - cameraX, gymTimDialogue.y - cameraY);
 }
 
 export function drawLoadFailure(): void {

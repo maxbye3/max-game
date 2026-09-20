@@ -11,7 +11,7 @@ export interface Doorway {
 // World-space doorway bounds traced from the green annotations.
 export const DOORWAYS: readonly Doorway[] = [
   { id: 'northwest-portal', x: 222, y: 242, width: 27, height: 25 },
-  { id: 'diary-lab-left', x: 637, y: 208, width: 19, height: 26 },
+  { id: 'garden-room', x: 637, y: 208, width: 19, height: 26 },
   { id: 'diary-lab-center', x: 754, y: 204, width: 24, height: 21 },
   { id: 'diary-lab-right', x: 833, y: 204, width: 22, height: 23 },
   { id: 'music-shop', x: 240, y: 428, width: 30, height: 31 },

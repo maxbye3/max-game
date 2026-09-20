@@ -38,6 +38,16 @@ export const georgiaState: GeorgiaState = {
   animationTime: 0,
 };
 
+let interactionPaused = false;
+
+export function setGeorgiaInteractionPaused(paused: boolean): void {
+  interactionPaused = paused;
+  if (paused) {
+    georgiaState.moving = false;
+    georgiaState.animationTime = 0;
+  }
+}
+
 export function playerCollidesWithGeorgia(x: number, y: number): boolean {
   return Math.hypot(x - georgiaState.x, y - georgiaState.y) < COLLISION_DISTANCE;
 }
@@ -71,6 +81,7 @@ function clampToWorld(): void {
 }
 
 export function updateGeorgia(deltaTime: number): void {
+  if (interactionPaused) return;
   georgiaState.actionTime -= deltaTime;
   if (georgiaState.actionTime <= 0) chooseNextAction();
 

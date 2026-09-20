@@ -9,11 +9,16 @@ import {
   updateKatyPower,
 } from './katy-power.js';
 import { readStorage, writeStorage } from './storage.js';
+import { resolveSiteAsset } from './site-assets.js';
 
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const METEOR_COUNT = 14;
-const ALEX_THEME_DURATION = 10_000;
+const ITEM_THEME_DURATION = 10_000;
 const KATY_THEME_SOURCE = 'chat/katy/theme.m4a';
+const MIKE_THEME_SOURCE = 'chat/mike/player/theme.mp3';
+const LUCY_THEME_SOURCE = 'chat/lucy/player/theme.mp3';
+const JULIAN_THEME_SOURCE = 'chat/julian/theme.mp3';
+const TIM_THEME_SOURCE = 'chat/tim/theme.mp3';
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
@@ -104,18 +109,25 @@ function triggerApocalypse(onExpired?: () => void): void {
   playApocalypseRumble();
 }
 
-function playAlexTheme(): void {
-  alexTheme?.pause();
-  alexTheme = new Audio('chat/alex s/theme.mp3');
-  alexTheme.preload = 'auto';
-  void alexTheme.play().catch(() => {
+function triggerGiftPower(className: 'world-opening' | 'face-implosion' | 'world-spinning', duration: number): void {
+  gameShell.classList.remove(className);
+  void gameShell.offsetWidth;
+  gameShell.classList.add(className);
+  window.setTimeout(() => gameShell.classList.remove(className), duration);
+}
+
+function playItemTheme(source: string): void {
+  itemTheme?.pause();
+  itemTheme = new Audio(resolveSiteAsset(source));
+  itemTheme.preload = 'auto';
+  void itemTheme.play().catch(() => {
     // Browsers may reject audio outside a user gesture.
   });
   window.setTimeout(() => {
-    alexTheme?.pause();
-    if (alexTheme) alexTheme.currentTime = 0;
-    alexTheme = null;
-  }, ALEX_THEME_DURATION);
+    itemTheme?.pause();
+    if (itemTheme) itemTheme.currentTime = 0;
+    itemTheme = null;
+  }, ITEM_THEME_DURATION);
 }
 
 function stopKatyTheme(): void {
@@ -128,7 +140,7 @@ function stopKatyTheme(): void {
 
 function playKatyTheme(): void {
   stopKatyTheme();
-  katyTheme = new Audio(KATY_THEME_SOURCE);
+  katyTheme = new Audio(resolveSiteAsset(KATY_THEME_SOURCE));
   katyTheme.preload = 'auto';
   katyTheme.loop = true;
   void katyTheme.play().catch(() => {
@@ -142,7 +154,7 @@ let speedBoostEndsAt = 0;
 let hasPowerSandwich = true;
 let sandwichDeleted = readStorage('max-game:power-sandwich-deleted') === 'true';
 let itemRechargesAt = 0;
-let alexTheme: HTMLAudioElement | null = null;
+let itemTheme: HTMLAudioElement | null = null;
 let katyTheme: HTMLAudioElement | null = null;
 let katyThemeTimeout = 0;
 let katyItemDescription = '';
@@ -166,7 +178,7 @@ function renderGiftItems(): void {
     const card = document.createElement('div');
     card.className = 'inventory-gift';
     const image = document.createElement('img');
-    image.src = item.imageSource;
+    image.src = resolveSiteAsset(item.imageSource);
     image.alt = item.name;
     const text = document.createElement('span');
     text.className = 'item-text';
@@ -180,8 +192,16 @@ function renderGiftItems(): void {
     useButton.textContent = 'Use';
     useButton.addEventListener('click', () => {
       if (item.id === 'alex-s-item') {
-        playAlexTheme();
+        playItemTheme('chat/alex s/theme.mp3');
         triggerApocalypse(() => announce(`${item.name}: ${item.description}`));
+      } else if (item.id === 'julian-item') {
+        playItemTheme(JULIAN_THEME_SOURCE);
+        triggerGiftPower('world-opening', 2_400);
+        announce(`${item.name}: ${item.description}`);
+      } else if (item.id === 'tim-item') {
+        playItemTheme(TIM_THEME_SOURCE);
+        triggerGiftPower('face-implosion', 1_100);
+        announce(`${item.name}: ${item.description}`);
       } else if (item.id === 'katy-item') {
         const now = performance.now();
         activateKatyPower(now);
@@ -190,6 +210,13 @@ function renderGiftItems(): void {
         powerupStatus.textContent = 'Katy effect 10.0s';
         powerupStatus.hidden = false;
         announce("Katy's item activated.");
+      } else if (item.id === 'mike-item') {
+        playItemTheme(MIKE_THEME_SOURCE);
+        announce(`${item.name}: ${item.description}`);
+      } else if (item.id === 'lucy-item') {
+        playItemTheme(LUCY_THEME_SOURCE);
+        triggerGiftPower('world-spinning', 10_000);
+        announce(`${item.name}: ${item.description}`);
       } else {
         announce(`${item.name}: ${item.description}`);
       }

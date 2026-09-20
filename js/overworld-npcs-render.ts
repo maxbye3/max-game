@@ -1,7 +1,10 @@
 import { images } from './assets.js';
 import { ADAM, ALEX_S, ED, KATY, MIKE, REI } from './npcs.js';
 import { drawMapCharacters } from './map-characters.js';
-import { drawGymTimCutscene, shouldHideMapTim } from './gym-tim-cutscene.js';
+import { drawGymTimCutscene } from './gym-tim-cutscene.js';
+import { hasVisitedInterior } from './world-state.js';
+
+const REI_PAINT = { x: 438, y: 490, width: 15, height: 20 } as const;
 
 function drawNpc(
   context: CanvasRenderingContext2D,
@@ -26,10 +29,10 @@ export function drawOverworldNpcs(
 ): void {
   context.save();
   context.imageSmoothingEnabled = false;
-  drawMapCharacters(context, cameraX, cameraY, (character) =>
-    character.name !== 'Tim' || !shouldHideMapTim());
-  drawNpc(context, images.mike, MIKE, cameraX, cameraY);
+  drawMapCharacters(context, cameraX, cameraY);
+  if (!hasVisitedInterior()) drawNpc(context, images.mike, MIKE, cameraX, cameraY);
   drawNpc(context, images.rei, REI, cameraX, cameraY);
+  if (hasVisitedInterior()) drawNpc(context, images.paint, REI_PAINT, cameraX, cameraY);
   drawNpc(context, images.adam, ADAM, cameraX, cameraY);
   drawNpc(context, images.ed, ED, cameraX, cameraY);
   drawNpc(context, images.alexS, ALEX_S, cameraX, cameraY);

@@ -1,8 +1,13 @@
+import { resolveSiteAsset } from './site-assets.js';
+
 export interface GiftItem {
   readonly id: string;
   readonly name: string;
   readonly imageSource: string;
   readonly description: string;
+  // Some gifts are permanent unlocks rather than usable items, so they
+  // shouldn't clutter the inventory list once collected.
+  readonly hiddenFromInventory?: boolean;
 }
 
 export const GIFT_LINES = [
@@ -17,8 +22,73 @@ export const GIFT_LINES = [
   'Take this and get out of here.',
 ] as const;
 
+export const JULIAN_ITEM: GiftItem = {
+  id: 'julian-item',
+  name: "Julian's item",
+  imageSource: 'chat/julian/item.png',
+  description: 'The world opens up.',
+};
+
+export const TIM_ITEM: GiftItem = {
+  id: 'tim-item',
+  name: "Tim's item",
+  imageSource: 'chat/tim/item.png',
+  description: 'Face implodes.',
+};
+
+export const LUCY_ITEM: GiftItem = {
+  id: 'lucy-item',
+  name: "Lucy's item",
+  imageSource: 'chat/lucy/item.png',
+  description: 'World spins around and around.',
+};
+
+export const PORTABLE_WALKMAN: GiftItem = {
+  id: 'portable-walkman',
+  name: 'Portable walkman',
+  imageSource: 'img/portable-walkman.png',
+  description: 'You can now play music.',
+  hiddenFromInventory: true,
+};
+
+export const GEORGIA_ITEM: GiftItem = {
+  id: 'georgia-item',
+  name: "Georgia's item",
+  imageSource: 'chat/georgia/item.png',
+  description: 'Creates the apocalypse.',
+};
+
+export const ANDY_ITEM: GiftItem = {
+  id: 'andy-item',
+  name: "Andy's item",
+  imageSource: 'chat/andy/item.png',
+  description: 'Creates the apocalypse.',
+};
+
+export const REI_ITEM: GiftItem = {
+  id: 'rei-item',
+  name: "Rei's item",
+  imageSource: 'chat/rei/player/item.png',
+  description: 'Makes the protagonist move 20% faster.',
+};
+
 const INVENTORY_GIFTS_KEY = 'max-game:inventory-gifts';
 const GIFT_LINE_INDEX_KEY = 'max-game:gift-line-index';
+const ITEM_RECEIVED_OVERLAY_DURATION = 3200;
+
+function showItemReceivedOverlay(item: GiftItem): void {
+  const gameShell = document.querySelector<HTMLElement>('.game-shell');
+  if (!gameShell) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'quest-accepted-overlay item-received-overlay';
+  overlay.setAttribute('aria-label', `${item.name} added to inventory`);
+  const image = document.createElement('img');
+  image.src = resolveSiteAsset(item.imageSource);
+  image.alt = item.name;
+  overlay.append(image);
+  gameShell.append(overlay);
+  window.setTimeout(() => overlay.remove(), ITEM_RECEIVED_OVERLAY_DURATION);
+}
 
 export const GIFT_ITEMS: readonly GiftItem[] = [
   {
@@ -39,12 +109,13 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     imageSource: 'chat/katy/item.png',
     description: 'Character trips over occasionally',
   },
-  {
-    id: 'lucy-item',
-    name: "Lucy's item",
-    imageSource: 'chat/lucy/item.png',
-    description: 'A sachet of mayonnaise with surprising potential.',
-  },
+  LUCY_ITEM,
+  JULIAN_ITEM,
+  TIM_ITEM,
+  PORTABLE_WALKMAN,
+  GEORGIA_ITEM,
+  ANDY_ITEM,
+  REI_ITEM,
 ];
 
 function readGiftIds(): string[] {
@@ -72,7 +143,8 @@ export function addGift(item: GiftItem): boolean {
   const ids = readGiftIds();
   if (ids.includes(item.id)) return false;
   writeGiftIds([...ids, item.id]);
-  window.dispatchEvent(new Event('max-game:inventory-gift-added'));
+  showItemReceivedOverlay(item);
+  window.dispatchEvent(new CustomEvent<GiftItem>('max-game:inventory-gift-added', { detail: item }));
   return true;
 }
 
@@ -95,5 +167,5 @@ export function nextGiftLine(): string {
 
 export function getCollectedGifts(): readonly GiftItem[] {
   const ids = readGiftIds();
-  return GIFT_ITEMS.filter((item) => ids.includes(item.id));
+  return GIFT_ITEMS.filter((item) => ids.includes(item.id) && !item.hiddenFromInventory);
 }

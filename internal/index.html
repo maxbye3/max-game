@@ -26,6 +26,45 @@
       <canvas id="game" width="480" height="480" aria-label="Diary and Laboratory interior"></canvas>
       <a class="interior-exit" href="../index.html">Exit</a>
       <button id="interaction-prompt" class="npc-talk" type="button" hidden>Interact</button>
+      <div class="top-right-actions">
+        <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
+          Inventory <span class="inventory-count">1</span>
+        </button>
+      </div>
+      <div id="powerup-status" class="powerup-status" hidden></div>
+      <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
+      <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
+        <div class="jump-header">
+          <h2>Jump</h2>
+          <button id="jump-close" class="jump-close" type="button" aria-label="Close jump menu">×</button>
+        </div>
+        <div id="jump-options" class="jump-options"></div>
+      </section>
+      <section id="inventory-panel" class="inventory-panel" aria-label="Inventory" hidden>
+        <div class="inventory-header">
+          <h2>Inventory</h2>
+          <button id="inventory-close" class="inventory-close" type="button" aria-label="Close inventory">×</button>
+        </div>
+        <div class="inventory-item-row">
+          <button id="inventory-item" class="inventory-item" type="button" aria-expanded="false" aria-controls="item-actions">
+            <img src="../player/item.png" alt="Suspiciously powerful sandwich" />
+            <span class="item-text">
+              <strong>Power Sandwich</strong>
+              <small id="item-status">Ready to use</small>
+            </span>
+            <span id="ready-badge" class="ready-badge">Ready</span>
+          </button>
+          <button id="delete-item" class="inventory-delete" type="button">Delete</button>
+        </div>
+        <div class="recharge-track" aria-hidden="true"><span id="recharge-fill"></span></div>
+        <div id="item-actions" class="item-actions" hidden>
+          <p>Makes the protagonist move 60% faster for 10 seconds.</p>
+          <button id="use-item" type="button">Use item</button>
+        </div>
+        <div id="gift-items" class="gift-items" aria-label="Collected gifts"></div>
+        <p id="inventory-message" class="inventory-message"></p>
+      </section>
+      <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
       <section id="noel-dialogue" class="npc-dialogue" aria-live="polite" hidden>
         <header class="npc-dialogue-header">
           <h2 id="noel-speaker"></h2>
@@ -49,11 +88,32 @@
           <button id="siblings-decline" type="button">Neh. I'm good</button>
         </div>
         <div id="music-dialogue-options" class="npc-dialogue-options" hidden>
-          <a id="music-spotify" href="https://open.spotify.com/artist/2YrF5w9qKkRINFpWCOtl6o?si=sXOrc4u5SpSzJJdUjG7lOw" target="_blank" rel="noopener noreferrer">Spotify</a>
-          <a id="music-youtube" href="https://music.youtube.com/channel/UCf5OPS6T5ka9WtWxR3FB88Q" target="_blank" rel="noopener noreferrer">YouTube Music</a>
-          <button id="music-decline" type="button">neh</button>
+          <button id="music-yes" type="button">Yes</button>
+          <button id="music-no" type="button">No</button>
+        </div>
+        <div id="tim-workout-journal-options" class="npc-dialogue-options" hidden>
+          <button id="tim-workout-journal-yas" type="button">yas</button>
+          <button id="tim-workout-journal-neh" type="button">neh</button>
+        </div>
+        <div id="lucy-plant-diary-options" class="npc-dialogue-options" hidden>
+          <button id="lucy-plant-diary-yeh" type="button">Yeh</button>
+          <button id="lucy-plant-diary-neh" type="button">Neh</button>
         </div>
       </section>
+      <section id="tim-workout-journal-panel" class="internal-feature-panel workout-journal-panel" role="dialog" aria-modal="true" aria-labelledby="tim-workout-journal-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="tim-workout-journal-title">Max's work out journal</h2>
+          <button id="tim-workout-journal-close" class="internal-feature-close" type="button" aria-label="Close work out journal">×</button>
+        </header>
+        <p class="workout-gallery-help">Scroll through the workouts. Tap any image to view it full screen.</p>
+        <div id="workout-gallery" class="workout-gallery" aria-label="Workout image thumbnails"></div>
+      </section>
+      <dialog id="workout-lightbox" class="workout-lightbox" aria-label="Full-screen workout image">
+        <button id="workout-lightbox-close" class="workout-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
+        <button id="workout-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous workout image">‹</button>
+        <figure><img id="workout-lightbox-image" alt=""><figcaption id="workout-lightbox-counter"></figcaption></figure>
+        <button id="workout-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next workout image">›</button>
+      </dialog>
       <section id="diary-panel" class="internal-feature-panel" role="dialog" aria-modal="true" aria-labelledby="diary-title" hidden>
         <header class="internal-feature-header">
           <h2 id="diary-title">Max's diary</h2>

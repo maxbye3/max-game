@@ -19,6 +19,12 @@ import {
   GYM_COLLISION_ROWS,
 } from './gym-collision-mask.js';
 import {
+  GARDEN_COLLISION_BITS,
+  GARDEN_COLLISION_CELL_SIZE,
+  GARDEN_COLLISION_COLUMNS,
+  GARDEN_COLLISION_ROWS,
+} from './garden-collision-mask.js';
+import {
   INTERNAL_COLLISION_BITS,
   INTERNAL_COLLISION_CELL_SIZE,
   INTERNAL_COLLISION_COLUMNS,
@@ -36,15 +42,18 @@ import {
   MANSION_COLLISION_COLUMNS,
   MANSION_COLLISION_ROWS,
 } from './mansion-collision-mask.js';
+import { isTimAtMusicShop } from './tim-location.js';
 
-export type InteriorKind = 'diaryLab' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave';
-export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy';
+export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave';
+export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim';
 
 export interface InteriorDoor {
   readonly triggerX: number;
   readonly triggerY: number;
+  readonly openDistance?: number;
   readonly exitX: number;
   readonly exitY: number;
+  readonly passageHalfWidth?: number;
   readonly sourceX: number;
   readonly sourceY: number;
   readonly sourceWidth: number;
@@ -147,8 +156,18 @@ const MUSIC_SHOP_DOORS: readonly InteriorDoor[] = [{
 
 const GYM_DOORS: readonly InteriorDoor[] = [{
   triggerX: 256, triggerY: 620, exitX: 256, exitY: 650,
-  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
-  x: 256, y: 620, width: 1, height: 1,
+  sourceX: 0, sourceY: 0, sourceWidth: 1219, sourceHeight: 1290,
+  x: 212, y: 572, width: 90, height: 105,
+}];
+
+const PLANT_ROOM_DOORS: readonly InteriorDoor[] = [{
+  // triggerY sits well above the visual door so the passage-open box
+  // (triggerY - 30) fully covers the solid door-frame threshold in the
+  // collision mask (blocked from y=563 to y=596) - otherwise a thin
+  // unbridged strip there permanently walls the player out of the doorway.
+  triggerX: 256, triggerY: 580, openDistance: 78, exitX: 256, exitY: 650, passageHalfWidth: 42,
+  sourceX: 0, sourceY: 0, sourceWidth: 215, sourceHeight: 255,
+  x: 202, y: 560, width: 108, height: 128,
 }];
 
 const BOOKSHOP_DOORS: readonly InteriorDoor[] = [{
@@ -186,6 +205,12 @@ const GYM_COLLISION: CollisionGrid = {
   cellSize: GYM_COLLISION_CELL_SIZE,
   columns: GYM_COLLISION_COLUMNS,
   rows: GYM_COLLISION_ROWS,
+};
+const GARDEN_COLLISION: CollisionGrid = {
+  bits: GARDEN_COLLISION_BITS,
+  cellSize: GARDEN_COLLISION_CELL_SIZE,
+  columns: GARDEN_COLLISION_COLUMNS,
+  rows: GARDEN_COLLISION_ROWS,
 };
 const BOOKSHOP_COLLISION: CollisionGrid = {
   bits: BOOKSHOP_COLLISION_BITS,
@@ -232,6 +257,21 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
     };
   }
 
+  if (enteredDoor === 'garden-room') {
+    return {
+      kind: 'plantRoom', title: 'Plant Room', ariaLabel: 'Plant Room interior',
+      width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
+      backgroundSource: '../img/internal/garden.png',
+      doorOverlaySource: '../img/internal/garden-door.png',
+      collision: GARDEN_COLLISION,
+      doors: PLANT_ROOM_DOORS,
+      interactions: [
+        { kind: 'lucy', label: 'Talk to Lucy', x: 355, y: 350, distance: 68 },
+      ],
+      playerStart: { x: 256, y: 530 },
+    };
+  }
+
   if (enteredDoor === 'music-shop') {
     return {
       kind: 'musicShop', title: 'Music House', ariaLabel: 'Music House interior',
@@ -244,6 +284,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
         // front of the booth where the player can reach it.
         { kind: 'andy', label: 'Talk to Andy', x: 258, y: 352, distance: 108 },
         { kind: 'aliya', label: 'Talk to Aliya', x: 130, y: 350, distance: 82 },
+        ...(isTimAtMusicShop() ? [{ kind: 'tim' as const, label: 'Talk to Tim', x: 380, y: 475, distance: 80 }] : []),
       ],
       playerStart: { x: 272, y: 625 },
     };
@@ -254,9 +295,13 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       kind: 'gym', title: 'Gym', ariaLabel: 'Gym interior',
       width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
       backgroundSource: '../img/internal/internal-gym.png',
+      doorOverlaySource: '../img/internal/gym-door-open.png',
       collision: GYM_COLLISION,
       doors: GYM_DOORS,
-      interactions: [],
+      interactions: [
+        { kind: 'julian', label: 'Talk to Julian', x: 331, y: 310, distance: 82 },
+        { kind: 'tim', label: 'Talk to Tim', x: 160, y: 445, distance: 105 },
+      ],
       playerStart: { x: 256, y: 575 },
     };
   }
@@ -269,9 +314,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       doorOverlaySource: '../img/internal/bookshop-door-open.png',
       collision: BOOKSHOP_COLLISION,
       doors: BOOKSHOP_DOORS,
-      interactions: [
-        { kind: 'lucy', label: 'Talk to Lucy', x: 256, y: 286, distance: 68 },
-      ],
+      interactions: [],
       playerStart: { x: 256, y: 560 },
     };
   }

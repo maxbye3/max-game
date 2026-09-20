@@ -6,10 +6,10 @@ import {
   updateCaveThief,
 } from './cave-thief.js';
 import { COLLISION_SHAPES } from './collision-data.js';
-import { canvas } from './dom.js';
+import { canvas, requireElement } from './dom.js';
 import { updateDoors } from './doors.js';
 import { updateGeorgia } from './georgia.js';
-import { updateGymTimCutscene } from './gym-tim-cutscene.js';
+import { setupGymTimCutscene, updateGymTimCutscene } from './gym-tim-cutscene.js';
 import { setupInput } from './input.js';
 import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
@@ -17,6 +17,7 @@ import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from './music-player.js';
 import { loadMapCharacters } from './map-characters.js';
 import { updateNiallInteraction } from './niall.js';
+import { resetTimRoute } from './tim-location.js';
 import { isNpcDialogueOpen, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
@@ -59,6 +60,11 @@ setupJump();
 setupMusicPlayer();
 setupNpcInteractions();
 setupCaveThief();
+setupGymTimCutscene();
+requireElement<HTMLButtonElement>('#tim-route-debug-reset').addEventListener('click', () => {
+  resetTimRoute();
+  window.location.assign('index.html');
+});
 
 Promise.all([loadAssets(), loadMapCharacters()])
   .then(() => {

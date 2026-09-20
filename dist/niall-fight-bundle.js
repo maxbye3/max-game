@@ -1,1 +1,288 @@
-"use strict";(()=>{var H={victory:{message:"Alright, I'll walk you to the bus",linkLabel:"Walk to the bus",href:"../index.html?niall=bus",niallQuestState:"following"},defeat:{message:"PLAYER fainted. Better luck next time.",linkLabel:"Back to the map",href:"../index.html"},escape:{message:"Alright, I'll walk you back to the bus.",linkLabel:"Walk to the bus",href:"../index.html?niall=bus",niallQuestState:"following"}};function L(e){return H[e]}function l(e){let t=document.querySelector(e);if(!t)throw new Error(`Missing required element: ${e}`);return t}var p=[{damage:10,message:"NIALL used HEADBUTT."},{damage:0,message:"NIALL opened a RED STRIPE. It did nothing."},{damage:0,fomo:!0,message:"NIALL set up a game of SMASH. PLAYER got FOMO."},{damage:10,message:"NIALL posted a food pic on WhatsApp."},{damage:10,message:"TALLULAH attacked."},{damage:20,message:"NIALL stayed at your house for two weeks."}],m=(e,t)=>Math.max(0,Math.min(t,e)),f=class{constructor(){this.playerHp=100;this.niallHp=120;this.fomoStacks=0;this.battleOver=!1;this.waitingForNiall=!1;this.defending=!1}get canAct(){return!this.battleOver&&!this.waitingForNiall}damageNiall(t){this.niallHp=m(this.niallHp-t,120)}healPlayer(t){this.playerHp=m(this.playerHp+t,100)}queueNiallTurn(){this.waitingForNiall=!0}defend(){this.defending=!0,this.queueNiallTurn()}applyNiallAttack(t){this.waitingForNiall=!1;let o=this.defending?Math.floor(t.damage/2):t.damage,w=o!==t.damage;return this.defending=!1,t.fomo&&(this.fomoStacks=Math.min(2,this.fomoStacks+1)),this.playerHp=m(this.playerHp-o,100),{damage:o,defended:w}}applyFomoDamage(){let t=this.fomoStacks*10;return this.playerHp=m(this.playerHp-t,100),t}finish(){this.battleOver=!0,this.waitingForNiall=!1,this.defending=!1}};function A(e=Math.random){let t=Math.floor(e()*p.length);return p[t]??p[0]}function E(e,t){try{window.localStorage.setItem(e,t)}catch{}}var T="max-game:niall-quest-state";function y(e){E(T,e)}var v=l("#player-hp"),k=l("#niall-hp"),M=l("#player-hp-text"),N=l("#fomo-status"),P=l("#battle-log"),u=l("#move-grid"),d=l("#item-grid"),h=l("#bus-link"),r=l("#battle-dice"),a=new f,g=null;function b(e){document.querySelectorAll(".move-grid button").forEach(t=>{t.disabled=e})}function i(){v.value=a.playerHp,k.value=a.niallHp,M.textContent=String(a.playerHp),N.textContent=`FOMO: ${a.fomoStacks}`,N.classList.toggle("active",a.fomoStacks>0),b(!a.canAct)}function n(e){P.textContent=e}function c(e){let t=L(e);a.finish(),u.hidden=!0,d.hidden=!0,h.textContent=t.linkLabel,h.href=t.href,h.hidden=!1,t.niallQuestState&&y(t.niallQuestState),n(t.message),i()}function x(){if(a.fomoStacks===0)return!1;let e=a.applyFomoDamage();return n(`FOMO hurt PLAYER for ${e} damage.`),i(),a.playerHp<=0?(c("defeat"),!0):!1}function S(){if(a.battleOver)return;let e=A(),t=a.applyNiallAttack(e);if(n(t.defended?`${e.message} PLAYER defended. Damage was halved.`:e.message),i(),a.playerHp<=0){c("defeat");return}window.setTimeout(()=>{a.battleOver||x()},850)}function s(){a.battleOver||(a.queueNiallTurn(),i(),window.setTimeout(S,850))}function I(){a.canAct&&(r.hidden=!1,r.classList.remove("shake"),r.offsetWidth,r.classList.add("shake"),r.textContent="?",b(!0),window.setTimeout(()=>{let e=Math.floor(Math.random()*61);if(r.textContent=String(e),a.damageNiall(e),n(`PLAYER rolled ${e}. NIALL took ${e} damage.`),i(),a.niallHp<=0){c("victory");return}s()},650))}function _(){if(!a.canAct)return;a.queueNiallTurn();let e=1;n("You tried to runaway and you were."),i(),g=window.setInterval(()=>{e=e===3?1:e+1,n(`You tried to runaway and you were${".".repeat(e)}`)},500),window.setTimeout(()=>{g!==null&&window.clearInterval(g),g=null,c("escape")},3e3)}function R(){a.canAct&&(u.hidden=!0,d.hidden=!1,n("Choose an item."))}function Y(){a.canAct&&(d.hidden=!0,u.hidden=!1,n("What will PLAYER do?"))}function O(){a.canAct&&(a.defend(),n("PLAYER curled into fetal position."),i(),window.setTimeout(S,850))}function B(e){if(a.canAct){if(d.hidden=!0,u.hidden=!1,e==="vape"){n("PLAYER used VAPE. NIALL took it and appreciated it."),s();return}if(e==="capri-sun"){a.healPlayer(50),n("PLAYER used CAPRI SUN. PLAYER recovered 50 HP."),s();return}if(e==="pocket-lint"){n("PLAYER used POCKET LINT. NIALL looked at it and shrugged."),s();return}if(e==="gun"){if(a.damageNiall(50),n("PLAYER used GUN. NIALL took 50 damage. It was super effective."),i(),a.niallHp<=0){c("victory");return}s()}}}u.addEventListener("click",e=>{let t=e.target.closest("[data-action]");if(!t)return;let o=t.dataset.action;o==="attack"?I():o==="run"?_():o==="items"?R():o==="defend"&&O()});d.addEventListener("click",e=>{let t=e.target.closest("[data-action], [data-item]");if(!t)return;if(t.dataset.action==="back"){Y();return}let o=t.dataset.item;o&&B(o)});i();})();
+"use strict";
+(() => {
+  // js/battle-outcome.ts
+  var RESULTS = {
+    victory: {
+      message: "Alright, I'll walk you to the bus",
+      linkLabel: "Walk to the bus",
+      href: "../index.html?niall=bus",
+      niallQuestState: "following"
+    },
+    defeat: {
+      message: "PLAYER fainted. Better luck next time.",
+      linkLabel: "Back to the map",
+      href: "../index.html"
+    },
+    escape: {
+      message: "Alright, I'll walk you back to the bus.",
+      linkLabel: "Walk to the bus",
+      href: "../index.html?niall=bus",
+      niallQuestState: "following"
+    }
+  };
+  function getBattleResult(outcome) {
+    return RESULTS[outcome];
+  }
+
+  // js/elements.ts
+  function requireElement(selector) {
+    const element = document.querySelector(selector);
+    if (!element) throw new Error(`Missing required element: ${selector}`);
+    return element;
+  }
+
+  // js/niall-battle.ts
+  var PLAYER_MAX_HP = 100;
+  var NIALL_MAX_HP = 120;
+  var NIALL_ATTACKS = [
+    { damage: 10, message: "NIALL used HEADBUTT." },
+    { damage: 0, message: "NIALL opened a RED STRIPE. It did nothing." },
+    { damage: 0, fomo: true, message: "NIALL set up a game of SMASH. PLAYER got FOMO." },
+    { damage: 10, message: "NIALL posted a food pic on WhatsApp." },
+    { damage: 10, message: "TALLULAH attacked." },
+    { damage: 20, message: "NIALL stayed at your house for two weeks." }
+  ];
+  var clamp = (value, maximum) => Math.max(0, Math.min(maximum, value));
+  var NiallBattle = class {
+    constructor() {
+      this.playerHp = PLAYER_MAX_HP;
+      this.niallHp = NIALL_MAX_HP;
+      this.fomoStacks = 0;
+      this.battleOver = false;
+      this.waitingForNiall = false;
+      this.defending = false;
+    }
+    get canAct() {
+      return !this.battleOver && !this.waitingForNiall;
+    }
+    damageNiall(amount) {
+      this.niallHp = clamp(this.niallHp - amount, NIALL_MAX_HP);
+    }
+    healPlayer(amount) {
+      this.playerHp = clamp(this.playerHp + amount, PLAYER_MAX_HP);
+    }
+    queueNiallTurn() {
+      this.waitingForNiall = true;
+    }
+    defend() {
+      this.defending = true;
+      this.queueNiallTurn();
+    }
+    applyNiallAttack(attack2) {
+      this.waitingForNiall = false;
+      const damage = this.defending ? Math.floor(attack2.damage / 2) : attack2.damage;
+      const defended = damage !== attack2.damage;
+      this.defending = false;
+      if (attack2.fomo) this.fomoStacks = Math.min(2, this.fomoStacks + 1);
+      this.playerHp = clamp(this.playerHp - damage, PLAYER_MAX_HP);
+      return { damage, defended };
+    }
+    applyFomoDamage() {
+      const damage = this.fomoStacks * 10;
+      this.playerHp = clamp(this.playerHp - damage, PLAYER_MAX_HP);
+      return damage;
+    }
+    finish() {
+      this.battleOver = true;
+      this.waitingForNiall = false;
+      this.defending = false;
+    }
+  };
+  function chooseNiallAttack(random = Math.random) {
+    const index = Math.floor(random() * NIALL_ATTACKS.length);
+    return NIALL_ATTACKS[index] ?? NIALL_ATTACKS[0];
+  }
+
+  // js/storage.ts
+  function writeStorage(key, value) {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {
+    }
+  }
+
+  // js/world-state.ts
+  var NIALL_QUEST_STATE_KEY = "max-game:niall-quest-state";
+  function setNiallQuestState(state) {
+    writeStorage(NIALL_QUEST_STATE_KEY, state);
+  }
+
+  // js/niall-fight.ts
+  var playerHpMeter = requireElement("#player-hp");
+  var niallHpMeter = requireElement("#niall-hp");
+  var playerHpText = requireElement("#player-hp-text");
+  var fomoStatus = requireElement("#fomo-status");
+  var battleLog = requireElement("#battle-log");
+  var actionGrid = requireElement("#move-grid");
+  var itemGrid = requireElement("#item-grid");
+  var busLink = requireElement("#bus-link");
+  var battleDice = requireElement("#battle-dice");
+  var battle = new NiallBattle();
+  var runInterval = null;
+  function setControlsDisabled(disabled) {
+    document.querySelectorAll(".move-grid button").forEach((button) => {
+      button.disabled = disabled;
+    });
+  }
+  function renderBattle() {
+    playerHpMeter.value = battle.playerHp;
+    niallHpMeter.value = battle.niallHp;
+    playerHpText.textContent = String(battle.playerHp);
+    fomoStatus.textContent = `FOMO: ${battle.fomoStacks}`;
+    fomoStatus.classList.toggle("active", battle.fomoStacks > 0);
+    setControlsDisabled(!battle.canAct);
+  }
+  function appendLog(message) {
+    battleLog.textContent = message;
+  }
+  function finishBattle(outcome) {
+    const result = getBattleResult(outcome);
+    battle.finish();
+    actionGrid.hidden = true;
+    itemGrid.hidden = true;
+    busLink.textContent = result.linkLabel;
+    busLink.href = result.href;
+    busLink.hidden = false;
+    if (result.niallQuestState) setNiallQuestState(result.niallQuestState);
+    appendLog(result.message);
+    renderBattle();
+  }
+  function applyFomoDamage() {
+    if (battle.fomoStacks === 0) return false;
+    const amount = battle.applyFomoDamage();
+    appendLog(`FOMO hurt PLAYER for ${amount} damage.`);
+    renderBattle();
+    if (battle.playerHp <= 0) {
+      finishBattle("defeat");
+      return true;
+    }
+    return false;
+  }
+  function niallTurn() {
+    if (battle.battleOver) return;
+    const attack2 = chooseNiallAttack();
+    const result = battle.applyNiallAttack(attack2);
+    appendLog(result.defended ? `${attack2.message} PLAYER defended. Damage was halved.` : attack2.message);
+    renderBattle();
+    if (battle.playerHp <= 0) {
+      finishBattle("defeat");
+      return;
+    }
+    window.setTimeout(() => {
+      if (!battle.battleOver) applyFomoDamage();
+    }, 850);
+  }
+  function queueNiallTurn() {
+    if (battle.battleOver) return;
+    battle.queueNiallTurn();
+    renderBattle();
+    window.setTimeout(niallTurn, 850);
+  }
+  function attack() {
+    if (!battle.canAct) return;
+    battleDice.hidden = false;
+    battleDice.classList.remove("shake");
+    void battleDice.offsetWidth;
+    battleDice.classList.add("shake");
+    battleDice.textContent = "?";
+    setControlsDisabled(true);
+    window.setTimeout(() => {
+      const amount = Math.floor(Math.random() * 61);
+      battleDice.textContent = String(amount);
+      battle.damageNiall(amount);
+      appendLog(`PLAYER rolled ${amount}. NIALL took ${amount} damage.`);
+      renderBattle();
+      if (battle.niallHp <= 0) {
+        finishBattle("victory");
+        return;
+      }
+      queueNiallTurn();
+    }, 650);
+  }
+  function run() {
+    if (!battle.canAct) return;
+    battle.queueNiallTurn();
+    let dots = 1;
+    appendLog("You tried to runaway and you were.");
+    renderBattle();
+    runInterval = window.setInterval(() => {
+      dots = dots === 3 ? 1 : dots + 1;
+      appendLog(`You tried to runaway and you were${".".repeat(dots)}`);
+    }, 500);
+    window.setTimeout(() => {
+      if (runInterval !== null) window.clearInterval(runInterval);
+      runInterval = null;
+      finishBattle("escape");
+    }, 3e3);
+  }
+  function showItems() {
+    if (!battle.canAct) return;
+    actionGrid.hidden = true;
+    itemGrid.hidden = false;
+    appendLog("Choose an item.");
+  }
+  function showActions() {
+    if (!battle.canAct) return;
+    itemGrid.hidden = true;
+    actionGrid.hidden = false;
+    appendLog("What will PLAYER do?");
+  }
+  function defend() {
+    if (!battle.canAct) return;
+    battle.defend();
+    appendLog("PLAYER curled into fetal position.");
+    renderBattle();
+    window.setTimeout(niallTurn, 850);
+  }
+  function useItem(item) {
+    if (!battle.canAct) return;
+    itemGrid.hidden = true;
+    actionGrid.hidden = false;
+    if (item === "vape") {
+      appendLog("PLAYER used VAPE. NIALL took it and appreciated it.");
+      queueNiallTurn();
+      return;
+    }
+    if (item === "capri-sun") {
+      battle.healPlayer(50);
+      appendLog("PLAYER used CAPRI SUN. PLAYER recovered 50 HP.");
+      queueNiallTurn();
+      return;
+    }
+    if (item === "pocket-lint") {
+      appendLog("PLAYER used POCKET LINT. NIALL looked at it and shrugged.");
+      queueNiallTurn();
+      return;
+    }
+    if (item === "gun") {
+      battle.damageNiall(50);
+      appendLog("PLAYER used GUN. NIALL took 50 damage. It was super effective.");
+      renderBattle();
+      if (battle.niallHp <= 0) {
+        finishBattle("victory");
+        return;
+      }
+      queueNiallTurn();
+    }
+  }
+  actionGrid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+    if (!button) return;
+    const action = button.dataset.action;
+    if (action === "attack") attack();
+    else if (action === "run") run();
+    else if (action === "items") showItems();
+    else if (action === "defend") defend();
+  });
+  itemGrid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action], [data-item]");
+    if (!button) return;
+    if (button.dataset.action === "back") {
+      showActions();
+      return;
+    }
+    const item = button.dataset.item;
+    if (item) useItem(item);
+  });
+  renderBattle();
+})();

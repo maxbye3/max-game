@@ -6,16 +6,23 @@ import {
   CaveSiblingsController,
 } from './cave-siblings.js';
 import { CinemaAudienceController } from './cinema-audience.js';
+import { SHOW_COLLISION_SHAPES } from './config.js';
 import { BOOKSHOP_NPCS } from './bookshop-npcs.js';
 import { DiaryLabFeatures } from './diary-lab-features.js';
 import { canvas, context, requireElement } from './dom.js';
+import { GymNpcDialogueController } from './gym-npc-dialogue.js';
 import { DirectionInputController } from './input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { drawSceneryNpcs } from './interior-scenery-npcs.js';
+import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
+import { isJumpMenuOpen, setupJump } from './jump.js';
 import { GYM_NPCS } from './gym-npcs.js';
 import { LucyController } from './lucy.js';
+import { MusicHouseDialogueController } from './music-house-dialogue.js';
 import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
+import { isTimAtMusicShop } from './tim-location.js';
+import { markInteriorVisited } from './world-state.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import {
@@ -43,9 +50,6 @@ const siblingsDialogueOptions = requireElement<HTMLElement>('#siblings-dialogue-
 const siblingsViewWebsite = requireElement<HTMLAnchorElement>('#siblings-view-website');
 const siblingsDeclineButton = requireElement<HTMLButtonElement>('#siblings-decline');
 const musicDialogueOptions = requireElement<HTMLElement>('#music-dialogue-options');
-const musicSpotify = requireElement<HTMLAnchorElement>('#music-spotify');
-const musicYoutube = requireElement<HTMLAnchorElement>('#music-youtube');
-const musicDeclineButton = requireElement<HTMLButtonElement>('#music-decline');
 const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-close');
 const noelDeclineButton = requireElement<HTMLButtonElement>('#noel-decline');
 const FRAME_COUNT = SEAL_MODE ? 8 : 9;
@@ -54,15 +58,12 @@ const SPEED = 145;
 const NOEL_FOLDER = 'chat/noel';
 const NOEL_NAME = NOEL_FOLDER.slice(NOEL_FOLDER.lastIndexOf('/') + 1);
 const NOEL_QUESTION = 'would you like to checkout some experiments Max is working on or his journal (this will require you to know his phone number)';
-const SHOW_COLLISIONS = searchParams.has('collisions');
 const enteredDoor = searchParams.get('door');
 const scene = getInteriorScene(enteredDoor);
-const isCinemaInterior = scene.kind === 'cinema';
-const isMusicShopInterior = scene.kind === 'musicShop';
-const isGymInterior = scene.kind === 'gym';
-const isBookshopInterior = scene.kind === 'bookshop';
-const isMansionInterior = scene.kind === 'mansion';
-const isCaveInterior = scene.kind === 'cave';
+markInteriorVisited();
+const isCinemaInterior = scene.kind === 'cinema'; const isMusicShopInterior = scene.kind === 'musicShop';
+const isGymInterior = scene.kind === 'gym'; const isBookshopInterior = scene.kind === 'bookshop'; const isPlantRoomInterior = scene.kind === 'plantRoom';
+const isMansionInterior = scene.kind === 'mansion'; const isCaveInterior = scene.kind === 'cave';
 const isDiaryLabInterior = scene.kind === 'diaryLab';
 document.title = scene.title;
 canvas.setAttribute('aria-label', scene.ariaLabel);
@@ -75,22 +76,17 @@ if (isCaveInterior) {
   context.imageSmoothingEnabled = false;
   requireElement<HTMLElement>('.game-shell').classList.add('cave-shell');
 }
-const interior = new Image();
-const collisionMask = new Image();
-const doorOverlay = new Image();
-const spriteSheet = new Image();
-const noelSprite = new Image();
-const siblingsSprite = new Image();
-const musicDjMachine = new Image();
+const interior = new Image(); const collisionMask = new Image();
+const doorOverlay = new Image(); const spriteSheet = new Image();
+const noelSprite = new Image(); const siblingsSprite = new Image();
+const musicDjMachine = new Image(); const gymGloves = new Image();
 const bookshopNpcs = BOOKSHOP_NPCS.map((npc) => ({ ...npc, image: new Image() }));
-const musicHouseNpcs = MUSIC_HOUSE_NPCS.map((npc) => ({ ...npc, image: new Image() }));
+const musicHouseNpcs = MUSIC_HOUSE_NPCS.filter((npc) => npc.id !== 'tim' || isTimAtMusicShop()).map((npc) => ({ ...npc, image: new Image() }));
 const gymNpcs = GYM_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 interior.src = scene.backgroundSource;
 if (scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
 if (scene.doorOverlaySource) doorOverlay.src = scene.doorOverlaySource;
-spriteSheet.src = SEAL_MODE
-  ? '../player/seal-game.png?v=20260831-transparent'
-  : '../player/SpriteSheet.png';
+spriteSheet.src = SEAL_MODE ? '../player/seal-game.png?v=20260831-transparent' : '../player/SpriteSheet.png';
 if (isDiaryLabInterior || isMansionInterior) noelSprite.src = '../chat/noel/interior-avatar.png';
 if (isCaveInterior) siblingsSprite.src = '../chat/siblings/girls-sprite.png';
 if (isMusicShopInterior) musicDjMachine.src = '../img/internal/music-dj-machine.png';
@@ -104,14 +100,7 @@ if (isMusicShopInterior) {
     npc.image.src = npc.source;
   });
 }
-if (isGymInterior) {
-  gymNpcs.forEach((npc) => {
-    npc.image.src = npc.source;
-  });
-}
-const noelTheme = new Audio();
-if (isDiaryLabInterior) noelTheme.src = '../chat/noel/player/theme.mp3';
-noelTheme.preload = 'auto';
+if (isGymInterior) { gymGloves.src = '../img/internal/gloves.png'; gymNpcs.forEach((npc) => { npc.image.src = npc.source; }); }
 const colanderWarningVoices = [
   new Audio('../chat/siblings/maddy.mp3'),
   new Audio('../chat/siblings/marina.mp3'),
@@ -131,13 +120,16 @@ let nearbyInteraction: InteractionKind | null = null;
 let noelDialogueOpen = false;
 let noelDialogueFollowsProximity = false;
 let noelDialogueLineIndex = 0;
+const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'noel' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim';
 const input = new DirectionInputController({
   canHold: () => !noelDialogueOpen || noelDialogueFollowsProximity,
 });
 const diaryLabFeatures = new DiaryLabFeatures();
-const lucy = isBookshopInterior
-  ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation)
+const lucy = isPlantRoomInterior
+  ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation, closeNoelDialogue)
   : null;
+const gymNpcDialogue = new GymNpcDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation);
+const musicHouseDialogue = new MusicHouseDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation);
 let caveColanderHeld = hasCaveColander();
 const interiorDoors = new InteriorDoorsController(scene, {
   enteredDoor,
@@ -214,15 +206,14 @@ function closeNoelDialogue(): void {
   siblingsDialogueOptions.hidden = true;
   musicDialogueOptions.hidden = true;
   diaryLabFeatures.hide();
-  noelTheme.pause();
-  noelTheme.currentTime = 0;
-  noelTheme.onended = null;
   lucy?.stop();
+  gymNpcDialogue.stop();
+  musicHouseDialogue.stop();
   colanderWarningVoices.forEach((voice) => {
     voice.pause();
     voice.currentTime = 0;
   });
-  interactionPrompt.hidden = nearbyInteraction === null || nearbyInteraction === 'siblings';
+  interactionPrompt.hidden = nearbyInteraction === null || isCharacterInteraction(nearbyInteraction);
 }
 function showSiblingsDialogue(): void {
   noelDialogueProgress.hidden = true;
@@ -263,12 +254,6 @@ function startNoelDialogue(): void {
   noelDialogueOptions.hidden = true;
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
-  noelTheme.pause();
-  noelTheme.currentTime = 0;
-  noelTheme.onended = null;
-  void noelTheme.play().catch(() => {
-    // Browsers may reject audio until a real keyboard or pointer gesture.
-  });
 }
 function startLucyDialogue(): void {
   if (nearbyInteraction !== 'lucy' || noelDialogueOpen) return;
@@ -329,20 +314,26 @@ function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
   if (nearbyInteraction !== kind || noelDialogueOpen) return;
   input.releaseAll();
   noelDialogueOpen = true;
-  noelDialogueFollowsProximity = false;
-  noelSpeaker.textContent = kind === 'andy' ? 'Andy' : 'Aliya'; setProfileImage(noelDialogueProfile, kind === 'andy' ? 'Andy' : 'Aliya', '../');
-  noelDialogueLine.textContent = kind === 'andy'
-    ? "Would you like to hear Max's music?"
-    : "When is Andy done? It's my turn to DJ.";
-  noelDialogueProgress.hidden = true;
-  noelGiftConfirmation.hidden = true;
-  noelDialogueNext.hidden = true;
+  noelDialogueFollowsProximity = true;
+  noelSpeaker.textContent = kind === 'andy' ? 'Andy' : 'Aliya';
+  if (kind === 'andy') {
+    setProfileImage(noelDialogueProfile, 'Andy', '../');
+  } else {
+    noelDialogueProfile.hidden = true;
+    noelDialogueProfile.alt = '';
+    noelDialogueProfile.removeAttribute('src');
+  }
+  musicHouseDialogue.start(kind);
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
   siblingsDialogueOptions.hidden = true;
-  musicDialogueOptions.hidden = kind !== 'andy';
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
+}
+function startGymNpcDialogue(kind: 'julian' | 'tim'): void {
+  if (nearbyInteraction !== kind || noelDialogueOpen) return; input.releaseAll(); noelDialogueOpen = true; noelDialogueFollowsProximity = true;
+  const npc = gymNpcDialogue.start(kind); noelSpeaker.textContent = npc.name; noelDialogueProfile.src = npc.profileSource ?? ''; noelDialogueProfile.alt = npc.profileSource ? `${npc.name} profile` : ''; noelDialogueProfile.hidden = !npc.profileSource;
+  noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true;
 }
 function activateNearbyInteraction(): void {
   if (nearbyInteraction === 'noel') startNoelDialogue();
@@ -355,6 +346,8 @@ function activateNearbyInteraction(): void {
     startMusicHouseDialogue(nearbyInteraction);
   } else if (nearbyInteraction === 'lucy') {
     startLucyDialogue();
+  } else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') {
+    startGymNpcDialogue(nearbyInteraction);
   }
 }
 function bindControls(): void {
@@ -389,6 +382,8 @@ function bindControls(): void {
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
   noelDialogueNext.addEventListener('click', () => {
     if (nearbyInteraction === 'lucy') lucy?.next();
+    else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') musicHouseDialogue.next();
+    else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') gymNpcDialogue.next();
     else showNextNoelDialogueLine();
   });
   noelDialogueClose.addEventListener('click', closeNoelDialogue);
@@ -402,9 +397,6 @@ function bindControls(): void {
     caveSiblings?.declineWebsite(performance.now());
     showSiblingsDialogue();
   });
-  musicSpotify.addEventListener('click', closeNoelDialogue);
-  musicYoutube.addEventListener('click', closeNoelDialogue);
-  musicDeclineButton.addEventListener('click', closeNoelDialogue);
   diaryLabFeatures.bind(openFeature, closeNoelDialogue);
   input.setup();
 }
@@ -429,8 +421,8 @@ function updatePlayer(deltaTime: number): void {
   const length = Math.hypot(dx, dy);
   moveWithCollisions(
     player,
-    (dx / length) * SPEED * deltaTime,
-    (dy / length) * SPEED * deltaTime,
+    (dx / length) * SPEED * getSpeedMultiplier() * deltaTime,
+    (dy / length) * SPEED * getSpeedMultiplier() * deltaTime,
     (x, y) => collision.playerIsBlocked(x, y),
   );
   if (dx < 0 && dy < 0) player.direction = 'upLeft';
@@ -467,7 +459,7 @@ function updateNearbyInteraction(): void {
     caveSiblings?.leaveRange();
   }
   if (
-    (previousInteraction === 'noel' || previousInteraction === 'siblings' || previousInteraction === 'lucy') &&
+    isCharacterInteraction(previousInteraction) &&
     nextInteraction !== previousInteraction &&
     noelDialogueOpen &&
     noelDialogueFollowsProximity
@@ -483,10 +475,13 @@ function updateNearbyInteraction(): void {
     startSiblingsDialogue(performance.now());
     return;
   }
+  if (nextInteraction === 'lucy') { interactionPrompt.hidden = true; startLucyDialogue(); return; }
+  if (nextInteraction === 'andy' || nextInteraction === 'aliya') { interactionPrompt.hidden = true; startMusicHouseDialogue(nextInteraction); return; }
+  if (nextInteraction === 'julian' || nextInteraction === 'tim') { interactionPrompt.hidden = true; startGymNpcDialogue(nextInteraction); return; }
   if (target) interactionPrompt.textContent = target.label;
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
-function draw(): void {
+function draw(timeMs = 0): void {
   // The cave is small enough to show in full with no camera panning at all;
   // every other interior is bigger than the canvas and keeps scrolling.
   const viewportWidth = isCaveInterior ? WORLD_WIDTH : Math.min(WORLD_WIDTH, canvas.width / VIEW_SCALE);
@@ -554,18 +549,15 @@ function draw(): void {
     );
   }
   if (isMusicShopInterior) {
-    drawSceneryNpcs(context, musicHouseNpcs, cameraX, cameraY, scaleX, scaleY);
+    drawSceneryNpcs(context, musicHouseNpcs, cameraX, cameraY, scaleX, scaleY, timeMs);
   }
   if (isGymInterior) {
-    drawSceneryNpcs(context, gymNpcs, cameraX, cameraY, scaleX, scaleY);
+    context.drawImage(gymGloves, Math.round((292 - cameraX) * scaleX + 50), Math.round((270 - cameraY - 195) * scaleY), 50 * scaleX, 81 * scaleY);
+    drawSceneryNpcs(context, gymNpcs, cameraX, cameraY, scaleX, scaleY, timeMs);
   }
-  if (isBookshopInterior) {
-    drawSceneryNpcs(context, [
-      ...bookshopNpcs,
-      { x: 256, y: 286, width: 42, height: 75, image: lucy!.sprite },
-    ], cameraX, cameraY, scaleX, scaleY);
-  }
-  if (SHOW_COLLISIONS) {
+  if (isBookshopInterior) drawSceneryNpcs(context, bookshopNpcs, cameraX, cameraY, scaleX, scaleY);
+  if (isPlantRoomInterior) drawSceneryNpcs(context, [{ x: 355, y: 350, width: 42, height: 75, image: lucy!.sprite }], cameraX, cameraY, scaleX, scaleY);
+  if (SHOW_COLLISION_SHAPES) {
     context.save();
     context.globalAlpha = 0.55;
     if (isCaveInterior) {
@@ -578,7 +570,7 @@ function draw(): void {
           wallHeight * scaleY,
         );
       }
-    } else if (isMusicShopInterior || isGymInterior || isBookshopInterior || scene.kind === 'mansion') {
+    } else if (isMusicShopInterior || isGymInterior || isBookshopInterior || scene.kind === 'mansion' || scene.kind === 'plantRoom') {
       context.fillStyle = '#005cff';
       const firstColumn = Math.max(0, Math.floor(cameraX / collision.cellSize));
       const lastColumn = Math.min(collision.columns - 1, Math.ceil((cameraX + viewportWidth) / collision.cellSize));
@@ -664,15 +656,23 @@ function draw(): void {
 function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
+  updatePowerups(time);
+  if (isJumpMenuOpen()) {
+    draw(time);
+    requestAnimationFrame(gameLoop);
+    return;
+  }
   caveSiblings?.update(deltaTime, time);
   updatePlayer(deltaTime);
   updateNearbyInteraction();
   interiorDoors.update(player.x, player.y);
-  draw();
+  draw(time);
   requestAnimationFrame(gameLoop);
 }
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
 bindControls();
+setupInventory();
+setupJump();
 const requiredImages = [
   interior,
   spriteSheet,
@@ -683,7 +683,7 @@ const requiredImages = [
   ...(isBookshopInterior ? bookshopNpcs.map((npc) => npc.image) : []),
   ...(isCaveInterior ? [siblingsSprite] : []),
   ...(isMusicShopInterior ? [...musicHouseNpcs.map((npc) => npc.image), musicDjMachine] : []),
-  ...(isGymInterior ? gymNpcs.map((npc) => npc.image) : []),
+  ...(isGymInterior ? [gymGloves, ...gymNpcs.map((npc) => npc.image)] : []),
 ];
 Promise.all(requiredImages.map((image) => image.decode()))
   .then(() => {

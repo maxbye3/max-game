@@ -1,4 +1,5 @@
 import { requireElement } from './dom.js';
+import { addGift, hasGift, removeGift, PORTABLE_WALKMAN } from './inventory-gifts.js';
 
 const SONGS = [
   'Africa',
@@ -14,6 +15,7 @@ const SONGS = [
 const musicToggle = requireElement<HTMLButtonElement>('#music-toggle');
 const musicPanel = requireElement<HTMLElement>('#music-panel');
 const musicClose = requireElement<HTMLButtonElement>('#music-close');
+const musicControlsGroup = requireElement<HTMLElement>('#music-controls-group');
 const musicSelect = requireElement<HTMLSelectElement>('#music-select');
 const playPauseButton = requireElement<HTMLButtonElement>('#music-play-pause');
 const volumeSlider = requireElement<HTMLInputElement>('#music-volume');
@@ -36,8 +38,27 @@ function setPanelOpen(isOpen: boolean): void {
   if (!isOpen && musicPanel.contains(document.activeElement)) musicToggle.focus();
 }
 
+function hasWalkman(): boolean {
+  return hasGift(PORTABLE_WALKMAN);
+}
+
+function updateWalkmanAvailability(): void {
+  const unlocked = hasWalkman();
+  musicControlsGroup.hidden = !unlocked;
+  musicSelect.disabled = !unlocked;
+  volumeSlider.disabled = !unlocked;
+  playPauseButton.disabled = !unlocked || !selectedSong;
+  if (!unlocked) {
+    player.pause();
+    musicStatus.textContent = "You don't have a way to play music";
+    setPlayerButton();
+  } else if (!selectedSong) {
+    musicStatus.textContent = 'Choose a song to start playing.';
+  }
+}
+
 function playSelectedSong(): void {
-  if (!selectedSong) return;
+  if (!selectedSong || !hasWalkman()) return;
   void player.play().then(() => {
     musicStatus.textContent = `Playing ${selectedSong}.`;
     setPlayerButton();
@@ -49,6 +70,7 @@ function playSelectedSong(): void {
 
 export function setupMusicPlayer(): void {
   musicSelect.addEventListener('change', () => {
+    if (!hasWalkman()) return;
     const song = musicSelect.value as (typeof SONGS)[number] | '';
     if (!song) return;
     selectedSong = song;
@@ -59,7 +81,7 @@ export function setupMusicPlayer(): void {
   });
 
   playPauseButton.addEventListener('click', () => {
-    if (!selectedSong) return;
+    if (!selectedSong || !hasWalkman()) return;
     if (player.paused) playSelectedSong();
     else {
       player.pause();
@@ -79,10 +101,21 @@ export function setupMusicPlayer(): void {
     setPlayerButton();
   });
 
-  musicToggle.addEventListener('click', () => setPanelOpen(musicPanel.hidden));
+  musicToggle.addEventListener('click', () => {
+    setPanelOpen(musicPanel.hidden);
+    updateWalkmanAvailability();
+  });
   musicClose.addEventListener('click', () => setPanelOpen(false));
   window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') setPanelOpen(false);
   });
-  setPlayerButton();
+  window.addEventListener('max-game:inventory-gift-added', updateWalkmanAvailability);
+  window.addEventListener('max-game:inventory-gift-removed', updateWalkmanAvailability);
+  updateWalkmanAvailability();
+
+  // TEMP: testing-only toggle, remove before shipping (along with the button in index.html).
+  document.querySelector<HTMLButtonElement>('#walkman-debug-toggle')?.addEventListener('click', () => {
+    if (hasWalkman()) removeGift(PORTABLE_WALKMAN);
+    else addGift(PORTABLE_WALKMAN);
+  });
 }

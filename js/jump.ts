@@ -9,7 +9,7 @@ interface JumpDestination {
 
 const JUMP_DESTINATIONS: readonly JumpDestination[] = [
   { id: 'northwest-portal', label: 'Cave' },
-  { id: 'diary-lab-left', label: 'Diary Lab - Left Door' },
+  { id: 'garden-room', label: 'Plant Room' },
   { id: 'diary-lab-center', label: 'Diary Lab - Center Door' },
   { id: 'diary-lab-right', label: 'Diary Lab - Right Door' },
   { id: 'music-shop', label: 'Music House' },
@@ -41,6 +41,10 @@ function setJumpMenuOpen(open: boolean): void {
   }
 }
 
+function internalPageHref(): string {
+  return window.location.pathname.includes('/internal/') ? 'index.html' : 'internal/index.html';
+}
+
 function jumpTo(destinationId: string): void {
   if (navigationStarted) return;
   navigationStarted = true;
@@ -48,7 +52,7 @@ function jumpTo(destinationId: string): void {
   const params = new URLSearchParams({ door: destinationId });
   if (hasCaveColander()) params.set('colander', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
-  window.location.assign(`internal/index.html?${params.toString()}`);
+  window.location.assign(`${internalPageHref()}?${params.toString()}`);
 }
 
 function buildOptions(): void {

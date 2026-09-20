@@ -306,3 +306,13 @@ generateRedOutlineCollisionMask({
   redThreshold: { red: 240, green: 60, blue: 60 },
   expectedDimensions: { width: 1024, height: 1536 },
 });
+
+generateRedOutlineCollisionMask({
+  guideName: 'garden-collisions.png',
+  outputName: 'garden-collision-mask.ts',
+  prefix: 'GARDEN',
+  sourceScale: 2,
+  seed: { x: 512, y: 900 },
+  floodFillBarriers: [{ x: 420, y: 1240, width: 184, height: 40 }],
+  expectedDimensions: { width: 1024, height: 1536 },
+});
