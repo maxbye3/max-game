@@ -45,7 +45,7 @@ import {
 import { isTimAtMusicShop } from './tim-location.js';
 
 export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave';
-export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim';
+export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -314,7 +314,9 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       doorOverlaySource: '../img/internal/bookshop-door-open.png',
       collision: BOOKSHOP_COLLISION,
       doors: BOOKSHOP_DOORS,
-      interactions: [],
+      interactions: [
+        { kind: 'helen', label: 'Talk to Helen', x: 350, y: 505, distance: 110 },
+      ],
       playerStart: { x: 256, y: 560 },
     };
   }

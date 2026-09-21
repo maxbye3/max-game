@@ -17,7 +17,7 @@ import { isHeld } from './input.js';
 import { isJumpMenuOpen } from './jump.js';
 import { isPlayerTripping } from './katy-power.js';
 import { isGymTimCutsceneBlockingPlayer } from './gym-tim-cutscene.js';
-import { isNiallAlertActive, isNiallBattleTransitionActive, NIALL } from './niall.js';
+import { isNiallBattleTransitionActive, isNiallEncounterBlockingPlayer, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
 
@@ -79,7 +79,7 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
     isHoleAnimationActive() ||
     isJumpMenuOpen() ||
     isGymTimCutsceneBlockingPlayer() ||
-    isNiallAlertActive() ||
+    isNiallEncounterBlockingPlayer() ||
     isNiallBattleTransitionActive() ||
     isCaveTheftCutsceneActive()
   ) {

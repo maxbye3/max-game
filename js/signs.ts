@@ -104,8 +104,9 @@ const signatureImage = requireElement<HTMLImageElement>('#sign-dialogue-signatur
 const busImage = requireElement<HTMLImageElement>('#sign-dialogue-bus-image');
 const announcer = requireElement<HTMLElement>('#announcer');
 
-const READ_DISTANCE = 46;
-const DISMISS_DISTANCE = 62;
+// Signs should be read from right beside them, not across the pavement.
+const READ_DISTANCE = 20;
+const DISMISS_DISTANCE = 28;
 let activeSign: Sign | null = null;
 
 function playerFootIntersectsSign(playerX: number, playerY: number, sign: Sign): boolean {

@@ -616,6 +616,8 @@ canvas {
   cursor: pointer;
 }
 
+.niall-route-debug-reset { top: 101px; }
+
 .niall-fight-start {
   right: 24px;
   bottom: 76px;
@@ -933,6 +935,34 @@ canvas {
   width: min(180px, 31%);
   aspect-ratio: 1;
   filter: grayscale(1) contrast(1.25);
+}
+
+.enemy-sprite.poisoned {
+  filter: grayscale(1) sepia(1) hue-rotate(220deg) saturate(4) brightness(.86) contrast(1.25);
+}
+
+.battle-damage {
+  position: absolute;
+  z-index: 4;
+  top: 185px;
+  right: 132px;
+  color: #9a2020;
+  font: 24px/1 var(--font-pixel);
+  text-shadow: 2px 2px 0 #f4f5ee;
+  pointer-events: none;
+}
+
+.battle-damage[hidden] {
+  display: none;
+}
+
+.battle-damage.fly-away {
+  animation: battle-damage-fly 1.15s ease-out forwards;
+}
+
+@keyframes battle-damage-fly {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-72px) scale(1.18); }
 }
 
 .player-sprite {

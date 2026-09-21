@@ -17,7 +17,9 @@ import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from './music-player.js';
 import { loadMapCharacters } from './map-characters.js';
 import { updateNiallInteraction } from './niall.js';
+import { updateBuildingAmbience } from './nightclub-audio.js';
 import { resetTimRoute } from './tim-location.js';
+import { resetNiallQuestState } from './world-state.js';
 import { isNpcDialogueOpen, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
@@ -33,6 +35,7 @@ function gameLoop(time: number): void {
   updateBusIntro(deltaTime, player);
   updatePlayer(deltaTime, speedMultiplier);
   updateHole(deltaTime, player);
+  updateBuildingAmbience(player.x, player.y);
   if (isJumpMenuOpen()) {
     draw(time);
     requestAnimationFrame(gameLoop);
@@ -63,6 +66,10 @@ setupCaveThief();
 setupGymTimCutscene();
 requireElement<HTMLButtonElement>('#tim-route-debug-reset').addEventListener('click', () => {
   resetTimRoute();
+  window.location.assign('index.html');
+});
+requireElement<HTMLButtonElement>('#niall-route-debug-reset').addEventListener('click', () => {
+  resetNiallQuestState();
   window.location.assign('index.html');
 });
 

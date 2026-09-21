@@ -5,6 +5,7 @@ const dialogues = [
   { name: 'ED', source: '../chat/ed/player/dialogue.txt', output: '../js/ed-dialogue.ts' },
   { name: 'MIKE', source: '../chat/mike/player/dialogue.txt', output: '../js/mike-dialogue.ts' },
   { name: 'NOEL', source: '../chat/noel/player/dialogue.txt', output: '../js/noel-dialogue.ts' },
+  { name: 'NIALL', source: '../chat/niall/dialogue.txt', output: '../js/niall-dialogue.ts' },
   { name: 'REI', source: '../chat/rei/player/dialogue.txt', output: '../js/rei-dialogue.ts' },
   { name: 'ANDY', source: '../chat/andy/dialogue.txt', output: '../js/andy-dialogue.ts' },
   { name: 'LUCY', source: '../chat/lucy/player/dialogue.txt', output: '../js/lucy-dialogue.ts' },
@@ -12,6 +13,7 @@ const dialogues = [
   { name: 'JULIAN', source: '../chat/julian/dialogue.txt', output: '../js/julian-dialogue.ts' },
   { name: 'KATY', source: '../chat/katy/dialogue.txt', output: '../js/katy-dialogue.ts' },
   { name: 'GEORGIA', source: '../chat/georgia/dialogue.txt', output: '../js/georgia-dialogue.ts' },
+  { name: 'HELEN', source: '../chat/helen/dialogue.txt', output: '../js/helen-dialogue.ts' },
   { name: 'TIM', source: '../chat/tim/dialogue.txt', output: '../js/tim-dialogue.ts' },
 ];
 

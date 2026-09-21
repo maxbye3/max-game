@@ -28,6 +28,7 @@ const OPEN_DISTANCE = 42;
 const PASSAGE_MARGIN = 8;
 const doorSound = new Audio('audio/open-door.mp3');
 doorSound.preload = 'auto';
+doorSound.volume = 0.25;
 
 let openDoorIds = new Set<string>();
 let hasSyncedInitialDoorState = false;

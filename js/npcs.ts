@@ -14,6 +14,7 @@ import { hideSignDialogue } from './signs.js';
 import { readStorage, writeStorage } from './storage.js';
 import { setProfileImage } from './profile-images.js';
 import { hasVisitedInterior } from './world-state.js';
+import { unlockSong, type Song } from './music-library.js';
 
 interface NpcDefinition {
   readonly id: 'adam' | 'ed' | 'mike' | 'rei' | 'alexS' | 'katy' | 'georgia';
@@ -25,6 +26,7 @@ interface NpcDefinition {
   readonly interactionDistance: number;
   readonly getPosition?: () => { readonly x: number; readonly y: number };
   readonly itemGift?: GiftItem;
+  readonly songReward?: Song;
   readonly dialogueLines: readonly string[];
   readonly getDialogueLine?: () => Promise<string>;
   readonly followUpLine?: () => string;
@@ -89,7 +91,7 @@ export const ALEX_S: NpcDefinition = {
   width: 20,
   height: 46,
   interactionDistance: 58,
-  itemGift: GIFT_ITEMS[1]!,
+  songReward: 'Africa',
   dialogueLines: ALEX_S_DIALOGUE_LINES,
 };
 
@@ -246,6 +248,12 @@ function showFollowUpLine(): void {
   nextButton.hidden = true;
 }
 
+function awardSong(song: Song): void {
+  if (!unlockSong(song)) return;
+  giftConfirmation.textContent = `${song} was added to your music playlist. A Walkman is required to play it.`;
+  giftConfirmation.hidden = false;
+}
+
 function acceptQuest(): void {
   requestLineShown = false;
   showQuestAcceptedOverlay();
@@ -285,12 +293,16 @@ function advanceDialogue(): void {
     dialogueLine.textContent = activeNpc.dialogueLines[currentDialogueLineIndex] ?? '';
     dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${activeNpc.dialogueLines.length}`;
     dialogueProgress.hidden = false;
+    if (activeNpc.songReward && currentDialogueLineIndex === activeNpc.dialogueLines.length - 1) {
+      awardSong(activeNpc.songReward);
+      nextButton.hidden = true;
+    }
   }
 }
 
 function showDialogueLine(npc: NpcDefinition): void {
   if (!npc.getDialogueLine) {
-    const lineIndex = nextDialogueIndex(npc);
+    const lineIndex = npc.songReward ? 0 : nextDialogueIndex(npc);
     currentDialogueLineIndex = lineIndex;
     dialogueLine.textContent = npc.dialogueLines[lineIndex] ?? '';
     dialogueProgress.textContent = `${lineIndex + 1}/${npc.dialogueLines.length}`;

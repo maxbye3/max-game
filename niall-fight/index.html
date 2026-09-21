@@ -22,6 +22,7 @@
 
         <div id="battle-dice" class="battle-dice" aria-live="polite" hidden>0</div>
         <img id="niall-battler" class="battle-sprite enemy-sprite" src="../img/battle/niall-avatar.png?v=20260901-rebuilt" alt="Niall">
+        <div id="niall-opening-damage" class="battle-damage" aria-live="polite" hidden>-5</div>
         <img class="battle-sprite player-sprite" src="../img/battle/max-avatar.png" alt="Player">
 
         <div class="battle-card player-card">
@@ -40,11 +41,14 @@
 
       <section class="battle-console">
         <div id="battle-log" class="battle-log" aria-live="polite">A wild NIALL appeared.</div>
-        <div id="move-grid" class="move-grid" aria-label="Battle actions">
+        <div id="move-grid" class="move-grid" aria-label="Battle actions" hidden>
           <button type="button" data-action="attack">Attack</button>
           <button type="button" data-action="run">Run</button>
           <button type="button" data-action="items">Items</button>
           <button type="button" data-action="defend">Defend</button>
+        </div>
+        <div id="opening-grid" class="move-grid" aria-label="Battle opening">
+          <button id="opening-next" class="full-row" type="button">Next &gt;</button>
         </div>
         <div id="item-grid" class="move-grid item-grid" aria-label="Battle items" hidden>
           <button type="button" data-item="vape">Vape</button>

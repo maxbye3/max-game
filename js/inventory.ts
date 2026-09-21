@@ -10,6 +10,7 @@ import {
 } from './katy-power.js';
 import { readStorage, writeStorage } from './storage.js';
 import { resolveSiteAsset } from './site-assets.js';
+import { getSongArtwork, getUnlockedSongs } from './music-library.js';
 
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const METEOR_COUNT = 14;
@@ -163,7 +164,7 @@ export const getSpeedMultiplier = () => speedMultiplier;
 
 function setItemReady(isReady: boolean): void {
   hasPowerSandwich = isReady;
-  inventoryCount.textContent = String((isReady ? 1 : 0) + getCollectedGifts().length);
+  inventoryCount.textContent = String((isReady ? 1 : 0) + getCollectedGifts().length + getUnlockedSongs().length);
   inventoryItem.disabled = !isReady;
   inventoryItem.classList.toggle('item-ready', isReady);
   readyBadge.hidden = !isReady;
@@ -233,6 +234,20 @@ function renderGiftItems(): void {
     card.append(image, text, actions);
     giftItems.append(card);
   });
+  getUnlockedSongs().forEach((song) => {
+    const card = document.createElement('div');
+    card.className = 'inventory-gift';
+    const image = document.createElement('img');
+    image.src = resolveSiteAsset(getSongArtwork(song));
+    image.alt = `${song} song artwork`;
+    const text = document.createElement('span');
+    text.className = 'item-text';
+    const name = document.createElement('strong');
+    name.textContent = song;
+    text.append(name);
+    card.append(image, text);
+    giftItems.append(card);
+  });
 }
 
 function setItemActionsOpen(isOpen: boolean): void {
@@ -261,6 +276,10 @@ export function setupInventory(): void {
     window.setTimeout(() => inventoryToggle.classList.remove('inventory-added-wobble'), 1000);
   });
   window.addEventListener('max-game:inventory-gift-removed', () => {
+    renderGiftItems();
+    setItemReady(hasPowerSandwich);
+  });
+  window.addEventListener('max-game:music-unlocked', () => {
     renderGiftItems();
     setItemReady(hasPowerSandwich);
   });

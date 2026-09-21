@@ -10,6 +10,8 @@ import {
   setNiallQuestState,
 } from './world-state.js';
 import { releaseAllInput } from './input.js';
+import { NIALL_DIALOGUE_LINES } from './niall-dialogue.js';
+import { readStorage, writeStorage } from './storage.js';
 import type { Direction } from './types.js';
 
 const CONTACT_DISTANCE = 30;
@@ -20,6 +22,8 @@ const FRAME_COUNT = 4;
 const FRAME_RATE = 9;
 const BATTLE_TRANSITION_DURATION = 2700;
 const BUS_STOP_DISTANCE = 58;
+const BUS_DIALOGUE_DISTANCE = 64;
+const BUS_DIALOGUE_INDEX_KEY = 'max-game:niall-bus-dialogue-index';
 
 export const NIALL = {
   x: 792,
@@ -36,6 +40,9 @@ export const NIALL_BUS_STOP = {
 } as const;
 
 const gameShell = requireElement<HTMLElement>('.game-shell');
+const dialogue = requireElement<HTMLElement>('#niall-dialogue');
+const dialogueLine = requireElement<HTMLElement>('#niall-dialogue-line');
+const dialogueNext = requireElement<HTMLButtonElement>('#niall-dialogue-next');
 let questState = getNiallQuestState();
 
 export const niallState: {
@@ -54,10 +61,37 @@ export const niallState: {
 
 export const isNiallFollowing = () => questState === 'following';
 let battleTransitionActive = false;
-let alertActive = false;
+type EncounterState = 'idle' | 'spotted' | 'chasing' | 'caught';
+let encounterState: EncounterState = 'idle';
+let busDialogueStage: number | null = null;
+let wasNearBusStop = false;
+let hasShownBusArrival = false;
 
 export const isNiallBattleTransitionActive = () => battleTransitionActive;
-export const isNiallAlertActive = () => alertActive;
+export const isNiallAlertActive = () => encounterState === 'spotted';
+export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught' || busDialogueStage !== null;
+
+function showDialogue(line: string): void {
+  dialogueLine.textContent = line;
+  dialogue.hidden = false;
+}
+
+function hideDialogue(): void {
+  dialogue.hidden = true;
+}
+
+function nextBusDialogueLine(): string {
+  const stored = Number.parseInt(readStorage(BUS_DIALOGUE_INDEX_KEY) ?? '0', 10);
+  const index = Number.isFinite(stored) && stored >= 0 ? stored % NIALL_DIALOGUE_LINES.length : 0;
+  writeStorage(BUS_DIALOGUE_INDEX_KEY, String((index + 1) % NIALL_DIALOGUE_LINES.length));
+  return NIALL_DIALOGUE_LINES[index] ?? '...';
+}
+
+function startBusDialogue(arrival: boolean): void {
+  if (arrival) hasShownBusArrival = true;
+  busDialogueStage = arrival ? 0 : 2;
+  showDialogue(arrival ? 'Niall is rolling a cigarette' : nextBusDialogueLine());
+}
 
 function startFight(): void {
   if (questState !== 'hostile' || battleTransitionActive) return;
@@ -113,27 +147,57 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
       niallState.direction = 'down';
       niallState.frame = 0;
       niallState.animationTime = 0;
+      wasNearBusStop = true;
+      startBusDialogue(true);
     }
     return;
   }
-  if (questState === 'busStop') return;
+  if (questState === 'busStop') {
+    const nearBusStop = Math.hypot(playerX - niallState.x, playerY - niallState.y) <= BUS_DIALOGUE_DISTANCE;
+    if (nearBusStop && !wasNearBusStop && busDialogueStage === null) startBusDialogue(!hasShownBusArrival);
+    wasNearBusStop = nearBusStop;
+    return;
+  }
   if (battleTransitionActive) return;
 
+  if (encounterState === 'spotted' || encounterState === 'caught') return;
   const dx = playerX - niallState.x;
   const dy = playerY - niallState.y;
-  if (!alertActive && Math.abs(dx) <= VERTICAL_SIGHT_HALF_WIDTH && dy > 0 && dy <= VERTICAL_SIGHT_DISTANCE) {
-    alertActive = true;
+  if (encounterState === 'idle' && Math.abs(dx) <= VERTICAL_SIGHT_HALF_WIDTH && dy > 0 && dy <= VERTICAL_SIGHT_DISTANCE) {
+    encounterState = 'spotted';
     niallState.direction = 'down';
     niallState.frame = 0;
     releaseAllInput();
+    showDialogue("hey! let's fight!");
     return;
   }
   const distance = Math.hypot(dx, dy);
-  if (distance <= CONTACT_DISTANCE) {
-    startFight();
+  if (distance <= CONTACT_DISTANCE && encounterState === 'chasing') {
+    encounterState = 'caught';
+    releaseAllInput();
+    showDialogue(NIALL_DIALOGUE_LINES[0] ?? '...');
     return;
   }
-  if (distance === 0 || !alertActive) return;
+  if (distance === 0 || encounterState !== 'chasing') return;
 
   chasePlayer(deltaTime, dx, dy, distance);
 }
+
+dialogueNext.addEventListener('click', () => {
+  if (encounterState === 'spotted') {
+    encounterState = 'chasing';
+    hideDialogue();
+  } else if (encounterState === 'caught') {
+    hideDialogue();
+    startFight();
+  } else if (busDialogueStage === 0) {
+    busDialogueStage = 1;
+    showDialogue('Kept you waiting huh?');
+  } else if (busDialogueStage === 1) {
+    busDialogueStage = 2;
+    showDialogue(nextBusDialogueLine());
+  } else if (busDialogueStage === 2) {
+    busDialogueStage = null;
+    hideDialogue();
+  }
+});

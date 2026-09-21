@@ -12,17 +12,16 @@ const playerHpText = requireElement<HTMLElement>('#player-hp-text');
 const fomoStatus = requireElement<HTMLElement>('#fomo-status');
 const battleLog = requireElement<HTMLElement>('#battle-log');
 const actionGrid = requireElement<HTMLElement>('#move-grid');
-const itemGrid = requireElement<HTMLElement>('#item-grid');
-const busLink = requireElement<HTMLAnchorElement>('#bus-link');
-const battleDice = requireElement<HTMLElement>('#battle-dice');
+const itemGrid = requireElement<HTMLElement>('#item-grid'); const busLink = requireElement<HTMLAnchorElement>('#bus-link');
+const battleDice = requireElement<HTMLElement>('#battle-dice'); const niallBattler = requireElement<HTMLImageElement>('#niall-battler'); const niallOpeningDamage = requireElement<HTMLElement>('#niall-opening-damage');
+const openingGrid = requireElement<HTMLElement>('#opening-grid'); const openingNext = requireElement<HTMLButtonElement>('#opening-next');
 
 const battle = new NiallBattle();
 let runInterval: number | null = null;
+let openingStage = 0;
 
 function setControlsDisabled(disabled: boolean): void {
-  document.querySelectorAll<HTMLButtonElement>('.move-grid button').forEach((button) => {
-    button.disabled = disabled;
-  });
+  document.querySelectorAll<HTMLButtonElement>('.move-grid button').forEach((button) => { button.disabled = disabled; });
 }
 
 function renderBattle(): void {
@@ -34,8 +33,18 @@ function renderBattle(): void {
   setControlsDisabled(!battle.canAct);
 }
 
-function appendLog(message: string): void {
-  battleLog.textContent = message;
+function appendLog(message: string): void { battleLog.textContent = message; }
+
+function playOpeningSequence(): void {
+  appendLog('Niall wants to fight!');
+  openingGrid.hidden = false;
+}
+
+function advanceOpeningSequence(): void {
+  if (openingStage === 0) { appendLog('Niall opened a can of Red Stripe'); openingStage = 1; return; }
+  if (openingStage === 1) { appendLog('Niall poisoned himself'); niallBattler.classList.add('poisoned'); openingStage = 2; return; }
+  if (openingStage === 2) { appendLog('Niall took damage.'); battle.damageNiall(5); niallOpeningDamage.hidden = false; niallOpeningDamage.classList.remove('fly-away'); void niallOpeningDamage.offsetWidth; niallOpeningDamage.classList.add('fly-away'); renderBattle(); openingStage = 3; return; }
+  niallOpeningDamage.hidden = true; openingGrid.hidden = true; actionGrid.hidden = false; appendLog('What will PLAYER do?'); renderBattle();
 }
 
 function finishBattle(outcome: BattleOutcome): void {
@@ -124,7 +133,8 @@ function run(): void {
   window.setTimeout(() => {
     if (runInterval !== null) window.clearInterval(runInterval);
     runInterval = null;
-    finishBattle('escape');
+    appendLog('Successful!');
+    window.setTimeout(() => finishBattle('escape'), 1_200);
   }, 3000);
 }
 
@@ -204,4 +214,7 @@ itemGrid.addEventListener('click', (event) => {
   if (item) useItem(item);
 });
 
+openingNext.addEventListener('click', advanceOpeningSequence);
+
 renderBattle();
+playOpeningSequence();

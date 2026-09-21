@@ -25,6 +25,12 @@ export function setNiallQuestState(state: NiallQuestState): void {
   writeStorage(NIALL_QUEST_STATE_KEY, state);
 }
 
+export function resetNiallQuestState(): void {
+  writeStorage(NIALL_QUEST_STATE_KEY, 'hostile');
+  writeStorage(LEGACY_NIALL_FIGHT_COMPLETE_KEY, 'false');
+  writeStorage(LEGACY_NIALL_AT_BUS_STOP_KEY, 'false');
+}
+
 export function hasVisitedInterior(): boolean {
   return readStorage(INTERIOR_VISITED_KEY) === 'true';
 }

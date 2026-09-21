@@ -11,6 +11,7 @@ import { BOOKSHOP_NPCS } from './bookshop-npcs.js';
 import { DiaryLabFeatures } from './diary-lab-features.js';
 import { canvas, context, requireElement } from './dom.js';
 import { GymNpcDialogueController } from './gym-npc-dialogue.js';
+import { HELEN_DIALOGUE_LINES } from './helen-dialogue.js';
 import { DirectionInputController } from './input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
@@ -19,6 +20,7 @@ import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { GYM_NPCS } from './gym-npcs.js';
 import { LucyController } from './lucy.js';
+import { setupInteriorAmbience } from './plant-room-ambience.js';
 import { MusicHouseDialogueController } from './music-house-dialogue.js';
 import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { isTimAtMusicShop } from './tim-location.js';
@@ -119,8 +121,8 @@ let previousTime = 0;
 let nearbyInteraction: InteractionKind | null = null;
 let noelDialogueOpen = false;
 let noelDialogueFollowsProximity = false;
-let noelDialogueLineIndex = 0;
-const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'noel' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim';
+let noelDialogueLineIndex = 0; let helenDialogueLineIndex = 0;
+const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'noel' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim' || interaction === 'helen';
 const input = new DirectionInputController({
   canHold: () => !noelDialogueOpen || noelDialogueFollowsProximity,
 });
@@ -269,6 +271,8 @@ function startLucyDialogue(): void {
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
 }
+function showHelenDialogue(): void { noelDialogueLine.textContent = HELEN_DIALOGUE_LINES[helenDialogueLineIndex] ?? ''; noelDialogueProgress.textContent = `${helenDialogueLineIndex + 1}/${HELEN_DIALOGUE_LINES.length}`; noelDialogueProgress.hidden = false; noelDialogueNext.hidden = false; }
+function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); noelDialogueOpen = true; noelDialogueFollowsProximity = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; }
 function openFeature(kind: 'diary' | 'experiments'): void {
   input.releaseAll();
   noelDialogueOpen = true;
@@ -338,17 +342,12 @@ function startGymNpcDialogue(kind: 'julian' | 'tim'): void {
 function activateNearbyInteraction(): void {
   if (nearbyInteraction === 'noel') startNoelDialogue();
   else if (nearbyInteraction === 'siblings') startSiblingsDialogue(performance.now());
-  else if (nearbyInteraction === 'diary' || nearbyInteraction === 'experiments') {
-    startFeatureInteraction(nearbyInteraction);
-  } else if (nearbyInteraction === 'colander') {
-    startColanderPickup();
-  } else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') {
-    startMusicHouseDialogue(nearbyInteraction);
-  } else if (nearbyInteraction === 'lucy') {
-    startLucyDialogue();
-  } else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') {
-    startGymNpcDialogue(nearbyInteraction);
-  }
+  else if (nearbyInteraction === 'diary' || nearbyInteraction === 'experiments') startFeatureInteraction(nearbyInteraction);
+  else if (nearbyInteraction === 'colander') startColanderPickup();
+  else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') startMusicHouseDialogue(nearbyInteraction);
+  else if (nearbyInteraction === 'lucy') startLucyDialogue();
+  else if (nearbyInteraction === 'helen') startHelenDialogue();
+  else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') startGymNpcDialogue(nearbyInteraction);
 }
 function bindControls(): void {
   window.addEventListener('keydown', (event) => {
@@ -382,6 +381,7 @@ function bindControls(): void {
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
   noelDialogueNext.addEventListener('click', () => {
     if (nearbyInteraction === 'lucy') lucy?.next();
+    else if (nearbyInteraction === 'helen') { helenDialogueLineIndex = (helenDialogueLineIndex + 1) % HELEN_DIALOGUE_LINES.length; showHelenDialogue(); }
     else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') musicHouseDialogue.next();
     else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') gymNpcDialogue.next();
     else showNextNoelDialogueLine();
@@ -476,6 +476,7 @@ function updateNearbyInteraction(): void {
     return;
   }
   if (nextInteraction === 'lucy') { interactionPrompt.hidden = true; startLucyDialogue(); return; }
+  if (nextInteraction === 'helen') { interactionPrompt.hidden = true; startHelenDialogue(); return; }
   if (nextInteraction === 'andy' || nextInteraction === 'aliya') { interactionPrompt.hidden = true; startMusicHouseDialogue(nextInteraction); return; }
   if (nextInteraction === 'julian' || nextInteraction === 'tim') { interactionPrompt.hidden = true; startGymNpcDialogue(nextInteraction); return; }
   if (target) interactionPrompt.textContent = target.label;
@@ -670,7 +671,7 @@ function gameLoop(time: number): void {
   requestAnimationFrame(gameLoop);
 }
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
-bindControls();
+bindControls(); setupInteriorAmbience(isPlantRoomInterior, '../map/audio/jungle.mp3'); setupInteriorAmbience(isBookshopInterior, '../map/audio/bookstore.mp3');
 setupInventory();
 setupJump();
 const requiredImages = [

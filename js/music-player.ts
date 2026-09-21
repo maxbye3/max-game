@@ -1,16 +1,6 @@
 import { requireElement } from './dom.js';
 import { addGift, hasGift, removeGift, PORTABLE_WALKMAN } from './inventory-gifts.js';
-
-const SONGS = [
-  'Africa',
-  'Dear Abe',
-  'Sundays',
-  'Too much duolingo',
-  'Outer wildeds',
-  'One dimensional man',
-  'Nowimfallingasleep',
-  'Lemon jelly',
-] as const;
+import { getUnlockedSongs, type Song } from './music-library.js';
 
 const musicToggle = requireElement<HTMLButtonElement>('#music-toggle');
 const musicPanel = requireElement<HTMLElement>('#music-panel');
@@ -25,7 +15,20 @@ const player = new Audio();
 player.loop = true;
 player.volume = Number(volumeSlider.value);
 
-let selectedSong: (typeof SONGS)[number] | null = null;
+let selectedSong: Song | null = null;
+
+function refreshSongOptions(): void {
+  const unlocked = getUnlockedSongs();
+  musicSelect.replaceChildren(new Option('Select a song', ''));
+  unlocked.forEach((song) => musicSelect.add(new Option(song, song)));
+  if (!selectedSong || !unlocked.includes(selectedSong)) {
+    selectedSong = null;
+    player.pause();
+    player.removeAttribute('src');
+  } else {
+    musicSelect.value = selectedSong;
+  }
+}
 
 function setPlayerButton(): void {
   playPauseButton.textContent = player.paused ? 'Play' : 'Pause';
@@ -44,6 +47,7 @@ function hasWalkman(): boolean {
 
 function updateWalkmanAvailability(): void {
   const unlocked = hasWalkman();
+  const hasSongs = getUnlockedSongs().length > 0;
   musicControlsGroup.hidden = !unlocked;
   musicSelect.disabled = !unlocked;
   volumeSlider.disabled = !unlocked;
@@ -52,6 +56,8 @@ function updateWalkmanAvailability(): void {
     player.pause();
     musicStatus.textContent = "You don't have a way to play music";
     setPlayerButton();
+  } else if (!hasSongs) {
+    musicStatus.textContent = 'You have not earned any songs yet.';
   } else if (!selectedSong) {
     musicStatus.textContent = 'Choose a song to start playing.';
   }
@@ -69,9 +75,10 @@ function playSelectedSong(): void {
 }
 
 export function setupMusicPlayer(): void {
+  refreshSongOptions();
   musicSelect.addEventListener('change', () => {
     if (!hasWalkman()) return;
-    const song = musicSelect.value as (typeof SONGS)[number] | '';
+    const song = musicSelect.value as Song | '';
     if (!song) return;
     selectedSong = song;
     player.src = `audio/music/${encodeURIComponent(song)}.mp3`;
@@ -111,6 +118,14 @@ export function setupMusicPlayer(): void {
   });
   window.addEventListener('max-game:inventory-gift-added', updateWalkmanAvailability);
   window.addEventListener('max-game:inventory-gift-removed', updateWalkmanAvailability);
+  window.addEventListener('max-game:music-unlocked', () => {
+    refreshSongOptions();
+    updateWalkmanAvailability();
+    musicToggle.classList.remove('inventory-added-wobble');
+    void musicToggle.offsetWidth;
+    musicToggle.classList.add('inventory-added-wobble');
+    window.setTimeout(() => musicToggle.classList.remove('inventory-added-wobble'), 1000);
+  });
   updateWalkmanAvailability();
 
   // TEMP: testing-only toggle, remove before shipping (along with the button in index.html).
