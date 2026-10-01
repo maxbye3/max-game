@@ -1,7 +1,7 @@
 import { JULIAN_DIALOGUE_LINES } from './julian-dialogue.js';
 import { TIM_DIALOGUE_LINES } from './tim-dialogue.js';
 import { addGift, hasGift, JULIAN_ITEM, nextGiftLine, TIM_ITEM, type GiftItem } from './inventory-gifts.js';
-import { readStorage, writeStorage } from './storage.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
 import { WorkoutGalleryController } from './workout-gallery.js';
 
 export type GymNpcId = 'julian' | 'tim';
@@ -51,7 +51,7 @@ export class GymNpcDialogueController {
   start(id: GymNpcId): GymNpcChat {
     const npc = GYM_NPC_CHATS[id];
     this.active = npc;
-    this.lineIndex = this.nextLineIndex(npc);
+    this.lineIndex = nextDialogueVisitIndex(npc.id, npc.dialogueLines.length);
     this.pendingGiftLine = hasGift(npc.item) ? null : nextGiftLine();
     this.journalOfferPending = id === 'julian' && this.pendingGiftLine !== null;
     if (this.journalOptions) this.journalOptions.hidden = true;
@@ -88,15 +88,6 @@ export class GymNpcDialogueController {
     this.workoutGallery.hide();
     this.confirmation.hidden = true;
     this.progress.hidden = true;
-  }
-
-  private nextLineIndex(npc: GymNpcChat): number {
-    if (npc.dialogueLines.length === 0) return 0;
-    const key = `max-game:${npc.id}-dialogue-index`;
-    const stored = Number.parseInt(readStorage(key) ?? '0', 10);
-    const index = Number.isFinite(stored) && stored >= 0 ? stored % npc.dialogueLines.length : 0;
-    writeStorage(key, String((index + 1) % npc.dialogueLines.length));
-    return index;
   }
 
   private showLine(): void {

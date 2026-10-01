@@ -43,6 +43,13 @@ export const LUCY_ITEM: GiftItem = {
   description: 'World spins around and around.',
 };
 
+export const NOEL_ITEM: GiftItem = {
+  id: 'noel-item',
+  name: "Noel's item",
+  imageSource: 'chat/noel/player/item.png',
+  description: 'Makes the protagonist move 20% faster.',
+};
+
 export const PORTABLE_WALKMAN: GiftItem = {
   id: 'portable-walkman',
   name: 'Portable walkman',
@@ -65,11 +72,109 @@ export const ANDY_ITEM: GiftItem = {
   description: 'Creates the apocalypse.',
 };
 
-export const REI_ITEM: GiftItem = {
+export const REI_ITEM_1: GiftItem = {
   id: 'rei-item',
-  name: "Rei's item",
-  imageSource: 'chat/rei/player/item.png',
-  description: 'Makes the protagonist move 20% faster.',
+  name: "Rei's first item",
+  imageSource: 'chat/rei/item-1.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const REI_ITEM_2: GiftItem = {
+  id: 'rei-item-2',
+  name: "Rei's second item",
+  imageSource: 'chat/rei/item-2.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const MARINA_D_ITEM_1: GiftItem = {
+  id: 'marina-d-item-1',
+  name: "Marina D's first item",
+  imageSource: 'chat/marina d/item-1.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const MARINA_D_ITEM_2: GiftItem = {
+  id: 'marina-d-item-2',
+  name: "Marina D's second item",
+  imageSource: 'chat/marina d/item-2.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const ED_ITEM: GiftItem = {
+  id: 'ed-item',
+  name: "Ed's item",
+  imageSource: 'chat/ed/item.png',
+  description: 'The world becomes like arsenal football club.',
+};
+
+export const ADAM_ITEM: GiftItem = {
+  id: 'adam-item',
+  name: "Adam's item",
+  imageSource: 'chat/adam/item.png',
+  description: 'The world becomes like arsenal football club.',
+};
+
+export const ALICE_ITEM: GiftItem = {
+  id: 'alice-item',
+  name: "Alice's item",
+  imageSource: 'chat/alice/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const CHRIS_ITEM: GiftItem = {
+  id: 'chris-item',
+  name: "Chris's item",
+  imageSource: 'chat/chris/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const SAM_ITEM: GiftItem = {
+  id: 'sam-item',
+  name: "Sam's item",
+  imageSource: 'chat/sam/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const KATIE_ITEM: GiftItem = {
+  id: 'katie-item',
+  name: "Katie's item",
+  imageSource: 'chat/katie/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const OSCAR_ITEM: GiftItem = {
+  id: 'oscar-item',
+  name: "Oscar's item",
+  imageSource: 'chat/oscar/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const JU_ITEM: GiftItem = {
+  id: 'ju-item',
+  name: "Ju's item",
+  imageSource: 'chat/ju/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const BOCHRA_ITEM: GiftItem = {
+  id: 'bochra-item',
+  name: "Bochra's item",
+  imageSource: 'chat/bochra/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const DAN_ITEM: GiftItem = {
+  id: 'dan-item',
+  name: "Dan's item",
+  imageSource: 'chat/dan/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const JOE_ITEM: GiftItem = {
+  id: 'joe-item',
+  name: "Joe's item",
+  imageSource: 'chat/joe/item.png',
+  description: 'The world becomes arsenal football club.',
 };
 
 const INVENTORY_GIFTS_KEY = 'max-game:inventory-gifts';
@@ -110,12 +215,27 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     description: 'Character trips over occasionally',
   },
   LUCY_ITEM,
+  NOEL_ITEM,
   JULIAN_ITEM,
   TIM_ITEM,
   PORTABLE_WALKMAN,
   GEORGIA_ITEM,
   ANDY_ITEM,
-  REI_ITEM,
+  REI_ITEM_1,
+  REI_ITEM_2,
+  MARINA_D_ITEM_1,
+  MARINA_D_ITEM_2,
+  ED_ITEM,
+  ADAM_ITEM,
+  ALICE_ITEM,
+  CHRIS_ITEM,
+  SAM_ITEM,
+  KATIE_ITEM,
+  OSCAR_ITEM,
+  JU_ITEM,
+  BOCHRA_ITEM,
+  DAN_ITEM,
+  JOE_ITEM,
 ];
 
 function readGiftIds(): string[] {
@@ -151,6 +271,18 @@ export function addGift(item: GiftItem): boolean {
 export function removeGift(item: GiftItem): void {
   writeGiftIds(readGiftIds().filter((id) => id !== item.id));
   window.dispatchEvent(new Event('max-game:inventory-gift-removed'));
+}
+
+export function removeAllCollectedGifts(): number {
+  const ids = readGiftIds();
+  const collectedIds = new Set(getCollectedGifts().map((item) => item.id));
+  const remainingIds = ids.filter((id) => !collectedIds.has(id));
+  const removedCount = ids.length - remainingIds.length;
+  if (removedCount > 0) {
+    writeGiftIds(remainingIds);
+    window.dispatchEvent(new Event('max-game:inventory-gift-removed'));
+  }
+  return removedCount;
 }
 
 export function nextGiftLine(): string {

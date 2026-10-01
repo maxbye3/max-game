@@ -1,22 +1,18 @@
 import { drawColander, hasCaveColander } from './colander.js';
-import {
-  CAVE_SIBLINGS,
-  CAVE_SIBLINGS_IDLE_FRAME,
-  CAVE_SIBLINGS_WALK_FRAMES,
-  CaveSiblingsController,
-} from './cave-siblings.js';
-import { CinemaAudienceController } from './cinema-audience.js';
-import { SHOW_COLLISION_SHAPES } from './config.js';
+import { createGameAudio, setupAudioMute } from './audio-mute.js';
+import { CAVE_SIBLINGS, CAVE_SIBLINGS_IDLE_FRAME, CAVE_SIBLINGS_WALK_FRAMES, CaveSiblingsController } from './cave-siblings.js';
+import { CinemaAudienceController } from './cinema-audience.js'; import { SHOW_COLLISION_SHAPES } from './config.js';
 import { BOOKSHOP_NPCS } from './bookshop-npcs.js';
 import { DiaryLabFeatures } from './diary-lab-features.js';
 import { canvas, context, requireElement } from './dom.js';
 import { GymNpcDialogueController } from './gym-npc-dialogue.js';
+import { GoodreadsReadingController } from './goodreads-reading.js';
 import { HELEN_DIALOGUE_LINES } from './helen-dialogue.js';
 import { DirectionInputController } from './input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { drawSceneryNpcs } from './interior-scenery-npcs.js';
-import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
+import { setupInventory, updatePowerups } from './inventory.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { GYM_NPCS } from './gym-npcs.js';
 import { LucyController } from './lucy.js';
@@ -25,19 +21,16 @@ import { MusicHouseDialogueController } from './music-house-dialogue.js';
 import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { isTimAtMusicShop } from './tim-location.js';
 import { markInteriorVisited } from './world-state.js';
-import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
-import {
-  CAVE_COLANDER,
-  CAVE_WALLS,
-  NOEL,
-  getInteriorScene,
-  type InteractionKind,
-} from './interior-scenes.js';
+import { CAVE_COLANDER, CAVE_WALLS, NOEL, getInteriorScene, type InteractionKind } from './interior-scenes.js';
 import type { Direction } from './types.js';
-import { moveWithCollisions } from './movement.js'; import { setProfileImage } from './profile-images.js';
-const searchParams = new URLSearchParams(window.location.search);
-const SEAL_MODE = searchParams.has('seal');
+import { moveWithCollisions } from './movement.js'; import { setProfileImage } from './profile-images.js'; import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
+import { addGift, hasGift, NOEL_ITEM } from './inventory-gifts.js';
+import { getSongArtwork, getUnlockedSongs, unlockSong } from './music-library.js';
+import { resolveSiteAsset } from './site-assets.js';
+import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
+const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal');
 const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt');
 const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
 const noelSpeaker = requireElement<HTMLElement>('#noel-speaker');
@@ -59,7 +52,10 @@ const PLAYER_SCALE = 2; const VIEW_SCALE = 1;
 const SPEED = 145;
 const NOEL_FOLDER = 'chat/noel';
 const NOEL_NAME = NOEL_FOLDER.slice(NOEL_FOLDER.lastIndexOf('/') + 1);
-const NOEL_QUESTION = 'would you like to checkout some experiments Max is working on or his journal (this will require you to know his phone number)';
+const NOEL_QUESTION = "Play a game where I'm the protagonist";
+const NOEL_GAME_URL = 'https://maxbye.co/stealth-game/';
+const NOEL_SONG = 'bleep-blops' as const;
+let noelVisitStage = 0;
 const enteredDoor = searchParams.get('door');
 const scene = getInteriorScene(enteredDoor);
 markInteriorVisited();
@@ -104,8 +100,8 @@ if (isMusicShopInterior) {
 }
 if (isGymInterior) { gymGloves.src = '../img/internal/gloves.png'; gymNpcs.forEach((npc) => { npc.image.src = npc.source; }); }
 const colanderWarningVoices = [
-  new Audio('../chat/siblings/maddy.mp3'),
-  new Audio('../chat/siblings/marina.mp3'),
+  createGameAudio('../chat/siblings/maddy.mp3'),
+  createGameAudio('../chat/siblings/marina.mp3'),
 ];
 colanderWarningVoices.forEach((voice) => {
   voice.preload = 'auto';
@@ -122,16 +118,21 @@ let nearbyInteraction: InteractionKind | null = null;
 let noelDialogueOpen = false;
 let noelDialogueFollowsProximity = false;
 let noelDialogueLineIndex = 0; let helenDialogueLineIndex = 0;
+type NoelDialogueStage = 'opening' | 'question' | 'decline' | 'reward' | 'done';
+type NoelReward = 'item' | 'song';
+let noelDialogueStage: NoelDialogueStage = 'done';
+let noelRewardQueue: NoelReward[] = [];
 const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'noel' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim' || interaction === 'helen';
 const input = new DirectionInputController({
   canHold: () => !noelDialogueOpen || noelDialogueFollowsProximity,
 });
 const diaryLabFeatures = new DiaryLabFeatures();
+const goodreadsReading = new GoodreadsReadingController(closeNoelDialogue);
 const lucy = isPlantRoomInterior
   ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation, closeNoelDialogue)
   : null;
 const gymNpcDialogue = new GymNpcDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation);
-const musicHouseDialogue = new MusicHouseDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation);
+const musicHouseDialogue = new MusicHouseDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation, closeNoelDialogue);
 let caveColanderHeld = hasCaveColander();
 const interiorDoors = new InteriorDoorsController(scene, {
   enteredDoor,
@@ -159,7 +160,7 @@ const caveSiblings = isCaveInterior
 const cinemaAudience = isCinemaInterior
   ? new CinemaAudienceController({
     openDialogue: (line, index, total) => {
-      noelDialogueOpen = true;
+      beginDialogueAudio(); noelDialogueOpen = true;
       noelDialogueFollowsProximity = true;
       noelSpeaker.textContent = 'cinema audience'; setProfileImage(noelDialogueProfile, 'cinema audience', '../');
       noelDialogueLine.textContent = line;
@@ -175,30 +176,91 @@ const cinemaAudience = isCinemaInterior
     closeDialogue: () => closeNoelDialogue(),
   })
   : null;
-function finishNoelIntroduction(): void {
+function showNoelGameQuestion(): void {
+  noelDialogueStage = 'question';
+  noelDialogueLine.textContent = '';
+  noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = true;
+  noelDialogueProgress.hidden = true;
   noelDialogueQuestion.textContent = NOEL_QUESTION;
   noelDialogueQuestion.hidden = false;
   noelDialogueOptions.hidden = false;
 }
 function showNoelDialogueLine(): void {
+  noelDialogueStage = 'opening';
   noelDialogueLine.textContent = NOEL_DIALOGUE_LINES[noelDialogueLineIndex] ?? '';
   noelDialogueProgress.textContent = `${noelDialogueLineIndex + 1}/${NOEL_DIALOGUE_LINES.length}`;
   noelDialogueProgress.hidden = false;
   noelDialogueNext.hidden = false;
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
 }
-function showNextNoelDialogueLine(): void {
-  if (!noelDialogueOpen) return;
-  if (noelDialogueLineIndex < NOEL_DIALOGUE_LINES.length - 1) {
-    noelDialogueLineIndex += 1;
-    showNoelDialogueLine();
+function chooseNoelGame(accept: boolean): void {
+  if (!noelDialogueOpen || nearbyInteraction !== 'noel' || noelDialogueStage !== 'question') return;
+  if (accept) window.open(NOEL_GAME_URL, '_blank', 'noopener,noreferrer');
+  noelDialogueOptions.hidden = true;
+  noelDialogueQuestion.hidden = true;
+  noelDialogueProgress.hidden = true;
+  noelGiftConfirmation.hidden = true;
+  noelRewardQueue = [];
+  if (!hasGift(NOEL_ITEM)) noelRewardQueue.push('item');
+  if (!getUnlockedSongs().includes(NOEL_SONG)) noelRewardQueue.push('song');
+  if (!accept) {
+    noelDialogueStage = 'decline';
+    noelDialogueLine.textContent = 'ah. I haven’t actually finished it either';
+    noelDialogueNext.hidden = false;
     return;
   }
-  finishNoelIntroduction();
+  showNextNoelReward();
+}
+function showNextNoelReward(): void {
+  const reward = noelRewardQueue.shift();
+  if (!reward) {
+    noelDialogueStage = 'done';
+    closeNoelDialogue();
+    return;
+  }
+  noelDialogueStage = 'reward';
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
+  noelDialogueProgress.hidden = true;
+  noelGiftConfirmation.hidden = true;
+  noelDialogueNext.hidden = false;
+  if (reward === 'item') {
+    noelDialogueLine.textContent = 'Here, take my item.';
+    const added = addGift(NOEL_ITEM);
+    noelGiftConfirmation.textContent = added ? "Noel’s item was added to your inventory." : '';
+    noelGiftConfirmation.hidden = !added;
+    return;
+  }
+  noelDialogueLine.textContent = `And here’s ${NOEL_SONG}.`;
+  if (!unlockSong(NOEL_SONG)) return showNextNoelReward();
+  noelGiftConfirmation.textContent = `${NOEL_SONG} was added to your music playlist.`;
+  noelGiftConfirmation.hidden = false;
+  const shell = document.querySelector<HTMLElement>('.game-shell');
+  if (shell) {
+    const overlay = document.createElement('div');
+    overlay.className = 'quest-accepted-overlay item-received-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    const image = document.createElement('img');
+    image.src = resolveSiteAsset(getSongArtwork(NOEL_SONG));
+    image.alt = '';
+    overlay.append(image);
+    shell.append(overlay);
+    window.setTimeout(() => overlay.remove(), 3200);
+    void createGameAudio(resolveSiteAsset('audio/music-accepted.mp3')).play().catch(() => {});
+  }
+}
+function nextNoelDialogueVisitIndex(): number {
+  const index = Math.min(noelVisitStage, 1);
+  noelVisitStage = Math.min(noelVisitStage + 1, 1);
+  return index;
 }
 function closeNoelDialogue(): void {
-  caveSiblings?.closeDialogue();
+  endDialogueAudio(); caveSiblings?.closeDialogue();
   noelDialogueOpen = false;
+  noelDialogueStage = 'done';
+  noelRewardQueue = [];
   noelDialogueFollowsProximity = false;
   noelDialogue.hidden = true;
   noelDialogueNext.hidden = true;
@@ -207,7 +269,9 @@ function closeNoelDialogue(): void {
   noelDialogueOptions.hidden = true;
   siblingsDialogueOptions.hidden = true;
   musicDialogueOptions.hidden = true;
+  helenReadingOptions.hidden = true;
   diaryLabFeatures.hide();
+  goodreadsReading.hide();
   lucy?.stop();
   gymNpcDialogue.stop();
   musicHouseDialogue.stop();
@@ -233,7 +297,7 @@ function startSiblingsDialogue(time: number): void {
     noelDialogueOpen ||
     !caveSiblings?.startWelcome(time)
   ) return;
-  noelDialogueOpen = true;
+  noelDialogueOpen = true; beginDialogueAudio('Maddy', '../');
   noelDialogueFollowsProximity = true;
   showSiblingsDialogue();
 }
@@ -241,26 +305,27 @@ function startSiblingsWebsiteReturnDialogue(): void {
   if (!caveSiblings?.canResumeAfterWebsite) return;
   if (noelDialogueOpen) closeNoelDialogue();
   caveSiblings.resumeAfterWebsite(performance.now());
-  noelDialogueOpen = true;
+  noelDialogueOpen = true; beginDialogueAudio('Maddy', '../');
   noelDialogueFollowsProximity = true;
   showSiblingsDialogue();
 }
 function startNoelDialogue(): void {
   if (nearbyInteraction !== 'noel' || noelDialogueOpen) return;
-  noelDialogueOpen = true;
+  noelDialogueOpen = true; beginDialogueAudio(NOEL_NAME, '../');
   noelDialogueFollowsProximity = true;
-  noelDialogueLineIndex = 0;
+  noelDialogueLineIndex = nextNoelDialogueVisitIndex();
   noelSpeaker.textContent = NOEL_NAME; setProfileImage(noelDialogueProfile, NOEL_NAME, '../');
-  showNoelDialogueLine();
-  noelDialogueQuestion.hidden = true;
-  noelDialogueOptions.hidden = true;
+  noelDialogueLine.textContent = '';
+  noelDialogueProgress.hidden = true;
+  noelDialogueNext.hidden = true;
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
+  showNoelDialogueLine();
 }
 function startLucyDialogue(): void {
   if (nearbyInteraction !== 'lucy' || noelDialogueOpen) return;
   input.releaseAll();
-  noelDialogueOpen = true;
+  noelDialogueOpen = true; beginDialogueAudio('Lucy', '../');
   noelDialogueFollowsProximity = true;
   noelSpeaker.textContent = 'Lucy'; setProfileImage(noelDialogueProfile, 'Lucy', '../');
   lucy?.start();
@@ -271,16 +336,18 @@ function startLucyDialogue(): void {
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
 }
+let helenReadingOfferPending = false;
+const helenReadingOptions = requireElement<HTMLElement>('#helen-reading-options');
 function showHelenDialogue(): void { noelDialogueLine.textContent = HELEN_DIALOGUE_LINES[helenDialogueLineIndex] ?? ''; noelDialogueProgress.textContent = `${helenDialogueLineIndex + 1}/${HELEN_DIALOGUE_LINES.length}`; noelDialogueProgress.hidden = false; noelDialogueNext.hidden = false; }
-function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); noelDialogueOpen = true; noelDialogueFollowsProximity = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; }
-function openFeature(kind: 'diary' | 'experiments'): void {
-  input.releaseAll();
+function showHelenReadingOffer(): void { helenReadingOfferPending = false; noelDialogueLine.textContent = 'Would you like to see what Max is reading?'; noelDialogueProgress.hidden = true; noelDialogueNext.hidden = true; helenReadingOptions.hidden = false; }
+function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); noelDialogueOpen = true; beginDialogueAudio('Helen', '../'); noelDialogueFollowsProximity = true; helenDialogueLineIndex = nextDialogueVisitIndex('helen', HELEN_DIALOGUE_LINES.length); helenReadingOfferPending = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; helenReadingOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; }
+function openFeature(kind: 'diary' | 'experiments' | 'reading'): void {
+  input.releaseAll(); endDialogueAudio();
   noelDialogueOpen = true;
   noelDialogueFollowsProximity = false;
-  interactionPrompt.hidden = true;
-  noelDialogueNext.hidden = true;
-  noelDialogue.hidden = true;
-  diaryLabFeatures.open(kind);
+  [interactionPrompt, noelDialogueNext, noelDialogue, helenReadingOptions].forEach((element) => { element.hidden = true; });
+  if (kind === 'reading') goodreadsReading.open();
+  else diaryLabFeatures.open(kind);
 }
 function startFeatureInteraction(kind: 'diary' | 'experiments'): void {
   if (!noelDialogueOpen) openFeature(kind);
@@ -294,7 +361,7 @@ function startColanderPickup(): void {
   caveColanderHeld = true;
   interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
   nearbyInteraction = null;
-  noelDialogueOpen = true;
+  noelDialogueOpen = true; beginDialogueAudio('Maddy', '../');
   noelDialogueFollowsProximity = false;
   noelSpeaker.textContent = 'THE GIRLS'; setProfileImage(noelDialogueProfile, 'Maddy', '../');
   noelDialogueLine.textContent = 'PUT THAT DOWN NOW';
@@ -317,7 +384,7 @@ function startColanderPickup(): void {
 function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
   if (nearbyInteraction !== kind || noelDialogueOpen) return;
   input.releaseAll();
-  noelDialogueOpen = true;
+  noelDialogueOpen = true; beginDialogueAudio(kind === 'andy' ? 'Andy' : 'Aliya', '../');
   noelDialogueFollowsProximity = true;
   noelSpeaker.textContent = kind === 'andy' ? 'Andy' : 'Aliya';
   if (kind === 'andy') {
@@ -336,7 +403,7 @@ function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
 }
 function startGymNpcDialogue(kind: 'julian' | 'tim'): void {
   if (nearbyInteraction !== kind || noelDialogueOpen) return; input.releaseAll(); noelDialogueOpen = true; noelDialogueFollowsProximity = true;
-  const npc = gymNpcDialogue.start(kind); noelSpeaker.textContent = npc.name; noelDialogueProfile.src = npc.profileSource ?? ''; noelDialogueProfile.alt = npc.profileSource ? `${npc.name} profile` : ''; noelDialogueProfile.hidden = !npc.profileSource;
+  beginDialogueAudio(kind === 'julian' ? 'Julian' : 'Tim', '../'); const npc = gymNpcDialogue.start(kind); noelSpeaker.textContent = npc.name; noelDialogueProfile.src = npc.profileSource ?? ''; noelDialogueProfile.alt = npc.profileSource ? `${npc.name} profile` : ''; noelDialogueProfile.hidden = !npc.profileSource;
   noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true;
 }
 function activateNearbyInteraction(): void {
@@ -351,6 +418,7 @@ function activateNearbyInteraction(): void {
 }
 function bindControls(): void {
   window.addEventListener('keydown', (event) => {
+    if (goodreadsReading.isOpen()) return;
     if (event.ctrlKey || event.metaKey || event.altKey) {
       input.releaseAll();
       return;
@@ -381,13 +449,22 @@ function bindControls(): void {
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
   noelDialogueNext.addEventListener('click', () => {
     if (nearbyInteraction === 'lucy') lucy?.next();
-    else if (nearbyInteraction === 'helen') { helenDialogueLineIndex = (helenDialogueLineIndex + 1) % HELEN_DIALOGUE_LINES.length; showHelenDialogue(); }
+    else if (nearbyInteraction === 'helen') {
+      if (helenDialogueLineIndex < HELEN_DIALOGUE_LINES.length - 1) { helenDialogueLineIndex += 1; showHelenDialogue(); }
+      else if (helenReadingOfferPending) showHelenReadingOffer();
+    }
     else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') musicHouseDialogue.next();
     else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') gymNpcDialogue.next();
-    else showNextNoelDialogueLine();
+    else if (nearbyInteraction === 'noel') {
+      if (noelDialogueStage === 'opening') showNoelGameQuestion();
+      else if (noelDialogueStage === 'decline' || noelDialogueStage === 'reward') showNextNoelReward();
+    }
   });
   noelDialogueClose.addEventListener('click', closeNoelDialogue);
-  noelDeclineButton.addEventListener('click', closeNoelDialogue);
+  requireElement<HTMLButtonElement>('#helen-reading-yes').addEventListener('click', () => openFeature('reading'));
+  requireElement<HTMLButtonElement>('#helen-reading-no').addEventListener('click', closeNoelDialogue);
+  requireElement<HTMLButtonElement>('#noel-yes').addEventListener('click', () => chooseNoelGame(true));
+  noelDeclineButton.addEventListener('click', () => chooseNoelGame(false));
   siblingsViewWebsite.addEventListener('click', () => {
     caveSiblings?.chooseWebsite();
     closeNoelDialogue();
@@ -421,8 +498,8 @@ function updatePlayer(deltaTime: number): void {
   const length = Math.hypot(dx, dy);
   moveWithCollisions(
     player,
-    (dx / length) * SPEED * getSpeedMultiplier() * deltaTime,
-    (dy / length) * SPEED * getSpeedMultiplier() * deltaTime,
+    (dx / length) * SPEED * deltaTime,
+    (dy / length) * SPEED * deltaTime,
     (x, y) => collision.playerIsBlocked(x, y),
   );
   if (dx < 0 && dy < 0) player.direction = 'upLeft';
@@ -671,7 +748,7 @@ function gameLoop(time: number): void {
   requestAnimationFrame(gameLoop);
 }
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
-bindControls(); setupInteriorAmbience(isPlantRoomInterior, '../map/audio/jungle.mp3'); setupInteriorAmbience(isBookshopInterior, '../map/audio/bookstore.mp3');
+bindControls(); setupAudioMute(); setupInteriorAmbience(enteredDoor);
 setupInventory();
 setupJump();
 const requiredImages = [

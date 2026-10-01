@@ -2,7 +2,7 @@ import { images } from './assets.js';
 import { ADAM, ALEX_S, ED, KATY, MIKE, REI } from './npcs.js';
 import { drawMapCharacters } from './map-characters.js';
 import { drawGymTimCutscene } from './gym-tim-cutscene.js';
-import { hasVisitedInterior } from './world-state.js';
+import { hasMikeAftermath } from './world-state.js';
 
 const REI_PAINT = { x: 438, y: 490, width: 15, height: 20 } as const;
 
@@ -30,9 +30,9 @@ export function drawOverworldNpcs(
   context.save();
   context.imageSmoothingEnabled = false;
   drawMapCharacters(context, cameraX, cameraY);
-  if (!hasVisitedInterior()) drawNpc(context, images.mike, MIKE, cameraX, cameraY);
+  if (!hasMikeAftermath()) drawNpc(context, images.mike, MIKE, cameraX, cameraY);
   drawNpc(context, images.rei, REI, cameraX, cameraY);
-  if (hasVisitedInterior()) drawNpc(context, images.paint, REI_PAINT, cameraX, cameraY);
+  if (hasMikeAftermath()) drawNpc(context, images.paint, REI_PAINT, cameraX, cameraY);
   drawNpc(context, images.adam, ADAM, cameraX, cameraY);
   drawNpc(context, images.ed, ED, cameraX, cameraY);
   drawNpc(context, images.alexS, ALEX_S, cameraX, cameraY);

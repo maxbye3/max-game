@@ -7,6 +7,7 @@ export const SONGS = [
   'One dimensional man',
   'Nowimfallingasleep',
   'Lemon jelly',
+  'bleep-blops',
 ] as const;
 
 export type Song = (typeof SONGS)[number];
@@ -22,7 +23,8 @@ export function getUnlockedSongs(): readonly Song[] {
 }
 
 export function getSongArtwork(song: Song): string {
-  return song === 'Africa'
+  if (song === 'bleep-blops') return 'audio/music/bits-bots.png';
+  return song === 'Africa' || song === 'Outer wildeds' || song === 'Too much duolingo' || song === 'Lemon jelly'
     ? 'audio/music/caledonian-is-massive.png'
     : 'audio/music/bits-bots.png';
 }
@@ -37,4 +39,14 @@ export function unlockSong(song: Song): boolean {
   }
   window.dispatchEvent(new Event('max-game:music-unlocked'));
   return true;
+}
+
+/** Clears earned tracks so music rewards can be tested again. */
+export function resetMusicLibrary(): void {
+  try {
+    window.localStorage.removeItem(UNLOCKED_SONGS_KEY);
+  } catch {
+    // Storage may be unavailable in a restricted browser context.
+  }
+  window.dispatchEvent(new Event('max-game:music-library-reset'));
 }

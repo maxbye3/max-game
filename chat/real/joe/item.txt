@@ -1,0 +1,1 @@
+Causes the protagonist to lose 10% health. (heat damage)

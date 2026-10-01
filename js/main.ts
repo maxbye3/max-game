@@ -1,4 +1,5 @@
 import { loadAssets } from './assets.js';
+import { setupAudioMute } from './audio-mute.js';
 import { setupBusIntro, updateBusIntro } from './bus-intro.js';
 import {
   isCaveThiefPursuitActive,
@@ -11,29 +12,31 @@ import { updateDoors } from './doors.js';
 import { updateGeorgia } from './georgia.js';
 import { setupGymTimCutscene, updateGymTimCutscene } from './gym-tim-cutscene.js';
 import { setupInput } from './input.js';
-import { getSpeedMultiplier, setupInventory, updatePowerups } from './inventory.js';
+import { setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from './music-player.js';
+import { resetMusicLibrary } from './music-library.js';
 import { loadMapCharacters } from './map-characters.js';
 import { updateNiallInteraction } from './niall.js';
-import { updateBuildingAmbience } from './nightclub-audio.js';
+import { restoreBuildingAmbience, updateBuildingAmbience } from './nightclub-audio.js';
 import { resetTimRoute } from './tim-location.js';
-import { resetNiallQuestState } from './world-state.js';
-import { isNpcDialogueOpen, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
+import { removeGift, PORTABLE_WALKMAN } from './inventory-gifts.js';
+import { resetMikeAftermath, resetNiallQuestState } from './world-state.js';
+import { isNpcDialogueOpen, resetReiMission, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
 import { updateSigns } from './signs.js';
 
 let previousTime = 0;
+restoreBuildingAmbience(new URLSearchParams(window.location.search).get('door'));
 
 function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
   updatePowerups(time);
-  const speedMultiplier = getSpeedMultiplier();
   updateBusIntro(deltaTime, player);
-  updatePlayer(deltaTime, speedMultiplier);
+  updatePlayer(deltaTime, 1);
   updateHole(deltaTime, player);
   updateBuildingAmbience(player.x, player.y);
   if (isJumpMenuOpen()) {
@@ -41,7 +44,7 @@ function gameLoop(time: number): void {
     requestAnimationFrame(gameLoop);
     return;
   }
-  updateCaveThief(deltaTime, time, player.x, player.y, speedMultiplier);
+  updateCaveThief(deltaTime, time, player.x, player.y, 1);
   updateGeorgia(deltaTime);
   updateGymTimCutscene(deltaTime, player);
   updateNpcInteractions(player.x, player.y);
@@ -57,6 +60,7 @@ function gameLoop(time: number): void {
 }
 
 setupInput();
+setupAudioMute();
 setupBusIntro();
 setupInventory();
 setupJump();
@@ -64,12 +68,13 @@ setupMusicPlayer();
 setupNpcInteractions();
 setupCaveThief();
 setupGymTimCutscene();
-requireElement<HTMLButtonElement>('#tim-route-debug-reset').addEventListener('click', () => {
+requireElement<HTMLButtonElement>('#reset-all').addEventListener('click', () => {
   resetTimRoute();
-  window.location.assign('index.html');
-});
-requireElement<HTMLButtonElement>('#niall-route-debug-reset').addEventListener('click', () => {
   resetNiallQuestState();
+  resetMikeAftermath();
+  resetReiMission();
+  resetMusicLibrary();
+  removeGift(PORTABLE_WALKMAN);
   window.location.assign('index.html');
 });
 

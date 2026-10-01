@@ -1,16 +1,14 @@
-import { APOCALYPSE_DURATION, BOOST_DURATION, BOOST_MULTIPLIER, RECHARGE_DURATION } from './config.js';
+import { APOCALYPSE_DURATION } from './config.js';
+import { createGameAudio, isAudioMuted } from './audio-mute.js';
 import { requireElement } from './dom.js';
-import { getCollectedGifts } from './inventory-gifts.js';
-import { removeGift } from './inventory-gifts.js';
+import { getCollectedGifts, removeAllCollectedGifts, removeGift } from './inventory-gifts.js';
 import {
   activateKatyPower,
   katyPowerSecondsLeft,
   KATY_POWER_DURATION,
   updateKatyPower,
 } from './katy-power.js';
-import { readStorage, writeStorage } from './storage.js';
 import { resolveSiteAsset } from './site-assets.js';
-import { getSongArtwork, getUnlockedSongs } from './music-library.js';
 
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const METEOR_COUNT = 14;
@@ -24,16 +22,10 @@ const TIM_THEME_SOURCE = 'chat/tim/theme.mp3';
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
 const inventoryClose = requireElement<HTMLButtonElement>('#inventory-close');
-const inventoryItem = requireElement<HTMLButtonElement>('#inventory-item');
-const deleteItemButton = requireElement<HTMLButtonElement>('#delete-item');
-const itemActions = requireElement<HTMLElement>('#item-actions');
-const useItemButton = requireElement<HTMLButtonElement>('#use-item');
+const inventoryDeleteAll = requireElement<HTMLButtonElement>('#inventory-delete-all');
 const inventoryMessage = requireElement<HTMLElement>('#inventory-message');
 const inventoryCount = requireElement<HTMLElement>('.inventory-count');
 const powerupStatus = requireElement<HTMLElement>('#powerup-status');
-const itemStatus = requireElement<HTMLElement>('#item-status');
-const readyBadge = requireElement<HTMLElement>('#ready-badge');
-const rechargeFill = requireElement<HTMLElement>('#recharge-fill');
 const announcer = requireElement<HTMLElement>('#announcer');
 const giftItems = requireElement<HTMLElement>('#gift-items');
 
@@ -48,6 +40,7 @@ function announce(message: string): void {
 }
 
 function playApocalypseRumble(): void {
+  if (isAudioMuted()) return;
   const AudioContextClass = window.AudioContext;
   const audioContext = new AudioContextClass();
   const rumble = audioContext.createOscillator();
@@ -119,7 +112,7 @@ function triggerGiftPower(className: 'world-opening' | 'face-implosion' | 'world
 
 function playItemTheme(source: string): void {
   itemTheme?.pause();
-  itemTheme = new Audio(resolveSiteAsset(source));
+  itemTheme = createGameAudio(resolveSiteAsset(source));
   itemTheme.preload = 'auto';
   void itemTheme.play().catch(() => {
     // Browsers may reject audio outside a user gesture.
@@ -141,7 +134,7 @@ function stopKatyTheme(): void {
 
 function playKatyTheme(): void {
   stopKatyTheme();
-  katyTheme = new Audio(resolveSiteAsset(KATY_THEME_SOURCE));
+  katyTheme = createGameAudio(resolveSiteAsset(KATY_THEME_SOURCE));
   katyTheme.preload = 'auto';
   katyTheme.loop = true;
   void katyTheme.play().catch(() => {
@@ -150,31 +143,14 @@ function playKatyTheme(): void {
   katyThemeTimeout = window.setTimeout(stopKatyTheme, KATY_POWER_DURATION);
 }
 
-let speedMultiplier = 1;
-let speedBoostEndsAt = 0;
-let hasPowerSandwich = true;
-let sandwichDeleted = readStorage('max-game:power-sandwich-deleted') === 'true';
-let itemRechargesAt = 0;
 let itemTheme: HTMLAudioElement | null = null;
 let katyTheme: HTMLAudioElement | null = null;
 let katyThemeTimeout = 0;
 let katyItemDescription = '';
 
-export const getSpeedMultiplier = () => speedMultiplier;
-
-function setItemReady(isReady: boolean): void {
-  hasPowerSandwich = isReady;
-  inventoryCount.textContent = String((isReady ? 1 : 0) + getCollectedGifts().length + getUnlockedSongs().length);
-  inventoryItem.disabled = !isReady;
-  inventoryItem.classList.toggle('item-ready', isReady);
-  readyBadge.hidden = !isReady;
-  rechargeFill.style.width = isReady ? '100%' : '0%';
-  itemStatus.textContent = sandwichDeleted ? 'Deleted' : isReady ? 'Ready to use' : 'Recharging';
-  deleteItemButton.disabled = sandwichDeleted;
-}
-
 function renderGiftItems(): void {
   giftItems.replaceChildren();
+  inventoryCount.textContent = String(getCollectedGifts().length);
   getCollectedGifts().forEach((item) => {
     const card = document.createElement('div');
     card.className = 'inventory-gift';
@@ -234,26 +210,6 @@ function renderGiftItems(): void {
     card.append(image, text, actions);
     giftItems.append(card);
   });
-  getUnlockedSongs().forEach((song) => {
-    const card = document.createElement('div');
-    card.className = 'inventory-gift';
-    const image = document.createElement('img');
-    image.src = resolveSiteAsset(getSongArtwork(song));
-    image.alt = `${song} song artwork`;
-    const text = document.createElement('span');
-    text.className = 'item-text';
-    const name = document.createElement('strong');
-    name.textContent = song;
-    text.append(name);
-    card.append(image, text);
-    giftItems.append(card);
-  });
-}
-
-function setItemActionsOpen(isOpen: boolean): void {
-  itemActions.hidden = !isOpen;
-  inventoryItem.classList.toggle('selected', isOpen);
-  inventoryItem.setAttribute('aria-expanded', String(isOpen));
 }
 
 function setInventoryOpen(isOpen: boolean): void {
@@ -265,11 +221,8 @@ function setInventoryOpen(isOpen: boolean): void {
 
 export function setupInventory(): void {
   renderGiftItems();
-  setItemReady(!sandwichDeleted);
-  setItemActionsOpen(false);
   window.addEventListener('max-game:inventory-gift-added', () => {
     renderGiftItems();
-    setItemReady(hasPowerSandwich);
     inventoryToggle.classList.remove('inventory-added-wobble');
     void inventoryToggle.offsetWidth;
     inventoryToggle.classList.add('inventory-added-wobble');
@@ -277,42 +230,17 @@ export function setupInventory(): void {
   });
   window.addEventListener('max-game:inventory-gift-removed', () => {
     renderGiftItems();
-    setItemReady(hasPowerSandwich);
   });
   window.addEventListener('max-game:music-unlocked', () => {
     renderGiftItems();
-    setItemReady(hasPowerSandwich);
   });
 
   inventoryToggle.addEventListener('click', () => setInventoryOpen(inventoryPanel.hidden));
   inventoryClose.addEventListener('click', () => setInventoryOpen(false));
-  inventoryItem.addEventListener('click', () => {
-    if (!hasPowerSandwich) return;
-    setItemActionsOpen(itemActions.hidden);
+  inventoryDeleteAll.addEventListener('click', () => {
+    const removedCount = removeAllCollectedGifts();
+    announce(removedCount > 0 ? `${removedCount} items deleted.` : 'Inventory is already empty.');
   });
-  deleteItemButton.addEventListener('click', () => {
-    if (sandwichDeleted) return;
-    sandwichDeleted = true;
-    writeStorage('max-game:power-sandwich-deleted', 'true');
-    itemRechargesAt = 0;
-    setItemReady(false);
-    setItemActionsOpen(false);
-    announce('Power Sandwich deleted.');
-  });
-
-  useItemButton.addEventListener('click', () => {
-    if (!hasPowerSandwich) return;
-    const now = performance.now();
-    speedMultiplier = BOOST_MULTIPLIER;
-    speedBoostEndsAt = now + BOOST_DURATION;
-    itemRechargesAt = now + RECHARGE_DURATION;
-    setItemReady(false);
-    setItemActionsOpen(false);
-    inventoryClose.focus();
-    announce('Power Sandwich used - speed increased for 10 seconds!');
-    powerupStatus.hidden = false;
-  });
-
   window.addEventListener('keydown', (event) => {
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
@@ -322,36 +250,6 @@ export function setupInventory(): void {
 }
 
 export function updatePowerups(now: number): void {
-  // The boost always ends before the recharge does, so it is resolved first:
-  // when a backgrounded tab collapses both into one frame, the newer event wins.
-  if (speedBoostEndsAt > 0) {
-    const secondsLeft = Math.max(0, (speedBoostEndsAt - now) / 1000);
-    const status = `Speed boost ${secondsLeft.toFixed(1)}s`;
-    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
-
-    if (secondsLeft === 0) {
-      speedMultiplier = 1;
-      speedBoostEndsAt = 0;
-      powerupStatus.hidden = true;
-      announce('The speed boost has worn off.');
-    }
-  }
-
-  if (!hasPowerSandwich && itemRechargesAt > 0) {
-    const rechargeRemaining = Math.max(0, itemRechargesAt - now);
-    const status = `Recharging ${(rechargeRemaining / 1000).toFixed(1)}s`;
-    if (itemStatus.textContent !== status) {
-      itemStatus.textContent = status;
-      rechargeFill.style.width = `${(1 - rechargeRemaining / RECHARGE_DURATION) * 100}%`;
-    }
-
-    if (rechargeRemaining === 0) {
-      itemRechargesAt = 0;
-      setItemReady(true);
-      announce('The Power Sandwich is ready to use again!');
-    }
-  }
-
   const katyEffectExpired = updateKatyPower(now);
   const katySecondsLeft = katyPowerSecondsLeft(now);
   if (katySecondsLeft > 0) {
@@ -360,7 +258,7 @@ export function updatePowerups(now: number): void {
     powerupStatus.hidden = false;
   } else if (katyEffectExpired) {
     stopKatyTheme();
-    if (speedBoostEndsAt === 0) powerupStatus.hidden = true;
+    powerupStatus.hidden = true;
     if (katyItemDescription) announce(katyItemDescription);
     katyItemDescription = '';
   }

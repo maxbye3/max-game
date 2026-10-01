@@ -1,3 +1,5 @@
+import { createGameAudio } from './audio-mute.js';
+
 export const CAVE_SIBLINGS = {
   x: 320,
   startY: 45,
@@ -71,8 +73,8 @@ export class CaveSiblingsController {
 
   constructor(private readonly view: CaveSiblingsView) {
     this.voices = {
-      Maddy: new Audio('../chat/siblings/maddy.mp3'),
-      Marina: new Audio('../chat/siblings/marina.mp3'),
+      Maddy: createGameAudio('../chat/siblings/maddy.mp3'),
+      Marina: createGameAudio('../chat/siblings/marina.mp3'),
     };
     Object.values(this.voices).forEach((voice) => {
       voice.preload = 'auto';

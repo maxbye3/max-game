@@ -1,4 +1,6 @@
-// Generated from chat/adam/player/dialogue.txt. Run npm run generate:dialogues after editing it.
+// Generated from chat/adam/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const ADAM_DIALOGUE_LINES = [
-  "here's an interesting fact"
+  "Hi there I'm Adam. This is my first line.",
+  "Hi there I'm Adam. This is my second line.",
+  "Hi there I'm Adam. This is my third line."
 ] as const;

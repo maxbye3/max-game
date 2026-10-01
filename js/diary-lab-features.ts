@@ -42,8 +42,8 @@ export class DiaryLabFeatures {
   }
 
   bind(onOpen: (feature: DiaryLabFeature) => void, onClose: () => void): void {
-    requireElement<HTMLButtonElement>('#noel-read-diary').addEventListener('click', () => onOpen('diary'));
-    requireElement<HTMLButtonElement>('#noel-view-experiments').addEventListener('click', () => onOpen('experiments'));
+    document.querySelector<HTMLButtonElement>('#noel-read-diary')?.addEventListener('click', () => onOpen('diary'));
+    document.querySelector<HTMLButtonElement>('#noel-view-experiments')?.addEventListener('click', () => onOpen('experiments'));
     this.unlockForm.addEventListener('submit', (event) => this.unlockDiary(event));
     document.querySelectorAll<HTMLElement>('.internal-feature-close').forEach((button) => {
       button.addEventListener('click', onClose);

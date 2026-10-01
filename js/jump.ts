@@ -10,8 +10,7 @@ interface JumpDestination {
 const JUMP_DESTINATIONS: readonly JumpDestination[] = [
   { id: 'northwest-portal', label: 'Cave' },
   { id: 'garden-room', label: 'Plant Room' },
-  { id: 'diary-lab-center', label: 'Diary Lab - Center Door' },
-  { id: 'diary-lab-right', label: 'Diary Lab - Right Door' },
+  { id: 'diary-lab-center', label: 'Diary Lab' },
   { id: 'music-shop', label: 'Music House' },
   { id: 'gym', label: 'Gym' },
   { id: 'cinema', label: 'Cinema' },

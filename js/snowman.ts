@@ -1,3 +1,5 @@
+import { createGameAudio } from './audio-mute.js';
+
 export const SNOWMAN = {
   // Matches the snowman baked into snow-mansion.png.
   x: 925,
@@ -9,7 +11,7 @@ export const SNOWMAN = {
 const COLLISION_RADIUS = 25;
 
 let fallen = false;
-const fallSound = new Audio('map/audio/snowman.m4a');
+const fallSound = createGameAudio('map/audio/snowman.m4a');
 fallSound.preload = 'auto';
 
 export const isSnowmanFallen = () => fallen;

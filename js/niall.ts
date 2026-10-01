@@ -11,8 +11,9 @@ import {
 } from './world-state.js';
 import { releaseAllInput } from './input.js';
 import { NIALL_DIALOGUE_LINES } from './niall-dialogue.js';
-import { readStorage, writeStorage } from './storage.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
 import type { Direction } from './types.js';
+import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
 
 const CONTACT_DISTANCE = 30;
 const VERTICAL_SIGHT_HALF_WIDTH = 16;
@@ -23,7 +24,6 @@ const FRAME_RATE = 9;
 const BATTLE_TRANSITION_DURATION = 2700;
 const BUS_STOP_DISTANCE = 58;
 const BUS_DIALOGUE_DISTANCE = 64;
-const BUS_DIALOGUE_INDEX_KEY = 'max-game:niall-bus-dialogue-index';
 
 export const NIALL = {
   x: 792,
@@ -72,18 +72,18 @@ export const isNiallAlertActive = () => encounterState === 'spotted';
 export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught' || busDialogueStage !== null;
 
 function showDialogue(line: string): void {
+  beginDialogueAudio('Niall');
   dialogueLine.textContent = line;
   dialogue.hidden = false;
 }
 
 function hideDialogue(): void {
+  endDialogueAudio();
   dialogue.hidden = true;
 }
 
 function nextBusDialogueLine(): string {
-  const stored = Number.parseInt(readStorage(BUS_DIALOGUE_INDEX_KEY) ?? '0', 10);
-  const index = Number.isFinite(stored) && stored >= 0 ? stored % NIALL_DIALOGUE_LINES.length : 0;
-  writeStorage(BUS_DIALOGUE_INDEX_KEY, String((index + 1) % NIALL_DIALOGUE_LINES.length));
+  const index = nextDialogueVisitIndex('niall-bus', NIALL_DIALOGUE_LINES.length);
   return NIALL_DIALOGUE_LINES[index] ?? '...';
 }
 

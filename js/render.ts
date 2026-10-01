@@ -27,7 +27,7 @@ import { player } from './player.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from './overworld-props-render.js';
 import { drawSpeechBubble } from './speech-bubble.js';
-import { hasVisitedInterior } from './world-state.js';
+import { hasMikeAftermath } from './world-state.js';
 import type { Direction } from './types.js';
 
 const NIALL_SPRITE_COLUMNS = 4;
@@ -199,7 +199,7 @@ function drawGeorgia(cameraX: number, cameraY: number): void {
 }
 
 function drawMikeAftermath(cameraX: number, cameraY: number): void {
-  if (!hasVisitedInterior() || !isImageReady(images.mikeAftermath)) return;
+  if (!hasMikeAftermath() || !isImageReady(images.mikeAftermath)) return;
   context.drawImage(
     images.mikeAftermath,
     MIKE_AFTERMATH_X - cameraX,

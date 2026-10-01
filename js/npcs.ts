@@ -1,23 +1,38 @@
 import { requireElement } from './dom.js';
+import { createGameAudio } from './audio-mute.js';
 import { ADAM_DIALOGUE_LINES } from './adam-dialogue.js';
+import { ALICE_DIALOGUE_LINES } from './alice-dialogue.js';
+import { BOCHRA_DIALOGUE_LINES } from './bochra-dialogue.js';
+import { CHRIS_DIALOGUE_LINES } from './chris-dialogue.js';
+import { DAN_DIALOGUE_LINES } from './dan-dialogue.js';
 import { ADAM_FACTS } from './adam-facts.js';
 import { ALEX_S_DIALOGUE_LINES } from './alex-s-dialogue.js';
 import { KATY_DIALOGUE_LINES } from './katy-dialogue.js';
+import { KATIE_DIALOGUE_LINES } from './katie-dialogue.js';
+import { JOE_DIALOGUE_LINES } from './joe-dialogue.js';
+import { JU_DIALOGUE_LINES } from './ju-dialogue.js';
 import { GEORGIA_DIALOGUE_LINES } from './georgia-dialogue.js';
 import { GEORGIA, georgiaState, setGeorgiaInteractionPaused } from './georgia.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
-import { addGift, GEORGIA_ITEM, hasGift, nextGiftLine, REI_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
+import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MARINA_D_ITEM_1, MARINA_D_ITEM_2, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
+import { MARINA_D_DIALOGUE_LINES } from './marina-d-dialogue.js';
+import { MASON_DIALOGUE_LINES } from './mason-dialogue.js';
+import { MELI_DIALOGUE_LINES } from './meli-dialogue.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
+import { OSCAR_DIALOGUE_LINES } from './oscar-dialogue.js';
 import { REI_DIALOGUE_LINES } from './rei-dialogue.js';
+import { SAM_DIALOGUE_LINES } from './sam-dialogue.js';
 import { hideSignDialogue } from './signs.js';
 import { readStorage, writeStorage } from './storage.js';
 import { setProfileImage } from './profile-images.js';
-import { hasVisitedInterior } from './world-state.js';
-import { unlockSong, type Song } from './music-library.js';
+import { hasMikeAftermath } from './world-state.js';
+import { getSongArtwork, getUnlockedSongs, unlockSong, type Song } from './music-library.js';
+import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
 
 interface NpcDefinition {
-  readonly id: 'adam' | 'ed' | 'mike' | 'rei' | 'alexS' | 'katy' | 'georgia';
+  readonly id: 'adam' | 'alice' | 'bochra' | 'chris' | 'dan' | 'ed' | 'joe' | 'ju' | 'mike' | 'rei' | 'marinaD' | 'sam' | 'katie' | 'mason' | 'meli' | 'oscar' | 'alexS' | 'katy' | 'georgia';
   readonly name: string;
   readonly x: number;
   readonly y: number;
@@ -28,11 +43,36 @@ interface NpcDefinition {
   readonly itemGift?: GiftItem;
   readonly songReward?: Song;
   readonly dialogueLines: readonly string[];
-  readonly getDialogueLine?: () => Promise<string>;
+  readonly getFixtureLine?: () => Promise<string>;
   readonly followUpLine?: () => string;
   // Said after the rotating greeting, every time the player walks up.
   readonly requestLine?: string;
 }
+
+// Alice and Chris are already rendered at these positions by map-characters.ts.
+export const ALICE: NpcDefinition = {
+  id: 'alice',
+  name: 'Alice',
+  x: 260,
+  y: 120,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: ALICE_DIALOGUE_LINES,
+  itemGift: ALICE_ITEM,
+};
+
+export const CHRIS: NpcDefinition = {
+  id: 'chris',
+  name: 'Chris',
+  x: 475,
+  y: 270,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: CHRIS_DIALOGUE_LINES,
+  itemGift: CHRIS_ITEM,
+};
 
 export const ADAM: NpcDefinition = {
   id: 'adam',
@@ -44,6 +84,7 @@ export const ADAM: NpcDefinition = {
   interactionDistance: 56,
   dialogueLines: ADAM_DIALOGUE_LINES,
   followUpLine: nextAdamFact,
+  itemGift: ADAM_ITEM,
 };
 
 export const ED: NpcDefinition = {
@@ -55,7 +96,9 @@ export const ED: NpcDefinition = {
   height: 54,
   interactionDistance: 56,
   dialogueLines: ED_DIALOGUE_LINES,
-  getDialogueLine: getNextArsenalFixtureDialogue,
+  getFixtureLine: getNextArsenalFixtureDialogue,
+  itemGift: ED_ITEM,
+  songReward: 'Outer wildeds',
 };
 
 export const MIKE: NpcDefinition = {
@@ -78,9 +121,131 @@ export const REI: NpcDefinition = {
   width: 32,
   height: 45,
   interactionDistance: 56,
-  itemGift: REI_ITEM,
   dialogueLines: REI_DIALOGUE_LINES,
+  songReward: 'Lemon jelly',
   requestLine: 'I need some red paint to finish this sign. Help me find some',
+};
+
+// Marina D is already drawn by map-characters.ts.
+export const MARINA_D: NpcDefinition = {
+  id: 'marinaD',
+  name: 'marina d',
+  x: 201,
+  y: 1034,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: MARINA_D_DIALOGUE_LINES,
+};
+
+// Sam is already drawn by map-characters.ts.
+export const SAM: NpcDefinition = {
+  id: 'sam',
+  name: 'Sam',
+  x: 324,
+  y: 974,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: SAM_DIALOGUE_LINES,
+  itemGift: SAM_ITEM,
+};
+
+// Katie is already drawn by map-characters.ts; she is distinct from Katy.
+export const KATIE: NpcDefinition = {
+  id: 'katie',
+  name: 'Katie',
+  x: 1130,
+  y: 1018,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: KATIE_DIALOGUE_LINES,
+  itemGift: KATIE_ITEM,
+};
+
+// Mason and Meli are already drawn next to each other by map-characters.ts.
+export const MASON: NpcDefinition = {
+  id: 'mason',
+  name: 'Mason',
+  x: 820,
+  y: 570,
+  width: 25,
+  height: 69,
+  interactionDistance: 58,
+  dialogueLines: MASON_DIALOGUE_LINES,
+};
+
+export const MELI: NpcDefinition = {
+  id: 'meli',
+  name: 'Meli',
+  x: 858,
+  y: 570,
+  width: 25,
+  height: 69,
+  interactionDistance: 58,
+  dialogueLines: MELI_DIALOGUE_LINES,
+};
+
+// Oscar is already drawn by map-characters.ts.
+export const OSCAR: NpcDefinition = {
+  id: 'oscar',
+  name: 'Oscar',
+  x: 636,
+  y: 564,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: OSCAR_DIALOGUE_LINES,
+  itemGift: OSCAR_ITEM,
+};
+
+export const JU: NpcDefinition = {
+  id: 'ju',
+  name: 'Ju',
+  x: 1000,
+  y: 180,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: JU_DIALOGUE_LINES,
+  itemGift: JU_ITEM,
+};
+
+export const BOCHRA: NpcDefinition = {
+  id: 'bochra',
+  name: 'Bochra',
+  x: 1114,
+  y: 172,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: BOCHRA_DIALOGUE_LINES,
+  itemGift: BOCHRA_ITEM,
+};
+
+export const DAN: NpcDefinition = {
+  id: 'dan',
+  name: 'Dan',
+  x: 1150,
+  y: 372,
+  width: 25,
+  height: 48,
+  interactionDistance: 58,
+  dialogueLines: DAN_DIALOGUE_LINES,
+  itemGift: DAN_ITEM,
+};
+
+export const JOE: NpcDefinition = {
+  id: 'joe',
+  name: 'Joe',
+  x: 1080,
+  y: 1070,
+  width: 25,
+  height: 52,
+  interactionDistance: 58,
+  dialogueLines: JOE_DIALOGUE_LINES,
+  itemGift: JOE_ITEM,
 };
 
 export const ALEX_S: NpcDefinition = {
@@ -91,6 +256,7 @@ export const ALEX_S: NpcDefinition = {
   width: 20,
   height: 46,
   interactionDistance: 58,
+  itemGift: GIFT_ITEMS[1]!,
   songReward: 'Africa',
   dialogueLines: ALEX_S_DIALOGUE_LINES,
 };
@@ -120,7 +286,7 @@ export const GEORGIA_NPC: NpcDefinition = {
   dialogueLines: GEORGIA_DIALOGUE_LINES,
 };
 
-const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, ALEX_S, KATY, GEORGIA_NPC];
+const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, SAM, KATIE, MASON, MELI, OSCAR, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
 const dialogue = requireElement<HTMLElement>('#npc-dialogue');
 const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');
@@ -129,11 +295,41 @@ const dialogueProgress = requireElement<HTMLElement>('#npc-dialogue-progress');
 const giftConfirmation = requireElement<HTMLElement>('#npc-gift-confirmation');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
+const oscarOptions = requireElement<HTMLElement>('#oscar-dialogue-options');
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const fallbackDialogueIndexes = new Map<string, number>();
 
 const QUEST_ACCEPTED_OVERLAY_DURATION = 3200;
 const REI_BILLBOARD_COMPLETE_LINE = 'By the way, don’t worry, I actually found all of this red paint, so I was able to finish the billboard.';
+const REI_GIFT_STAGE_KEY = 'max-game:rei-gift-stage';
+const MARINA_D_GIFT_STAGE_KEY = 'max-game:marina-d-gift-stage';
+
+interface StagedGifts {
+  readonly stageKey: string;
+  readonly first: GiftItem;
+  readonly second: GiftItem;
+}
+
+const REI_GIFTS: StagedGifts = { stageKey: REI_GIFT_STAGE_KEY, first: REI_ITEM_1, second: REI_ITEM_2 };
+const MARINA_D_GIFTS: StagedGifts = { stageKey: MARINA_D_GIFT_STAGE_KEY, first: MARINA_D_ITEM_1, second: MARINA_D_ITEM_2 };
+
+export function resetReiMission(): void {
+  writeStorage(REI_GIFT_STAGE_KEY, '0');
+  writeStorage('max-game:rei-dialogue-index', '0');
+  removeGift(REI_ITEM_1);
+  removeGift(REI_ITEM_2);
+}
+
+function giftStage({ stageKey, first, second }: StagedGifts): number {
+  // Owned items also establish progress for saves created before stage tracking.
+  const stored = Number.parseInt(readStorage(stageKey) ?? '0', 10);
+  return Math.max(Number.isFinite(stored) ? stored : 0, hasGift(second) ? 2 : hasGift(first) ? 1 : 0);
+}
+
+function nextStagedGift(gifts: StagedGifts): GiftItem | null {
+  const stage = giftStage(gifts);
+  return stage === 0 ? gifts.first : stage === 1 ? gifts.second : null;
+}
 
 let activeNpc: NpcDefinition | null = null;
 let pendingRequestLine: string | null = null;
@@ -141,18 +337,22 @@ let pendingFollowUpLine: string | null = null;
 let pendingGiftLine: string | null = null;
 let pendingGiftItem: GiftItem | null = null;
 let pendingGiftConfirmation: string | null = null;
+let pendingFixtureLine: (() => Promise<string>) | null = null;
+let pendingSongReward: Song | null = null;
+let dialogueSession = 0;
+let fixtureLoading = false;
 let currentDialogueLineIndex = 0;
 let requestLineShown = false;
 let nearbyNpc: NpcDefinition | null = null;
-let reiCompletionStage: 'intro' | 'explanation' | 'thanks' | null = null;
+let reiCompletionStage: 'intro' | 'explanation' | 'thanks' | 'complete' | null = null;
 
 export function isNpcDialogueOpen(): boolean {
   return activeNpc !== null;
 }
 
-function showQuestOverlay(imageSource: string): void {
+function showQuestOverlay(imageSource: string, additionalClass = '', soundSource = 'map/audio/mission-accept.mp3'): void {
   const overlay = document.createElement('div');
-  overlay.className = 'quest-accepted-overlay';
+  overlay.className = `quest-accepted-overlay ${additionalClass}`.trim();
   overlay.setAttribute('aria-hidden', 'true');
   const image = document.createElement('img');
   image.src = imageSource;
@@ -161,7 +361,7 @@ function showQuestOverlay(imageSource: string): void {
   gameShell.append(overlay);
   window.setTimeout(() => overlay.remove(), QUEST_ACCEPTED_OVERLAY_DURATION);
 
-  const sound = new Audio('audio/quest-accepted.mp3');
+  const sound = createGameAudio(soundSource);
   sound.preload = 'auto';
   void sound.play().catch(() => {
     // Browsers may reject audio until a keyboard or pointer gesture.
@@ -173,11 +373,7 @@ function showQuestAcceptedOverlay(): void {
 }
 
 function showQuestCompleteOverlay(): void {
-  showQuestOverlay('img/external/quest-complete.png');
-}
-
-function dialogueIndexKey(npc: NpcDefinition): string {
-  return `max-game:${npc.id}-dialogue-index`;
+  showQuestOverlay('img/external/quest-complete.png', '', 'map/audio/mission_success.mp3');
 }
 
 function nextStoredIndex(key: string, length: number): number {
@@ -191,7 +387,7 @@ function nextStoredIndex(key: string, length: number): number {
 }
 
 function nextDialogueIndex(npc: NpcDefinition): number {
-  return nextStoredIndex(dialogueIndexKey(npc), npc.dialogueLines.length);
+  return nextDialogueVisitIndex(npc.id, npc.dialogueLines.length);
 }
 
 function nextAdamFact(): string {
@@ -200,6 +396,11 @@ function nextAdamFact(): string {
 }
 
 function closeDialogue(): void {
+  dialogueSession += 1;
+  fixtureLoading = false;
+  pendingFixtureLine = null;
+  pendingSongReward = null;
+  endDialogueAudio();
   activeNpc = null;
   pendingRequestLine = null;
   pendingFollowUpLine = null;
@@ -213,6 +414,7 @@ function closeDialogue(): void {
   nextButton.hidden = true;
   dialogueProgress.hidden = true;
   giftConfirmation.hidden = true;
+  oscarOptions.hidden = true;
 }
 
 function showRequestLine(): void {
@@ -232,12 +434,26 @@ function showGiftLine(): void {
   dialogueLine.textContent = pendingGiftLine;
   pendingGiftLine = null;
   const giftWasAdded = pendingGiftItem ? addGift(pendingGiftItem) : false;
+  if (giftWasAdded && pendingGiftItem) {
+    const stagedGifts = [REI_GIFTS, MARINA_D_GIFTS].find(({ first, second }) =>
+      pendingGiftItem?.id === first.id || pendingGiftItem?.id === second.id,
+    );
+    if (stagedGifts) writeStorage(stagedGifts.stageKey, pendingGiftItem.id === stagedGifts.second.id ? '2' : '1');
+  }
   pendingGiftItem = null;
   dialogueProgress.hidden = true;
   giftConfirmation.textContent = giftWasAdded ? pendingGiftConfirmation : '';
   pendingGiftConfirmation = null;
   giftConfirmation.hidden = !giftWasAdded;
+  nextButton.hidden = pendingSongReward === null && pendingRequestLine === null && activeNpc?.id !== 'oscar';
+}
+
+function showOscarQuestion(): void {
+  dialogueLine.textContent = 'wanna play the zen garden game?';
+  dialogueProgress.hidden = true;
+  giftConfirmation.hidden = true;
   nextButton.hidden = true;
+  oscarOptions.hidden = false;
 }
 
 function showFollowUpLine(): void {
@@ -245,29 +461,68 @@ function showFollowUpLine(): void {
   dialogueLine.textContent = pendingFollowUpLine;
   pendingFollowUpLine = null;
   dialogueProgress.hidden = true;
-  nextButton.hidden = true;
+  nextButton.hidden = pendingGiftLine === null && pendingSongReward === null;
 }
 
 function awardSong(song: Song): void {
   if (!unlockSong(song)) return;
+  showQuestOverlay(getSongArtwork(song), 'item-received-overlay', 'audio/music-accepted.mp3');
   giftConfirmation.textContent = `${song} was added to your music playlist. A Walkman is required to play it.`;
   giftConfirmation.hidden = false;
 }
 
+async function showFixtureLine(): Promise<void> {
+  const getFixtureLine = pendingFixtureLine;
+  if (!getFixtureLine) return;
+  pendingFixtureLine = null;
+  const session = dialogueSession;
+  fixtureLoading = true;
+  dialogueProgress.hidden = true;
+  dialogueLine.textContent = 'Checking Arsenal’s next game...';
+  nextButton.hidden = true;
+  const line = await getFixtureLine();
+  // A response from an earlier conversation must not replace a new one.
+  if (session !== dialogueSession || !activeNpc) return;
+  fixtureLoading = false;
+  dialogueLine.textContent = line;
+  nextButton.hidden = pendingGiftLine === null && pendingSongReward === null;
+}
+
+function showSongLine(): void {
+  if (!pendingSongReward) return;
+  dialogueLine.textContent = 'Here’s a song for you, too.';
+  dialogueProgress.hidden = true;
+  giftConfirmation.hidden = true;
+  awardSong(pendingSongReward);
+  pendingSongReward = null;
+  nextButton.hidden = true;
+}
+
 function acceptQuest(): void {
   requestLineShown = false;
+  if (activeNpc?.id !== 'rei') {
+    showQuestAcceptedOverlay();
+    closeDialogue();
+    return;
+  }
+  if (pendingGiftItem?.id !== REI_ITEM_1.id || !pendingGiftLine) {
+    closeDialogue();
+    return;
+  }
   showQuestAcceptedOverlay();
-  closeDialogue();
+  dialogue.hidden = true;
+  nextButton.hidden = true;
+  const session = dialogueSession;
+  window.setTimeout(() => {
+    if (session !== dialogueSession || activeNpc?.id !== 'rei') return;
+    showGiftLine();
+    dialogue.hidden = false;
+  }, QUEST_ACCEPTED_OVERLAY_DURATION);
 }
 
 function advanceDialogue(): void {
+  if (fixtureLoading || !oscarOptions.hidden) return;
   if (reiCompletionStage === 'intro') {
-    if (pendingGiftLine) {
-      showGiftLine();
-      reiCompletionStage = 'explanation';
-      nextButton.hidden = false;
-      return;
-    }
     reiCompletionStage = 'explanation';
     dialogueLine.textContent = REI_BILLBOARD_COMPLETE_LINE;
     dialogueProgress.hidden = true;
@@ -279,51 +534,67 @@ function advanceDialogue(): void {
     nextButton.hidden = false;
   } else if (reiCompletionStage === 'thanks') {
     showQuestCompleteOverlay();
-    closeDialogue();
+    reiCompletionStage = 'complete';
+    dialogue.hidden = true;
+    nextButton.hidden = true;
+    const session = dialogueSession;
+    window.setTimeout(() => {
+      if (session !== dialogueSession || activeNpc?.id !== 'rei') return;
+      if (pendingGiftLine) showGiftLine();
+      else if (pendingSongReward) showSongLine();
+      else { closeDialogue(); return; }
+      dialogue.hidden = false;
+    }, QUEST_ACCEPTED_OVERLAY_DURATION);
+  } else if (reiCompletionStage === 'complete') {
+    if (pendingSongReward && !dialogue.hidden) showSongLine();
+    return;
   } else if (pendingRequestLine) {
     showRequestLine();
-  } else if (pendingFollowUpLine) {
-    showFollowUpLine();
-  } else if (pendingGiftLine) {
-    showGiftLine();
   } else if (requestLineShown) {
     acceptQuest();
+  } else if (pendingFollowUpLine) {
+    showFollowUpLine();
+  } else if (pendingFixtureLine) {
+    void showFixtureLine();
+  } else if (pendingGiftLine) {
+    showGiftLine();
+  } else if (pendingSongReward) {
+    showSongLine();
   } else if (activeNpc && activeNpc.dialogueLines.length > 1) {
-    currentDialogueLineIndex = (currentDialogueLineIndex + 1) % activeNpc.dialogueLines.length;
-    dialogueLine.textContent = activeNpc.dialogueLines[currentDialogueLineIndex] ?? '';
-    dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${activeNpc.dialogueLines.length}`;
-    dialogueProgress.hidden = false;
-    if (activeNpc.songReward && currentDialogueLineIndex === activeNpc.dialogueLines.length - 1) {
-      awardSong(activeNpc.songReward);
-      nextButton.hidden = true;
+    const lines = activeNpc.dialogueLines;
+    if (activeNpc.id === 'oscar' && currentDialogueLineIndex === lines.length - 1) {
+      showOscarQuestion();
+      return;
     }
+    currentDialogueLineIndex = (currentDialogueLineIndex + 1) % lines.length;
+    dialogueLine.textContent = lines[currentDialogueLineIndex] ?? '';
+    dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${lines.length}`;
+    dialogueProgress.hidden = false;
   }
 }
 
 function showDialogueLine(npc: NpcDefinition): void {
-  if (!npc.getDialogueLine) {
-    const lineIndex = npc.songReward ? 0 : nextDialogueIndex(npc);
-    currentDialogueLineIndex = lineIndex;
-    dialogueLine.textContent = npc.dialogueLines[lineIndex] ?? '';
-    dialogueProgress.textContent = `${lineIndex + 1}/${npc.dialogueLines.length}`;
-    dialogueProgress.hidden = false;
-    return;
-  }
-  dialogueProgress.hidden = true;
-  dialogueLine.textContent = 'Checking Arsenal’s next game...';
-  nextButton.hidden = true;
-  void npc.getDialogueLine().then((line) => {
-    if (activeNpc === npc) dialogueLine.textContent = line;
-  });
+  const lines = npc.dialogueLines;
+  currentDialogueLineIndex = nextDialogueIndex(npc);
+  dialogueLine.textContent = lines[currentDialogueLineIndex] ?? '';
+  dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${lines.length}`;
+  dialogueProgress.hidden = false;
 }
 
 function openDialogue(npc: NpcDefinition): void {
   hideSignDialogue();
+  oscarOptions.hidden = true;
+  beginDialogueAudio(npc.name);
   activeNpc = npc;
-  if (npc.id === 'rei' && hasVisitedInterior()) {
+  dialogueSession += 1;
+  fixtureLoading = false;
+  pendingFixtureLine = npc.getFixtureLine ?? null;
+  const reiStage = npc.id === 'rei' ? giftStage(REI_GIFTS) : null;
+  pendingSongReward = npc.songReward && (npc.id !== 'rei' || (hasMikeAftermath() && reiStage !== 0)) && !getUnlockedSongs().includes(npc.songReward) ? npc.songReward : null;
+  if (npc.id === 'rei' && hasMikeAftermath() && reiStage !== 0) {
     pendingRequestLine = null;
     pendingFollowUpLine = null;
-    pendingGiftItem = !hasGift(REI_ITEM) ? REI_ITEM : null;
+    pendingGiftItem = nextStagedGift(REI_GIFTS);
     pendingGiftLine = pendingGiftItem ? nextGiftLine() : null;
     pendingGiftConfirmation = pendingGiftLine ? "Rei's item was added to your inventory." : null;
     requestLineShown = false;
@@ -336,25 +607,36 @@ function openDialogue(npc: NpcDefinition): void {
     dialogue.hidden = false;
     return;
   }
-  pendingRequestLine = npc.requestLine ?? null;
+  pendingRequestLine = npc.id === 'rei' && hasMikeAftermath() && reiStage !== 0 ? null : npc.requestLine ?? null;
   pendingFollowUpLine = npc.followUpLine?.() ?? null;
-  pendingGiftItem = npc.itemGift && !hasGift(npc.itemGift) ? npc.itemGift : null;
+  if (npc.id === 'rei') pendingGiftItem = reiStage === 0 ? REI_ITEM_1 : null;
+  else if (npc.id === 'marinaD') pendingGiftItem = nextStagedGift(MARINA_D_GIFTS);
+  else pendingGiftItem = npc.itemGift && !hasGift(npc.itemGift) ? npc.itemGift : null;
   pendingGiftLine = pendingGiftItem ? nextGiftLine() : null;
-  pendingGiftConfirmation = pendingGiftLine ? 'An item has been added to your inventory.' : null;
+  pendingGiftConfirmation = !pendingGiftLine ? null : npc.id === 'rei'
+    ? "Rei's item was added to your inventory."
+    : 'An item has been added to your inventory.';
   giftConfirmation.hidden = true;
   requestLineShown = false;
   speaker.textContent = npc.name;
   setProfileImage(dialogueProfile, npc.name);
   showDialogueLine(npc);
-  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingGiftLine === null && npc.dialogueLines.length <= 1;
+  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && npc.dialogueLines.length <= 1;
   dialogue.hidden = false;
 }
 
 export function updateNpcInteractions(playerX: number, playerY: number): void {
-  const nextNearbyNpc = NPCS.filter((npc) => npc.id !== 'mike' || !hasVisitedInterior()).find((npc) => {
+  let nextNearbyNpc: NpcDefinition | null = null;
+  let closestDistance = Infinity;
+  for (const npc of NPCS) {
+    if (npc.id === 'mike' && hasMikeAftermath()) continue;
     const position = npc.getPosition?.() ?? npc;
-    return Math.hypot(playerX - position.x, playerY - position.y) <= npc.interactionDistance;
-  }) ?? null;
+    const distance = Math.hypot(playerX - position.x, playerY - position.y);
+    if (distance <= npc.interactionDistance && distance < closestDistance) {
+      nextNearbyNpc = npc;
+      closestDistance = distance;
+    }
+  }
   if (nextNearbyNpc === nearbyNpc) return;
   nearbyNpc = nextNearbyNpc;
   setGeorgiaInteractionPaused(nearbyNpc?.id === 'georgia');

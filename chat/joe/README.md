@@ -59,7 +59,7 @@ A transparent PNG is preferred.
 ## 5. Optional Item Description — `item.txt`
 
 If you provide an item, you can also describe what happens when the protagonist uses it.
-Be as wild or surreal as you want. It might not work but I'll try to fix it after the suprise.
+
 Please put this in a file named exactly:
 
 `item.txt`

@@ -11,7 +11,7 @@ export interface MapCharacter extends MapCharacterDefinition {
 }
 
 export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
-  { name: 'Alice', source: 'chat/alice/map-sprite.png', x: 220, y: 530, height: 52 },
+  { name: 'Alice', source: 'chat/alice/map-sprite.png', x: 260, y: 120, height: 52 },
   { name: 'Bochra', source: 'chat/bochra/map-sprite.png', x: 1114, y: 172, height: 52 },
   { name: 'Chris', source: 'chat/chris/map-sprite.png', x: 475, y: 270, height: 52 },
   { name: 'Dan', source: 'chat/dan/map-sprite.png', x: 1150, y: 372, height: 48 },
@@ -22,7 +22,7 @@ export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
   { name: 'Marina', source: 'chat/marina d/map-sprite.png', x: 201, y: 1034, height: 52 },
   { name: 'Mason', source: 'chat/mason/map-sprite.png', x: 820, y: 570, height: 69 },
   { name: 'Meli', source: 'chat/meli/map-sprite.png', x: 858, y: 570, height: 69 },
-  { name: 'Oscar', source: 'chat/oscar/map-sprite.png', x: 336, y: 864, height: 52 },
+  { name: 'Oscar', source: 'chat/oscar/map-sprite.png', x: 636, y: 564, height: 52 },
   { name: 'Sam', source: 'chat/sam/map-sprite.png', x: 324, y: 974, height: 52 },
 ];
 

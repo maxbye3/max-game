@@ -1,11 +1,10 @@
-import { readStorage, writeStorage } from './storage.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
 
 interface CinemaAudienceView {
   readonly openDialogue: (line: string, index: number, total: number) => void;
   readonly closeDialogue: () => void;
 }
 
-const DIALOGUE_INDEX_KEY = 'max-game:cinema-audience-dialogue-index';
 const INTERACTION_DISTANCE = 78;
 const AUDIENCE = [
   { x: 153, y: 373 },
@@ -36,7 +35,6 @@ const DIALOGUE_LINES = [
 
 export class CinemaAudienceController {
   private nearbyAudienceIndex: number | null = null;
-  private fallbackDialogueIndex = 0;
 
   constructor(private readonly view: CinemaAudienceView) {}
 
@@ -57,14 +55,7 @@ export class CinemaAudienceController {
   }
 
   private nextDialogueLine(): { line: string; index: number } {
-    const stored = Number.parseInt(
-      readStorage(DIALOGUE_INDEX_KEY) ?? String(this.fallbackDialogueIndex),
-      10,
-    );
-    const current = Number.isFinite(stored) && stored >= 0 ? stored % DIALOGUE_LINES.length : 0;
-    const next = (current + 1) % DIALOGUE_LINES.length;
-    this.fallbackDialogueIndex = next;
-    writeStorage(DIALOGUE_INDEX_KEY, String(next));
-    return { line: DIALOGUE_LINES[current] ?? '', index: current };
+    const index = nextDialogueVisitIndex('cinema-audience', DIALOGUE_LINES.length);
+    return { line: DIALOGUE_LINES[index] ?? '', index };
   }
 }
