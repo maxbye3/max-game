@@ -9,6 +9,11 @@ import {
   updateKatyPower,
 } from './katy-power.js';
 import { resolveSiteAsset } from './site-assets.js';
+import { activateMaddyTeaPower, maddyTeaSecondsLeft, MADDY_TEA_REVEAL } from './maddy-tea-power.js';
+import { activateEdPower, edPowerSecondsLeft, ED_POWER_REVEAL, isEdGiftCharged } from './ed-power.js';
+import { activateNiallSpeed, niallSpeedSecondsLeft } from './niall-speed-power.js';
+import { activateAdamPower, adamPowerSecondsLeft, ADAM_POWER_REVEAL, setupAdamLeapControl, updateAdamLeapControl } from './adam-power.js';
+import { activateSamPower, samPowerSecondsLeft, SAM_POWER_DURATION } from './sam-power.js';
 
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const METEOR_COUNT = 14;
@@ -18,6 +23,11 @@ const MIKE_THEME_SOURCE = 'chat/mike/player/theme.mp3';
 const LUCY_THEME_SOURCE = 'chat/lucy/player/theme.mp3';
 const JULIAN_THEME_SOURCE = 'chat/julian/theme.mp3';
 const TIM_THEME_SOURCE = 'chat/tim/theme.mp3';
+const MADDY_THEME_SOURCE = 'chat/maddy/theme.mp3';
+const ED_THEME_SOURCE = 'chat/ed/theme.mp3';
+const HELEN_THEME_SOURCE = 'chat/helen/player/theme.mp3';
+const NIALL_THEME_SOURCE = 'chat/niall/player/theme.mp3';
+const SAM_THEME_SOURCE = 'chat/sam/theme.mp3';
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
@@ -81,11 +91,11 @@ function playApocalypseRumble(): void {
   rumble.addEventListener('ended', () => void audioContext.close(), { once: true });
 }
 
-function triggerApocalypse(onExpired?: () => void): void {
+function triggerApocalypse(onExpired?: () => void, charged = false): void {
   const overlay = document.createElement('div');
   overlay.className = 'apocalypse-overlay';
   overlay.setAttribute('aria-hidden', 'true');
-  for (let index = 0; index < METEOR_COUNT; index += 1) {
+  for (let index = 0; index < METEOR_COUNT * (charged ? 2 : 1); index += 1) {
     const meteor = document.createElement('span');
     meteor.className = 'apocalypse-meteor';
     meteor.style.setProperty('--meteor-x', `${Math.round(Math.random() * 100)}%`);
@@ -93,35 +103,63 @@ function triggerApocalypse(onExpired?: () => void): void {
     overlay.append(meteor);
   }
   gameShell.append(overlay);
+  const duration = APOCALYPSE_DURATION * (charged ? 2 : 1);
+  overlay.style.animationDuration = `${duration}ms`;
   gameShell.classList.add('apocalypse-shake');
   window.setTimeout(() => {
     overlay.remove();
     gameShell.classList.remove('apocalypse-shake');
     onExpired?.();
-  }, APOCALYPSE_DURATION);
+  }, duration);
 
   playApocalypseRumble();
 }
 
-function triggerGiftPower(className: 'world-opening' | 'face-implosion' | 'world-spinning', duration: number): void {
+function triggerGiftPower(className: 'world-opening' | 'face-implosion' | 'world-spinning', duration: number, charged = false): void {
   gameShell.classList.remove(className);
   void gameShell.offsetWidth;
+  if (className === 'face-implosion') {
+    gameShell.style.removeProperty('--face-implosion-duration');
+    gameShell.style.removeProperty('--face-implosion-scale');
+    gameShell.style.removeProperty('--face-implosion-contrast');
+  }
+  if (charged && className === 'face-implosion') {
+    gameShell.style.setProperty('--face-implosion-duration', `${duration}ms`);
+    gameShell.style.setProperty('--face-implosion-scale', '0.68');
+    gameShell.style.setProperty('--face-implosion-contrast', '2');
+  }
   gameShell.classList.add(className);
-  window.setTimeout(() => gameShell.classList.remove(className), duration);
+  window.setTimeout(() => {
+    gameShell.classList.remove(className);
+    if (className === 'face-implosion') {
+      gameShell.style.removeProperty('--face-implosion-duration');
+      gameShell.style.removeProperty('--face-implosion-scale');
+      gameShell.style.removeProperty('--face-implosion-contrast');
+    }
+  }, duration);
 }
 
-function playItemTheme(source: string): void {
+function stopItemTheme(): void {
+  if (itemThemeTimeout) window.clearTimeout(itemThemeTimeout);
+  itemThemeTimeout = 0;
   itemTheme?.pause();
-  itemTheme = createGameAudio(resolveSiteAsset(source));
-  itemTheme.preload = 'auto';
-  void itemTheme.play().catch(() => {
+  if (itemTheme) itemTheme.currentTime = 0;
+  itemTheme = null;
+}
+
+function playItemTheme(source: string, loop = false, duration = ITEM_THEME_DURATION): void {
+  stopItemTheme();
+  const theme = createGameAudio(resolveSiteAsset(source));
+  itemTheme = theme;
+  theme.preload = 'auto';
+  theme.loop = loop;
+  void theme.play().catch(() => {
     // Browsers may reject audio outside a user gesture.
   });
-  window.setTimeout(() => {
-    itemTheme?.pause();
-    if (itemTheme) itemTheme.currentTime = 0;
-    itemTheme = null;
-  }, ITEM_THEME_DURATION);
+  itemThemeTimeout = window.setTimeout(() => {
+    if (itemTheme !== theme) return;
+    stopItemTheme();
+  }, duration);
 }
 
 function stopKatyTheme(): void {
@@ -144,9 +182,13 @@ function playKatyTheme(): void {
 }
 
 let itemTheme: HTMLAudioElement | null = null;
+let itemThemeTimeout = 0;
 let katyTheme: HTMLAudioElement | null = null;
 let katyThemeTimeout = 0;
 let katyItemDescription = '';
+let maddyItemDescription = '';
+let edPowerPendingReveal = false;
+let adamPowerPendingReveal = false;
 
 function renderGiftItems(): void {
   giftItems.replaceChildren();
@@ -177,8 +219,17 @@ function renderGiftItems(): void {
         announce(`${item.name}: ${item.description}`);
       } else if (item.id === 'tim-item') {
         playItemTheme(TIM_THEME_SOURCE);
-        triggerGiftPower('face-implosion', 1_100);
+        triggerGiftPower('face-implosion', isEdGiftCharged(item) ? 2_200 : 1_100, isEdGiftCharged(item));
         announce(`${item.name}: ${item.description}`);
+      } else if (item.id === 'helen-item') {
+        playItemTheme(HELEN_THEME_SOURCE, true);
+        triggerApocalypse(() => announce(`${item.name}: ${item.description}`), isEdGiftCharged(item));
+      } else if (item.id === 'niall-item') {
+        const charged = isEdGiftCharged(item);
+        activateNiallSpeed(charged);
+        playItemTheme(NIALL_THEME_SOURCE, true, charged ? 20_000 : 10_000);
+        announce("Niall's item activated.");
+        setInventoryOpen(false);
       } else if (item.id === 'katy-item') {
         const now = performance.now();
         activateKatyPower(now);
@@ -190,6 +241,36 @@ function renderGiftItems(): void {
       } else if (item.id === 'mike-item') {
         playItemTheme(MIKE_THEME_SOURCE);
         announce(`${item.name}: ${item.description}`);
+      } else if (item.id === 'maddy-item') {
+        activateMaddyTeaPower();
+        playItemTheme(MADDY_THEME_SOURCE, true);
+        maddyItemDescription = `${item.name}: ${MADDY_TEA_REVEAL}`;
+        powerupStatus.textContent = 'Tea time 10.0s';
+        powerupStatus.hidden = false;
+        announce("Maddy's item activated.");
+        setInventoryOpen(false);
+      } else if (item.id === 'ed-item') {
+        activateEdPower();
+        playItemTheme(ED_THEME_SOURCE, true);
+        edPowerPendingReveal = true;
+        powerupStatus.textContent = 'Halstead 10.0s';
+        powerupStatus.hidden = false;
+        announce("Ed's item activated.");
+        setInventoryOpen(false);
+      } else if (item.id === 'adam-item') {
+        activateAdamPower();
+        adamPowerPendingReveal = true;
+        powerupStatus.textContent = 'Adam power 10.0s';
+        powerupStatus.hidden = false;
+        announce("Adam's item activated.");
+        setInventoryOpen(false);
+      } else if (item.id === 'sam-item') {
+        activateSamPower();
+        playItemTheme(SAM_THEME_SOURCE, true, SAM_POWER_DURATION);
+        powerupStatus.textContent = 'Sam power 13.0s';
+        powerupStatus.hidden = false;
+        announce("Sam's item activated.");
+        setInventoryOpen(false);
       } else if (item.id === 'lucy-item') {
         playItemTheme(LUCY_THEME_SOURCE);
         triggerGiftPower('world-spinning', 10_000);
@@ -221,6 +302,16 @@ function setInventoryOpen(isOpen: boolean): void {
 
 export function setupInventory(): void {
   renderGiftItems();
+  setupAdamLeapControl();
+  const adamRemaining = adamPowerSecondsLeft();
+  if (adamRemaining > 0) {
+    adamPowerPendingReveal = true;
+  }
+  const edRemaining = edPowerSecondsLeft();
+  if (edRemaining > 0) {
+    edPowerPendingReveal = true;
+    playItemTheme(ED_THEME_SOURCE, true, edRemaining * 1000);
+  }
   window.addEventListener('max-game:inventory-gift-added', () => {
     renderGiftItems();
     inventoryToggle.classList.remove('inventory-added-wobble');
@@ -252,14 +343,59 @@ export function setupInventory(): void {
 export function updatePowerups(now: number): void {
   const katyEffectExpired = updateKatyPower(now);
   const katySecondsLeft = katyPowerSecondsLeft(now);
-  if (katySecondsLeft > 0) {
+  const teaSecondsLeft = maddyTeaSecondsLeft(now);
+  const edSecondsLeft = edPowerSecondsLeft();
+  const niallSecondsLeft = niallSpeedSecondsLeft();
+  const adamSecondsLeft = adamPowerSecondsLeft();
+  const samSecondsLeft = samPowerSecondsLeft(now);
+  const expiredDescriptions: string[] = [];
+  updateAdamLeapControl();
+
+  if (katyEffectExpired) {
+    stopKatyTheme();
+    if (katyItemDescription) expiredDescriptions.push(katyItemDescription);
+    katyItemDescription = '';
+  }
+  if (maddyItemDescription && teaSecondsLeft === 0) {
+    expiredDescriptions.push(maddyItemDescription);
+    maddyItemDescription = '';
+  }
+  if (edPowerPendingReveal && edSecondsLeft === 0) {
+    expiredDescriptions.push(ED_POWER_REVEAL);
+    edPowerPendingReveal = false;
+  }
+  if (adamPowerPendingReveal && adamSecondsLeft === 0) {
+    expiredDescriptions.push(ADAM_POWER_REVEAL);
+    adamPowerPendingReveal = false;
+  }
+
+  if (expiredDescriptions.length > 0) announce(expiredDescriptions.join('\n'));
+
+  if (samSecondsLeft > 0) {
+    const status = `Sam power ${samSecondsLeft.toFixed(1)}s`;
+    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
+    powerupStatus.hidden = false;
+  } else if (adamSecondsLeft > 0) {
+    const status = `Adam power ${adamSecondsLeft.toFixed(1)}s`;
+    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
+    powerupStatus.hidden = false;
+  } else if (edSecondsLeft > 0) {
+    const status = `Halstead ${edSecondsLeft.toFixed(1)}s`;
+    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
+    powerupStatus.hidden = false;
+  } else if (teaSecondsLeft > 0) {
+    const status = `Tea time ${teaSecondsLeft.toFixed(1)}s`;
+    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
+    powerupStatus.hidden = false;
+  } else if (katySecondsLeft > 0) {
     const status = `Katy effect ${katySecondsLeft.toFixed(1)}s`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     powerupStatus.hidden = false;
-  } else if (katyEffectExpired) {
-    stopKatyTheme();
+  } else if (niallSecondsLeft > 0) {
+    const status = `Niall speed ${niallSecondsLeft.toFixed(1)}s`;
+    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
+    powerupStatus.hidden = false;
+  } else {
     powerupStatus.hidden = true;
-    if (katyItemDescription) announce(katyItemDescription);
-    katyItemDescription = '';
   }
 }

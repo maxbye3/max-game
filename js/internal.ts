@@ -13,6 +13,10 @@ import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { drawSceneryNpcs } from './interior-scenery-npcs.js';
 import { setupInventory, updatePowerups } from './inventory.js';
+import { drawMaddyTeaPower, drawMaddyTeaWorldOverlay, maddyWorldDeltaTime } from './maddy-tea-power.js';
+import { chargeEdGift, drawEdPower, edPowerSecondsLeft, showHalsteadTattoo } from './ed-power.js';
+import { niallSpeedMultiplier } from './niall-speed-power.js';
+import { adamAirStrideMultiplier, adamJumpOffset, adamPowerSecondsLeft, drawAdamPower, drawAdamShadow } from './adam-power.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { GYM_NPCS } from './gym-npcs.js';
 import { LucyController } from './lucy.js';
@@ -26,7 +30,7 @@ import { CAVE_COLANDER, CAVE_WALLS, NOEL, getInteriorScene, type InteractionKind
 import type { Direction } from './types.js';
 import { moveWithCollisions } from './movement.js'; import { setProfileImage } from './profile-images.js'; import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
 import { nextDialogueVisitIndex } from './dialogue-visit.js';
-import { addGift, hasGift, NOEL_ITEM } from './inventory-gifts.js';
+import { addGift, hasGift, HELEN_ITEM, NOEL_ITEM } from './inventory-gifts.js';
 import { getSongArtwork, getUnlockedSongs, unlockSong } from './music-library.js';
 import { resolveSiteAsset } from './site-assets.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
@@ -340,7 +344,7 @@ let helenReadingOfferPending = false;
 const helenReadingOptions = requireElement<HTMLElement>('#helen-reading-options');
 function showHelenDialogue(): void { noelDialogueLine.textContent = HELEN_DIALOGUE_LINES[helenDialogueLineIndex] ?? ''; noelDialogueProgress.textContent = `${helenDialogueLineIndex + 1}/${HELEN_DIALOGUE_LINES.length}`; noelDialogueProgress.hidden = false; noelDialogueNext.hidden = false; }
 function showHelenReadingOffer(): void { helenReadingOfferPending = false; noelDialogueLine.textContent = 'Would you like to see what Max is reading?'; noelDialogueProgress.hidden = true; noelDialogueNext.hidden = true; helenReadingOptions.hidden = false; }
-function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); noelDialogueOpen = true; beginDialogueAudio('Helen', '../'); noelDialogueFollowsProximity = true; helenDialogueLineIndex = nextDialogueVisitIndex('helen', HELEN_DIALOGUE_LINES.length); helenReadingOfferPending = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; helenReadingOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; }
+function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); noelDialogueOpen = true; beginDialogueAudio('Helen', '../'); noelDialogueFollowsProximity = true; helenDialogueLineIndex = nextDialogueVisitIndex('helen', HELEN_DIALOGUE_LINES.length); helenReadingOfferPending = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; helenReadingOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; if (edPowerSecondsLeft() > 0) { showHalsteadTattoo('Helen'); addGift(HELEN_ITEM); chargeEdGift(HELEN_ITEM); } }
 function openFeature(kind: 'diary' | 'experiments' | 'reading'): void {
   input.releaseAll(); endDialogueAudio();
   noelDialogueOpen = true;
@@ -498,8 +502,8 @@ function updatePlayer(deltaTime: number): void {
   const length = Math.hypot(dx, dy);
   moveWithCollisions(
     player,
-    (dx / length) * SPEED * deltaTime,
-    (dy / length) * SPEED * deltaTime,
+    (dx / length) * SPEED * niallSpeedMultiplier() * adamAirStrideMultiplier() * deltaTime,
+    (dy / length) * SPEED * niallSpeedMultiplier() * adamAirStrideMultiplier() * deltaTime,
     (x, y) => collision.playerIsBlocked(x, y),
   );
   if (dx < 0 && dy < 0) player.direction = 'upLeft';
@@ -559,7 +563,7 @@ function updateNearbyInteraction(): void {
   if (target) interactionPrompt.textContent = target.label;
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
-function draw(timeMs = 0): void {
+function draw(timeMs = 0, worldTimeMs = timeMs): void {
   // The cave is small enough to show in full with no camera panning at all;
   // every other interior is bigger than the canvas and keeps scrolling.
   const viewportWidth = isCaveInterior ? WORLD_WIDTH : Math.min(WORLD_WIDTH, canvas.width / VIEW_SCALE);
@@ -627,11 +631,11 @@ function draw(timeMs = 0): void {
     );
   }
   if (isMusicShopInterior) {
-    drawSceneryNpcs(context, musicHouseNpcs, cameraX, cameraY, scaleX, scaleY, timeMs);
+    drawSceneryNpcs(context, musicHouseNpcs, cameraX, cameraY, scaleX, scaleY, worldTimeMs);
   }
   if (isGymInterior) {
     context.drawImage(gymGloves, Math.round((292 - cameraX) * scaleX + 50), Math.round((270 - cameraY - 195) * scaleY), 50 * scaleX, 81 * scaleY);
-    drawSceneryNpcs(context, gymNpcs, cameraX, cameraY, scaleX, scaleY, timeMs);
+    drawSceneryNpcs(context, gymNpcs, cameraX, cameraY, scaleX, scaleY, worldTimeMs);
   }
   if (isBookshopInterior) drawSceneryNpcs(context, bookshopNpcs, cameraX, cameraY, scaleX, scaleY);
   if (isPlantRoomInterior) drawSceneryNpcs(context, [{ x: 355, y: 350, width: 42, height: 75, image: lucy!.sprite }], cameraX, cameraY, scaleX, scaleY);
@@ -702,6 +706,10 @@ function draw(timeMs = 0): void {
   }
   const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, PLAYER_SCALE);
   const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
+  const adamActive = adamPowerSecondsLeft() > 0;
+  const adamLift = adamJumpOffset();
+  const adamHeight = adamActive ? Math.round(height * 1.14) : height;
+  if (adamActive) drawAdamShadow(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY);
   context.drawImage(
     spriteSheet,
     sourceX,
@@ -709,9 +717,9 @@ function draw(timeMs = 0): void {
     sourceWidth,
     sourceHeight,
     Math.round((player.x - cameraX - width / 2) * scaleX),
-    Math.round((player.y - cameraY - height + baselineOffset) * scaleY),
+    Math.round((player.y - cameraY - adamHeight - adamLift + baselineOffset) * scaleY),
     width * scaleX,
-    height * scaleY,
+    adamHeight * scaleY,
   );
   if (caveColanderHeld) {
     drawColander(
@@ -730,21 +738,31 @@ function draw(timeMs = 0): void {
     30 * scaleY,
   );
   context.restore();
+  drawMaddyTeaWorldOverlay(context, timeMs);
+  context.save();
+  context.scale(scaleX, scaleY);
+  drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, timeMs);
+  drawEdPower(context, player.x - cameraX, player.y - cameraY);
+  drawAdamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, SEAL_MODE);
+  context.restore();
 }
+let worldAnimationTime = 0;
 function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
+  const worldDeltaTime = maddyWorldDeltaTime(deltaTime, time);
+  worldAnimationTime = previousTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
   if (isJumpMenuOpen()) {
-    draw(time);
+    draw(time, worldAnimationTime);
     requestAnimationFrame(gameLoop);
     return;
   }
-  caveSiblings?.update(deltaTime, time);
+  caveSiblings?.update(worldDeltaTime, time);
   updatePlayer(deltaTime);
   updateNearbyInteraction();
   interiorDoors.update(player.x, player.y);
-  draw(time);
+  draw(time, worldAnimationTime);
   requestAnimationFrame(gameLoop);
 }
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));

@@ -15,8 +15,9 @@ import { GEORGIA_DIALOGUE_LINES } from './georgia-dialogue.js';
 import { GEORGIA, georgiaState, setGeorgiaInteractionPaused } from './georgia.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
-import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MARINA_D_ITEM_1, MARINA_D_ITEM_2, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
+import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, MARINA_D_ITEM_1, MARINA_D_ITEM_2, nextGiftLine, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
 import { MARINA_D_DIALOGUE_LINES } from './marina-d-dialogue.js';
+import { MADDY_DIALOGUE_LINES } from './maddy-dialogue.js';
 import { MASON_DIALOGUE_LINES } from './mason-dialogue.js';
 import { MELI_DIALOGUE_LINES } from './meli-dialogue.js';
 import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
@@ -32,7 +33,7 @@ import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
 import { nextDialogueVisitIndex } from './dialogue-visit.js';
 
 interface NpcDefinition {
-  readonly id: 'adam' | 'alice' | 'bochra' | 'chris' | 'dan' | 'ed' | 'joe' | 'ju' | 'mike' | 'rei' | 'marinaD' | 'sam' | 'katie' | 'mason' | 'meli' | 'oscar' | 'alexS' | 'katy' | 'georgia';
+  readonly id: 'adam' | 'alice' | 'bochra' | 'chris' | 'dan' | 'ed' | 'joe' | 'ju' | 'mike' | 'rei' | 'marinaD' | 'maddy' | 'sam' | 'katie' | 'mason' | 'meli' | 'oscar' | 'alexS' | 'katy' | 'georgia';
   readonly name: string;
   readonly x: number;
   readonly y: number;
@@ -138,6 +139,17 @@ export const MARINA_D: NpcDefinition = {
   dialogueLines: MARINA_D_DIALOGUE_LINES,
 };
 
+export const MADDY: NpcDefinition = {
+  id: 'maddy',
+  name: 'Maddy',
+  x: 383,
+  y: 1045,
+  width: 25,
+  height: 59,
+  interactionDistance: 58,
+  dialogueLines: MADDY_DIALOGUE_LINES,
+};
+
 // Sam is already drawn by map-characters.ts.
 export const SAM: NpcDefinition = {
   id: 'sam',
@@ -197,7 +209,6 @@ export const OSCAR: NpcDefinition = {
   height: 52,
   interactionDistance: 58,
   dialogueLines: OSCAR_DIALOGUE_LINES,
-  itemGift: OSCAR_ITEM,
 };
 
 export const JU: NpcDefinition = {
@@ -286,23 +297,41 @@ export const GEORGIA_NPC: NpcDefinition = {
   dialogueLines: GEORGIA_DIALOGUE_LINES,
 };
 
-const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, SAM, KATIE, MASON, MELI, OSCAR, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
+const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, MADDY, SAM, KATIE, MASON, MELI, OSCAR, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
 const dialogue = requireElement<HTMLElement>('#npc-dialogue');
 const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');
 const dialogueProfile = requireElement<HTMLImageElement>('#npc-dialogue-profile');
 const dialogueProgress = requireElement<HTMLElement>('#npc-dialogue-progress');
+const reiDialogueLinesButton = requireElement<HTMLButtonElement>('#rei-dialogue-lines-button');
 const giftConfirmation = requireElement<HTMLElement>('#npc-gift-confirmation');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
 const oscarOptions = requireElement<HTMLElement>('#oscar-dialogue-options');
 const gameShell = requireElement<HTMLElement>('.game-shell');
-const fallbackDialogueIndexes = new Map<string, number>();
+let adamFactIndex = 0;
+const maddyDialogueAudio = createGameAudio('chat/maddy/dialogue.mp3');
+maddyDialogueAudio.preload = 'auto';
+let maddyDisplayedLineIndex = -1;
+
+function showMaddyTimedLine(index: number): void {
+  if (index <= maddyDisplayedLineIndex) return;
+  maddyDisplayedLineIndex = index;
+  dialogueLine.textContent = MADDY_DIALOGUE_LINES[index] ?? '';
+  dialogueProgress.textContent = `${index + 1}/${MADDY_DIALOGUE_LINES.length}`;
+  dialogueProgress.hidden = false;
+}
+
+function updateMaddyTimedLine(): void {
+  if (activeNpc?.id !== 'maddy') return;
+  const time = maddyDialogueAudio.currentTime;
+  const index = time >= 7 ? 2 : time >= 2 ? 1 : 0;
+  showMaddyTimedLine(index);
+}
 
 const QUEST_ACCEPTED_OVERLAY_DURATION = 3200;
 const REI_BILLBOARD_COMPLETE_LINE = 'By the way, don’t worry, I actually found all of this red paint, so I was able to finish the billboard.';
 const REI_GIFT_STAGE_KEY = 'max-game:rei-gift-stage';
-const MARINA_D_GIFT_STAGE_KEY = 'max-game:marina-d-gift-stage';
 
 interface StagedGifts {
   readonly stageKey: string;
@@ -311,13 +340,13 @@ interface StagedGifts {
 }
 
 const REI_GIFTS: StagedGifts = { stageKey: REI_GIFT_STAGE_KEY, first: REI_ITEM_1, second: REI_ITEM_2 };
-const MARINA_D_GIFTS: StagedGifts = { stageKey: MARINA_D_GIFT_STAGE_KEY, first: MARINA_D_ITEM_1, second: MARINA_D_ITEM_2 };
 
-export function resetReiMission(): void {
+export function resetNpcGiftProgress(): void {
   writeStorage(REI_GIFT_STAGE_KEY, '0');
-  writeStorage('max-game:rei-dialogue-index', '0');
   removeGift(REI_ITEM_1);
   removeGift(REI_ITEM_2);
+  removeGift(MARINA_D_ITEM_1);
+  removeGift(MARINA_D_ITEM_2);
 }
 
 function giftStage({ stageKey, first, second }: StagedGifts): number {
@@ -376,23 +405,14 @@ function showQuestCompleteOverlay(): void {
   showQuestOverlay('img/external/quest-complete.png', '', 'map/audio/mission_success.mp3');
 }
 
-function nextStoredIndex(key: string, length: number): number {
-  const fallback = fallbackDialogueIndexes.get(key) ?? 0;
-  const stored = Number.parseInt(readStorage(key) ?? String(fallback), 10);
-  const current = Number.isFinite(stored) && stored >= 0 ? stored % length : 0;
-  const next = (current + 1) % length;
-  fallbackDialogueIndexes.set(key, next);
-  writeStorage(key, String(next));
-  return current;
-}
-
 function nextDialogueIndex(npc: NpcDefinition): number {
   return nextDialogueVisitIndex(npc.id, npc.dialogueLines.length);
 }
 
 function nextAdamFact(): string {
-  const index = nextStoredIndex('max-game:adam-fact-index', ADAM_FACTS.length);
-  return ADAM_FACTS[index] ?? '';
+  const fact = ADAM_FACTS[adamFactIndex % ADAM_FACTS.length] ?? '';
+  adamFactIndex += 1;
+  return fact;
 }
 
 function closeDialogue(): void {
@@ -400,6 +420,11 @@ function closeDialogue(): void {
   fixtureLoading = false;
   pendingFixtureLine = null;
   pendingSongReward = null;
+  maddyDialogueAudio.ontimeupdate = null;
+  maddyDialogueAudio.onended = null;
+  maddyDialogueAudio.pause();
+  maddyDialogueAudio.currentTime = 0;
+  maddyDisplayedLineIndex = -1;
   endDialogueAudio();
   activeNpc = null;
   pendingRequestLine = null;
@@ -415,6 +440,15 @@ function closeDialogue(): void {
   dialogueProgress.hidden = true;
   giftConfirmation.hidden = true;
   oscarOptions.hidden = true;
+  reiDialogueLinesButton.hidden = true;
+}
+
+function showNextReiDialogueLine(): void {
+  if (activeNpc?.id !== 'rei') return;
+  currentDialogueLineIndex = (currentDialogueLineIndex + 1) % REI_DIALOGUE_LINES.length;
+  dialogueLine.textContent = REI_DIALOGUE_LINES[currentDialogueLineIndex] ?? '';
+  dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${REI_DIALOGUE_LINES.length}`;
+  dialogueProgress.hidden = false;
 }
 
 function showRequestLine(): void {
@@ -435,10 +469,9 @@ function showGiftLine(): void {
   pendingGiftLine = null;
   const giftWasAdded = pendingGiftItem ? addGift(pendingGiftItem) : false;
   if (giftWasAdded && pendingGiftItem) {
-    const stagedGifts = [REI_GIFTS, MARINA_D_GIFTS].find(({ first, second }) =>
-      pendingGiftItem?.id === first.id || pendingGiftItem?.id === second.id,
-    );
-    if (stagedGifts) writeStorage(stagedGifts.stageKey, pendingGiftItem.id === stagedGifts.second.id ? '2' : '1');
+    if (pendingGiftItem.id === REI_ITEM_1.id || pendingGiftItem.id === REI_ITEM_2.id) {
+      writeStorage(REI_GIFT_STAGE_KEY, pendingGiftItem.id === REI_ITEM_2.id ? '2' : '1');
+    }
   }
   pendingGiftItem = null;
   dialogueProgress.hidden = true;
@@ -583,12 +616,42 @@ function showDialogueLine(npc: NpcDefinition): void {
 
 function openDialogue(npc: NpcDefinition): void {
   hideSignDialogue();
+  reiDialogueLinesButton.hidden = npc.id !== 'rei';
   oscarOptions.hidden = true;
-  beginDialogueAudio(npc.name);
+  beginDialogueAudio(npc.id === 'maddy' || npc.id === 'adam' ? undefined : npc.name);
   activeNpc = npc;
   dialogueSession += 1;
   fixtureLoading = false;
   pendingFixtureLine = npc.getFixtureLine ?? null;
+  if (npc.id === 'maddy') {
+    pendingRequestLine = null;
+    pendingFollowUpLine = null;
+    pendingGiftLine = null;
+    pendingGiftItem = null;
+    pendingGiftConfirmation = null;
+    requestLineShown = false;
+    speaker.textContent = npc.name;
+    setProfileImage(dialogueProfile, npc.name);
+    maddyDisplayedLineIndex = -1;
+    showMaddyTimedLine(0);
+    dialogueProgress.hidden = false;
+    nextButton.hidden = true;
+    dialogue.hidden = false;
+    maddyDialogueAudio.pause();
+    maddyDialogueAudio.currentTime = 0;
+    maddyDialogueAudio.ontimeupdate = updateMaddyTimedLine;
+    maddyDialogueAudio.onended = () => {
+      if (activeNpc?.id !== 'maddy' || hasGift(MADDY_ITEM)) return;
+      pendingGiftItem = MADDY_ITEM;
+      pendingGiftConfirmation = "Maddy's item was added to your inventory.";
+      pendingGiftLine = nextGiftLine();
+      showGiftLine();
+    };
+    void maddyDialogueAudio.play().catch(() => {
+      // Browsers may require a player gesture before playing dialogue audio.
+    });
+    return;
+  }
   const reiStage = npc.id === 'rei' ? giftStage(REI_GIFTS) : null;
   pendingSongReward = npc.songReward && (npc.id !== 'rei' || (hasMikeAftermath() && reiStage !== 0)) && !getUnlockedSongs().includes(npc.songReward) ? npc.songReward : null;
   if (npc.id === 'rei' && hasMikeAftermath() && reiStage !== 0) {
@@ -610,12 +673,16 @@ function openDialogue(npc: NpcDefinition): void {
   pendingRequestLine = npc.id === 'rei' && hasMikeAftermath() && reiStage !== 0 ? null : npc.requestLine ?? null;
   pendingFollowUpLine = npc.followUpLine?.() ?? null;
   if (npc.id === 'rei') pendingGiftItem = reiStage === 0 ? REI_ITEM_1 : null;
-  else if (npc.id === 'marinaD') pendingGiftItem = nextStagedGift(MARINA_D_GIFTS);
+  else if (npc.id === 'marinaD') pendingGiftItem = !hasGift(MARINA_D_ITEM_1)
+    ? MARINA_D_ITEM_1
+    : !hasGift(MARINA_D_ITEM_2) ? MARINA_D_ITEM_2 : null;
   else pendingGiftItem = npc.itemGift && !hasGift(npc.itemGift) ? npc.itemGift : null;
   pendingGiftLine = pendingGiftItem ? nextGiftLine() : null;
   pendingGiftConfirmation = !pendingGiftLine ? null : npc.id === 'rei'
     ? "Rei's item was added to your inventory."
-    : 'An item has been added to your inventory.';
+    : npc.id === 'marinaD'
+      ? `${pendingGiftItem?.name} was added to your inventory.`
+      : 'An item has been added to your inventory.';
   giftConfirmation.hidden = true;
   requestLineShown = false;
   speaker.textContent = npc.name;
@@ -647,6 +714,7 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
 export function setupNpcInteractions(): void {
   closeButton.addEventListener('click', closeDialogue);
   nextButton.addEventListener('click', advanceDialogue);
+  reiDialogueLinesButton.addEventListener('click', showNextReiDialogueLine);
   window.addEventListener('keydown', (event) => {
     if (!activeNpc) return;
     if (event.code === 'Escape') {

@@ -109,6 +109,32 @@ try {
   assert.equal(katyPower.updateKatyPower(11000, true), true);
   assert.equal(katyPower.katyPowerSecondsLeft(11000), 0);
 
+  const maddyPower = await loadModule('maddy-tea-power', 'js/maddy-tea-power.ts');
+  assert.equal(maddyPower.maddyWorldDeltaTime(0.05, 500), 0.05);
+  maddyPower.activateMaddyTeaPower(1000);
+  assert.equal(maddyPower.maddyTeaSecondsLeft(1000), 10);
+  assert.ok(Math.abs(maddyPower.maddyWorldDeltaTime(0.05, 1025) - 0.026) < 1e-9);
+  assert.ok(Math.abs(maddyPower.maddyWorldDeltaTime(0.05, 5000) - 0.002) < 1e-9);
+  assert.ok(maddyPower.maddyTeaSecondsLeft(10999) > 0);
+  assert.equal(maddyPower.maddyTeaSecondsLeft(11000), 0);
+  assert.ok(Math.abs(maddyPower.maddyWorldDeltaTime(0.05, 11025) - 0.026) < 1e-9);
+  assert.equal(maddyPower.maddyWorldDeltaTime(0.05, 11050), 0.05);
+
+  const samPower = await loadModule('sam-power', 'js/sam-power.ts');
+  samPower.activateSamPower(1000);
+  assert.equal(samPower.samPowerSecondsLeft(1000), 13);
+  assert.equal(samPower.samMovementMultiplier(1000), 1.28);
+  samPower.updateSamPower(1000, 100, 100, [
+    { id: 'friend', x: 150, y: 100, height: 50 },
+    { id: 'too-far-away', x: 300, y: 100, height: 50 },
+  ]);
+  assert.equal(samPower.isSamTargetRecoiling('friend', 1000), true);
+  assert.equal(samPower.isSamTargetRecoiling('too-far-away', 1000), false);
+  assert.ok(samPower.samVictimOffset('friend', 1200).x > 0);
+  assert.equal(samPower.samPowerSecondsLeft(13999) > 0, true);
+  assert.equal(samPower.samPowerSecondsLeft(14000), 0);
+  assert.equal(samPower.samMovementMultiplier(14000), 1);
+
   const interiorScenes = await loadModule('interior-scenes', 'js/interior-scenes.ts');
   const interiorDoors = await loadModule('interior-doors', 'js/interior-doors.ts');
   const interiorCollision = await loadModule('interior-collision', 'js/interior-collision.ts');
@@ -186,9 +212,9 @@ try {
   // Approach from Ed's east side so Adam's nearby interaction does not win.
   const approachEd = () => npcs.updateNpcInteractions(npcs.ED.x + 30, npcs.ED.y);
   approachEd();
-  assert.equal(element('#npc-dialogue-profile').src, 'chat/ed/profile.jpg');
+  assert.equal(element('#npc-dialogue-profile').src, 'chat/ed/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
-  assert.equal(element('#npc-dialogue-line').textContent, "Hi there I'm Ed. This is my first line.");
+  assert.match(element('#npc-dialogue-line').textContent, /Halstead Court/);
   next();
   assert.match(element('#npc-dialogue-line').textContent, /Checking Arsenal/);
   assert.equal(element('#npc-dialogue-next').hidden, true);
@@ -262,27 +288,27 @@ try {
   values.clear();
   const approachAdam = () => npcs.updateNpcInteractions(npcs.ADAM.x, npcs.ADAM.y);
   leave(); approachAdam();
-  assert.equal(element('#npc-dialogue-line').textContent, "Hi there I'm Adam. This is my second line.");
+  assert.match(element('#npc-dialogue-line').textContent, /You\'re shorter than I was expecting/);
   assert.equal(element('#npc-dialogue-profile').hidden, true);
   const profiles = await loadModule('profile-images', 'js/profile-images.ts');
   assert.equal(profiles.profileImageSource('adam'), null);
-  assert.equal(profiles.profileImageSource('ed'), 'chat/ed/profile.jpg');
+  assert.equal(profiles.profileImageSource('ed'), 'chat/ed/profile.png');
   assert.equal(profiles.profileImageSource('Helen'), 'chat/helen/profile.jpg');
   assert.equal(profiles.profileImageSource('marina d'), null);
   for (const source of Object.values((await loadModule('profile-sources', 'js/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {
     assert.match(source, /^chat\/[^/]+\/profile\.(?:png|jpe?g)$/i);
   }
   next();
-  assert.match(element('#npc-dialogue-line').textContent, /Dial Square/);
+  assert.match(element('#npc-dialogue-line').textContent, /2006 Champions League final/);
   assert.equal(element('#npc-dialogue-next').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['adam-item']);
   assert.equal(element('#npc-dialogue-next').hidden, true);
   assert.equal(values.has('max-game:unlocked-songs'), false);
   leave(); approachAdam();
-  assert.equal(element('#npc-dialogue-line').textContent, "Hi there I'm Adam. This is my first line.");
+  assert.match(element('#npc-dialogue-line').textContent, /still very short/);
   next();
-  assert.match(element('#npc-dialogue-line').textContent, /Highbury/);
+  assert.match(element('#npc-dialogue-line').textContent, /Dial Square/);
   assert.equal(element('#npc-dialogue-next').hidden, true);
   values.set('max-game:inventory-gifts', '[]');
   leave(); approachAdam(); next(); next();
@@ -414,15 +440,19 @@ try {
   assert.equal(element('#npc-dialogue-line').textContent, "Hi I'm rei this is line 1");
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1']);
-  assert.equal(values.get('max-game:marina-d-gift-stage'), '1');
+  // A used item is offered again on the next visit.
   values.set('max-game:inventory-gifts', '[]');
   leave(); approachMarina(); next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-2']);
-  assert.equal(values.get('max-game:marina-d-gift-stage'), '2');
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1']);
+  leave(); approachMarina(); next();
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1', 'marina-d-item-2']);
+  values.set('max-game:inventory-gifts', '["marina-d-item-1"]');
+  leave(); approachMarina(); next();
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1', 'marina-d-item-2']);
   leave(); approachMarina();
   assert.equal(element('#npc-dialogue-next').hidden, false); // More submitted dialogue remains available.
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-2']);
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1', 'marina-d-item-2']);
 
   // A missing or unreadable deployed JSON feed must not empty the book gallery.
   const savedShelf = JSON.parse(await readFile('data/goodreads-read.json', 'utf8')).reviews;

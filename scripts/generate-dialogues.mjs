@@ -13,6 +13,7 @@ const dialogues = [
   { name: 'SAM', source: '../chat/sam/dialogue.txt', output: '../js/sam-dialogue.ts' },
   { name: 'KATIE', source: '../chat/katie/dialogue.txt', output: '../js/katie-dialogue.ts' },
   { name: 'MASON', source: '../chat/mason/dialogue.txt', output: '../js/mason-dialogue.ts' },
+  { name: 'MADDY', source: '../chat/maddy/dialogue.txt', output: '../js/maddy-dialogue.ts' },
   { name: 'MELI', source: '../chat/meli/dialogue.txt', output: '../js/meli-dialogue.ts' },
   { name: 'OSCAR', source: '../chat/oscar/dialogue.txt', output: '../js/oscar-dialogue.ts' },
   { name: 'JU', source: '../chat/ju/dialogue.txt', output: '../js/ju-dialogue.ts' },
@@ -31,7 +32,13 @@ const dialogues = [
 
 await Promise.all(dialogues.map(async ({ name, source, output }) => {
   const sourceUrl = new URL(source, import.meta.url);
-  const dialogue = await readFile(sourceUrl, 'utf8');
+  let dialogue;
+  try {
+    dialogue = await readFile(sourceUrl, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') return;
+    throw error;
+  }
   const lines = dialogue.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const sourcePath = source.replace('../', '');
   const generated = `// Generated from ${sourcePath}. Run npm run generate:dialogues after editing it.\n` +

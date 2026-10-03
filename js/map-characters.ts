@@ -1,3 +1,5 @@
+import { samTargetId, samVictimOffset } from './sam-power.js';
+
 export interface MapCharacterDefinition {
   readonly name: string;
   readonly source: string;
@@ -57,10 +59,11 @@ export function drawMapCharacters(
   for (const character of mapCharacters) {
     if (!shouldDraw(character)) continue;
     const width = Math.round(character.height * (character.image.naturalWidth / character.image.naturalHeight));
+    const offset = samVictimOffset(samTargetId(character.name));
     context.drawImage(
       character.image,
-      Math.round(character.x - cameraX - width / 2),
-      Math.round(character.y - cameraY - character.height),
+      Math.round(character.x - cameraX - width / 2 + offset.x),
+      Math.round(character.y - cameraY - character.height + offset.y),
       width,
       character.height,
     );

@@ -1,4 +1,5 @@
 import { resolveSiteAsset } from './site-assets.js';
+import { clearEdGiftCharge } from './ed-power.js';
 
 export interface GiftItem {
   readonly id: string;
@@ -34,6 +35,20 @@ export const TIM_ITEM: GiftItem = {
   name: "Tim's item",
   imageSource: 'chat/tim/item.png',
   description: 'Face implodes.',
+};
+
+export const HELEN_ITEM: GiftItem = {
+  id: 'helen-item',
+  name: "Helen's item",
+  imageSource: 'chat/helen/item.png',
+  description: 'Creates the apocalypse.',
+};
+
+export const NIALL_ITEM: GiftItem = {
+  id: 'niall-item',
+  name: "Niall's item",
+  imageSource: 'chat/niall/player/item.png',
+  description: 'Makes the protagonist move 20% faster.',
 };
 
 export const LUCY_ITEM: GiftItem = {
@@ -100,18 +115,25 @@ export const MARINA_D_ITEM_2: GiftItem = {
   description: 'The world becomes arsenal football club.',
 };
 
+export const MADDY_ITEM: GiftItem = {
+  id: 'maddy-item',
+  name: "Maddy's item",
+  imageSource: 'chat/maddy/item.png',
+  description: 'Protagonist has a cup of tea',
+};
+
 export const ED_ITEM: GiftItem = {
   id: 'ed-item',
   name: "Ed's item",
   imageSource: 'chat/ed/item.png',
-  description: 'The world becomes like arsenal football club.',
+  description: 'This power has no time limit. When the protagonist speaks to Helen or Niall or Tim or Max the items they give you are doubled in effectiveness (if possible) and last twice as long. Also, they show you their Halstead tattoos as part of the interaction.',
 };
 
 export const ADAM_ITEM: GiftItem = {
   id: 'adam-item',
   name: "Adam's item",
   imageSource: 'chat/adam/item.png',
-  description: 'The world becomes like arsenal football club.',
+  description: "Adds 5 inches to the protagonist's height and accentuates their muscular calves. Allows them to jump twice as high for 20 seconds.",
 };
 
 export const ALICE_ITEM: GiftItem = {
@@ -139,13 +161,6 @@ export const KATIE_ITEM: GiftItem = {
   id: 'katie-item',
   name: "Katie's item",
   imageSource: 'chat/katie/item.png',
-  description: 'The world becomes arsenal football club.',
-};
-
-export const OSCAR_ITEM: GiftItem = {
-  id: 'oscar-item',
-  name: "Oscar's item",
-  imageSource: 'chat/oscar/item.png',
   description: 'The world becomes arsenal football club.',
 };
 
@@ -178,8 +193,8 @@ export const JOE_ITEM: GiftItem = {
 };
 
 const INVENTORY_GIFTS_KEY = 'max-game:inventory-gifts';
-const GIFT_LINE_INDEX_KEY = 'max-game:gift-line-index';
 const ITEM_RECEIVED_OVERLAY_DURATION = 3200;
+let giftLineIndex = 0;
 
 function showItemReceivedOverlay(item: GiftItem): void {
   const gameShell = document.querySelector<HTMLElement>('.game-shell');
@@ -218,6 +233,8 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   NOEL_ITEM,
   JULIAN_ITEM,
   TIM_ITEM,
+  HELEN_ITEM,
+  NIALL_ITEM,
   PORTABLE_WALKMAN,
   GEORGIA_ITEM,
   ANDY_ITEM,
@@ -225,13 +242,13 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   REI_ITEM_2,
   MARINA_D_ITEM_1,
   MARINA_D_ITEM_2,
+  MADDY_ITEM,
   ED_ITEM,
   ADAM_ITEM,
   ALICE_ITEM,
   CHRIS_ITEM,
   SAM_ITEM,
   KATIE_ITEM,
-  OSCAR_ITEM,
   JU_ITEM,
   BOCHRA_ITEM,
   DAN_ITEM,
@@ -270,6 +287,7 @@ export function addGift(item: GiftItem): boolean {
 
 export function removeGift(item: GiftItem): void {
   writeGiftIds(readGiftIds().filter((id) => id !== item.id));
+  clearEdGiftCharge(item);
   window.dispatchEvent(new Event('max-game:inventory-gift-removed'));
 }
 
@@ -280,21 +298,16 @@ export function removeAllCollectedGifts(): number {
   const removedCount = ids.length - remainingIds.length;
   if (removedCount > 0) {
     writeGiftIds(remainingIds);
+    GIFT_ITEMS.filter((item) => collectedIds.has(item.id)).forEach(clearEdGiftCharge);
     window.dispatchEvent(new Event('max-game:inventory-gift-removed'));
   }
   return removedCount;
 }
 
 export function nextGiftLine(): string {
-  let index = 0;
-  try {
-    const stored = Number.parseInt(window.localStorage.getItem(GIFT_LINE_INDEX_KEY) ?? '0', 10);
-    index = Number.isFinite(stored) && stored >= 0 ? stored % GIFT_LINES.length : 0;
-    window.localStorage.setItem(GIFT_LINE_INDEX_KEY, String((index + 1) % GIFT_LINES.length));
-  } catch {
-    // Keep the first line when storage is unavailable.
-  }
-  return GIFT_LINES[index] ?? GIFT_LINES[0];
+  const line = GIFT_LINES[giftLineIndex % GIFT_LINES.length] ?? GIFT_LINES[0];
+  giftLineIndex += 1;
+  return line;
 }
 
 export function getCollectedGifts(): readonly GiftItem[] {

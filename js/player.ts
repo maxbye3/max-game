@@ -17,6 +17,9 @@ import { isHeld } from './input.js';
 import { isJumpMenuOpen } from './jump.js';
 import { isPlayerTripping } from './katy-power.js';
 import { isGymTimCutsceneBlockingPlayer } from './gym-tim-cutscene.js';
+import { niallSpeedMultiplier } from './niall-speed-power.js';
+import { adamAirStrideMultiplier } from './adam-power.js';
+import { samMovementMultiplier } from './sam-power.js';
 import { isNiallBattleTransitionActive, isNiallEncounterBlockingPlayer, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
@@ -109,8 +112,9 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   }
 
   const length = Math.hypot(dx, dy);
-  const movementX = (dx / length) * SPEED * speedMultiplier * deltaTime;
-  const movementY = (dy / length) * SPEED * speedMultiplier * deltaTime;
+  const movementSpeed = SPEED * speedMultiplier * niallSpeedMultiplier() * adamAirStrideMultiplier() * samMovementMultiplier();
+  const movementX = (dx / length) * movementSpeed * deltaTime;
+  const movementY = (dy / length) * movementSpeed * deltaTime;
   movePlayerWithCollisions(movementX, movementY);
 
   if (dx < 0 && dy < 0) player.direction = 'upLeft';

@@ -6,7 +6,7 @@ export const PROFILE_IMAGE_SOURCES = {
   "bochra": "chat/bochra/profile.jpg",
   "chris": "chat/chris/profile.jpg",
   "dan": "chat/dan/profile.png",
-  "ed": "chat/ed/profile.jpg",
+  "ed": "chat/ed/profile.png",
   "georgia": "chat/georgia/profile.jpg",
   "helen": "chat/helen/profile.jpg",
   "ju": "chat/ju/profile.png",

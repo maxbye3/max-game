@@ -5,6 +5,7 @@ import { CAVE_DOOR_ID, hasCaveColander } from './colander.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
 import { moveWithCollisions } from './movement.js';
+import { isSamTargetRecoiling } from './sam-power.js';
 
 type ThiefPhase =
   | 'hidden'
@@ -202,6 +203,11 @@ export function updateCaveThief(
   speedMultiplier: number,
 ): void {
   if (state.phase === 'hidden') return;
+  if (state.phase === 'chasing' && isSamTargetRecoiling('cave-thief')) {
+    state.animationTime = 0;
+    state.frame = 0;
+    return;
+  }
 
   if (state.phase === 'waiting') {
     if (time - state.returnTime < SEQUENCE_DELAY) return;

@@ -15,10 +15,14 @@ const actionGrid = requireElement<HTMLElement>('#move-grid');
 const itemGrid = requireElement<HTMLElement>('#item-grid'); const busLink = requireElement<HTMLAnchorElement>('#bus-link');
 const battleDice = requireElement<HTMLElement>('#battle-dice'); const niallBattler = requireElement<HTMLImageElement>('#niall-battler'); const niallOpeningDamage = requireElement<HTMLElement>('#niall-opening-damage');
 const openingGrid = requireElement<HTMLElement>('#opening-grid'); const openingNext = requireElement<HTMLButtonElement>('#opening-next');
+const playerOpeningDamage = requireElement<HTMLElement>('#player-opening-damage');
+const niallFoodPhoto = requireElement<HTMLElement>('#niall-food-photo');
 
 const battle = new NiallBattle();
 let runInterval: number | null = null;
 let openingStage = 0;
+let firstAttackStage = 0;
+let hasUsedFirstAttack = false;
 
 function setControlsDisabled(disabled: boolean): void {
   document.querySelectorAll<HTMLButtonElement>('.move-grid button').forEach((button) => { button.disabled = disabled; });
@@ -98,6 +102,15 @@ function queueNiallTurn(): void {
 
 function attack(): void {
   if (!battle.canAct) return;
+  if (!hasUsedFirstAttack) {
+    hasUsedFirstAttack = true;
+    firstAttackStage = 0;
+    actionGrid.hidden = true;
+    openingGrid.hidden = false;
+    openingNext.textContent = 'Next >';
+    appendLog('Attack: PLAYER begs NIALL for help on hobby project.');
+    return;
+  }
   battleDice.hidden = false;
   battleDice.classList.remove('shake');
   void battleDice.offsetWidth;
@@ -117,6 +130,48 @@ function attack(): void {
     }
     queueNiallTurn();
   }, 650);
+}
+
+function advanceFirstAttack(): void {
+  if (firstAttackStage === 0) {
+    appendLog('NIALL: "I\'ll help you this friday"');
+    firstAttackStage = 1;
+    return;
+  }
+  if (firstAttackStage === 1) {
+    appendLog('NIALL does not help you and takes 10 damage.');
+    battle.damageNiall(10);
+    niallOpeningDamage.hidden = false;
+    niallOpeningDamage.classList.remove('fly-away');
+    void niallOpeningDamage.offsetWidth;
+    niallOpeningDamage.classList.add('fly-away');
+    renderBattle();
+    firstAttackStage = 2;
+    return;
+  }
+  if (firstAttackStage === 2) {
+    appendLog('NIALL shows you a photo of some food he made.');
+    niallFoodPhoto.hidden = false;
+    firstAttackStage = 3;
+    return;
+  }
+  if (firstAttackStage === 3) {
+    appendLog("IT'S SUPER EFFECTIVE! PLAYER takes 30 damage.");
+    battle.applyNiallAttack({ damage: 30, message: '' });
+    playerOpeningDamage.hidden = false;
+    playerOpeningDamage.classList.remove('fly-away');
+    void playerOpeningDamage.offsetWidth;
+    playerOpeningDamage.classList.add('fly-away');
+    renderBattle();
+    firstAttackStage = 4;
+    return;
+  }
+  openingGrid.hidden = true;
+  actionGrid.hidden = false;
+  niallFoodPhoto.hidden = true;
+  niallOpeningDamage.hidden = true;
+  playerOpeningDamage.hidden = true;
+  appendLog('What will PLAYER do?');
 }
 
 function run(): void {
@@ -214,7 +269,10 @@ itemGrid.addEventListener('click', (event) => {
   if (item) useItem(item);
 });
 
-openingNext.addEventListener('click', advanceOpeningSequence);
+openingNext.addEventListener('click', () => {
+  if (hasUsedFirstAttack && firstAttackStage < 5) advanceFirstAttack();
+  else advanceOpeningSequence();
+});
 
 renderBattle();
 playOpeningSequence();

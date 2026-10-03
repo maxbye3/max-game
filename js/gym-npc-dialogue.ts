@@ -3,6 +3,7 @@ import { TIM_DIALOGUE_LINES } from './tim-dialogue.js';
 import { addGift, hasGift, JULIAN_ITEM, nextGiftLine, TIM_ITEM, type GiftItem } from './inventory-gifts.js';
 import { nextDialogueVisitIndex } from './dialogue-visit.js';
 import { WorkoutGalleryController } from './workout-gallery.js';
+import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from './ed-power.js';
 
 export type GymNpcId = 'julian' | 'tim';
 
@@ -58,6 +59,10 @@ export class GymNpcDialogueController {
     this.workoutGallery.hide();
     this.confirmation.hidden = true;
     this.showLine();
+    if (id === 'tim' && edPowerSecondsLeft() > 0) {
+      showHalsteadTattoo('Tim');
+      if (hasGift(TIM_ITEM)) chargeEdGift(TIM_ITEM);
+    }
     return npc;
   }
 
@@ -110,6 +115,7 @@ export class GymNpcDialogueController {
     this.line.textContent = this.pendingGiftLine;
     this.pendingGiftLine = null;
     const added = addGift(this.active.item);
+    if (added && this.active.id === 'tim') chargeEdGift(TIM_ITEM);
     this.progress.hidden = true;
     this.confirmation.textContent = added ? 'An item has been added to your inventory.' : '';
     this.confirmation.hidden = !added;

@@ -18,6 +18,7 @@ async function collectThemes(directory) {
     const pathFromChat = relative(chatDirectory, path).replaceAll('\\', '/');
     const folder = pathFromChat.slice(0, pathFromChat.lastIndexOf('/'));
     const characterFolder = folder.split('/')[0] ?? '';
+    if (characterFolder === 'adam') return;
     const priority = folder.endsWith('/player') ? 3 : folder === characterFolder ? 2 : 1;
     if (!themePriorities[characterFolder] || priority > themePriorities[characterFolder]) {
       themeSources[characterFolder] = `chat/${pathFromChat}`;
