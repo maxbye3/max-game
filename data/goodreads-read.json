@@ -1,6 +1,14 @@
 {
-  "updatedAt": "2026-09-24T22:39:09.390Z",
+  "updatedAt": "2026-10-04T20:11:24.636Z",
   "reviews": [
+    {
+      "title": "AI Engineering: Building Applications with Foundation Models",
+      "author": "Chip Huyen",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1733340973l/216848047._SX318_.jpg",
+      "rating": 3,
+      "review": "Very informative read. Somewhat receptive and unfortunately a wee bit dated (which I suppose is inevitable with this topic) but glad I got through it and took rigorous notes.",
+      "url": "https://www.goodreads.com/review/show/8998919150?utm_medium=api&utm_source=rss"
+    },
     {
       "title": "The Bonfire of the Vanities",
       "author": "Tom Wolfe",
@@ -84,7 +92,7 @@
     {
       "title": "Small Things Like These",
       "author": "Claire Keegan",
-      "cover": "https://s.gr-assets.com/assets/nophoto/book/111x148-675b3b2743c83e96e2540d2929d5f4d2.png",
+      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1790364422l/245721870._SY475_.jpg",
       "rating": 4,
       "review": "Really enjoyed this. It delivers a poignant and deeply moving story with the absolute mastery of less is more. I think this one will really stick with me for bringing to light something very sinister and real.",
       "url": "https://www.goodreads.com/review/show/8361254755?utm_medium=api&utm_source=rss"
@@ -202,7 +210,7 @@
       "url": "https://www.goodreads.com/review/show/8361272041?utm_medium=api&utm_source=rss"
     },
     {
-      "title": "Don’t Tell the President: The Best, Worst, and Mostly Untold Stories from Presidential Advance",
+      "title": "Don’t Tell the President: The Best, Worst, and Mostly Untold Stories from Presidential Advance ― A Funny Insider Account",
       "author": "Jean Becker",
       "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1764597988l/232735588._SY475_.jpg",
       "rating": 3,
@@ -232,14 +240,6 @@
       "rating": 4,
       "review": "Brilliant, unsettling, and deeply imaginative, the work captures one of the most consequential moments in the Buddha’s life: his rejection of the kingdom. Tezuka's style is erratic jumping between the ancient world to modern anachronisms, fourth wall breaks and absurd humor (fat jokes!) to incredible graphic violence and explicit language. But the whiplash feels masterful and adds to the absurdity. Even the art style is in extremes, pages dissolve into scrawled doodles and then into lavish splash pages of dense jungle landscapes. Tezuka is often titled as the originator or \"father\" of manga and in true absurd and chaotic style he weaves a great tale. Can't wait for volume three.",
       "url": "https://www.goodreads.com/review/show/8361273363?utm_medium=api&utm_source=rss"
-    },
-    {
-      "title": "Lewis and Clark Through Indian Eyes: Nine Indian Writers on the Legacy of the Expedition",
-      "author": "Alvin M. Josephy Jr.",
-      "cover": "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1498468384l/580601._SY475_.jpg",
-      "rating": 2,
-      "review": "The different accounts vary widely in quality and focus. The first is fantastic, very dry and ironic, and it reminded me of the wit of David Sedaris. A real five star start. After that, though, it begins to go all over the place. Toward the end, a very white Olive Coleman looking person speaks in pure Avatar like language. It swings wildly from people who seem not to care at all about Lewis and Clark to sweeping accusations. The consequences that followed Lewis and Clark and Manifest Destiny are obviously horrendous, and the book certainly gets its point across. But as an objective historical account of Lewis and Clark, the book just feels a bit all over the place.",
-      "url": "https://www.goodreads.com/review/show/8361269014?utm_medium=api&utm_source=rss"
     }
   ]
 }
