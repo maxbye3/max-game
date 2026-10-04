@@ -1,6 +1,6 @@
 // Generated from chat/ju/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const JU_DIALOGUE_LINES = [
-  "Hi there I'm Ju. This is my first line.",
-  "Hi there I'm Ju. This is my second line.",
-  "Hi there I'm Ju. This is my third line."
+  "We've little time. The prophecy foretells of danger in your path.",
+  "Here, take this amulet of FANTASTIC VIBES. It will imbue you with FANTASTIC VIBES, but it also holds a curse.",
+  "No, I can't reveal what the curse is."
 ] as const;

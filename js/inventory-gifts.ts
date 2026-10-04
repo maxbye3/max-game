@@ -27,7 +27,7 @@ export const JULIAN_ITEM: GiftItem = {
   id: 'julian-item',
   name: "Julian's item",
   imageSource: 'chat/julian/item.png',
-  description: 'The world opens up.',
+  description: 'A mysterious gift from Julian. Use it to discover its power.',
 };
 
 export const TIM_ITEM: GiftItem = {
@@ -41,7 +41,7 @@ export const HELEN_ITEM: GiftItem = {
   id: 'helen-item',
   name: "Helen's item",
   imageSource: 'chat/helen/item.png',
-  description: 'Creates the apocalypse.',
+  description: 'A surprise from Helen. Use it to find out what happens.',
 };
 
 export const NIALL_ITEM: GiftItem = {
@@ -77,13 +77,13 @@ export const GEORGIA_ITEM: GiftItem = {
   id: 'georgia-item',
   name: "Georgia's item",
   imageSource: 'chat/georgia/item.png',
-  description: 'Creates the apocalypse.',
+  description: 'A surprise from Georgia. Use it to find out what happens.',
 };
 
 export const ANDY_ITEM: GiftItem = {
   id: 'andy-item',
   name: "Andy's item",
-  imageSource: 'chat/andy/item.png',
+  imageSource: 'chat/andy/Item.png',
   description: 'Creates the apocalypse.',
 };
 
@@ -122,6 +122,13 @@ export const MADDY_ITEM: GiftItem = {
   description: 'Protagonist has a cup of tea',
 };
 
+export const OSCAR_ITEM: GiftItem = {
+  id: 'oscar-item',
+  name: "Oscar's item",
+  imageSource: 'chat/oscar/item.png',
+  description: 'Makes protagonist able to eat things.',
+};
+
 export const ED_ITEM: GiftItem = {
   id: 'ed-item',
   name: "Ed's item",
@@ -147,7 +154,7 @@ export const CHRIS_ITEM: GiftItem = {
   id: 'chris-item',
   name: "Chris's item",
   imageSource: 'chat/chris/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'A surprise from Chris. Use it to find out what happens.',
 };
 
 export const SAM_ITEM: GiftItem = {
@@ -161,35 +168,35 @@ export const KATIE_ITEM: GiftItem = {
   id: 'katie-item',
   name: "Katie's item",
   imageSource: 'chat/katie/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'A surprise from Katie. Use it to discover its power.',
 };
 
 export const JU_ITEM: GiftItem = {
   id: 'ju-item',
   name: "Ju's item",
   imageSource: 'chat/ju/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'A mysterious amulet from Ju. Use it to discover its power.',
 };
 
 export const BOCHRA_ITEM: GiftItem = {
   id: 'bochra-item',
   name: "Bochra's item",
   imageSource: 'chat/bochra/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'A surprise from Bochra. Use it to find out what happens.',
 };
 
 export const DAN_ITEM: GiftItem = {
   id: 'dan-item',
   name: "Dan's item",
   imageSource: 'chat/dan/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'A surprise from Dan. Use it to find out what happens.',
 };
 
 export const JOE_ITEM: GiftItem = {
   id: 'joe-item',
   name: "Joe's item",
   imageSource: 'chat/joe/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'A surprise from Joe. Use it to find out what happens.',
 };
 
 const INVENTORY_GIFTS_KEY = 'max-game:inventory-gifts';
@@ -218,12 +225,6 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     description: 'Makes the protagonist 36% happier.',
   },
   {
-    id: 'alex-s-item',
-    name: "Alex S's item",
-    imageSource: 'chat/alex s/item.png',
-    description: 'Creates the apocalypse.',
-  },
-  {
     id: 'katy-item',
     name: "Katy's item",
     imageSource: 'chat/katy/item.png',
@@ -243,6 +244,7 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   MARINA_D_ITEM_1,
   MARINA_D_ITEM_2,
   MADDY_ITEM,
+  OSCAR_ITEM,
   ED_ITEM,
   ADAM_ITEM,
   ALICE_ITEM,

@@ -1,3 +1,4 @@
+import { getPlayerHealth } from './player-health.js';
 import { getBattleResult, type BattleOutcome } from './battle-outcome.js';
 import { requireElement } from './elements.js';
 import {
@@ -19,6 +20,7 @@ const playerOpeningDamage = requireElement<HTMLElement>('#player-opening-damage'
 const niallFoodPhoto = requireElement<HTMLElement>('#niall-food-photo');
 
 const battle = new NiallBattle();
+battle.playerHp = getPlayerHealth();
 let runInterval: number | null = null;
 let openingStage = 0;
 let firstAttackStage = 0;

@@ -1246,6 +1246,13 @@ canvas {
   font: 9px/1.8 var(--font-pixel);
 }
 
+.andy-power-reply {
+  margin-top: 10px !important;
+  padding-top: 9px;
+  border-top: 1px solid rgb(210 234 218 / 30%);
+  color: #f6e6ad;
+}
+
 .dialogue-line-row {
   display: flex;
   align-items: flex-start;
@@ -1820,3 +1827,10 @@ kbd {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.julian-bargain { position: fixed; z-index: 45; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(440px, calc(100vw - 24px)); box-sizing: border-box; padding: 14px; border: 2px solid #ffc75e; border-radius: 12px; background: #190e23f5; color: #ffedb3; box-shadow: 0 4px 0 #0a0612; font: 13px/1.5 monospace; }
+.julian-bargain[hidden] { display: none; }
+.julian-bargain p { margin: 6px 0 10px; }
+.julian-bargain button { min-height: 48px; width: 100%; margin-top: 6px; border: 2px solid #ffe393; border-radius: 8px; padding: 8px; background: #63424f; color: #fff4c6; font: bold 14px monospace; cursor: pointer; }
+.julian-bargain button:disabled { opacity: .55; cursor: default; }
+.julian-bargain button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }

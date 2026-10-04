@@ -1,13 +1,6 @@
 // Generated from chat/joe/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const JOE_DIALOGUE_LINES = [
-  "Hi there I'm Joe. This is my first line.",
-  "Hi there I'm Joe. This is my second line.",
-  "Hi there I'm Joe. This is my third line.",
-  "So this whole scene file:///Users/MaxB/Sites/max-game/internal/index.html?door=snow-mansion needs to change.",
-  "1. Noel gives his first line of dialogue.",
-  "2. Do you want to play quite an involved game where he's the protagonist?",
-  "3. \"Yes\" opens https://maxbye.co/stealth-game/",
-  "4. \"No\" Noel says \"ah. I haven't actually finished it either\"",
-  "5. Either option Noel gives you his item",
-  "6. Noel then proceeds to give you the song \"audio/music/bits-bots.mp3\" with art from \"bits-bots.png\""
+  "Um, should we do some press-ups?",
+  "Do you want some creatine?",
+  "Where's your mallet?"
 ] as const;

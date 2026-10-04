@@ -1,4 +1,8 @@
+import { withCharacterPowers } from './character-power-render.js';
+import { isOscarEaten } from './oscar-power.js';
+
 export interface InteriorSceneryNpc {
+  readonly id?: string;
   readonly x: number;
   readonly y: number;
   readonly width: number;
@@ -25,27 +29,30 @@ export function drawSceneryNpcs(
   context.save();
   context.imageSmoothingEnabled = false;
   npcs.forEach((npc) => {
+    if (npc.id && isOscarEaten(npc.id)) return;
     const destinationX = Math.round((npc.x - cameraX - npc.width / 2) * scaleX);
     const destinationY = Math.round((npc.y - cameraY - npc.height) * scaleY);
     const destinationWidth = npc.width * scaleX;
     const destinationHeight = npc.height * scaleY;
-    if (npc.animation) {
-      const frame = Math.floor(timeMs / npc.animation.frameDurationMs) % npc.animation.frameCount;
-      const framesPerRow = npc.animation.framesPerRow ?? npc.animation.frameCount;
-      context.drawImage(
-        npc.image,
-        (frame % framesPerRow) * npc.animation.frameWidth,
-        Math.floor(frame / framesPerRow) * npc.animation.frameHeight,
-        npc.animation.frameWidth,
-        npc.animation.frameHeight,
-        destinationX,
-        destinationY,
-        destinationWidth,
-        destinationHeight,
-      );
-      return;
-    }
-    context.drawImage(npc.image, destinationX, destinationY, destinationWidth, destinationHeight);
+    withCharacterPowers(context, (npc.x - cameraX) * scaleX, (npc.y - cameraY) * scaleY, destinationHeight, npc.id ?? '', () => {
+      if (npc.animation) {
+        const frame = Math.floor(timeMs / npc.animation.frameDurationMs) % npc.animation.frameCount;
+        const framesPerRow = npc.animation.framesPerRow ?? npc.animation.frameCount;
+        context.drawImage(
+          npc.image,
+          (frame % framesPerRow) * npc.animation.frameWidth,
+          Math.floor(frame / framesPerRow) * npc.animation.frameHeight,
+          npc.animation.frameWidth,
+          npc.animation.frameHeight,
+          destinationX,
+          destinationY,
+          destinationWidth,
+          destinationHeight,
+        );
+        return;
+      }
+      context.drawImage(npc.image, destinationX, destinationY, destinationWidth, destinationHeight);
+    });
   });
   context.restore();
 }

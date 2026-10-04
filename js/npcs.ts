@@ -15,7 +15,7 @@ import { GEORGIA_DIALOGUE_LINES } from './georgia-dialogue.js';
 import { GEORGIA, georgiaState, setGeorgiaInteractionPaused } from './georgia.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
-import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, MARINA_D_ITEM_1, MARINA_D_ITEM_2, nextGiftLine, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
+import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, MARINA_D_ITEM_1, MARINA_D_ITEM_2, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
 import { MARINA_D_DIALOGUE_LINES } from './marina-d-dialogue.js';
 import { MADDY_DIALOGUE_LINES } from './maddy-dialogue.js';
 import { MASON_DIALOGUE_LINES } from './mason-dialogue.js';
@@ -31,6 +31,7 @@ import { hasMikeAftermath } from './world-state.js';
 import { getSongArtwork, getUnlockedSongs, unlockSong, type Song } from './music-library.js';
 import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
 import { nextDialogueVisitIndex } from './dialogue-visit.js';
+import { isOscarEaten, oscarCharacterId } from './oscar-power.js';
 
 interface NpcDefinition {
   readonly id: 'adam' | 'alice' | 'bochra' | 'chris' | 'dan' | 'ed' | 'joe' | 'ju' | 'mike' | 'rei' | 'marinaD' | 'maddy' | 'sam' | 'katie' | 'mason' | 'meli' | 'oscar' | 'alexS' | 'katy' | 'georgia';
@@ -208,6 +209,7 @@ export const OSCAR: NpcDefinition = {
   width: 25,
   height: 52,
   interactionDistance: 58,
+  itemGift: OSCAR_ITEM,
   dialogueLines: OSCAR_DIALOGUE_LINES,
 };
 
@@ -267,7 +269,6 @@ export const ALEX_S: NpcDefinition = {
   width: 20,
   height: 46,
   interactionDistance: 58,
-  itemGift: GIFT_ITEMS[1]!,
   songReward: 'Africa',
   dialogueLines: ALEX_S_DIALOGUE_LINES,
 };
@@ -280,7 +281,7 @@ export const KATY: NpcDefinition = {
   width: 35,
   height: 52,
   interactionDistance: 58,
-  itemGift: GIFT_ITEMS[2]!,
+  itemGift: GIFT_ITEMS[1]!,
   dialogueLines: KATY_DIALOGUE_LINES,
 };
 
@@ -697,6 +698,7 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
   let closestDistance = Infinity;
   for (const npc of NPCS) {
     if (npc.id === 'mike' && hasMikeAftermath()) continue;
+    if (isOscarEaten(oscarCharacterId(npc.name))) continue;
     const position = npc.getPosition?.() ?? npc;
     const distance = Math.hypot(playerX - position.x, playerY - position.y);
     if (distance <= npc.interactionDistance && distance < closestDistance) {
@@ -712,6 +714,18 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
 }
 
 export function setupNpcInteractions(): void {
+  window.addEventListener('max-game:helen-power-activated', closeDialogue);
+  window.addEventListener('max-game:joe-power-activated', closeDialogue);
+  window.addEventListener('max-game:ju-power-activated', closeDialogue);
+  window.addEventListener('max-game:julian-power-activated', closeDialogue);
+  window.addEventListener('max-game:katie-power-activated', closeDialogue);
+  window.addEventListener('max-game:georgia-power-activated', () => {
+    closeDialogue();
+    setGeorgiaInteractionPaused(false);
+    nearbyNpc = null;
+  });
+  window.addEventListener('max-game:chris-power-activated', closeDialogue);
+  window.addEventListener('max-game:dan-power-activated', closeDialogue);
   closeButton.addEventListener('click', closeDialogue);
   nextButton.addEventListener('click', advanceDialogue);
   reiDialogueLinesButton.addEventListener('click', showNextReiDialogueLine);

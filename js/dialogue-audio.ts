@@ -1,5 +1,6 @@
 import { DIALOGUE_THEME_SOURCES } from './dialogue-themes.generated.js';
 import { createGameAudio } from './audio-mute.js';
+import { addAndyDialogueReply } from './andy-power.js';
 
 const theme = createGameAudio();
 theme.loop = true;
@@ -31,6 +32,7 @@ function notifyAudioFocusChanged(): void {
 
 /** Marks a conversation as active so world ambience can be mixed underneath it. */
 export function beginDialogueAudio(name?: string, prefix = ''): void {
+  addAndyDialogueReply();
   dialogueAudioSession += 1;
   const session = dialogueAudioSession;
   cancelThemeStop();

@@ -1,3 +1,11 @@
+import { isKatiePowerActive } from './katie-power.js';
+import { julianMovementMultiplier } from './julian-power.js';
+import { juInputVector, juMovementMultiplier } from './ju-power.js';
+import { helenMovementMultiplier } from './helen-power.js';
+import { isGeorgiaPowerActive, moveGeorgiaFlight, settleGeorgiaFlight } from './georgia-power.js';
+import { isDanPowerActive } from './dan-power.js';
+import { chrisMovementMultiplier } from './chris-power.js';
+import { bochraMovementMultiplier } from './bochra-power.js';
 import {
   BUS_INTRO_PLAYER_START_Y,
   BUS_INTRO_STOP_X,
@@ -12,7 +20,7 @@ import { isBusIntroActive } from './bus-intro.js';
 import { isCaveTheftCutsceneActive } from './cave-thief.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
-import { isHoleAnimationActive } from './hole.js';
+import { isHoleAnimationActive, isSafeLandingPoint } from './hole.js';
 import { isHeld } from './input.js';
 import { isJumpMenuOpen } from './jump.js';
 import { isPlayerTripping } from './katy-power.js';
@@ -20,12 +28,15 @@ import { isGymTimCutsceneBlockingPlayer } from './gym-tim-cutscene.js';
 import { niallSpeedMultiplier } from './niall-speed-power.js';
 import { adamAirStrideMultiplier } from './adam-power.js';
 import { samMovementMultiplier } from './sam-power.js';
+import { oscarMovementMultiplier } from './oscar-power.js';
+import { andyMovementMultiplier } from './andy-power.js';
 import { isNiallBattleTransitionActive, isNiallEncounterBlockingPlayer, NIALL } from './niall.js';
 import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
 
 const clampX = (x: number) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
 const clampY = (y: number) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
+const FLIGHT_BOUNDS = { minX: HALF_WIDTH, minY: SPRITE_HEIGHT + 60, maxX: WORLD_WIDTH - HALF_WIDTH, maxY: WORLD_HEIGHT - 1 };
 
 const searchParams = new URLSearchParams(window.location.search);
 const returnDoorId = searchParams.get('door');
@@ -77,7 +88,10 @@ function movePlayerWithCollisions(movementX: number, movementY: number): void {
 }
 
 export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
+  if (isKatiePowerActive()) { player.animationTime = 0; player.frame = 0; return; }
+  settleGeorgiaFlight(player, (x, y) => !isSafeLandingPoint(x, y), FLIGHT_BOUNDS);
   if (
+    isDanPowerActive() ||
     isBusIntroActive() ||
     isHoleAnimationActive() ||
     isJumpMenuOpen() ||
@@ -103,8 +117,13 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   if (isHeld('right')) dx += 1;
   if (isHeld('up')) dy -= 1;
   if (isHeld('down')) dy += 1;
+  const juDirection = juInputVector(dx, dy);
+  dx = juDirection.x; dy = juDirection.y;
 
   const isMoving = dx !== 0 || dy !== 0;
+  const movementSpeed = SPEED * speedMultiplier * niallSpeedMultiplier() * adamAirStrideMultiplier() * samMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier();
+  const flying = isGeorgiaPowerActive();
+  if (flying) moveGeorgiaFlight(player, dx, dy, movementSpeed, deltaTime, FLIGHT_BOUNDS);
   if (!isMoving) {
     player.animationTime = 0;
     player.frame = 0;
@@ -112,10 +131,9 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   }
 
   const length = Math.hypot(dx, dy);
-  const movementSpeed = SPEED * speedMultiplier * niallSpeedMultiplier() * adamAirStrideMultiplier() * samMovementMultiplier();
   const movementX = (dx / length) * movementSpeed * deltaTime;
   const movementY = (dy / length) * movementSpeed * deltaTime;
-  movePlayerWithCollisions(movementX, movementY);
+  if (!flying) movePlayerWithCollisions(movementX, movementY);
 
   if (dx < 0 && dy < 0) player.direction = 'upLeft';
   else if (dx > 0 && dy < 0) player.direction = 'upRight';
@@ -126,6 +144,6 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   else if (dy < 0) player.direction = 'up';
   else player.direction = 'down';
 
-  player.animationTime += deltaTime;
+  player.animationTime += deltaTime * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier();
   player.frame = Math.floor(player.animationTime * 11) % FRAME_COUNT;
 }

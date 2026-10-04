@@ -1,4 +1,6 @@
+import { withCharacterPowers } from './character-power-render.js';
 import { samTargetId, samVictimOffset } from './sam-power.js';
+import { isOscarEaten, oscarCharacterId } from './oscar-power.js';
 
 export interface MapCharacterDefinition {
   readonly name: string;
@@ -52,7 +54,7 @@ export function drawMapCharacters(
   context: CanvasRenderingContext2D,
   cameraX: number,
   cameraY: number,
-  shouldDraw: (character: MapCharacter) => boolean = () => true,
+  shouldDraw: (character: MapCharacter) => boolean = (character) => !isOscarEaten(oscarCharacterId(character.name)),
 ): void {
   context.save();
   context.imageSmoothingEnabled = false;
@@ -60,13 +62,13 @@ export function drawMapCharacters(
     if (!shouldDraw(character)) continue;
     const width = Math.round(character.height * (character.image.naturalWidth / character.image.naturalHeight));
     const offset = samVictimOffset(samTargetId(character.name));
-    context.drawImage(
+    withCharacterPowers(context, character.x - cameraX, character.y - cameraY, character.height, samTargetId(character.name), () => context.drawImage(
       character.image,
       Math.round(character.x - cameraX - width / 2 + offset.x),
       Math.round(character.y - cameraY - character.height + offset.y),
       width,
       character.height,
-    );
+    ));
   }
   context.restore();
 }

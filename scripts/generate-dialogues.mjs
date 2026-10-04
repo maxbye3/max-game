@@ -21,7 +21,7 @@ const dialogues = [
   { name: 'DAN', source: '../chat/dan/dialogue.txt', output: '../js/dan-dialogue.ts' },
   { name: 'JOE', source: '../chat/joe/dialogue.txt', output: '../js/joe-dialogue.ts' },
   { name: 'ANDY', source: '../chat/andy/dialogue.txt', output: '../js/andy-dialogue.ts' },
-  { name: 'LUCY', source: '../chat/lucy/player/dialogue.txt', output: '../js/lucy-dialogue.ts' },
+  { name: 'LUCY', source: '../chat/lucy/dialogue.txt', output: '../js/lucy-dialogue.ts' },
   { name: 'ALEX_S', source: '../chat/alex s/dialogue.txt', output: '../js/alex-s-dialogue.ts' },
   { name: 'JULIAN', source: '../chat/julian/dialogue.txt', output: '../js/julian-dialogue.ts' },
   { name: 'KATY', source: '../chat/katy/dialogue.txt', output: '../js/katy-dialogue.ts' },

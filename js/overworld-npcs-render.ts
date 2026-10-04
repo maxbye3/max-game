@@ -1,9 +1,11 @@
+import { withCharacterPowers } from './character-power-render.js';
 import { images } from './assets.js';
 import { ADAM, ALEX_S, ED, KATY, MIKE, REI } from './npcs.js';
 import { drawMapCharacters } from './map-characters.js';
 import { drawGymTimCutscene } from './gym-tim-cutscene.js';
 import { hasMikeAftermath } from './world-state.js';
 import { samVictimOffset } from './sam-power.js';
+import { isOscarEaten } from './oscar-power.js';
 
 const REI_PAINT = { x: 438, y: 490, width: 15, height: 20 } as const;
 
@@ -15,14 +17,15 @@ function drawNpc(
   cameraX: number,
   cameraY: number,
 ): void {
+  if (isOscarEaten(id)) return;
   const offset = samVictimOffset(id);
-  context.drawImage(
+  withCharacterPowers(context, npc.x - cameraX, npc.y - cameraY, npc.height, id, () => context.drawImage(
     image,
     Math.round(npc.x - cameraX - npc.width / 2 + offset.x),
     Math.round(npc.y - cameraY - npc.height + offset.y),
     npc.width,
     npc.height,
-  );
+  ));
 }
 
 export function drawOverworldNpcs(

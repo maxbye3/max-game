@@ -1,3 +1,14 @@
+import { drawKatieTerrain, drawKatieGround, drawKatieWorld } from './katie-power-render.js';
+import { drawJulianTerrain, drawJulianGround, drawJulianWorld } from './julian-power-render.js';
+import { drawJuTerrain, drawJuGround, drawJuWorld } from './ju-power-render.js';
+import { drawJoeTerrain, drawJoeGround, drawJoeWorld, drawPlayerHealth } from './joe-power-render.js';
+import { drawHelenGround, drawHelenTerrain, drawHelenWorld } from './helen-power-render.js';
+import { drawGeorgiaGround, drawGeorgiaSky } from './georgia-power-render.js';
+import { isGeorgiaPowerActive } from './georgia-power.js';
+import { drawDanPlayer, drawDanWorld } from './dan-power-render.js';
+import { withCharacterPowers } from './character-power-render.js';
+import { drawChrisPlayer, drawChrisWorld } from './chris-power-render.js';
+import { drawBochraFloor, drawBochraLights } from './bochra-power-render.js';
 import { images } from './assets.js';
 import { getBusIntroBus, getBusIntroCameraCenter, isBusIntroPlayerVisible } from './bus-intro.js';
 import {
@@ -24,6 +35,8 @@ import { adamJumpOffset, adamPowerSecondsLeft, drawAdamPower, drawAdamShadow } f
 import { drawSamPower, drawSamVictimEffects, drawSamWorldOverlay, samCameraJolt, samVictimOffset } from './sam-power.js';
 import { drawSpeechBubble } from './speech-bubble.js';
 import { hasMikeAftermath } from './world-state.js';
+import { drawOscarPower, drawOscarWorldBites } from './oscar-power.js';
+import { drawAndyPlayer, drawAndyWorld } from './andy-world-power.js';
 import type { Direction } from './types.js';
 
 const NIALL_SPRITE_COLUMNS = 4;
@@ -118,7 +131,7 @@ function drawNiallAt(
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(
+  withCharacterPowers(context, x - cameraX, y - cameraY, NIALL.height, 'niall', () => context.drawImage(
     images.niallSprite,
     sourceX,
     sourceY,
@@ -128,7 +141,7 @@ function drawNiallAt(
     Math.round(y - cameraY - NIALL.height + offset.y),
     NIALL.width,
     NIALL.height,
-  );
+  ));
   context.restore();
 }
 
@@ -144,7 +157,7 @@ function drawCaveThief(cameraX: number, cameraY: number): void {
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(
+  withCharacterPowers(context, thief.x - cameraX, thief.y - cameraY, GIRLS_RENDER_HEIGHT, 'cave-thief', () => context.drawImage(
     images.girlsSprite,
     sourceX,
     sourceY,
@@ -154,7 +167,7 @@ function drawCaveThief(cameraX: number, cameraY: number): void {
     Math.round(thief.y - cameraY - GIRLS_RENDER_HEIGHT + offset.y),
     GIRLS_RENDER_WIDTH,
     GIRLS_RENDER_HEIGHT,
-  );
+  ));
   context.restore();
 }
 
@@ -187,13 +200,15 @@ function drawGeorgia(cameraX: number, cameraY: number): void {
   const drawY = Math.round(georgiaState.y - cameraY - GEORGIA_BIKE_RENDER_HEIGHT + bob + offset.y);
   context.save();
   context.imageSmoothingEnabled = false;
-  if (facingRight) {
-    context.translate(drawX + GEORGIA_BIKE_RENDER_WIDTH, drawY);
-    context.scale(-1, 1);
-    context.drawImage(images.georgiaBike, 0, 0, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
-  } else {
-    context.drawImage(images.georgiaBike, drawX, drawY, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
-  }
+  withCharacterPowers(context, georgiaState.x - cameraX, georgiaState.y - cameraY, GEORGIA_BIKE_RENDER_HEIGHT, 'georgia', () => {
+    if (facingRight) {
+      context.translate(drawX + GEORGIA_BIKE_RENDER_WIDTH, drawY);
+      context.scale(-1, 1);
+      context.drawImage(images.georgiaBike, 0, 0, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
+    } else {
+      context.drawImage(images.georgiaBike, drawX, drawY, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
+    }
+  });
   context.restore();
 }
 
@@ -231,6 +246,19 @@ export function draw(time: number, worldTime = time): void {
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2 + joltX)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2 + joltY)));
   const worldDepth = drawWorldBackground(worldTime, cameraX, cameraY, player.y);
+  drawHelenTerrain(context, time);
+  drawJoeTerrain(context, time);
+  drawJuTerrain(context, time);
+  drawJulianTerrain(context, time);
+  drawKatieTerrain(context, time);
+  drawKatieGround(context, cameraX, cameraY, time);
+  drawJulianGround(context, cameraX, cameraY, time);
+  drawJuGround(context, cameraX, cameraY, time);
+  drawJoeGround(context, cameraX, cameraY, time);
+  drawHelenGround(context, cameraX, cameraY, time);
+  drawOscarWorldBites(context, cameraX, cameraY, time);
+  drawBochraFloor(context, cameraX, cameraY, time);
+  drawGeorgiaGround(context, cameraX, cameraY, time);
   drawMikeAftermath(cameraX, cameraY);
   drawCaveThief(cameraX, cameraY);
   drawGeorgia(cameraX, cameraY);
@@ -250,6 +278,7 @@ export function draw(time: number, worldTime = time): void {
   }
   drawOverworldNpcs(context, cameraX, cameraY);
   drawMaddyTeaWorldOverlay(context, time);
+  if (isGeorgiaPowerActive(time)) drawWorldForeground(cameraX, cameraY, worldDepth);
 
   const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
   const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, SCALE);
@@ -301,7 +330,7 @@ export function draw(time: number, worldTime = time): void {
     );
     context.restore();
   } else if (playerVisible) {
-    context.drawImage(
+    withCharacterPowers(context, player.x - cameraX, player.y - cameraY, adamHeight, 'player', () => context.drawImage(
       playerSpriteSheet,
       sourceX,
       sourceY,
@@ -311,20 +340,34 @@ export function draw(time: number, worldTime = time): void {
       Math.round(player.y - cameraY - adamHeight - adamLift + baselineOffset),
       width,
       adamHeight,
-    );
+    ), time);
   }
   if (playerVisible && hasCaveColander()) {
     drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
   }
-  drawWorldForeground(cameraX, cameraY, worldDepth);
+  if (!isGeorgiaPowerActive(time)) drawWorldForeground(cameraX, cameraY, worldDepth);
   drawSamWorldOverlay(context, time);
   drawSamVictimEffects(context, cameraX, cameraY, time);
   drawBusIntro(cameraX, cameraY);
+  drawAndyWorld(context, cameraX, cameraY, time);
+  drawBochraLights(context, cameraX, cameraY, time);
+  drawChrisWorld(context, cameraX, cameraY, time);
+  drawDanWorld(context, cameraX, cameraY, time);
+  drawGeorgiaSky(context, time);
+  drawHelenWorld(context, cameraX, cameraY, time);
+  drawJoeWorld(context, cameraX, cameraY, time);
+  drawJuWorld(context, cameraX, cameraY, time);
+  drawJulianWorld(context, cameraX, cameraY, time);
+  drawKatieWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   if (playerVisible) {
     drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, time);
     drawEdPower(context, player.x - cameraX, player.y - cameraY);
     drawAdamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, SEAL_MODE);
     drawSamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
+    drawOscarPower(context, player.x - cameraX, player.y - cameraY, height, time, player.direction.endsWith('Left') || player.direction === 'left');
+    drawAndyPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
+    drawChrisPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time, player.direction.endsWith('Left') || player.direction === 'left');
+    drawDanPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
   }
 
   const thief = getCaveThief();
@@ -334,6 +377,7 @@ export function draw(time: number, worldTime = time): void {
   }
   const gymTimDialogue = getGymTimCutsceneDialogue();
   if (gymTimDialogue) drawSpeechBubble(context, gymTimDialogue.text, gymTimDialogue.x - cameraX, gymTimDialogue.y - cameraY);
+  drawPlayerHealth(context, time);
 }
 
 export function drawLoadFailure(): void {

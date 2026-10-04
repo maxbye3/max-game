@@ -12,7 +12,12 @@ for (const character of characters) {
   const files = (await readdir(join(chatDirectory, character.name), { withFileTypes: true }))
     .filter((entry) => entry.isFile() && /^profile\.(?:png|jpe?g)$/i.test(entry.name))
     .sort((a, b) => a.name.localeCompare(b.name));
-  if (files[0]) profileSources[character.name] = `chat/${character.name}/${files[0].name}`;
+  // These characters' newly supplied PNGs are their active portraits when
+  // both root formats exist. Nested portraits remain ineligible.
+  const selectedFile = ['georgia', 'helen'].includes(character.name)
+    ? files.find((file) => file.name.toLowerCase() === 'profile.png') ?? files[0]
+    : files[0];
+  if (selectedFile) profileSources[character.name] = `chat/${character.name}/${selectedFile.name}`;
 }
 
 const generated = `// Generated from chat/<character>/profile.(png|jpg|jpeg). No nested fallbacks.\n` +
