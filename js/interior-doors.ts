@@ -1,4 +1,5 @@
 import type { InteriorScene } from './interior-scenes.js';
+import { createGameAudio } from './audio-mute.js';
 
 const OPEN_DISTANCE = 53;
 const EXIT_DISTANCE = 18;
@@ -13,7 +14,7 @@ interface InteriorDoorOptions {
 }
 
 export class InteriorDoorsController {
-  private readonly sound = new Audio('../audio/open-door.mp3');
+  private readonly sound = createGameAudio('../audio/open-door.mp3');
   private openDoorIndex: number | null = null;
   private hasSyncedInitialDoorState = false;
   private navigationStarted = false;

@@ -1,5 +1,6 @@
 import { requireElement } from './dom.js';
-import { addGift, hasGift, removeGift, PORTABLE_WALKMAN } from './inventory-gifts.js';
+import { createGameAudio } from './audio-mute.js';
+import { hasGift, PORTABLE_WALKMAN } from './inventory-gifts.js';
 import { getUnlockedSongs, type Song } from './music-library.js';
 
 const musicToggle = requireElement<HTMLButtonElement>('#music-toggle');
@@ -11,7 +12,7 @@ const playPauseButton = requireElement<HTMLButtonElement>('#music-play-pause');
 const volumeSlider = requireElement<HTMLInputElement>('#music-volume');
 const musicStatus = requireElement<HTMLElement>('#music-status');
 
-const player = new Audio();
+const player = createGameAudio();
 player.loop = true;
 player.volume = Number(volumeSlider.value);
 
@@ -24,7 +25,11 @@ function refreshSongOptions(): void {
   if (!selectedSong || !unlocked.includes(selectedSong)) {
     selectedSong = null;
     player.pause();
-    player.removeAttribute('src');
+    if (player.hasAttribute('src')) {
+      player.removeAttribute('src');
+      player.load();
+    }
+    setPlayerButton();
   } else {
     musicSelect.value = selectedSong;
   }
@@ -65,10 +70,13 @@ function updateWalkmanAvailability(): void {
 
 function playSelectedSong(): void {
   if (!selectedSong || !hasWalkman()) return;
+  const song = selectedSong;
   void player.play().then(() => {
-    musicStatus.textContent = `Playing ${selectedSong}.`;
+    if (selectedSong !== song || !hasWalkman() || !getUnlockedSongs().includes(song)) return;
+    musicStatus.textContent = `Playing ${song}.`;
     setPlayerButton();
   }).catch(() => {
+    if (selectedSong !== song) return;
     musicStatus.textContent = 'Playback was blocked. Press Play to try again.';
     setPlayerButton();
   });
@@ -81,7 +89,9 @@ export function setupMusicPlayer(): void {
     const song = musicSelect.value as Song | '';
     if (!song) return;
     selectedSong = song;
-    player.src = `audio/music/${encodeURIComponent(song)}.mp3`;
+    player.src = song === 'bleep-blops'
+      ? 'audio/music/bits-bots.mp3'
+      : `audio/music/${encodeURIComponent(song)}.mp3`;
     player.currentTime = 0;
     playPauseButton.disabled = false;
     playSelectedSong();
@@ -126,11 +136,9 @@ export function setupMusicPlayer(): void {
     musicToggle.classList.add('inventory-added-wobble');
     window.setTimeout(() => musicToggle.classList.remove('inventory-added-wobble'), 1000);
   });
-  updateWalkmanAvailability();
-
-  // TEMP: testing-only toggle, remove before shipping (along with the button in index.html).
-  document.querySelector<HTMLButtonElement>('#walkman-debug-toggle')?.addEventListener('click', () => {
-    if (hasWalkman()) removeGift(PORTABLE_WALKMAN);
-    else addGift(PORTABLE_WALKMAN);
+  window.addEventListener('max-game:music-library-reset', () => {
+    refreshSongOptions();
+    updateWalkmanAvailability();
   });
+  updateWalkmanAvailability();
 }

@@ -1,5 +1,7 @@
 import { LUCY_DIALOGUE_LINES } from './lucy-dialogue.js';
 import { addGift, hasGift, LUCY_ITEM, nextGiftLine } from './inventory-gifts.js';
+import { PlantDiaryGalleryController } from './plant-diary-gallery.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
 
 export class LucyController {
   readonly sprite = new Image();
@@ -9,6 +11,8 @@ export class LucyController {
   private pendingGiftConfirmation: string | null = null;
   private plantDiaryOfferPending = false;
   private readonly plantDiaryOptions = document.querySelector<HTMLElement>('#lucy-plant-diary-options');
+  private readonly dialogue = document.querySelector<HTMLElement>('#noel-dialogue');
+  private readonly plantDiary: PlantDiaryGalleryController;
 
   constructor(
     private readonly dialogueLine: HTMLElement,
@@ -18,16 +22,19 @@ export class LucyController {
     private readonly closeDialogue: () => void,
   ) {
     this.sprite.src = '../chat/lucy/avatar.png';
-    document.querySelector<HTMLButtonElement>('#lucy-plant-diary-yeh')?.addEventListener('click', this.closeDialogue);
+    this.plantDiary = new PlantDiaryGalleryController(this.closeDialogue);
+    document.querySelector<HTMLButtonElement>('#lucy-plant-diary-yeh')?.addEventListener('click', () => {
+      this.showPlantDiary();
+    });
     document.querySelector<HTMLButtonElement>('#lucy-plant-diary-neh')?.addEventListener('click', this.closeDialogue);
   }
 
   start(): void {
-    this.lineIndex = 0;
+    this.lineIndex = nextDialogueVisitIndex('lucy', LUCY_DIALOGUE_LINES.length);
     const hasNewGift = !hasGift(this.pendingGiftItem);
     this.pendingGiftLine = hasNewGift ? nextGiftLine() : null;
     this.pendingGiftConfirmation = hasNewGift ? 'An item has been added to your inventory.' : null;
-    this.plantDiaryOfferPending = hasNewGift;
+    this.plantDiaryOfferPending = true;
     if (this.plantDiaryOptions) this.plantDiaryOptions.hidden = true;
     this.showLine();
   }
@@ -62,6 +69,7 @@ export class LucyController {
     this.pendingGiftConfirmation = null;
     this.plantDiaryOfferPending = false;
     if (this.plantDiaryOptions) this.plantDiaryOptions.hidden = true;
+    this.plantDiary.hide();
     this.giftConfirmation.hidden = true;
     this.dialogueProgress.hidden = true;
   }
@@ -71,5 +79,11 @@ export class LucyController {
     this.dialogueProgress.textContent = `${this.lineIndex + 1}/${LUCY_DIALOGUE_LINES.length}`;
     this.dialogueProgress.hidden = false;
     this.nextButton.hidden = LUCY_DIALOGUE_LINES.length <= 1;
+  }
+
+  private showPlantDiary(): void {
+    if (this.plantDiaryOptions) this.plantDiaryOptions.hidden = true;
+    if (this.dialogue) this.dialogue.hidden = true;
+    this.plantDiary.open();
   }
 }

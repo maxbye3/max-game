@@ -26,6 +26,14 @@
 - Preserve pixel-art rendering and the existing canvas-first game feel.
 - Keep changes tightly scoped. Avoid unrelated asset churn or broad restyling.
 
+## Character dialogue portraits
+
+- Only use a portrait file directly in `chat/<character>/`: `profile.png`, `profile.jpg`, or `profile.jpeg`.
+- If that folder has no profile file, show no portrait. Absence is intentional, not a missing asset to fill in.
+- Never fall back to `/player`, `/example`, `chat/real`, avatars, item art, or another character's picture.
+- Apply this rule to every character, not character-specific exceptions. Keep `scripts/generate-profiles.mjs` and its generated mapping consistent with it.
+- When wiring up a character, check their root folder and test both portrait-present and portrait-absent behavior.
+
 ## Verification
 
 - For movement, collision, signs, doors, inventory, or rendering changes, verify the game loads in a browser and check the relevant interaction manually.

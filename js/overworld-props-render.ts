@@ -74,7 +74,7 @@ import { canvas, context } from './dom.js';
 import { getOpenDoorways } from './doors.js';
 import { isSnowmanFallen, SNOWMAN } from './snowman.js';
 import { drawTvScreen } from './tv-render.js';
-import { hasVisitedInterior } from './world-state.js';
+import { hasMikeAftermath } from './world-state.js';
 
 export interface WorldDepth {
   readonly gateCoversPlayer: boolean;
@@ -202,6 +202,7 @@ export function drawWorldBackground(
   };
 
   context.drawImage(images.map, -cameraX, -cameraY);
+  context.drawImage(images.eventTinder, 178 - cameraX, 124 - cameraY, 80, 80);
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
@@ -213,7 +214,7 @@ export function drawWorldBackground(
   context.restore();
 
   context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
-  const billboardScreen = hasVisitedInterior() ? images.billboardFinished : images.billboardUnfinished;
+  const billboardScreen = hasMikeAftermath() ? images.billboardFinished : images.billboardUnfinished;
   if (isImageReady(billboardScreen)) {
     context.save();
     context.imageSmoothingEnabled = true;

@@ -1,5 +1,6 @@
 const IMAGE_SOURCES = {
   map: 'img/external/overworld.png?v=riverside-sign-bookstore',
+  eventTinder: 'map/event-tinder.png',
   road: 'img/external/road.png',
   roadTree: 'img/external/tree.png',
   roadBusRoof: 'img/external/bus-roof.png',

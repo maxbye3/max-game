@@ -1,6 +1,19 @@
 // Generated from chat/andy/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const ANDY_DIALOGUE_LINES = [
-  "Hi there, I'm Andy. This is my first line.",
-  "Hi there, I'm Andy. This is my second line.",
-  "Hi there, I'm Andy. This is my third line.",
+  "'Is that the moon!?'",
+  "'Wait...'",
+  "'Hold on...'",
+  "'IS that the moon?'",
+  "'I'm really not sure.'",
+  "'It could be...'",
+  "'No, there's no way...'",
+  "'The moon is definitely further away than that.'",
+  "'Yep, it 100% isn't the moon.'",
+  "'Maybe 99% it isn't the moon...'",
+  "'Actually, if you look at that bit...'",
+  "'And the way it's changing size really suggests it is the moon.'",
+  "'I suppose, what else could it be?'",
+  "'It must be the moon.'",
+  "'Bit seriously, if that's the moon, have you seen it?'",
+  "'Wait...'"
 ] as const;

@@ -1,34 +1,25 @@
 import { readdir, writeFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const chatDirectory = fileURLToPath(new URL('../chat/', import.meta.url));
 const profileSources = {};
-const profilePriorities = {};
-
-async function collectProfiles(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  await Promise.all(entries.map(async (entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      await collectProfiles(path);
-      return;
-    }
-    if (!/^profile\.(?:png|jpe?g)$/i.test(entry.name)) return;
-    const pathFromChat = relative(chatDirectory, path).replaceAll('\\', '/');
-    const folder = pathFromChat.slice(0, pathFromChat.lastIndexOf('/'));
-    const characterFolder = folder.split('/')[0] ?? '';
-    const priority = folder.endsWith('/player') ? 3 : folder === characterFolder ? 2 : 1;
-    // Prefer the character's player profile, then the root profile, then an example.
-    if (!profilePriorities[characterFolder] || priority > profilePriorities[characterFolder]) {
-      profileSources[characterFolder] = `chat/${pathFromChat}`;
-      profilePriorities[characterFolder] = priority;
-    }
-  }));
+// Character root folders only. Nested player/example/real portraits are not fallbacks.
+const characters = (await readdir(chatDirectory, { withFileTypes: true }))
+  .filter((entry) => entry.isDirectory() && entry.name !== 'real')
+  .sort((a, b) => a.name.localeCompare(b.name));
+for (const character of characters) {
+  const files = (await readdir(join(chatDirectory, character.name), { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && /^profile\.(?:png|jpe?g)$/i.test(entry.name))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  // These characters' newly supplied PNGs are their active portraits when
+  // both root formats exist. Nested portraits remain ineligible.
+  const selectedFile = ['georgia', 'helen'].includes(character.name)
+    ? files.find((file) => file.name.toLowerCase() === 'profile.png') ?? files[0]
+    : files[0];
+  if (selectedFile) profileSources[character.name] = `chat/${character.name}/${selectedFile.name}`;
 }
 
-await collectProfiles(chatDirectory);
-
-const generated = `// Generated from chat/**/profile.(png|jpg|jpeg). Run npm run generate:profiles after adding profiles.\n` +
+const generated = `// Generated from chat/<character>/profile.(png|jpg|jpeg). No nested fallbacks.\n` +
   `export const PROFILE_IMAGE_SOURCES = ${JSON.stringify(profileSources, null, 2)} as const;\n`;
 await writeFile(new URL('../js/profile-images.generated.ts', import.meta.url), generated);

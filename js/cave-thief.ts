@@ -5,6 +5,8 @@ import { CAVE_DOOR_ID, hasCaveColander } from './colander.js';
 import { playerCollidesAt } from './collision.js';
 import { DOORWAYS } from './doors.js';
 import { moveWithCollisions } from './movement.js';
+import { isSamTargetRecoiling } from './sam-power.js';
+import { isOscarEaten } from './oscar-power.js';
 
 type ThiefPhase =
   | 'hidden'
@@ -105,6 +107,7 @@ export function getCaveThief(): {
   frame: number;
   moving: boolean;
 } | null {
+  if (isOscarEaten('cave-thief')) return null;
   if (state.phase === 'hidden' || state.phase === 'waiting' || state.phase === 'panToEntrance') {
     return null;
   }
@@ -202,6 +205,12 @@ export function updateCaveThief(
   speedMultiplier: number,
 ): void {
   if (state.phase === 'hidden') return;
+  if (isOscarEaten('cave-thief')) return;
+  if (state.phase === 'chasing' && isSamTargetRecoiling('cave-thief')) {
+    state.animationTime = 0;
+    state.frame = 0;
+    return;
+  }
 
   if (state.phase === 'waiting') {
     if (time - state.returnTime < SEQUENCE_DELAY) return;

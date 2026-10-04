@@ -10,6 +10,9 @@ import {
   ZEN_GARDEN_X,
   ZEN_GARDEN_Y,
 } from './config.js';
+import { createGameAudio } from './audio-mute.js';
+import { hasDialogueAudioFocus } from './dialogue-audio.js';
+import { ambienceSourceForDoor, carriedAmbienceFor, rememberAmbience } from './ambient-theme.js';
 
 const HEAR_DISTANCE = 160;
 const FULL_VOLUME_DISTANCE = 58;
@@ -21,7 +24,7 @@ interface BuildingAmbience {
 }
 
 function createAmbience(source: string): HTMLAudioElement {
-  const audio = new Audio(source);
+  const audio = createGameAudio(source);
   audio.loop = true;
   audio.preload = 'auto';
   return audio;
@@ -32,7 +35,7 @@ const BUILDING_AMBIENCE: readonly BuildingAmbience[] = [
   { x: 1039, y: 533, audio: createAmbience('map/audio/gym.mp3') },
   { x: 1021, y: 792, audio: createAmbience('map/audio/jobCenter.mp3') },
   { x: 490, y: 820, audio: createAmbience('map/audio/cinema.mp3') },
-  { x: ZEN_GARDEN_X + 108, y: ZEN_GARDEN_Y + 150, audio: createAmbience('map/audio/zen-garden.mp3') },
+  { x: ZEN_GARDEN_X + 108, y: ZEN_GARDEN_Y + 150, audio: createAmbience('map/audio/jungle.mp3') },
   { x: ARTIST_STUDIO_X + 92, y: ARTIST_STUDIO_Y + 99, audio: createAmbience('map/audio/art-studio.mp3') },
   { x: 235, y: 255, audio: createAmbience('map/audio/siblings.mp3') },
   { x: DIARY_LAB_X + 112, y: DIARY_LAB_Y + 85, audio: createAmbience('map/audio/journal.mp3') },
@@ -51,7 +54,8 @@ function updateAmbience(ambience: BuildingAmbience, playerX: number, playerY: nu
   }
 
   const fadeRange = HEAR_DISTANCE - FULL_VOLUME_DISTANCE;
-  ambience.audio.volume = Math.max(0, Math.min(1, (HEAR_DISTANCE - distance) / fadeRange));
+  const distanceVolume = Math.max(0, Math.min(1, (HEAR_DISTANCE - distance) / fadeRange));
+  ambience.audio.volume = distanceVolume * (hasDialogueAudioFocus() ? 0.5 : 1);
   if (ambience.audio.paused) {
     void ambience.audio.play().catch(() => {
       // Browsers may wait for a player gesture before allowing ambience.
@@ -61,4 +65,16 @@ function updateAmbience(ambience: BuildingAmbience, playerX: number, playerY: nu
 
 export function updateBuildingAmbience(playerX: number, playerY: number): void {
   BUILDING_AMBIENCE.forEach((ambience) => updateAmbience(ambience, playerX, playerY));
+}
+
+export function carryBuildingAmbienceInside(doorId: string): void {
+  const source = ambienceSourceForDoor(doorId);
+  const ambience = source ? BUILDING_AMBIENCE.find((candidate) => candidate.audio.src.endsWith(source)) : null;
+  if (source && ambience) rememberAmbience(doorId, source, ambience.audio.currentTime);
+}
+
+export function restoreBuildingAmbience(doorId: string | null): void {
+  const carried = carriedAmbienceFor(doorId);
+  const ambience = carried && BUILDING_AMBIENCE.find((candidate) => candidate.audio.src.endsWith(carried.source));
+  if (ambience) ambience.audio.currentTime = carried.currentTime;
 }

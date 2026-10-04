@@ -4,33 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Diary & Laboratory</title>
-    <link rel="stylesheet" href="../style.css?v=20260912-dialogue-profiles" />
-    <style>
-      .interior-exit {
-        position: absolute;
-        z-index: 8;
-        top: 24px;
-        left: 24px;
-        padding: 10px 12px;
-        border: 1px solid rgb(255 255 255 / 35%);
-        border-radius: 10px;
-        color: var(--text);
-        background: rgb(var(--panel-rgb) / 88%);
-        font: 10px/1.4 var(--font-pixel);
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="../style.css?v=20261003-adam-power" />
   </head>
   <body>
     <main class="game-shell">
       <canvas id="game" width="480" height="480" aria-label="Diary and Laboratory interior"></canvas>
-      <a class="interior-exit" href="../index.html">Exit</a>
-      <button id="interaction-prompt" class="npc-talk" type="button" hidden>Interact</button>
-      <div class="top-right-actions">
+      <div class="top-actions">
+        <a class="interior-exit" href="../index.html">Exit</a>
+        <button id="audio-mute-toggle" class="audio-mute-toggle" type="button" aria-pressed="false">
+          <svg class="mute-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M1 6h3l4-3v10l-4-3H1z" fill="currentColor" />
+            <path class="mute-icon-waves" d="M10 5h1v1h1v4h-1v1h-1v-1h1V6h-1zm2-2h1v1h1v8h-1v1h-1v-1h1V4h-1z" fill="currentColor" />
+            <path class="mute-icon-cross" d="m10 5 4 6m0-6-4 6" stroke="currentColor" stroke-width="2" />
+          </svg>
+          <span class="audio-mute-label">Mute</span>
+        </button>
         <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
           Inventory <span class="inventory-count">1</span>
         </button>
       </div>
+      <button id="interaction-prompt" class="npc-talk" type="button" hidden>Interact</button>
       <div id="powerup-status" class="powerup-status" hidden></div>
       <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
       <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
@@ -43,6 +36,7 @@
       <section id="inventory-panel" class="inventory-panel" aria-label="Inventory" hidden>
         <div class="inventory-header">
           <h2>Inventory</h2>
+          <button id="inventory-delete-all" class="inventory-delete-all" type="button">Delete all</button>
           <button id="inventory-close" class="inventory-close" type="button" aria-label="Close inventory">×</button>
         </div>
         <div class="inventory-item-row">
@@ -79,9 +73,8 @@
         <button id="noel-dialogue-next" class="npc-dialogue-next" type="button" aria-label="Next dialogue line" hidden>&gt;</button>
         <p id="noel-dialogue-question" class="npc-dialogue-question" hidden></p>
         <div id="noel-dialogue-options" class="npc-dialogue-options" hidden>
-          <button id="noel-read-diary" type="button" data-noel-choice="diary">Read diary</button>
-          <button id="noel-view-experiments" type="button" data-noel-choice="experiments">Checkout experiments</button>
-          <button id="noel-decline" type="button" data-noel-choice="decline">Neh. I'm good</button>
+          <button id="noel-yes" type="button">Yes</button>
+          <button id="noel-decline" type="button">No</button>
         </div>
         <div id="siblings-dialogue-options" class="npc-dialogue-options" hidden>
           <a id="siblings-view-website" href="https://siblingscomedy.com/" target="_blank" rel="noopener noreferrer">View website</a>
@@ -99,7 +92,39 @@
           <button id="lucy-plant-diary-yeh" type="button">Yeh</button>
           <button id="lucy-plant-diary-neh" type="button">Neh</button>
         </div>
+        <div id="helen-reading-options" class="npc-dialogue-options" hidden>
+          <button id="helen-reading-yes" type="button">Yes please</button>
+          <button id="helen-reading-no" type="button">Neh, I'm good</button>
+        </div>
       </section>
+      <section id="goodreads-reading-panel" class="internal-feature-panel workout-journal-panel reading-list-panel" role="dialog" aria-modal="true" aria-labelledby="goodreads-reading-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="goodreads-reading-title">Max's Goodreads books</h2>
+          <button id="goodreads-reading-close" class="internal-feature-close" type="button" aria-label="Close reading gallery">×</button>
+        </header>
+        <p class="workout-gallery-help">Scroll through the books. Tap a cover to see Max's rating and review.</p>
+        <div class="reading-content">
+          <p id="goodreads-reading-status" class="reading-list-status" role="status"></p>
+          <div id="goodreads-reading-list" class="workout-gallery reading-list" aria-label="Book cover thumbnails"></div>
+        </div>
+        <a class="reading-list-link" href="https://www.goodreads.com/review/list/198385610-max-bye?shelf=read" target="_blank" rel="noopener noreferrer">Open the full Goodreads shelf ↗</a>
+      </section>
+      <dialog id="reading-lightbox" class="workout-lightbox reading-lightbox" aria-labelledby="reading-title">
+        <button id="reading-lightbox-close" class="workout-lightbox-close" type="button" aria-label="Close book review">×</button>
+        <button id="reading-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous book">‹</button>
+        <div class="reading-book">
+          <img id="reading-lightbox-image" alt="" referrerpolicy="no-referrer">
+          <div class="reading-details">
+            <p id="reading-lightbox-counter" class="reading-counter" aria-live="polite"></p>
+            <h2 id="reading-title" class="reading-title"></h2>
+            <p id="reading-author" class="reading-author"></p>
+            <p id="reading-rating" class="reading-rating"></p>
+            <p id="reading-review" class="reading-review"></p>
+            <a id="reading-review-link" class="reading-list-link" target="_blank" rel="noopener noreferrer">Read on Goodreads ↗</a>
+          </div>
+        </div>
+        <button id="reading-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next book">›</button>
+      </dialog>
       <section id="tim-workout-journal-panel" class="internal-feature-panel workout-journal-panel" role="dialog" aria-modal="true" aria-labelledby="tim-workout-journal-title" hidden>
         <header class="internal-feature-header">
           <h2 id="tim-workout-journal-title">Max's work out journal</h2>
@@ -113,6 +138,20 @@
         <button id="workout-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous workout image">‹</button>
         <figure><img id="workout-lightbox-image" alt=""><figcaption id="workout-lightbox-counter"></figcaption></figure>
         <button id="workout-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next workout image">›</button>
+      </dialog>
+      <section id="plant-diary-panel" class="internal-feature-panel workout-journal-panel" role="dialog" aria-modal="true" aria-labelledby="plant-diary-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="plant-diary-title">Max's plant diary</h2>
+          <button id="plant-diary-close" class="internal-feature-close" type="button" aria-label="Close plant diary">×</button>
+        </header>
+        <p class="workout-gallery-help">Scroll through the plants. Tap any image to view it full screen.</p>
+        <div id="plant-diary-gallery" class="workout-gallery" aria-label="Plant diary image thumbnails"></div>
+      </section>
+      <dialog id="plant-diary-lightbox" class="workout-lightbox" aria-label="Full-screen plant diary image">
+        <button id="plant-diary-lightbox-close" class="workout-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
+        <button id="plant-diary-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous plant diary image">‹</button>
+        <figure><img id="plant-diary-lightbox-image" alt=""><figcaption id="plant-diary-lightbox-counter"></figcaption></figure>
+        <button id="plant-diary-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next plant diary image">›</button>
       </dialog>
       <section id="diary-panel" class="internal-feature-panel" role="dialog" aria-modal="true" aria-labelledby="diary-title" hidden>
         <header class="internal-feature-header">
@@ -168,6 +207,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=20260921-helen-dialogue"></script>
+    <script src="../dist/internal-bundle.js?v=20261003-adam-silent"></script>
   </body>
 </html>

@@ -1,6 +1,13 @@
-// Generated from chat/lucy/player/dialogue.txt. Run npm run generate:dialogues after editing it.
+// Generated from chat/lucy/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const LUCY_DIALOGUE_LINES = [
-  "Lucy here — I've saved a story just for you, Max.",
-  "You're back. Did the suspiciously powerful sandwich work?",
-  "Three conversations? We're basically best friends now."
+  "Isn't she wonderful?",
+  "The panda! I've been watching her for hours. I'm obsessed with pandas right now.",
+  "You know they have to eat bamboo basically all day just to survive? I can't decide if it's tragic, or inspiring.",
+  "Anyway, what are you up to?....huh, fascinating.",
+  "Oh! I know what you need!",
+  "...[rummages in bag]...",
+  "I know it's in here somewhere...",
+  "Here - have a sachet of mayonnaise. Life is full of challenges, ups and downs - but a dry sandwich doesn't have to be one of them!",
+  "oh hmm, sorry, it's a bit sticky.",
+  "No, I'm sorry, I can't give you any more mayonnaise. Someone else might need some!"
 ] as const;

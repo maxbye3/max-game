@@ -1,3 +1,4 @@
+import { isKatiePowerActive, KATIE_POWER_DURATION } from './katie-power.js';
 import { isBusIntroActive } from './bus-intro.js';
 import { hasCaveColander } from './colander.js';
 import { releaseAllInput } from './input.js';
@@ -10,8 +11,7 @@ interface JumpDestination {
 const JUMP_DESTINATIONS: readonly JumpDestination[] = [
   { id: 'northwest-portal', label: 'Cave' },
   { id: 'garden-room', label: 'Plant Room' },
-  { id: 'diary-lab-center', label: 'Diary Lab - Center Door' },
-  { id: 'diary-lab-right', label: 'Diary Lab - Right Door' },
+  { id: 'diary-lab-center', label: 'Diary Lab' },
   { id: 'music-shop', label: 'Music House' },
   { id: 'gym', label: 'Gym' },
   { id: 'cinema', label: 'Cinema' },
@@ -29,7 +29,7 @@ let navigationStarted = false;
 export const isJumpMenuOpen = () => jumpMenuOpen;
 
 function setJumpMenuOpen(open: boolean): void {
-  if (!jumpToggle || !jumpPanel) return;
+  if (!jumpToggle || !jumpPanel || (open && isKatiePowerActive())) return;
   jumpMenuOpen = open;
   jumpPanel.hidden = !open;
   jumpToggle.setAttribute('aria-expanded', String(open));
@@ -46,7 +46,7 @@ function internalPageHref(): string {
 }
 
 function jumpTo(destinationId: string): void {
-  if (navigationStarted) return;
+  if (navigationStarted || isKatiePowerActive()) return;
   navigationStarted = true;
   releaseAllInput();
   const params = new URLSearchParams({ door: destinationId });
@@ -70,6 +70,11 @@ function buildOptions(): void {
 export function setupJump(): void {
   if (!jumpToggle || !jumpPanel || !jumpClose || !jumpOptions) return;
   buildOptions();
+  window.addEventListener('max-game:katie-power-activated', () => {
+    setJumpMenuOpen(false);
+    jumpToggle.disabled = true;
+    window.setTimeout(() => { jumpToggle.disabled = isKatiePowerActive(); }, KATIE_POWER_DURATION);
+  });
   jumpToggle.addEventListener('click', () => setJumpMenuOpen(!jumpMenuOpen));
   jumpClose.addEventListener('click', () => setJumpMenuOpen(false));
   window.addEventListener('keydown', (event) => {

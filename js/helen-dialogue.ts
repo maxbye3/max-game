@@ -1,6 +1,8 @@
 // Generated from chat/helen/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const HELEN_DIALOGUE_LINES = [
-  "Hi there I'm Alex. This is my first line.",
-  "Hi there I'm Alex. This is my second line.",
-  "Hi there I'm Alex. This is my third line.",
+  "Helwo",
+  "Hewwo",
+  "What's been your highlight?",
+  "What's been your lowlight?",
+  "Have you got time for me to tell you a work story?"
 ] as const;

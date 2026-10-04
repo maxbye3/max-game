@@ -73,7 +73,7 @@ function hasLandingClearance(x: number, y: number): boolean {
   return offsets.every(([offsetX, offsetY]) => !playerCollidesAt(x + offsetX, y + offsetY));
 }
 
-function isSafeLandingPoint(x: number, y: number): boolean {
+export function isSafeLandingPoint(x: number, y: number): boolean {
   return !pointNearHole(x, y, 70) &&
     distanceToDoor(x, y) > DOOR_CLEARANCE &&
     hasLandingClearance(x, y);

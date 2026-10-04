@@ -1,8 +1,9 @@
 import { JULIAN_DIALOGUE_LINES } from './julian-dialogue.js';
 import { TIM_DIALOGUE_LINES } from './tim-dialogue.js';
 import { addGift, hasGift, JULIAN_ITEM, nextGiftLine, TIM_ITEM, type GiftItem } from './inventory-gifts.js';
-import { readStorage, writeStorage } from './storage.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
 import { WorkoutGalleryController } from './workout-gallery.js';
+import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from './ed-power.js';
 
 export type GymNpcId = 'julian' | 'tim';
 
@@ -51,13 +52,17 @@ export class GymNpcDialogueController {
   start(id: GymNpcId): GymNpcChat {
     const npc = GYM_NPC_CHATS[id];
     this.active = npc;
-    this.lineIndex = this.nextLineIndex(npc);
+    this.lineIndex = nextDialogueVisitIndex(npc.id, npc.dialogueLines.length);
     this.pendingGiftLine = hasGift(npc.item) ? null : nextGiftLine();
     this.journalOfferPending = id === 'julian' && this.pendingGiftLine !== null;
     if (this.journalOptions) this.journalOptions.hidden = true;
     this.workoutGallery.hide();
     this.confirmation.hidden = true;
     this.showLine();
+    if (id === 'tim' && edPowerSecondsLeft() > 0) {
+      showHalsteadTattoo('Tim');
+      if (hasGift(TIM_ITEM)) chargeEdGift(TIM_ITEM);
+    }
     return npc;
   }
 
@@ -90,15 +95,6 @@ export class GymNpcDialogueController {
     this.progress.hidden = true;
   }
 
-  private nextLineIndex(npc: GymNpcChat): number {
-    if (npc.dialogueLines.length === 0) return 0;
-    const key = `max-game:${npc.id}-dialogue-index`;
-    const stored = Number.parseInt(readStorage(key) ?? '0', 10);
-    const index = Number.isFinite(stored) && stored >= 0 ? stored % npc.dialogueLines.length : 0;
-    writeStorage(key, String((index + 1) % npc.dialogueLines.length));
-    return index;
-  }
-
   private showLine(): void {
     if (!this.active) return;
     this.line.textContent = this.active.dialogueLines[this.lineIndex] ?? '';
@@ -119,6 +115,7 @@ export class GymNpcDialogueController {
     this.line.textContent = this.pendingGiftLine;
     this.pendingGiftLine = null;
     const added = addGift(this.active.item);
+    if (added && this.active.id === 'tim') chargeEdGift(TIM_ITEM);
     this.progress.hidden = true;
     this.confirmation.textContent = added ? 'An item has been added to your inventory.' : '';
     this.confirmation.hidden = !added;

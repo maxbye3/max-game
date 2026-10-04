@@ -1,6 +1,7 @@
 import { FRAME_HEIGHT, FRAME_WIDTH, SCALE, WORLD_HEIGHT, WORLD_WIDTH } from './config.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import { moveWithCollisions } from './movement.js';
+import { isSamTargetRecoiling } from './sam-power.js';
 
 type GeorgiaDirection = 'down' | 'left' | 'right' | 'up';
 
@@ -81,7 +82,7 @@ function clampToWorld(): void {
 }
 
 export function updateGeorgia(deltaTime: number): void {
-  if (interactionPaused) return;
+  if (interactionPaused || isSamTargetRecoiling('georgia')) return;
   georgiaState.actionTime -= deltaTime;
   if (georgiaState.actionTime <= 0) chooseNextAction();
 

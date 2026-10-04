@@ -1,4 +1,6 @@
 import { hasCaveColander } from './colander.js';
+import { createGameAudio } from './audio-mute.js';
+import { carryBuildingAmbienceInside } from './nightclub-audio.js';
 
 export interface Doorway {
   readonly id: string;
@@ -26,7 +28,7 @@ export const DOORWAYS: readonly Doorway[] = [
 
 const OPEN_DISTANCE = 42;
 const PASSAGE_MARGIN = 8;
-const doorSound = new Audio('audio/open-door.mp3');
+const doorSound = createGameAudio('audio/open-door.mp3');
 doorSound.preload = 'auto';
 doorSound.volume = 0.25;
 
@@ -76,6 +78,7 @@ export function updateDoors(playerX: number, playerY: number): void {
   if (!enteredDoorway) return;
 
   navigationStarted = true;
+  carryBuildingAmbienceInside(enteredDoorway.id);
   const params = new URLSearchParams({ door: enteredDoorway.id });
   if (hasCaveColander()) params.set('colander', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');

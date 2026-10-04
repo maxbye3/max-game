@@ -1,9 +1,16 @@
+import { drawKatieTerrain, drawKatieGround, drawKatieWorld } from './katie-power-render.js';
+import { drawJulianTerrain, drawJulianGround, drawJulianWorld } from './julian-power-render.js';
+import { drawJuTerrain, drawJuGround, drawJuWorld } from './ju-power-render.js';
+import { drawJoeTerrain, drawJoeGround, drawJoeWorld, drawPlayerHealth } from './joe-power-render.js';
+import { drawHelenGround, drawHelenTerrain, drawHelenWorld } from './helen-power-render.js';
+import { drawGeorgiaGround, drawGeorgiaSky } from './georgia-power-render.js';
+import { isGeorgiaPowerActive } from './georgia-power.js';
+import { drawDanPlayer, drawDanWorld } from './dan-power-render.js';
+import { withCharacterPowers } from './character-power-render.js';
+import { drawChrisPlayer, drawChrisWorld } from './chris-power-render.js';
+import { drawBochraFloor, drawBochraLights } from './bochra-power-render.js';
 import { images } from './assets.js';
-import {
-  getBusIntroBus,
-  getBusIntroCameraCenter,
-  isBusIntroPlayerVisible,
-} from './bus-intro.js';
+import { getBusIntroBus, getBusIntroCameraCenter, isBusIntroPlayerVisible } from './bus-intro.js';
 import {
   getCaveTheftCameraCenter,
   getCaveThief,
@@ -11,11 +18,7 @@ import {
   type CaveThiefDirection,
 } from './cave-thief.js';
 import { drawColander, hasCaveColander } from './colander.js';
-import {
-  SCALE,
-  WORLD_HEIGHT,
-  WORLD_WIDTH,
-} from './config.js';
+import { SCALE, WORLD_HEIGHT, WORLD_WIDTH } from './config.js';
 import { canvas, context } from './dom.js';
 import { georgiaState } from './georgia.js';
 import { getGymTimCutsceneDialogue } from './gym-tim-cutscene.js';
@@ -26,8 +29,14 @@ import { drawOverworldNpcs } from './overworld-npcs-render.js';
 import { player } from './player.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from './overworld-props-render.js';
+import { drawMaddyTeaPower, drawMaddyTeaWorldOverlay } from './maddy-tea-power.js';
+import { drawEdPower } from './ed-power.js';
+import { adamJumpOffset, adamPowerSecondsLeft, drawAdamPower, drawAdamShadow } from './adam-power.js';
+import { drawSamPower, drawSamVictimEffects, drawSamWorldOverlay, samCameraJolt, samVictimOffset } from './sam-power.js';
 import { drawSpeechBubble } from './speech-bubble.js';
-import { hasVisitedInterior } from './world-state.js';
+import { hasMikeAftermath } from './world-state.js';
+import { drawOscarPower, drawOscarWorldBites } from './oscar-power.js';
+import { drawAndyPlayer, drawAndyWorld } from './andy-world-power.js';
 import type { Direction } from './types.js';
 
 const NIALL_SPRITE_COLUMNS = 4;
@@ -108,6 +117,7 @@ function drawNiallAt(
   direction: Direction,
   frame: number,
 ): void {
+  const offset = samVictimOffset('niall');
   const column = frame % NIALL_SPRITE_COLUMNS;
   const sourceX = Math.floor((column * images.niallSprite.width) / NIALL_SPRITE_COLUMNS);
   const nextSourceX = Math.floor(((column + 1) * images.niallSprite.width) / NIALL_SPRITE_COLUMNS);
@@ -121,23 +131,24 @@ function drawNiallAt(
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(
+  withCharacterPowers(context, x - cameraX, y - cameraY, NIALL.height, 'niall', () => context.drawImage(
     images.niallSprite,
     sourceX,
     sourceY,
     sourceWidth,
     sourceHeight,
-    Math.round(x - cameraX - NIALL.width / 2),
-    Math.round(y - cameraY - NIALL.height),
+    Math.round(x - cameraX - NIALL.width / 2 + offset.x),
+    Math.round(y - cameraY - NIALL.height + offset.y),
     NIALL.width,
     NIALL.height,
-  );
+  ));
   context.restore();
 }
 
 function drawCaveThief(cameraX: number, cameraY: number): void {
   const thief = getCaveThief();
   if (!thief || !isImageReady(images.girlsSprite)) return;
+  const offset = samVictimOffset('cave-thief');
 
   const frames = thief.moving ? GIRLS_WALK_FRAMES[thief.direction] : GIRLS_IDLE_FRAMES;
   const frame = frames[thief.frame % frames.length] ?? frames[0];
@@ -146,17 +157,17 @@ function drawCaveThief(cameraX: number, cameraY: number): void {
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(
+  withCharacterPowers(context, thief.x - cameraX, thief.y - cameraY, GIRLS_RENDER_HEIGHT, 'cave-thief', () => context.drawImage(
     images.girlsSprite,
     sourceX,
     sourceY,
     sourceWidth,
     sourceHeight,
-    Math.round(thief.x - cameraX - GIRLS_RENDER_WIDTH / 2),
-    Math.round(thief.y - cameraY - GIRLS_RENDER_HEIGHT),
+    Math.round(thief.x - cameraX - GIRLS_RENDER_WIDTH / 2 + offset.x),
+    Math.round(thief.y - cameraY - GIRLS_RENDER_HEIGHT + offset.y),
     GIRLS_RENDER_WIDTH,
     GIRLS_RENDER_HEIGHT,
-  );
+  ));
   context.restore();
 }
 
@@ -181,25 +192,28 @@ const GEORGIA_BIKE_RENDER_HEIGHT = 51;
 
 function drawGeorgia(cameraX: number, cameraY: number): void {
   if (!isImageReady(images.georgiaBike)) return;
+  const offset = samVictimOffset('georgia');
   const bob = georgiaState.moving ? Math.sin(georgiaState.animationTime * 12) * 1.5 : 0;
   // The source art faces left, so mirror it when Georgia rides to the right.
   const facingRight = georgiaState.direction === 'right';
-  const drawX = Math.round(georgiaState.x - cameraX - GEORGIA_BIKE_RENDER_WIDTH / 2);
-  const drawY = Math.round(georgiaState.y - cameraY - GEORGIA_BIKE_RENDER_HEIGHT + bob);
+  const drawX = Math.round(georgiaState.x - cameraX - GEORGIA_BIKE_RENDER_WIDTH / 2 + offset.x);
+  const drawY = Math.round(georgiaState.y - cameraY - GEORGIA_BIKE_RENDER_HEIGHT + bob + offset.y);
   context.save();
   context.imageSmoothingEnabled = false;
-  if (facingRight) {
-    context.translate(drawX + GEORGIA_BIKE_RENDER_WIDTH, drawY);
-    context.scale(-1, 1);
-    context.drawImage(images.georgiaBike, 0, 0, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
-  } else {
-    context.drawImage(images.georgiaBike, drawX, drawY, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
-  }
+  withCharacterPowers(context, georgiaState.x - cameraX, georgiaState.y - cameraY, GEORGIA_BIKE_RENDER_HEIGHT, 'georgia', () => {
+    if (facingRight) {
+      context.translate(drawX + GEORGIA_BIKE_RENDER_WIDTH, drawY);
+      context.scale(-1, 1);
+      context.drawImage(images.georgiaBike, 0, 0, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
+    } else {
+      context.drawImage(images.georgiaBike, drawX, drawY, GEORGIA_BIKE_RENDER_WIDTH, GEORGIA_BIKE_RENDER_HEIGHT);
+    }
+  });
   context.restore();
 }
 
 function drawMikeAftermath(cameraX: number, cameraY: number): void {
-  if (!hasVisitedInterior() || !isImageReady(images.mikeAftermath)) return;
+  if (!hasMikeAftermath() || !isImageReady(images.mikeAftermath)) return;
   context.drawImage(
     images.mikeAftermath,
     MIKE_AFTERMATH_X - cameraX,
@@ -219,7 +233,7 @@ function logPlayerPosition(): void {
   console.log('Player position', { x: Number(playerX), y: Number(playerY) });
 }
 
-export function draw(time: number): void {
+export function draw(time: number, worldTime = time): void {
   context.clearRect(0, 0, canvas.width, canvas.height);
   canvas.dataset.playerVariant = SEAL_MODE ? 'seal' : 'default';
   if (LOG_PLAYER_POSITION) logPlayerPosition();
@@ -228,9 +242,23 @@ export function draw(time: number): void {
   // rect snaps at a browser-defined threshold and makes the player jitter
   // against the tiles by a pixel on every step.
   const cameraCenter = getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
-  const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2)));
-  const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2)));
-  const worldDepth = drawWorldBackground(time, cameraX, cameraY, player.y);
+  const { x: joltX, y: joltY } = samCameraJolt(time);
+  const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2 + joltX)));
+  const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2 + joltY)));
+  const worldDepth = drawWorldBackground(worldTime, cameraX, cameraY, player.y);
+  drawHelenTerrain(context, time);
+  drawJoeTerrain(context, time);
+  drawJuTerrain(context, time);
+  drawJulianTerrain(context, time);
+  drawKatieTerrain(context, time);
+  drawKatieGround(context, cameraX, cameraY, time);
+  drawJulianGround(context, cameraX, cameraY, time);
+  drawJuGround(context, cameraX, cameraY, time);
+  drawJoeGround(context, cameraX, cameraY, time);
+  drawHelenGround(context, cameraX, cameraY, time);
+  drawOscarWorldBites(context, cameraX, cameraY, time);
+  drawBochraFloor(context, cameraX, cameraY, time);
+  drawGeorgiaGround(context, cameraX, cameraY, time);
   drawMikeAftermath(cameraX, cameraY);
   drawCaveThief(cameraX, cameraY);
   drawGeorgia(cameraX, cameraY);
@@ -249,12 +277,18 @@ export function draw(time: number): void {
     );
   }
   drawOverworldNpcs(context, cameraX, cameraY);
+  drawMaddyTeaWorldOverlay(context, time);
+  if (isGeorgiaPowerActive(time)) drawWorldForeground(cameraX, cameraY, worldDepth);
 
   const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
   const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, SCALE);
   const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
+  const adamActive = adamPowerSecondsLeft() > 0;
+  const adamLift = adamJumpOffset();
+  const adamHeight = adamActive ? Math.round(height * 1.14) : height;
   const holeTransform = getHolePlayerTransform();
   const playerVisible = isBusIntroPlayerVisible();
+  if (playerVisible && adamActive) drawAdamShadow(context, player.x - cameraX, player.y - cameraY);
   if (playerVisible && holeTransform) {
     context.save();
     context.globalAlpha = holeTransform.opacity;
@@ -296,23 +330,45 @@ export function draw(time: number): void {
     );
     context.restore();
   } else if (playerVisible) {
-    context.drawImage(
+    withCharacterPowers(context, player.x - cameraX, player.y - cameraY, adamHeight, 'player', () => context.drawImage(
       playerSpriteSheet,
       sourceX,
       sourceY,
       sourceWidth,
       sourceHeight,
       Math.round(player.x - cameraX - width / 2),
-      Math.round(player.y - cameraY - height + baselineOffset),
+      Math.round(player.y - cameraY - adamHeight - adamLift + baselineOffset),
       width,
-      height,
-    );
+      adamHeight,
+    ), time);
   }
   if (playerVisible && hasCaveColander()) {
     drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
   }
-  drawWorldForeground(cameraX, cameraY, worldDepth);
+  if (!isGeorgiaPowerActive(time)) drawWorldForeground(cameraX, cameraY, worldDepth);
+  drawSamWorldOverlay(context, time);
+  drawSamVictimEffects(context, cameraX, cameraY, time);
   drawBusIntro(cameraX, cameraY);
+  drawAndyWorld(context, cameraX, cameraY, time);
+  drawBochraLights(context, cameraX, cameraY, time);
+  drawChrisWorld(context, cameraX, cameraY, time);
+  drawDanWorld(context, cameraX, cameraY, time);
+  drawGeorgiaSky(context, time);
+  drawHelenWorld(context, cameraX, cameraY, time);
+  drawJoeWorld(context, cameraX, cameraY, time);
+  drawJuWorld(context, cameraX, cameraY, time);
+  drawJulianWorld(context, cameraX, cameraY, time);
+  drawKatieWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
+  if (playerVisible) {
+    drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, time);
+    drawEdPower(context, player.x - cameraX, player.y - cameraY);
+    drawAdamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, SEAL_MODE);
+    drawSamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
+    drawOscarPower(context, player.x - cameraX, player.y - cameraY, height, time, player.direction.endsWith('Left') || player.direction === 'left');
+    drawAndyPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
+    drawChrisPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time, player.direction.endsWith('Left') || player.direction === 'left');
+    drawDanPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
+  }
 
   const thief = getCaveThief();
   const thiefDialogue = getCaveThiefDialogue();
@@ -321,6 +377,7 @@ export function draw(time: number): void {
   }
   const gymTimDialogue = getGymTimCutsceneDialogue();
   if (gymTimDialogue) drawSpeechBubble(context, gymTimDialogue.text, gymTimDialogue.x - cameraX, gymTimDialogue.y - cameraY);
+  drawPlayerHealth(context, time);
 }
 
 export function drawLoadFailure(): void {

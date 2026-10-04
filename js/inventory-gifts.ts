@@ -1,4 +1,5 @@
 import { resolveSiteAsset } from './site-assets.js';
+import { clearEdGiftCharge } from './ed-power.js';
 
 export interface GiftItem {
   readonly id: string;
@@ -26,7 +27,7 @@ export const JULIAN_ITEM: GiftItem = {
   id: 'julian-item',
   name: "Julian's item",
   imageSource: 'chat/julian/item.png',
-  description: 'The world opens up.',
+  description: 'A mysterious gift from Julian. Use it to discover its power.',
 };
 
 export const TIM_ITEM: GiftItem = {
@@ -36,11 +37,32 @@ export const TIM_ITEM: GiftItem = {
   description: 'Face implodes.',
 };
 
+export const HELEN_ITEM: GiftItem = {
+  id: 'helen-item',
+  name: "Helen's item",
+  imageSource: 'chat/helen/item.png',
+  description: 'A surprise from Helen. Use it to find out what happens.',
+};
+
+export const NIALL_ITEM: GiftItem = {
+  id: 'niall-item',
+  name: "Niall's item",
+  imageSource: 'chat/niall/player/item.png',
+  description: 'Makes the protagonist move 20% faster.',
+};
+
 export const LUCY_ITEM: GiftItem = {
   id: 'lucy-item',
   name: "Lucy's item",
   imageSource: 'chat/lucy/item.png',
   description: 'World spins around and around.',
+};
+
+export const NOEL_ITEM: GiftItem = {
+  id: 'noel-item',
+  name: "Noel's item",
+  imageSource: 'chat/noel/player/item.png',
+  description: 'Makes the protagonist move 20% faster.',
 };
 
 export const PORTABLE_WALKMAN: GiftItem = {
@@ -55,26 +77,131 @@ export const GEORGIA_ITEM: GiftItem = {
   id: 'georgia-item',
   name: "Georgia's item",
   imageSource: 'chat/georgia/item.png',
-  description: 'Creates the apocalypse.',
+  description: 'A surprise from Georgia. Use it to find out what happens.',
 };
 
 export const ANDY_ITEM: GiftItem = {
   id: 'andy-item',
   name: "Andy's item",
-  imageSource: 'chat/andy/item.png',
+  imageSource: 'chat/andy/Item.png',
   description: 'Creates the apocalypse.',
 };
 
-export const REI_ITEM: GiftItem = {
+export const REI_ITEM_1: GiftItem = {
   id: 'rei-item',
-  name: "Rei's item",
-  imageSource: 'chat/rei/player/item.png',
-  description: 'Makes the protagonist move 20% faster.',
+  name: "Rei's first item",
+  imageSource: 'chat/rei/item-1.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const REI_ITEM_2: GiftItem = {
+  id: 'rei-item-2',
+  name: "Rei's second item",
+  imageSource: 'chat/rei/item-2.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const MARINA_D_ITEM_1: GiftItem = {
+  id: 'marina-d-item-1',
+  name: "Marina D's first item",
+  imageSource: 'chat/marina d/item-1.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const MARINA_D_ITEM_2: GiftItem = {
+  id: 'marina-d-item-2',
+  name: "Marina D's second item",
+  imageSource: 'chat/marina d/item-2.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const MADDY_ITEM: GiftItem = {
+  id: 'maddy-item',
+  name: "Maddy's item",
+  imageSource: 'chat/maddy/item.png',
+  description: 'Protagonist has a cup of tea',
+};
+
+export const OSCAR_ITEM: GiftItem = {
+  id: 'oscar-item',
+  name: "Oscar's item",
+  imageSource: 'chat/oscar/item.png',
+  description: 'Makes protagonist able to eat things.',
+};
+
+export const ED_ITEM: GiftItem = {
+  id: 'ed-item',
+  name: "Ed's item",
+  imageSource: 'chat/ed/item.png',
+  description: 'This power has no time limit. When the protagonist speaks to Helen or Niall or Tim or Max the items they give you are doubled in effectiveness (if possible) and last twice as long. Also, they show you their Halstead tattoos as part of the interaction.',
+};
+
+export const ADAM_ITEM: GiftItem = {
+  id: 'adam-item',
+  name: "Adam's item",
+  imageSource: 'chat/adam/item.png',
+  description: "Adds 5 inches to the protagonist's height and accentuates their muscular calves. Allows them to jump twice as high for 20 seconds.",
+};
+
+export const ALICE_ITEM: GiftItem = {
+  id: 'alice-item',
+  name: "Alice's item",
+  imageSource: 'chat/alice/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const CHRIS_ITEM: GiftItem = {
+  id: 'chris-item',
+  name: "Chris's item",
+  imageSource: 'chat/chris/item.png',
+  description: 'A surprise from Chris. Use it to find out what happens.',
+};
+
+export const SAM_ITEM: GiftItem = {
+  id: 'sam-item',
+  name: "Sam's item",
+  imageSource: 'chat/sam/item.png',
+  description: 'The world becomes arsenal football club.',
+};
+
+export const KATIE_ITEM: GiftItem = {
+  id: 'katie-item',
+  name: "Katie's item",
+  imageSource: 'chat/katie/item.png',
+  description: 'A surprise from Katie. Use it to discover its power.',
+};
+
+export const JU_ITEM: GiftItem = {
+  id: 'ju-item',
+  name: "Ju's item",
+  imageSource: 'chat/ju/item.png',
+  description: 'A mysterious amulet from Ju. Use it to discover its power.',
+};
+
+export const BOCHRA_ITEM: GiftItem = {
+  id: 'bochra-item',
+  name: "Bochra's item",
+  imageSource: 'chat/bochra/item.png',
+  description: 'A surprise from Bochra. Use it to find out what happens.',
+};
+
+export const DAN_ITEM: GiftItem = {
+  id: 'dan-item',
+  name: "Dan's item",
+  imageSource: 'chat/dan/item.png',
+  description: 'A surprise from Dan. Use it to find out what happens.',
+};
+
+export const JOE_ITEM: GiftItem = {
+  id: 'joe-item',
+  name: "Joe's item",
+  imageSource: 'chat/joe/item.png',
+  description: 'A surprise from Joe. Use it to find out what happens.',
 };
 
 const INVENTORY_GIFTS_KEY = 'max-game:inventory-gifts';
-const GIFT_LINE_INDEX_KEY = 'max-game:gift-line-index';
 const ITEM_RECEIVED_OVERLAY_DURATION = 3200;
+let giftLineIndex = 0;
 
 function showItemReceivedOverlay(item: GiftItem): void {
   const gameShell = document.querySelector<HTMLElement>('.game-shell');
@@ -98,24 +225,36 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     description: 'Makes the protagonist 36% happier.',
   },
   {
-    id: 'alex-s-item',
-    name: "Alex S's item",
-    imageSource: 'chat/alex s/item.png',
-    description: 'Creates the apocalypse.',
-  },
-  {
     id: 'katy-item',
     name: "Katy's item",
     imageSource: 'chat/katy/item.png',
     description: 'Character trips over occasionally',
   },
   LUCY_ITEM,
+  NOEL_ITEM,
   JULIAN_ITEM,
   TIM_ITEM,
+  HELEN_ITEM,
+  NIALL_ITEM,
   PORTABLE_WALKMAN,
   GEORGIA_ITEM,
   ANDY_ITEM,
-  REI_ITEM,
+  REI_ITEM_1,
+  REI_ITEM_2,
+  MARINA_D_ITEM_1,
+  MARINA_D_ITEM_2,
+  MADDY_ITEM,
+  OSCAR_ITEM,
+  ED_ITEM,
+  ADAM_ITEM,
+  ALICE_ITEM,
+  CHRIS_ITEM,
+  SAM_ITEM,
+  KATIE_ITEM,
+  JU_ITEM,
+  BOCHRA_ITEM,
+  DAN_ITEM,
+  JOE_ITEM,
 ];
 
 function readGiftIds(): string[] {
@@ -150,19 +289,27 @@ export function addGift(item: GiftItem): boolean {
 
 export function removeGift(item: GiftItem): void {
   writeGiftIds(readGiftIds().filter((id) => id !== item.id));
+  clearEdGiftCharge(item);
   window.dispatchEvent(new Event('max-game:inventory-gift-removed'));
 }
 
-export function nextGiftLine(): string {
-  let index = 0;
-  try {
-    const stored = Number.parseInt(window.localStorage.getItem(GIFT_LINE_INDEX_KEY) ?? '0', 10);
-    index = Number.isFinite(stored) && stored >= 0 ? stored % GIFT_LINES.length : 0;
-    window.localStorage.setItem(GIFT_LINE_INDEX_KEY, String((index + 1) % GIFT_LINES.length));
-  } catch {
-    // Keep the first line when storage is unavailable.
+export function removeAllCollectedGifts(): number {
+  const ids = readGiftIds();
+  const collectedIds = new Set(getCollectedGifts().map((item) => item.id));
+  const remainingIds = ids.filter((id) => !collectedIds.has(id));
+  const removedCount = ids.length - remainingIds.length;
+  if (removedCount > 0) {
+    writeGiftIds(remainingIds);
+    GIFT_ITEMS.filter((item) => collectedIds.has(item.id)).forEach(clearEdGiftCharge);
+    window.dispatchEvent(new Event('max-game:inventory-gift-removed'));
   }
-  return GIFT_LINES[index] ?? GIFT_LINES[0];
+  return removedCount;
+}
+
+export function nextGiftLine(): string {
+  const line = GIFT_LINES[giftLineIndex % GIFT_LINES.length] ?? GIFT_LINES[0];
+  giftLineIndex += 1;
+  return line;
 }
 
 export function getCollectedGifts(): readonly GiftItem[] {

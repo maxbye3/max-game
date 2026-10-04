@@ -11,8 +11,12 @@ import {
 } from './world-state.js';
 import { releaseAllInput } from './input.js';
 import { NIALL_DIALOGUE_LINES } from './niall-dialogue.js';
-import { readStorage, writeStorage } from './storage.js';
+import { nextDialogueVisitIndex } from './dialogue-visit.js';
 import type { Direction } from './types.js';
+import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
+import { addGift, NIALL_ITEM } from './inventory-gifts.js';
+import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from './ed-power.js';
+import { isSamTargetRecoiling } from './sam-power.js';
 
 const CONTACT_DISTANCE = 30;
 const VERTICAL_SIGHT_HALF_WIDTH = 16;
@@ -23,7 +27,6 @@ const FRAME_RATE = 9;
 const BATTLE_TRANSITION_DURATION = 2700;
 const BUS_STOP_DISTANCE = 58;
 const BUS_DIALOGUE_DISTANCE = 64;
-const BUS_DIALOGUE_INDEX_KEY = 'max-game:niall-bus-dialogue-index';
 
 export const NIALL = {
   x: 792,
@@ -72,18 +75,18 @@ export const isNiallAlertActive = () => encounterState === 'spotted';
 export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught' || busDialogueStage !== null;
 
 function showDialogue(line: string): void {
+  beginDialogueAudio('Niall');
   dialogueLine.textContent = line;
   dialogue.hidden = false;
 }
 
 function hideDialogue(): void {
+  endDialogueAudio();
   dialogue.hidden = true;
 }
 
 function nextBusDialogueLine(): string {
-  const stored = Number.parseInt(readStorage(BUS_DIALOGUE_INDEX_KEY) ?? '0', 10);
-  const index = Number.isFinite(stored) && stored >= 0 ? stored % NIALL_DIALOGUE_LINES.length : 0;
-  writeStorage(BUS_DIALOGUE_INDEX_KEY, String((index + 1) % NIALL_DIALOGUE_LINES.length));
+  const index = nextDialogueVisitIndex('niall-bus', NIALL_DIALOGUE_LINES.length);
   return NIALL_DIALOGUE_LINES[index] ?? '...';
 }
 
@@ -91,6 +94,11 @@ function startBusDialogue(arrival: boolean): void {
   if (arrival) hasShownBusArrival = true;
   busDialogueStage = arrival ? 0 : 2;
   showDialogue(arrival ? 'Niall is rolling a cigarette' : nextBusDialogueLine());
+  if (edPowerSecondsLeft() > 0) {
+    showHalsteadTattoo('Niall');
+    addGift(NIALL_ITEM);
+    chargeEdGift(NIALL_ITEM);
+  }
 }
 
 function startFight(): void {
@@ -138,6 +146,11 @@ function chasePlayer(deltaTime: number, dx: number, dy: number, distance: number
 }
 
 export function updateNiallInteraction(deltaTime: number, playerX: number, playerY: number): void {
+  if (isSamTargetRecoiling('niall')) {
+    niallState.animationTime = 0;
+    niallState.frame = 0;
+    return;
+  }
   if (isNiallFollowing()) {
     if (Math.hypot(playerX - NIALL_BUS_STOP.triggerX, playerY - NIALL_BUS_STOP.triggerY) <= BUS_STOP_DISTANCE) {
       questState = 'busStop';
