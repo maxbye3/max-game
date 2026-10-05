@@ -15,7 +15,7 @@ import { GEORGIA_DIALOGUE_LINES } from './georgia-dialogue.js';
 import { GEORGIA, georgiaState, setGeorgiaInteractionPaused } from './georgia.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
-import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, MARINA_D_ITEM_1, MARINA_D_ITEM_2, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
+import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
 import { MARINA_D_DIALOGUE_LINES } from './marina-d-dialogue.js';
 import { MADDY_DIALOGUE_LINES } from './maddy-dialogue.js';
 import { MASON_DIALOGUE_LINES } from './mason-dialogue.js';
@@ -346,8 +346,6 @@ export function resetNpcGiftProgress(): void {
   writeStorage(REI_GIFT_STAGE_KEY, '0');
   removeGift(REI_ITEM_1);
   removeGift(REI_ITEM_2);
-  removeGift(MARINA_D_ITEM_1);
-  removeGift(MARINA_D_ITEM_2);
 }
 
 function giftStage({ stageKey, first, second }: StagedGifts): number {
@@ -674,16 +672,11 @@ function openDialogue(npc: NpcDefinition): void {
   pendingRequestLine = npc.id === 'rei' && hasMikeAftermath() && reiStage !== 0 ? null : npc.requestLine ?? null;
   pendingFollowUpLine = npc.followUpLine?.() ?? null;
   if (npc.id === 'rei') pendingGiftItem = reiStage === 0 ? REI_ITEM_1 : null;
-  else if (npc.id === 'marinaD') pendingGiftItem = !hasGift(MARINA_D_ITEM_1)
-    ? MARINA_D_ITEM_1
-    : !hasGift(MARINA_D_ITEM_2) ? MARINA_D_ITEM_2 : null;
   else pendingGiftItem = npc.itemGift && !hasGift(npc.itemGift) ? npc.itemGift : null;
   pendingGiftLine = pendingGiftItem ? nextGiftLine() : null;
   pendingGiftConfirmation = !pendingGiftLine ? null : npc.id === 'rei'
     ? "Rei's item was added to your inventory."
-    : npc.id === 'marinaD'
-      ? `${pendingGiftItem?.name} was added to your inventory.`
-      : 'An item has been added to your inventory.';
+    : 'An item has been added to your inventory.';
   giftConfirmation.hidden = true;
   requestLineShown = false;
   speaker.textContent = npc.name;

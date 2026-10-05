@@ -101,20 +101,6 @@ export const REI_ITEM_2: GiftItem = {
   description: 'The world becomes arsenal football club.',
 };
 
-export const MARINA_D_ITEM_1: GiftItem = {
-  id: 'marina-d-item-1',
-  name: "Marina D's first item",
-  imageSource: 'chat/marina d/item-1.png',
-  description: 'The world becomes arsenal football club.',
-};
-
-export const MARINA_D_ITEM_2: GiftItem = {
-  id: 'marina-d-item-2',
-  name: "Marina D's second item",
-  imageSource: 'chat/marina d/item-2.png',
-  description: 'The world becomes arsenal football club.',
-};
-
 export const MADDY_ITEM: GiftItem = {
   id: 'maddy-item',
   name: "Maddy's item",
@@ -200,6 +186,7 @@ export const JOE_ITEM: GiftItem = {
 };
 
 const INVENTORY_GIFTS_KEY = 'max-game:inventory-gifts';
+const REMOVED_GIFT_IDS = new Set(['marina-d-item-1', 'marina-d-item-2']);
 const ITEM_RECEIVED_OVERLAY_DURATION = 3200;
 let giftLineIndex = 0;
 
@@ -241,8 +228,6 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   ANDY_ITEM,
   REI_ITEM_1,
   REI_ITEM_2,
-  MARINA_D_ITEM_1,
-  MARINA_D_ITEM_2,
   MADDY_ITEM,
   OSCAR_ITEM,
   ED_ITEM,
@@ -260,7 +245,11 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
 function readGiftIds(): string[] {
   try {
     const value = JSON.parse(window.localStorage.getItem(INVENTORY_GIFTS_KEY) ?? '[]');
-    return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
+    if (!Array.isArray(value)) return [];
+    const ids = value.filter((id): id is string => typeof id === 'string');
+    const activeIds = ids.filter((id) => !REMOVED_GIFT_IDS.has(id));
+    if (activeIds.length !== ids.length) writeGiftIds(activeIds);
+    return activeIds;
   } catch {
     return [];
   }

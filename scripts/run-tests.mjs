@@ -739,25 +739,18 @@ try {
   assert.equal(values.get('max-game:rei-gift-stage'), '2');
 
   values.clear();
+  values.set('max-game:inventory-gifts', '["marina-d-item-1", "marina-d-item-2"]');
+  const inventoryGifts = await loadModule('inventory-gifts', 'js/inventory-gifts.ts');
+  assert.deepEqual(inventoryGifts.getCollectedGifts(), []);
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'retired Marina D items are removed from existing saves');
   const approachMarina = () => npcs.updateNpcInteractions(npcs.MARINA_D.x, npcs.MARINA_D.y);
   leave(); approachMarina();
-  assert.equal(element('#npc-dialogue-profile').hidden, true);
-  assert.equal(element('#npc-dialogue-line').textContent, "Hi I'm rei this is line 1");
+  const firstMarinaLine = element('#npc-dialogue-line').textContent;
+  assert.ok(firstMarinaLine.length > 0);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Marina D dialogue remains available');
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1']);
-  // A used item is offered again on the next visit.
-  values.set('max-game:inventory-gifts', '[]');
-  leave(); approachMarina(); next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1']);
-  leave(); approachMarina(); next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1', 'marina-d-item-2']);
-  values.set('max-game:inventory-gifts', '["marina-d-item-1"]');
-  leave(); approachMarina(); next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1', 'marina-d-item-2']);
-  leave(); approachMarina();
-  assert.equal(element('#npc-dialogue-next').hidden, false); // More submitted dialogue remains available.
-  next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['marina-d-item-1', 'marina-d-item-2']);
+  assert.notEqual(element('#npc-dialogue-line').textContent, firstMarinaLine, 'the next dialogue line still advances');
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'Marina D no longer gives either item');
 
   // A missing or unreadable deployed JSON feed must not empty the book gallery.
   const savedShelf = JSON.parse(await readFile('data/goodreads-read.json', 'utf8')).reviews;
