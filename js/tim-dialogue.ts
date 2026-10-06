@@ -1,6 +1,6 @@
 // Generated from chat/tim/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const TIM_DIALOGUE_LINES = [
-  "Julian here. You always know how to make an entrance, Max.",
-  "You're back. Did the suspiciously powerful sandwich work?",
-  "Three conversations? We're basically best friends now."
+  "Salmon is a total marketing scam created by big aquaculture, okay? Trout has a completely uncorrupted flavor profile—zero muddy philosophical aftertaste—and it’s infinitely better for the river's ecosystem. ...Anyway, do you want some of this?",
+  "Ah, you’ve returned. Quickly, I need data! Did the Key of Greater Euphoria actually unlock the hidden dopamine chambers of your soul, or was it just overhyped?",
+  "Seriously? Again? Do you have an obsessive compulsion to trigger my dialogue, or do you just like watching my face move? I'm running out of weird anecdotes—go wander off!"
 ] as const;

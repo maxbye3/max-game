@@ -1,6 +1,12 @@
-// Generated from chat/mike/player/dialogue.txt. Run npm run generate:dialogues after editing it.
+// Generated from chat/mike/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const MIKE_DIALOGUE_LINES = [
-  "Mike here — welcome to my corner of the map, Max.",
-  "You're back. Did the suspiciously powerful sandwich work?",
-  "Three conversations? We're basically best friends now."
+  "Yooooooooo. Try this.",
+  "Yeah I think I overbooked them a little bit.",
+  "Maybe just a little too crunchy.",
+  "I did brown the butter though.",
+  "And a dash of bourbon.",
+  "And love.",
+  "...",
+  "Okay I did also add a little msg",
+  "BUT THAT'S IT"
 ] as const;

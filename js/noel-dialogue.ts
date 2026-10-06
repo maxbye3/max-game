@@ -1,5 +1,9 @@
-// Generated from chat/noel/player/dialogue.txt. Run npm run generate:dialogues after editing it.
+// Generated from chat/noel/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const NOEL_DIALOGUE_LINES = [
-  "Noel here — welcome to the lab, Max.",
-  "You're back. Did the suspiciously powerful sandwich work?"
+  "Hey! Want to co-fund my spooky halloween jukebox musical about queen Bey?",
+  "It's called Séyencé. We'll make millions.",
+  "Featuring such hits as: ~All the tingle ladies~",
+  "~Who run the world~ (Ghouls!)",
+  "If you liked that disembodied hand, you should have put a ring on it",
+  "This ain't Texas. Ain't no hold 'em. Cos the cards are levitating 'round meeee. (yeah there's one about a poltergeist)"
 ] as const;
