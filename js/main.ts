@@ -2,7 +2,6 @@ import { isKatiePowerActive, katieWorldDeltaTime, updateKatieWorld } from './kat
 import { isJulianPowerActive, julianWorldDeltaTime, updateJulianWorld } from './julian-power.js';
 import { isJuPowerActive, juWorldDeltaTime, updateJuWorld } from './ju-power.js';
 import { isJoePowerActive, updateJoeWorld } from './joe-power.js';
-import { resetPlayerHealth } from './player-health.js';
 import { helenWorldDeltaTime, isHelenPowerActive, updateHelenWorld } from './helen-power.js';
 import { isGeorgiaPowerActive, updateGeorgiaWorld } from './georgia-power.js';
 import { danWorldDeltaTime, isDanPowerActive, updateDanWorld } from './dan-power.js';
@@ -18,7 +17,7 @@ import {
   updateCaveThief,
 } from './cave-thief.js';
 import { COLLISION_SHAPES } from './collision-data.js';
-import { canvas, requireElement } from './dom.js';
+import { canvas } from './dom.js';
 import { updateDoors } from './doors.js';
 import { updateGeorgia } from './georgia.js';
 import { setupGymTimCutscene, updateGymTimCutscene } from './gym-tim-cutscene.js';
@@ -27,15 +26,12 @@ import { setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from './music-player.js';
-import { resetMusicLibrary } from './music-library.js';
 import { loadMapCharacters } from './map-characters.js';
 import { MAP_CHARACTER_DEFINITIONS } from './map-characters.js';
 import { isNiallFollowing, niallState, updateNiallInteraction } from './niall.js';
 import { restoreBuildingAmbience, updateBuildingAmbience } from './nightclub-audio.js';
-import { resetTimRoute } from './tim-location.js';
-import { removeGift, PORTABLE_WALKMAN } from './inventory-gifts.js';
-import { hasMikeAftermath, resetMikeAftermath, resetNiallQuestState } from './world-state.js';
-import { ADAM, ALEX_S, ED, KATY, MIKE, REI, isNpcDialogueOpen, resetNpcGiftProgress, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
+import { hasMikeAftermath } from './world-state.js';
+import { ADAM, ALEX_S, ED, KATY, MIKE, REI, isNpcDialogueOpen, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
 import { updateSigns } from './signs.js';
@@ -133,16 +129,6 @@ setupMusicPlayer();
 setupNpcInteractions();
 setupCaveThief();
 setupGymTimCutscene();
-requireElement<HTMLButtonElement>('#reset-all').addEventListener('click', () => {
-  resetPlayerHealth();
-  resetTimRoute();
-  resetNiallQuestState();
-  resetMikeAftermath();
-  resetNpcGiftProgress();
-  resetMusicLibrary();
-  removeGift(PORTABLE_WALKMAN);
-  window.location.assign('index.html');
-});
 
 Promise.all([loadAssets(), loadMapCharacters()])
   .then(() => {
