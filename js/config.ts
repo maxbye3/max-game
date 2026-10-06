@@ -90,4 +90,4 @@ export const COLLISION_BUCKET_SIZE = 32;
 
 export const APOCALYPSE_DURATION = 6000;
 
-export const SHOW_COLLISION_SHAPES = true;
+export const SHOW_COLLISION_SHAPES = false;
