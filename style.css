@@ -1308,6 +1308,10 @@ canvas {
 
 .npc-dialogue-options[hidden] { display: none; }
 
+#alice-dialogue-options > * {
+  min-height: 44px;
+}
+
 .npc-dialogue-options button,
 .npc-dialogue-options a {
   width: 100%;

@@ -309,6 +309,7 @@ const giftConfirmation = requireElement<HTMLElement>('#npc-gift-confirmation');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
 const oscarOptions = requireElement<HTMLElement>('#oscar-dialogue-options');
+const aliceOptions = requireElement<HTMLElement>('#alice-dialogue-options');
 const gameShell = requireElement<HTMLElement>('.game-shell');
 let adamFactIndex = 0;
 const maddyDialogueAudio = createGameAudio('chat/maddy/dialogue.mp3');
@@ -439,6 +440,7 @@ function closeDialogue(): void {
   dialogueProgress.hidden = true;
   giftConfirmation.hidden = true;
   oscarOptions.hidden = true;
+  aliceOptions.hidden = true;
   reiDialogueLinesButton.hidden = true;
 }
 
@@ -477,7 +479,15 @@ function showGiftLine(): void {
   giftConfirmation.textContent = giftWasAdded ? pendingGiftConfirmation : '';
   pendingGiftConfirmation = null;
   giftConfirmation.hidden = !giftWasAdded;
-  nextButton.hidden = pendingSongReward === null && pendingRequestLine === null && activeNpc?.id !== 'oscar';
+  nextButton.hidden = pendingSongReward === null && pendingRequestLine === null && activeNpc?.id !== 'oscar' && activeNpc?.id !== 'alice';
+}
+
+function showAliceEventQuestion(): void {
+  dialogueLine.textContent = 'hey wanna check out some cool events in London or DC? Go to Event Tinder';
+  dialogueProgress.hidden = true;
+  giftConfirmation.hidden = true;
+  nextButton.hidden = true;
+  aliceOptions.hidden = false;
 }
 
 function showOscarQuestion(): void {
@@ -553,7 +563,20 @@ function acceptQuest(): void {
 }
 
 function advanceDialogue(): void {
-  if (fixtureLoading || !oscarOptions.hidden) return;
+  if (fixtureLoading || !oscarOptions.hidden || !aliceOptions.hidden) return;
+  if (activeNpc?.id === 'alice') {
+    const lines = activeNpc.dialogueLines;
+    if (currentDialogueLineIndex < lines.length - 1) {
+      currentDialogueLineIndex += 1;
+      dialogueLine.textContent = lines[currentDialogueLineIndex] ?? '';
+      dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${lines.length}`;
+    } else if (pendingGiftLine) {
+      showGiftLine();
+    } else {
+      showAliceEventQuestion();
+    }
+    return;
+  }
   if (reiCompletionStage === 'intro') {
     reiCompletionStage = 'explanation';
     dialogueLine.textContent = REI_BILLBOARD_COMPLETE_LINE;
@@ -617,6 +640,7 @@ function openDialogue(npc: NpcDefinition): void {
   hideSignDialogue();
   reiDialogueLinesButton.hidden = npc.id !== 'rei';
   oscarOptions.hidden = true;
+  aliceOptions.hidden = true;
   beginDialogueAudio(npc.id === 'maddy' || npc.id === 'adam' ? undefined : npc.name);
   activeNpc = npc;
   dialogueSession += 1;
@@ -682,7 +706,7 @@ function openDialogue(npc: NpcDefinition): void {
   speaker.textContent = npc.name;
   setProfileImage(dialogueProfile, npc.name);
   showDialogueLine(npc);
-  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && npc.dialogueLines.length <= 1;
+  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && npc.dialogueLines.length <= 1 && npc.id !== 'alice';
   dialogue.hidden = false;
 }
 
@@ -722,6 +746,8 @@ export function setupNpcInteractions(): void {
   closeButton.addEventListener('click', closeDialogue);
   nextButton.addEventListener('click', advanceDialogue);
   reiDialogueLinesButton.addEventListener('click', showNextReiDialogueLine);
+  requireElement<HTMLAnchorElement>('#alice-event-tinder-link').addEventListener('click', closeDialogue);
+  requireElement<HTMLButtonElement>('#alice-event-tinder-dismiss').addEventListener('click', closeDialogue);
   window.addEventListener('keydown', (event) => {
     if (!activeNpc) return;
     if (event.code === 'Escape') {
