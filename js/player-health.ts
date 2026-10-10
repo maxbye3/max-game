@@ -14,3 +14,10 @@ export function damagePlayerHealth(amount: number): void {
   health = Math.round(Math.max(0, health - Math.max(0, amount)) * 1_000_000) / 1_000_000;
   writeStorage(HEALTH_KEY, String(health));
 }
+
+export function healPlayerHealth(amount: number): void {
+  const next = Math.round(Math.min(PLAYER_MAX_HEALTH, health + Math.max(0, amount)) * 1_000_000) / 1_000_000;
+  if (next === health) return;
+  health = next;
+  writeStorage(HEALTH_KEY, String(health));
+}

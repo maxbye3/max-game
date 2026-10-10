@@ -19,16 +19,22 @@ function createPanel(): void {
 }
 
 export function updateJulianPowerUi(now: number): void {
-  if (!isJulianPowerActive(now)) { if (panel) panel.hidden = true; return; }
+  if (!isJulianPowerActive(now)) { if (panel && !panel.hidden) panel.hidden = true; return; }
   if (!panel) createPanel();
-  panel!.hidden = false;
+  if (panel!.hidden) panel!.hidden = false;
   const ready = isJulianDemonPresent(now);
   const chosen = getJulianChoice() !== null;
   const target = julianNearestTarget();
-  title.textContent = ready ? `One bargain · ${julianDemonSecondsLeft(now).toFixed(2)}s` : julianElapsed(now) < JULIAN_DEMON_DELAY ? 'Something is coming…' : 'The demon has departed';
+  const nextTitle = ready ? `One bargain · ${julianDemonSecondsLeft(now).toFixed(1)}s` : julianElapsed(now) < JULIAN_DEMON_DELAY ? 'Something is coming…' : 'The demon has departed';
+  if (title.textContent !== nextTitle) title.textContent = nextTitle;
   const nextMessage = chosen ? getJulianVerdict() : 'One answer OR one execution. Your choice.';
   if (message.textContent !== nextMessage) message.textContent = nextMessage;
-  ask.hidden = execute.hidden = chosen || (!ready && julianElapsed(now) >= JULIAN_DEMON_DELAY);
-  ask.disabled = !ready; execute.disabled = !ready || !target;
-  execute.textContent = target ? `Execute ${julianTargetName(target.id)}` : 'No character nearby';
+  const hidden = chosen || (!ready && julianElapsed(now) >= JULIAN_DEMON_DELAY);
+  if (ask.hidden !== hidden) ask.hidden = hidden;
+  if (execute.hidden !== hidden) execute.hidden = hidden;
+  if (ask.disabled !== !ready) ask.disabled = !ready;
+  const disabled = !ready || !target;
+  if (execute.disabled !== disabled) execute.disabled = disabled;
+  const label = target ? `Execute ${julianTargetName(target.id)}` : 'No character nearby';
+  if (execute.textContent !== label) execute.textContent = label;
 }

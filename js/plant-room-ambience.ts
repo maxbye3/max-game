@@ -1,5 +1,5 @@
 import { hasDialogueAudioFocus } from './dialogue-audio.js';
-import { createGameAudio } from './audio-mute.js';
+import { createGameAudio, hasPowerAudioFocus } from './audio-mute.js';
 import { ambienceSourceForDoor, carriedAmbienceFor, rememberAmbience } from './ambient-theme.js';
 
 export function setupInteriorAmbience(doorId: string | null): void {
@@ -9,7 +9,7 @@ export function setupInteriorAmbience(doorId: string | null): void {
   const carried = carriedAmbienceFor(doorId);
   const ambience = createGameAudio(`../${source}`);
   ambience.loop = true;
-  ambience.preload = 'auto';
+  ambience.preload = 'none';
   if (carried?.source === source) ambience.currentTime = carried.currentTime;
 
   const setVolume = (): void => {
@@ -17,6 +17,7 @@ export function setupInteriorAmbience(doorId: string | null): void {
   };
 
   const start = (): void => {
+    if (hasPowerAudioFocus() || document.hidden) { ambience.pause(); return; }
     setVolume();
     if (!ambience.paused) return;
     void ambience.play().catch(() => {
@@ -30,6 +31,8 @@ export function setupInteriorAmbience(doorId: string | null): void {
     setVolume();
     start();
   });
+  window.addEventListener('max-game:power-audio-focus', start);
+  document.addEventListener('visibilitychange', start);
   window.addEventListener('pagehide', () => {
     rememberAmbience(doorId, source, ambience.currentTime);
     ambience.pause();

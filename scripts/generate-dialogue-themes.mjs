@@ -18,8 +18,10 @@ async function collectThemes(directory) {
     const pathFromChat = relative(chatDirectory, path).replaceAll('\\', '/');
     const folder = pathFromChat.slice(0, pathFromChat.lastIndexOf('/'));
     const characterFolder = folder.split('/')[0] ?? '';
-    if (characterFolder === 'adam') return;
-    const priority = ['bochra', 'chris', 'dan', 'georgia', 'joe', 'ju', 'katie', 'lucy'].includes(characterFolder) && folder === characterFolder
+    if (characterFolder === 'adam' || characterFolder === 'mason' || characterFolder === 'meli' || characterFolder === 'mike' || characterFolder === 'noel' || characterFolder === 'niall') return;
+    const priority = (characterFolder === 'ed' || characterFolder === 'dad') && folder === characterFolder
+      ? 5
+      : ['bochra', 'chris', 'dan', 'georgia', 'joe', 'ju', 'katie', 'lucy', 'marina d', 'oscar', 'rei', 'sam', 'tim'].includes(characterFolder) && folder === characterFolder
       ? 4
       : folder.endsWith('/player') ? 3 : folder === characterFolder ? 2 : 1;
     if (!themePriorities[characterFolder] || priority > themePriorities[characterFolder]) {

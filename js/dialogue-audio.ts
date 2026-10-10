@@ -1,10 +1,11 @@
 import { DIALOGUE_THEME_SOURCES } from './dialogue-themes.generated.js';
-import { createGameAudio } from './audio-mute.js';
+import { POWER_THEME_SOURCES } from './power-themes.generated.js';
+import { createGameAudio, hasPowerAudioFocus } from './audio-mute.js';
 import { addAndyDialogueReply } from './andy-power.js';
 
 const theme = createGameAudio();
 theme.loop = true;
-theme.preload = 'auto';
+theme.preload = 'none';
 theme.volume = 0.75;
 
 let dialogueHasAudioFocus = false;
@@ -37,7 +38,7 @@ export function beginDialogueAudio(name?: string, prefix = ''): void {
   const session = dialogueAudioSession;
   cancelThemeStop();
   dialogueHasAudioFocus = true;
-  const source = name ? themeSourceFor(name) : null;
+  const source = name && !hasPowerAudioFocus() ? themeSourceFor(name) : null;
   if (!source) {
     theme.pause();
     theme.removeAttribute('src');
@@ -46,7 +47,7 @@ export function beginDialogueAudio(name?: string, prefix = ''): void {
     return;
   }
 
-  const resolvedSource = `${prefix}${source}`;
+  const resolvedSource = `${prefix}${POWER_THEME_SOURCES[source] ?? source}`;
   theme.pause();
   if (theme.src !== new URL(resolvedSource, window.location.href).href) {
     theme.src = resolvedSource;
@@ -55,7 +56,7 @@ export function beginDialogueAudio(name?: string, prefix = ''): void {
   notifyAudioFocusChanged();
   void theme.play().then(() => {
     if (session !== dialogueAudioSession) return;
-    const duration = name?.trim().toLowerCase() === 'sam' ? 12_000 : 10_000;
+    const duration = name?.trim().toLowerCase() === 'sam' ? 13_000 : 10_000;
     themeStopTimer = window.setTimeout(() => {
       if (session !== dialogueAudioSession) return;
       theme.pause();
@@ -78,4 +79,10 @@ export function endDialogueAudio(): void {
 
 export function hasDialogueAudioFocus(): boolean {
   return dialogueHasAudioFocus;
+}
+
+export function bindPowerDialogueDismissal(closeDialogue: () => void): void {
+  for (const name of ['chris', 'dan', 'georgia', 'helen', 'joe', 'ju', 'julian', 'katie', 'lucy', 'oscar', 'tim', 'sam', 'rei', 'noel', 'mike']) {
+    window.addEventListener(`max-game:${name}-power-activated`, closeDialogue);
+  }
 }

@@ -28,6 +28,7 @@ const dialogues = [
   { name: 'GEORGIA', source: '../chat/georgia/dialogue.txt', output: '../js/georgia-dialogue.ts' },
   { name: 'HELEN', source: '../chat/helen/dialogue.txt', output: '../js/helen-dialogue.ts' },
   { name: 'TIM', source: '../chat/tim/dialogue.txt', output: '../js/tim-dialogue.ts' },
+  { name: 'DAD', source: '../chat/dad/dialogue.txt', output: '../js/dad-dialogue.ts' },
 ];
 
 await Promise.all(dialogues.map(async ({ name, source, output }) => {

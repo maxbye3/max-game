@@ -68,7 +68,8 @@ export function setupAdamLeapControl(): void {
 }
 
 export function updateAdamLeapControl(now = Date.now()): void {
-  if (leapButton) leapButton.hidden = adamPowerSecondsLeft(now) === 0;
+  const hidden = adamPowerSecondsLeft(now) === 0;
+  if (leapButton && leapButton.hidden !== hidden) leapButton.hidden = hidden;
 }
 
 export function drawAdamShadow(context: CanvasRenderingContext2D, x: number, y: number, now = Date.now()): void {

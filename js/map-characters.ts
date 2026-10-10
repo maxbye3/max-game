@@ -1,4 +1,5 @@
 import { withCharacterPowers } from './character-power-render.js';
+import { webImageSource } from './web-images.js';
 import { samTargetId, samVictimOffset } from './sam-power.js';
 import { isOscarEaten, oscarCharacterId } from './oscar-power.js';
 
@@ -42,7 +43,7 @@ function loadImage(character: MapCharacter): Promise<void> {
       resolve();
     };
     character.image.onerror = () => reject(new Error(`Failed to load ${character.source}`));
-    character.image.src = character.source;
+    character.image.src = webImageSource(character.source);
   });
 }
 
@@ -60,6 +61,10 @@ export function drawMapCharacters(
   context.imageSmoothingEnabled = false;
   for (const character of mapCharacters) {
     if (!shouldDraw(character)) continue;
+    // Leave room for stretched poses and recoil beyond the normal sprite.
+    const margin = character.height * 4;
+    if (character.x - cameraX < -margin || character.x - cameraX > context.canvas.width + margin ||
+      character.y - cameraY < -margin || character.y - cameraY > context.canvas.height + margin) continue;
     const width = Math.round(character.height * (character.image.naturalWidth / character.image.naturalHeight));
     const offset = samVictimOffset(samTargetId(character.name));
     withCharacterPowers(context, character.x - cameraX, character.y - cameraY, character.height, samTargetId(character.name), () => context.drawImage(

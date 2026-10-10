@@ -202,7 +202,7 @@ export function drawWorldBackground(
   };
 
   context.drawImage(images.map, -cameraX, -cameraY);
-  context.drawImage(images.eventTinder, 178 - cameraX, 124 - cameraY, 80, 80);
+  context.drawImage(images.eventTinder, 178 - cameraX, 44 - cameraY, 80, 80);
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';

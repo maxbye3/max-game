@@ -1,3 +1,4 @@
+import { isMikeTargetHappy } from './mike-power.js';
 import { SPEED, WORLD_HEIGHT, WORLD_WIDTH } from './config.js';
 import { buildThiefPath, thiefPathCell, type PathPoint } from './cave-thief-path.js';
 import { easeInOut, playMessageVoices, startCatchTransition } from './cave-thief-cutscene.js';
@@ -206,7 +207,7 @@ export function updateCaveThief(
 ): void {
   if (state.phase === 'hidden') return;
   if (isOscarEaten('cave-thief')) return;
-  if (state.phase === 'chasing' && isSamTargetRecoiling('cave-thief')) {
+  if (state.phase === 'chasing' && (isSamTargetRecoiling('cave-thief') || isMikeTargetHappy('cave-thief', time))) {
     state.animationTime = 0;
     state.frame = 0;
     return;

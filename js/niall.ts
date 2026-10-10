@@ -17,6 +17,7 @@ import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
 import { addGift, NIALL_ITEM } from './inventory-gifts.js';
 import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from './ed-power.js';
 import { isSamTargetRecoiling } from './sam-power.js';
+import { setProfileImage } from './profile-images.js';
 
 const CONTACT_DISTANCE = 30;
 const VERTICAL_SIGHT_HALF_WIDTH = 16;
@@ -45,6 +46,7 @@ export const NIALL_BUS_STOP = {
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const dialogue = requireElement<HTMLElement>('#niall-dialogue');
 const dialogueLine = requireElement<HTMLElement>('#niall-dialogue-line');
+const dialogueProfile = requireElement<HTMLImageElement>('#niall-dialogue-profile');
 const dialogueNext = requireElement<HTMLButtonElement>('#niall-dialogue-next');
 let questState = getNiallQuestState();
 
@@ -66,15 +68,17 @@ export const isNiallFollowing = () => questState === 'following';
 let battleTransitionActive = false;
 type EncounterState = 'idle' | 'spotted' | 'chasing' | 'caught';
 let encounterState: EncounterState = 'idle';
-let busDialogueStage: number | null = null;
+let busDialogueLines: string[] = [];
+let busDialogueActive = false;
 let wasNearBusStop = false;
 let hasShownBusArrival = false;
 
 export const isNiallBattleTransitionActive = () => battleTransitionActive;
 export const isNiallAlertActive = () => encounterState === 'spotted';
-export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught' || busDialogueStage !== null;
+export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught' || busDialogueActive;
 
 function showDialogue(line: string): void {
+  setProfileImage(dialogueProfile, 'Niall');
   beginDialogueAudio('Niall');
   dialogueLine.textContent = line;
   dialogue.hidden = false;
@@ -92,8 +96,11 @@ function nextBusDialogueLine(): string {
 
 function startBusDialogue(arrival: boolean): void {
   if (arrival) hasShownBusArrival = true;
-  busDialogueStage = arrival ? 0 : 2;
-  showDialogue(arrival ? 'Niall is rolling a cigarette' : nextBusDialogueLine());
+  busDialogueActive = true;
+  busDialogueLines = arrival
+    ? ['Niall is rolling a cigarette', 'Kept you waiting huh?', nextBusDialogueLine()]
+    : [nextBusDialogueLine()];
+  showDialogue(busDialogueLines.shift() ?? '...');
   if (edPowerSecondsLeft() > 0) {
     showHalsteadTattoo('Niall');
     addGift(NIALL_ITEM);
@@ -167,7 +174,7 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
   }
   if (questState === 'busStop') {
     const nearBusStop = Math.hypot(playerX - niallState.x, playerY - niallState.y) <= BUS_DIALOGUE_DISTANCE;
-    if (nearBusStop && !wasNearBusStop && busDialogueStage === null) startBusDialogue(!hasShownBusArrival);
+    if (nearBusStop && !wasNearBusStop && !busDialogueActive) startBusDialogue(!hasShownBusArrival);
     wasNearBusStop = nearBusStop;
     return;
   }
@@ -203,14 +210,10 @@ dialogueNext.addEventListener('click', () => {
   } else if (encounterState === 'caught') {
     hideDialogue();
     startFight();
-  } else if (busDialogueStage === 0) {
-    busDialogueStage = 1;
-    showDialogue('Kept you waiting huh?');
-  } else if (busDialogueStage === 1) {
-    busDialogueStage = 2;
-    showDialogue(nextBusDialogueLine());
-  } else if (busDialogueStage === 2) {
-    busDialogueStage = null;
+  } else if (busDialogueActive && busDialogueLines.length > 0) {
+    showDialogue(busDialogueLines.shift() ?? '...');
+  } else if (busDialogueActive) {
+    busDialogueActive = false;
     hideDialogue();
   }
 });

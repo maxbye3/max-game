@@ -23,7 +23,7 @@ export class InteriorDoorsController {
     private readonly scene: InteriorScene,
     private readonly options: InteriorDoorOptions,
   ) {
-    this.sound.preload = 'auto';
+    this.sound.preload = 'none';
   }
 
   syncExitLink(link: HTMLAnchorElement | null): void {

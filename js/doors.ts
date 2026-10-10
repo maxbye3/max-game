@@ -29,7 +29,7 @@ export const DOORWAYS: readonly Doorway[] = [
 const OPEN_DISTANCE = 42;
 const PASSAGE_MARGIN = 8;
 const doorSound = createGameAudio('audio/open-door.mp3');
-doorSound.preload = 'auto';
+doorSound.preload = 'none';
 doorSound.volume = 0.25;
 
 let openDoorIds = new Set<string>();

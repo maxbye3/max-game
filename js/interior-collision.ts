@@ -1,4 +1,4 @@
-import { CAVE_WALLS, type InteriorScene } from './interior-scenes.js';
+import { ART_STUDIO_WALLS, CAVE_WALLS, type InteriorScene } from './interior-scenes.js';
 
 const PLAYER_FRAME_WIDTH = 23;
 const PLAYER_FRAME_HEIGHT = 36;
@@ -26,6 +26,11 @@ export class InteriorCollision {
     if (this.passageIsOpen(x, y)) return false;
     if (this.scene.kind === 'cave') {
       return CAVE_WALLS.some(([wallX, wallY, width, height]) =>
+        x >= wallX && x < wallX + width && y >= wallY && y < wallY + height,
+      );
+    }
+    if (this.scene.kind === 'artStudio') {
+      return ART_STUDIO_WALLS.some(([wallX, wallY, width, height]) =>
         x >= wallX && x < wallX + width && y >= wallY && y < wallY + height,
       );
     }

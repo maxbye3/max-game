@@ -13,7 +13,7 @@ const messageVoices = [
   createGameAudio('chat/siblings/marina.mp3'),
 ];
 messageVoices.forEach((voice) => {
-  voice.preload = 'auto';
+  voice.preload = 'none';
 });
 
 export function playMessageVoices(): void {

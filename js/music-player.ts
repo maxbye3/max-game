@@ -84,6 +84,7 @@ function playSelectedSong(): void {
 
 export function setupMusicPlayer(): void {
   refreshSongOptions();
+  window.addEventListener('max-game:world-interaction-opened', () => setPanelOpen(false));
   musicSelect.addEventListener('change', () => {
     if (!hasWalkman()) return;
     const song = musicSelect.value as Song | '';

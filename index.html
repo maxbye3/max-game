@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=20261006-remove-reset" />
+    <link rel="stylesheet" href="style.css?v=fbd9bab6b80e" />
   </head>
   <body>
     <main class="game-shell">
@@ -60,6 +60,7 @@
         <div class="sign-dialogue-heading">
           <span class="sign-dialogue-icon" aria-hidden="true">!</span>
           <h2 id="sign-dialogue-title">Sign</h2>
+          <button id="sign-dialogue-close" class="npc-dialogue-close sign-dialogue-close" type="button" aria-label="Close sign">×</button>
         </div>
         <p id="sign-dialogue-text"></p>
         <div id="sign-dialogue-signature" class="sign-dialogue-signature" hidden>
@@ -92,7 +93,7 @@
       <section id="niall-dialogue" class="npc-dialogue" aria-live="polite" hidden>
         <header class="npc-dialogue-header"><h2>Niall</h2></header>
         <div class="dialogue-line-row">
-          <img class="dialogue-profile" src="chat/niall/player/profile.png" alt="Niall">
+          <img id="niall-dialogue-profile" class="dialogue-profile" alt="" hidden>
           <p id="niall-dialogue-line"></p>
         </div>
         <button id="niall-dialogue-next" class="npc-dialogue-next" type="button" aria-label="Next dialogue line">&gt;</button>
@@ -122,6 +123,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=20261006-sync-chat-dialogues"></script>
+    <script src="dist/main-bundle.js?v=685c3ce392da"></script>
   </body>
 </html>

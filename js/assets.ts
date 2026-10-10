@@ -1,3 +1,6 @@
+import { hasMikeAftermath } from './world-state.js';
+import { webImageSource } from './web-images.js';
+
 const IMAGE_SOURCES = {
   map: 'img/external/overworld.png?v=riverside-sign-bookstore',
   eventTinder: 'map/event-tinder.png',
@@ -58,23 +61,19 @@ function loadImage(image: HTMLImageElement, src: string): Promise<void> {
       resolve();
     };
     image.onerror = () => reject(new Error(`Failed to load ${src}`));
-    image.src = src;
+    image.src = webImageSource(src);
   });
 }
 
-const OPTIONAL_ASSETS: readonly AssetName[] = ['billboardUnfinished', 'girlsSprite'];
-
-export async function loadAssets(): Promise<void> {
+export async function loadAssets(needsCaveThief = false): Promise<void> {
   const sealMode = new URLSearchParams(window.location.search).has('seal');
   const blockingAssets = (Object.keys(IMAGE_SOURCES) as AssetName[]).filter((name) =>
-    !OPTIONAL_ASSETS.includes(name) &&
+    name !== 'georgia' &&
+    (name !== 'girlsSprite' || needsCaveThief) &&
+    name !== (hasMikeAftermath() ? 'billboardUnfinished' : 'billboardFinished') &&
+    name !== (hasMikeAftermath() ? 'mike' : 'mikeAftermath') &&
+    (name !== 'paint' || hasMikeAftermath()) &&
     name !== (sealMode ? 'spriteSheet' : 'sealSpriteSheet'),
   );
   await Promise.all(blockingAssets.map((name) => loadImage(images[name], IMAGE_SOURCES[name])));
-
-  OPTIONAL_ASSETS.forEach((name) => {
-    void loadImage(images[name], IMAGE_SOURCES[name]).catch((error: unknown) => {
-      console.warn(`Optional asset could not be loaded: ${name}`, error);
-    });
-  });
 }

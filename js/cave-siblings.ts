@@ -77,7 +77,7 @@ export class CaveSiblingsController {
       Marina: createGameAudio('../chat/siblings/marina.mp3'),
     };
     Object.values(this.voices).forEach((voice) => {
-      voice.preload = 'auto';
+      voice.preload = 'none';
     });
   }
 

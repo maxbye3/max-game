@@ -34,7 +34,7 @@ export function drawSceneryNpcs(
     const destinationY = Math.round((npc.y - cameraY - npc.height) * scaleY);
     const destinationWidth = npc.width * scaleX;
     const destinationHeight = npc.height * scaleY;
-    withCharacterPowers(context, (npc.x - cameraX) * scaleX, (npc.y - cameraY) * scaleY, destinationHeight, npc.id ?? '', () => {
+    const drawNpc = () => {
       if (npc.animation) {
         const frame = Math.floor(timeMs / npc.animation.frameDurationMs) % npc.animation.frameCount;
         const framesPerRow = npc.animation.framesPerRow ?? npc.animation.frameCount;
@@ -52,7 +52,9 @@ export function drawSceneryNpcs(
         return;
       }
       context.drawImage(npc.image, destinationX, destinationY, destinationWidth, destinationHeight);
-    });
+    };
+    if (npc.id) withCharacterPowers(context, (npc.x - cameraX) * scaleX, (npc.y - cameraY) * scaleY, destinationHeight, npc.id, drawNpc);
+    else drawNpc();
   });
   context.restore();
 }

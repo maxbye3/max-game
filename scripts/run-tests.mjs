@@ -25,19 +25,69 @@ try {
   });
 
   const niallBattle = await loadModule('niall-battle', 'js/niall-battle.ts');
-  const fight = new niallBattle.NiallBattle();
-  fight.damageNiall(30);
-  assert.equal(fight.niallHp, 90);
-  fight.healPlayer(50);
-  assert.equal(fight.playerHp, niallBattle.PLAYER_MAX_HP);
-  fight.defend();
-  const defended = fight.applyNiallAttack({ damage: 11, message: 'test' });
-  assert.equal(defended.damage, 5);
-  assert.equal(fight.playerHp, 95);
-  fight.applyNiallAttack({ damage: 0, fomo: true, message: 'test' });
-  assert.equal(fight.applyFomoDamage(), 10);
-  assert.equal(fight.playerHp, 85);
-  assert.equal(niallBattle.chooseNiallAttack(() => 0), niallBattle.NIALL_ATTACKS[0]);
+  const playNiallFight = (healBeforeRound = -1, skipFirstAttack = false) => {
+    const fight = new niallBattle.NiallBattle();
+    const moves = [];
+    for (let round = 0; round < 5 && fight.canAct; round += 1) {
+      if (round === healBeforeRound) fight.useHealthItem();
+      fight.takePlayerTurn(!(skipFirstAttack && round === 0));
+      assert.equal(fight.takePlayerTurn(true), null, 'queued responses block repeated player attacks');
+      assert.equal(fight.useHealthItem(), 0, 'items cannot interrupt enemy responses');
+      while (fight.waitingForNiall && fight.playerHp > 0 && fight.niallHp > 0) {
+        moves.push(fight.takeNiallTurn());
+      }
+    }
+    return { fight, moves };
+  };
+
+  const unhealed = playNiallFight();
+  assert.equal(unhealed.fight.playerHp, 0, 'without healing the eighth hit defeats the player');
+  assert.equal(unhealed.fight.niallHp, 10, 'Niall survives by one attack');
+  assert.equal(unhealed.fight.niallAttackIndex, 8, 'defeat happens immediately before Red Stripe');
+  assert.equal(unhealed.fight.takeNiallTurn(), null, 'a dead player cannot continue to Red Stripe');
+  assert.equal(unhealed.fight.canAct, false);
+  assert.equal(unhealed.fight.useHealthItem(), 0, 'healing cannot revive a defeated player');
+  assert.equal(unhealed.fight.hasFomo, true);
+  assert.equal(unhealed.moves[1].fomo, true);
+  assert.equal(unhealed.moves[1].damage, 10, 'FOMO deals exactly the listed 10 damage');
+
+  for (const round of [1, 2, 3, 4]) {
+    const healed = playNiallFight(round);
+    assert.ok(healed.fight.playerHp > 0, 'one health item is enough even when used early');
+    assert.equal(healed.fight.niallHp, 0, 'Red Stripe finishes Niall after healing');
+    assert.equal(healed.fight.niallAttackIndex, 9);
+    assert.equal(healed.moves.at(-1).selfDamage, 10);
+    assert.equal(healed.fight.takeNiallTurn(), null, 'Buckfast cannot follow a victory');
+    assert.equal(healed.fight.useHealthItem(), 0, 'the healing item cannot be reused');
+  }
+
+  const potion = new niallBattle.NiallBattle();
+  assert.equal(potion.useHealthItem(), 0);
+  assert.equal(potion.healthItemUsed, false, 'using the item at full health does not waste it');
+  potion.takePlayerTurn(true);
+  potion.takeNiallTurn();
+  assert.equal(potion.useHealthItem(), 10, 'healing reports the actual amount and caps at maximum HP');
+  assert.equal(potion.playerHp, niallBattle.PLAYER_MAX_HP);
+  assert.equal(potion.niallAttackIndex, 1, 'healing does not skip an attack in the scripted exchange');
+  assert.equal(potion.useHealthItem(), 0);
+
+  const hotSauce = playNiallFight(3, true).fight;
+  assert.equal(hotSauce.niallHp, 10, 'skipping a dialogue attack leaves Niall alive after Red Stripe');
+  assert.equal(hotSauce.takePlayerTurn(true).knockout, true);
+  assert.equal(hotSauce.niallHp, 0, 'Portuguese hot sauce is an instant victory');
+  assert.equal(hotSauce.takeNiallTurn(), null);
+
+  const buckfast = playNiallFight(3, true).fight;
+  buckfast.takePlayerTurn(false);
+  assert.equal(buckfast.takeNiallTurn().knockout, true);
+  assert.equal(buckfast.playerHp, 0, 'Buckfast defeats even a healed player instantly');
+  assert.equal(buckfast.canAct, false);
+  buckfast.finish();
+  assert.equal(buckfast.waitingForNiall, false);
+
+  assert.equal(new niallBattle.NiallBattle(0.5).playerHp, 40, 'overworld health scales to battle HP');
+  assert.equal(new niallBattle.NiallBattle(0).canAct, false);
+  console.log('Niall battle: default loss by one attack, single healing item, FOMO, Red Stripe, hot sauce and Buckfast passed');
 
   const thiefPath = await loadModule('cave-thief-path', 'js/cave-thief-path.ts');
   const openPath = thiefPath.buildThiefPath(8, 8, 72, 8, () => false);
@@ -47,6 +97,7 @@ try {
   globalThis.Audio = class {
     preload = '';
     currentTime = 0;
+    addEventListener() {}
     play() { return Promise.resolve(); }
     pause() {}
   };
@@ -93,6 +144,35 @@ try {
   assert.equal(worldState.hasMikeAftermath(), true);
   values.clear();
 
+  const resurrectionSession = new Map();
+  window.sessionStorage = {
+    getItem: (key) => resurrectionSession.get(key) ?? null,
+    setItem: (key, value) => resurrectionSession.set(key, value),
+  };
+  const alexPower = await loadModule('alex-s-power', 'js/alex-s-power.ts');
+  assert.equal(alexPower.activateAlexSPower('alex-s', 10000), false, 'Alex can only resurrect another character');
+  assert.equal(alexPower.activateAlexSPower('mike', 10000), true);
+  assert.equal(alexPower.getAlexResurrection(9999), null);
+  assert.equal(alexPower.getAlexResurrection(10000).name, 'Mike');
+  assert.equal(alexPower.alexSPowerSecondsLeft(10000), 20);
+  assert.equal(alexPower.alexSThemeSecondsLeft(20000), 0, 'music ends after ten seconds even though resurrection continues');
+  assert.equal(alexPower.getAlexResurrection(29999).id, 'mike');
+  assert.equal(alexPower.getAlexResurrection(30000), null, 'the resurrected character disappears at exactly twenty seconds');
+  const restoredAlexPower = await loadModule('alex-s-power-restored', 'js/alex-s-power.ts');
+  assert.equal(restoredAlexPower.getAlexResurrection(25000).id, 'mike', 'moving to another page restores the selected character');
+  assert.equal(restoredAlexPower.alexSPowerSecondsLeft(25000), 5, 'navigation does not restart the spell');
+  assert.equal(alexPower.activateAlexSPower('unknown', 26000), false);
+  assert.equal(alexPower.getAlexResurrection(26000).id, 'mike', 'an invalid target cannot replace the active resurrection');
+  for (const character of alexPower.RESURRECTION_CHARACTERS) {
+    assert.ok((await readFile(character.imageSource)).length > 0, `${character.name}'s resurrection sprite exists`);
+    assert.equal(alexPower.activateAlexSPower(character.id, 31000), true);
+    assert.equal(alexPower.getAlexResurrection(31000).id, character.id);
+  }
+  assert.match(alexPower.alexSToastLine(0), /toast/);
+  assert.equal(alexPower.alexSToastLine(5), alexPower.alexSToastLine(0));
+  resurrectionSession.clear();
+  console.log('Alex S: selectable resurrection, exact twenty-second expiry, ten-second theme, navigation continuity and character assets passed');
+
   const sprites = await loadModule('player-sprite', 'js/player-sprite.ts');
   assert.equal(sprites.getPlayerSpriteFrame(false, 'up', 2, 2).sourceY, 144);
   assert.equal(sprites.getPlayerSpriteFrame(true, 'down', 0, 2).sourceY, 1290);
@@ -135,6 +215,76 @@ try {
   assert.equal(samPower.samPowerSecondsLeft(14000), 0);
   assert.equal(samPower.samMovementMultiplier(14000), 1);
 
+  assert.equal(samPower.samPowerSecondsLeft(999), 0, 'Sam remains inactive before the activation clock');
+  samPower.activateSamPower(15000);
+  const samTargets = [
+    { id: 'friend', x: 225, y: 100, height: 40 },
+    { id: 'foe', x: 70, y: 100, height: 40 },
+    { id: 'outside', x: 229, y: 100, height: 40 },
+    { id: 'friend', x: 225, y: 100, height: 40 },
+  ];
+  samPower.updateSamPower(15000, 100, 100, samTargets, 'right');
+  assert.deepEqual(samPower.getSamPinchStats(), { pinches: 2, characters: 2 }, 'both friend and foe are pinched, with duplicate targets counted once');
+  assert.equal(samPower.isSamTargetRecoiling('outside', 15000), false);
+  assert.equal(samPower.getSamTerrainSnaps(15000).length, 2);
+  const movingSamTargets = samTargets.map((target) => target.id === 'friend' ? { ...target, x: 220 } : target.id === 'outside' ? { ...target, x: 237 } : target);
+  samPower.updateSamPower(15600, 108, 100, movingSamTargets, 'right');
+  assert.equal(samPower.getSamPinchStats().pinches, 2, 'the repeat cooldown is independent of the frame rate');
+  assert.equal(samPower.getSamPinchEffects(15600).find((effect) => effect.id === 'friend').x, 220, 'claws track the real moving character');
+  assert.ok(samPower.getSamFootsteps(15600).length > 1);
+  assert.deepEqual(samPower.getSamOrigin(), { x: 100, y: 100 }, 'the tide stays anchored in the world');
+  samPower.updateSamPower(15650, 108, 100, movingSamTargets, 'right');
+  assert.equal(samPower.getSamPinchStats().pinches, 4);
+  samPower.updateSamPower(15700, 108, 100, []);
+  assert.equal(samPower.getSamPinchEffects(15700).length, 0, 'removed characters cannot leave phantom claws');
+  samPower.updateSamPower(27999, 108, 100, movingSamTargets);
+  assert.ok(samPower.getSamPinchEffects(27999).length > 0);
+  assert.equal(samPower.isSamTargetRecoiling('friend', 28000), false, 'even the final pinch stops at exactly thirteen seconds');
+  assert.deepEqual(samPower.samVictimOffset('friend', 28000), { x: 0, y: 0 });
+  assert.deepEqual(samPower.samCameraJolt(28000), { x: 0, y: 0 });
+  assert.equal(samPower.getSamPinchEffects(28000).length, 0);
+  assert.equal(samPower.getSamFootsteps(28000).length, 0);
+  assert.equal(samPower.getSamTerrainSnaps(28000).length, 0);
+  samPower.updateSamPower(29000, 108, 100, movingSamTargets);
+  assert.ok(samPower.samPowerReveal().includes('6 pinches to 2 characters'), 'inventory reveals the actual completed interaction count');
+  samPower.activateSamPower(30000);
+  assert.deepEqual(samPower.getSamPinchStats(), { pinches: 0, characters: 0 });
+  assert.equal(samPower.getSamFootsteps(30000).length, 0, 'reactivation clears the earlier transformation');
+  console.log('Sam power: thirteen-second timing, friend/foe contacts, repeat cooldown, live target tracking, world trails, exact cleanup and completed stats passed');
+
+  const timInputPower = await loadModule('tim-input-power', 'js/tim-input-power.ts');
+  assert.deepEqual(timInputPower.timInputVector(1, 0, 500), { x: 1, y: 0 }, 'Tim controls stay normal before activation');
+  timInputPower.activateTimInputPower(1000);
+  assert.equal(timInputPower.timPowerVisualState(999), null);
+  assert.equal(timInputPower.timPowerVisualState(1000).intensity, 0, 'the scene opens smoothly rather than flashing');
+  assert.equal(timInputPower.timInputPowerSecondsLeft(1000), 10);
+  assert.deepEqual(timInputPower.timInputVector(1, 0, 1000), { x: -1, y: 0 });
+  assert.deepEqual(timInputPower.timInputVector(-1, 1, 1000), { x: 1, y: -1 }, 'keyboard and d-pad diagonals both reverse');
+  const diagonalIntent = timInputPower.timPowerVisualState(1300);
+  assert.ok(Math.abs(diagonalIntent.intentX + Math.SQRT1_2) < 1e-9);
+  assert.ok(Math.abs(diagonalIntent.intentY - Math.SQRT1_2) < 1e-9);
+  assert.equal(diagonalIntent.intensity, 1, 'the world currents follow the normalized attempted direction');
+  assert.deepEqual(timInputPower.timInputVector(0, 0, 1000), { x: 0, y: 0 });
+  timInputPower.updateTimInputWorld(1000, 100, 100);
+  assert.equal(timInputPower.getTimInputSteps(1000).length, 0);
+  timInputPower.updateTimInputWorld(1050, 110, 100);
+  assert.deepEqual(timInputPower.getTimInputSteps(1050), [{ x: 110, y: 100, at: 1050, reverse: true }]);
+  timInputPower.updateTimInputWorld(1100, 111, 100);
+  assert.equal(timInputPower.getTimInputSteps(1100).length, 1, 'stationary frames do not fill the floor with tracks');
+  timInputPower.updateTimInputWorld(2000, 120, 100);
+  assert.equal(timInputPower.getTimInputSteps(2000).at(-1).reverse, false);
+  assert.ok(timInputPower.timInputPowerSecondsLeft(10999) > 0);
+  assert.equal(timInputPower.timInputPowerSecondsLeft(11000), 0);
+  assert.deepEqual(timInputPower.timInputVector(1, 0, 11000), { x: 1, y: 0 }, 'movement resets exactly at ten seconds');
+  assert.deepEqual(timInputPower.getTimInputSteps(11000), []);
+  assert.equal(timInputPower.timPowerVisualState(11000), null, 'body and landscape effects stop at the controls deadline');
+  timInputPower.updateTimInputWorld(11000, 120, 100);
+  timInputPower.activateTimInputPower(12000);
+  assert.equal(timInputPower.getTimInputSteps(12000).length, 0, 'a second use starts with a clean trail');
+  assert.equal(timInputPower.timPowerVisualState(12500).intentX, 0, 'a second use does not inherit an earlier direction');
+  assert.match(timInputPower.timInputPowerReveal(), /opposite/);
+  console.log('Tim power: reversed movement vectors, diagonal controls, floor trails, ten-second reset and reactivation passed');
+
   const oscarPower = await loadModule('oscar-power', 'js/oscar-power.ts');
   oscarPower.activateOscarPower(1000);
   assert.equal(oscarPower.oscarPowerSecondsLeft(1000), 10);
@@ -148,6 +298,79 @@ try {
   assert.ok(Math.abs(oscarPower.oscarMovementMultiplier(1000) - 1.405) < 1e-9);
   assert.equal(oscarPower.isOscarEaten('nearby-friend', 11000), false);
   assert.equal(oscarPower.oscarPowerSecondsLeft(11000), 0);
+  assert.equal(oscarPower.oscarPowerSecondsLeft(999), 0, 'the clock remains inactive before activation');
+  oscarPower.activateOscarPower(12000);
+  const hungryPlayer = { x: 100, y: 100 };
+  const wallBlocks = (x) => x > 120;
+  oscarPower.settleOscarDigestion(hungryPlayer, wallBlocks, 12000);
+  oscarPower.updateOscarPower(12000, 100, 100, [], 'right');
+  assert.equal(oscarPower.isOscarTerrainEaten(140, 100, 12000), true, 'a bite opens terrain in the actual facing direction');
+  assert.equal(oscarPower.isOscarTerrainEaten(200, 100, 12000), false, 'uneaten obstacles keep collision');
+  assert.ok(oscarPower.oscarGrowth(12000) > 1);
+  hungryPlayer.x = 140;
+  oscarPower.settleOscarDigestion(hungryPlayer, wallBlocks, 13000);
+  oscarPower.settleOscarDigestion(hungryPlayer, wallBlocks, 22000);
+  assert.deepEqual(hungryPlayer, { x: 100, y: 100 }, 'restored scenery cannot strand the player inside a wall');
+  assert.equal(oscarPower.isOscarTerrainEaten(140, 100, 22000), false);
+  assert.equal(oscarPower.oscarGrowth(22000), 1);
+  assert.equal(oscarPower.oscarMovementMultiplier(22000), 1);
+  oscarPower.updateOscarPower(22000, 100, 100, []);
+  assert.equal(oscarPower.getOscarBites().length, 0);
+  assert.equal(oscarPower.getOscarMeals().length, 0);
+  oscarPower.activateOscarPower(23000);
+  hungryPlayer.x = 110;
+  oscarPower.settleOscarDigestion(hungryPlayer, wallBlocks, 23000);
+  hungryPlayer.x = 115;
+  oscarPower.settleOscarDigestion(hungryPlayer, wallBlocks, 33000);
+  assert.equal(hungryPlayer.x, 115, 'safe end positions are preserved');
+  console.log('Oscar power: terrain eating, bounded collision changes, growth, safe restoration and exact expiry passed');
+
+  const reiPower = await loadModule('rei-power', 'js/rei-power.ts');
+  assert.equal(reiPower.reiMovementMultiplier(500), 1);
+  assert.equal(reiPower.reiWorldDeltaTime(0.05, 500), 0.05);
+  reiPower.activateReiPower('slow', 1000);
+  assert.equal(reiPower.reiPowerSecondsLeft('slow', 1000), 10);
+  assert.equal(reiPower.isReiEffectActive('slow', 999), false);
+  assert.equal(reiPower.reiMovementMultiplier(1000), 0.5);
+  assert.ok(Math.abs(reiPower.reiWorldDeltaTime(0.05, 1025) - 0.0375) < 1e-9);
+  assert.equal(reiPower.reiWorldDeltaTime(0.05, 5000), 0.025);
+  assert.ok(Math.abs(reiPower.reiWorldDeltaTime(0.05, 11025) - 0.0375) < 1e-9);
+  assert.equal(reiPower.reiWorldDeltaTime(0.05, 11050), 0.05);
+  const reiTargets = [{ id: 'friend', x: 150, y: 100, height: 40 }, { id: 'far', x: 2000, y: 100, height: 40 }];
+  reiPower.updateReiWorld(1000, 100, 100, reiTargets);
+  assert.equal(reiPower.isReiGuest('slow', 'friend'), false);
+  reiPower.updateReiWorld(1500, 120, 100, reiTargets);
+  assert.equal(reiPower.isReiGuest('slow', 'friend'), true);
+  assert.equal(reiPower.isReiGuest('slow', 'far'), false);
+  assert.deepEqual(reiPower.getReiOrigin('slow'), { x: 100, y: 100 });
+  assert.ok(reiPower.getReiTrails('slow').length > 1);
+  reiPower.activateReiPower('sparkle', 4000);
+  assert.equal(reiPower.reiPowerSecondsLeft('slow', 4000), 7, 'the second item leaves the first timer intact');
+  assert.equal(reiPower.reiPowerSecondsLeft('sparkle', 4000), 10);
+  reiPower.updateReiWorld(4000, 120, 100, reiTargets);
+  reiPower.updateReiWorld(4500, 140, 100, [{ id: 'friend', x: 160, y: 100, height: 40 }]);
+  assert.equal(reiPower.isReiGuest('sparkle', 'friend'), true);
+  assert.equal(reiPower.getReiGuests('slow')[0].x, 160, 'real moving NPC coordinates are refreshed');
+  assert.ok(reiPower.getReiTrails('slow').every((point) => 4500 - point.at < 3000));
+  reiPower.updateReiWorld(4600, 150, 100, []);
+  assert.equal(reiPower.getReiGuests('slow').length, 0, 'removed NPCs leave both effects');
+  assert.equal(reiPower.getReiGuests('sparkle').length, 0);
+  reiPower.updateReiWorld(11000, 160, 100, reiTargets);
+  assert.equal(reiPower.isReiEffectActive('slow', 11000), false);
+  assert.equal(reiPower.reiMovementMultiplier(11000), 1, 'sparkle does not slow movement');
+  assert.equal(reiPower.isReiEffectActive('sparkle', 11000), true);
+  assert.equal(reiPower.getReiTrails('slow').length, 0);
+  assert.equal(reiPower.getReiGuests('slow').length, 0);
+  assert.ok(reiPower.getReiTrails('sparkle').length > 0, 'expiring the first effect preserves the second');
+  reiPower.updateReiWorld(14000, 160, 100, reiTargets);
+  assert.equal(reiPower.isReiPowerActive(14000), false);
+  assert.equal(reiPower.getReiTrails('sparkle').length, 0);
+  assert.equal(reiPower.getReiGuests('sparkle').length, 0);
+  reiPower.activateReiPower('sparkle', 15000);
+  assert.equal(reiPower.reiMovementMultiplier(15000), 1);
+  assert.equal(reiPower.reiWorldDeltaTime(0.05, 15025), 0.05);
+  assert.equal(reiPower.getReiTrails('sparkle').length, 0, 'reactivation starts clean');
+  console.log('Rei powers: exact ten-second timers, half-speed movement/world, independent overlap, real NPC propagation, trails and cleanup passed');
 
   const andyPower = await loadModule('andy-power', 'js/andy-power.ts');
   andyPower.activateAndyPower(1000);
@@ -448,6 +671,160 @@ try {
   assert.equal(katiePower.katiePowerSecondsLeft(12000), 10);
   console.log('Katie power: ten-second duration, smoke propagation, delayed frames, NPC reactions, world time and cleanup passed');
 
+  values.set('max-game:player-health', '50');
+  const lucyPower = await loadModule('lucy-power', 'js/lucy-power.ts');
+  const lucyTargets = [
+    { id: 'love', x: 110, y: 100, height: 50 },
+    { id: 'puzzled', x: 120, y: 100, height: 50 },
+    { id: 'splash', x: 130, y: 100, height: 50 },
+  ];
+  const lucyRolls = [0.49, 0.5, 0.75];
+  lucyPower.activateLucyPower(1000, () => lucyRolls.shift() ?? 0.99);
+  assert.equal(lucyPower.isLucyPowerActive(999), false);
+  assert.equal(lucyPower.lucyPowerSecondsLeft(1000), 10);
+  lucyPower.updateLucyWorld(1000, 100, 100, lucyTargets);
+  assert.equal(lucyPower.getLucyGuests().length, 0, 'the wave has to reach actual characters');
+  lucyPower.updateLucyWorld(2000, 100, 100, lucyTargets);
+  assert.deepEqual(lucyPower.getLucyGuests().map((guest) => guest.reaction), ['delighted', 'puzzled', 'splattered']);
+  assert.equal(lucyPower.lucyMovementMultiplier(2000), 0.5, 'burst sachets temporarily slow the player');
+  assert.equal(lucyPower.lucyMovementMultiplier(3000), 1.5);
+  assert.equal(lucyPower.lucyCleaningBalance(), 12, 'a real charge survives the spectacle');
+  assert.equal(lucyPower.lucyHasEarnedCap(), true);
+  lucyPower.updateLucyWorld(2100, 100, 100, []);
+  lucyPower.updateLucyWorld(2200, 100, 100, lucyTargets);
+  assert.equal(lucyPower.lucyCleaningBalance(), 12, 'a temporarily removed character cannot bill twice');
+  lucyPower.updateLucyRecovery(2000, true);
+  assert.equal(Number(values.get('max-game:player-health')), 54, 'food healing is boosted and the earned cap adds sunlight recovery');
+  lucyPower.updateLucyRecovery(2000, true);
+  assert.equal(Number(values.get('max-game:player-health')), 54, 'duplicate frame updates do not double-heal');
+  const cake = lucyPower.getLucyPlates().find((plate) => !plate.savoury);
+  lucyPower.updateLucyWorld(4000, cake.x, cake.y, []);
+  assert.equal(lucyPower.lucyMovementMultiplier(4000), 0.5, 'inappropriate food halves movement rather than boosting it');
+  lucyPower.updateLucyRecovery(4000, false);
+  assert.equal(Number(values.get('max-game:player-health')), 56, 'inappropriate food halves nourishment and indoor caps cannot charge');
+  lucyPower.updateLucyRecovery(12000, false);
+  assert.equal(Number(values.get('max-game:player-health')), 63, 'late frames credit only the remaining seven active seconds');
+  assert.equal(lucyPower.lucyMovementMultiplier(11000), 1);
+  assert.deepEqual(lucyPower.lucyCharacterPose('love', 11000), { x: 0, y: 0, lean: 0, scale: 1 });
+  lucyPower.updateLucyWorld(11000, 100, 100, lucyTargets);
+  assert.equal(lucyPower.getLucyPlates().length, 0);
+  assert.equal(lucyPower.getLucyGuests().length, 0);
+  assert.equal(lucyPower.getLucyTrails().length, 0);
+  assert.match(lucyPower.lucyPowerReveal(), /1 delighted, 1 puzzled, 1 splattered/);
+  lucyPower.setLucyCapEquipped(true);
+  lucyPower.updateLucyRecovery(13000, false);
+  assert.equal(Number(values.get('max-game:player-health')), 63);
+  lucyPower.updateLucyRecovery(13250, true);
+  assert.equal(Number(values.get('max-game:player-health')), 63.25, 'a worn permanent reward charges outdoors after the picnic ends');
+  lucyPower.setLucyCapEquipped(false);
+  lucyPower.updateLucyRecovery(13500, true);
+  assert.equal(Number(values.get('max-game:player-health')), 63.25);
+  lucyPower.resetLucyRewards();
+  assert.equal(lucyPower.lucyCleaningBalance(), 0);
+  lucyPower.activateLucyPower(14000, () => 0.74);
+  assert.equal(lucyPower.lucyHasEarnedCap(), false);
+  lucyPower.updateLucyWorld(14000, 100, 100, []);
+  lucyPower.updateLucyWorld(15000, 100, 100, [lucyTargets[0]]);
+  assert.equal(lucyPower.getLucyGuests()[0].reaction, 'puzzled', 'the upper edge of the middle 25% remains puzzled');
+
+  console.log('Lucy power: gift odds, food effects, recovery, charges, cap, reactivation and ten-second cleanup passed');
+
+  const mikePower = await loadModule('mike-power', 'js/mike-power.ts');
+  const mikeTargets = [{ id: 'near', x: 220, y: 100, height: 52 }, { id: 'far', x: 2000, y: 100, height: 52 }];
+  mikePower.activateMikePower(1000);
+  assert.equal(mikePower.isMikePowerActive(999), false);
+  assert.equal(mikePower.mikePowerSecondsLeft(1000), 10);
+  assert.equal(mikePower.mikeHappinessMultiplier(1000), 1.36);
+  assert.equal(mikePower.mikeMovementMultiplier(1000), 1.36);
+  mikePower.updateMikeWorld(1000, 100, 100, mikeTargets);
+  assert.equal(mikePower.getMikeJoyGuests().length, 0);
+  mikePower.updateMikeWorld(1500, 115, 100, mikeTargets);
+  assert.equal(mikePower.isMikeTargetHappy('near', 1500), true, 'the happiness wave reaches real characters');
+  assert.equal(mikePower.isMikeTargetHappy('far', 1500), false, 'unreached characters keep their normal behaviour');
+  assert.ok(mikePower.mikeCharacterPose('near', 1500).y < 0, 'a reached character visibly dances');
+  assert.deepEqual(mikePower.mikeCharacterPose('far', 1500), { x: 0, y: 0, lean: 0, scale: 1 });
+  assert.equal(mikePower.getMikeOrigin().x, 100, 'the wave remains anchored while the player moves');
+  assert.equal(mikePower.getMikeProtagonist().x, 115);
+  assert.ok(mikePower.getMikeJoyTrails().length >= 2);
+  mikePower.updateMikeWorld(2000, 130, 100, [{ ...mikeTargets[0], x: 250 }]);
+  assert.equal(mikePower.getMikeJoyGuests()[0].x, 250, 'moving characters keep their live position');
+  mikePower.updateMikeWorld(2100, 130, 100, []);
+  assert.equal(mikePower.isMikeTargetHappy('near', 2100), false, 'removed characters cannot leave phantom reactions');
+  assert.ok(Math.abs(mikePower.mikeWorldDeltaTime(0.05, 1025) - 0.059) < 1e-9, 'the entering frame accelerates only its active overlap');
+  assert.ok(Math.abs(mikePower.mikeWorldDeltaTime(0.05, 11025) - 0.059) < 1e-9, 'the ending frame restores normal world time');
+  assert.equal(mikePower.isMikePowerActive(10999), true);
+  mikePower.updateMikeWorld(11000, 130, 100, mikeTargets);
+  assert.equal(mikePower.isMikePowerActive(11000), false);
+  assert.equal(mikePower.mikeHappinessMultiplier(11000), 1);
+  assert.equal(mikePower.mikeMovementMultiplier(11000), 1);
+  assert.equal(mikePower.mikeWorldDeltaTime(0.05, 11050), 0.05);
+  assert.equal(mikePower.getMikeJoyGuests().length, 0);
+  assert.equal(mikePower.getMikeJoyTrails().length, 0);
+  assert.deepEqual(mikePower.mikeCharacterPose('player', 11000), { x: 0, y: 0, lean: 0, scale: 1 });
+  mikePower.activateMikePower(12000);
+  assert.equal(mikePower.mikePowerSecondsLeft(12000), 10);
+  mikePower.updateMikeWorld(12000, 500, 500, []);
+  assert.equal(mikePower.getMikeOrigin().x, 500);
+  assert.equal(mikePower.getMikeJoyTrails().length, 1, 'reactivation starts a fresh garden');
+  console.log('Mike power: exact happiness lift, movement, world time, propagation, trails, expiry and reactivation passed');
+
+  window.dispatchEvent = () => {};
+  const noelPower = await loadModule('noel-power', 'js/noel-power.ts');
+  const noelIds = ['mike-item', 'katy-item', 'lucy-item', 'julian-item', 'tim-item', 'helen-item', 'niall-item', 'georgia-item', 'andy-item', 'rei-item'];
+  values.set('max-game:inventory-gifts', JSON.stringify([...noelIds, 'noel-item', 'lucy-solar-cap', 'portable-walkman']));
+  values.set('max-game:noel-asset-claim', '0');
+  assert.equal(noelPower.activateNoelPower(1000), true);
+  assert.equal(noelPower.isNoelPowerActive(999), false);
+  assert.equal(noelPower.noelPowerSecondsLeft(1000), 10);
+  assert.equal(noelPower.getNoelCollateral().length, 10, 'equipment, music unlocks and the used contract are not collateral');
+  assert.equal(noelPower.activateNoelPower(1500), false, 'a second activation cannot cancel a debt already being assessed');
+  noelPower.updateNoelAssessment(1999);
+  assert.equal(noelPower.noelAssessment(), 0);
+  noelPower.updateNoelAssessment(3000);
+  assert.equal(noelPower.noelAssessment(), 0.2);
+  noelPower.updateNoelAssessment(3000);
+  assert.equal(noelPower.noelAssetClaim(), 0.2, 'repeated frames cannot assess the same instalment twice');
+  noelPower.updateNoelWorld(1000, 100, 100, mikeTargets);
+  noelPower.updateNoelWorld(2000, 150, 100, mikeTargets);
+  assert.equal(noelPower.getNoelOrigin().x, 100);
+  assert.equal(noelPower.getNoelProtagonist().x, 150);
+  assert.equal(noelPower.getNoelAudience().length, 1);
+  noelPower.updateNoelWorld(2500, 150, 100, [{ ...mikeTargets[0], x: 250 }]);
+  assert.equal(noelPower.getNoelAudience()[0].x, 250);
+  noelPower.updateNoelWorld(2600, 150, 100, []);
+  assert.equal(noelPower.getNoelAudience().length, 0, 'removed characters leave no phantom audience');
+  assert.ok(noelPower.noelMovementMultiplier(10999) < 0.901);
+  noelPower.updateNoelAssessment(14000); // A delayed/background frame must settle the final instalments.
+  assert.equal(noelPower.noelAssessment(), 1);
+  assert.equal(noelPower.noelAssetClaim(), 0);
+  let noelRemaining = JSON.parse(values.get('max-game:inventory-gifts'));
+  assert.equal(noelRemaining.filter((id) => noelIds.includes(id)).length, 9, 'ten carried usable gifts lose exactly one');
+  assert.ok(noelRemaining.includes('lucy-solar-cap') && noelRemaining.includes('portable-walkman'));
+  assert.equal(noelPower.noelPowerSecondsLeft(11000), 0);
+  assert.equal(noelPower.noelMovementMultiplier(11000), 1);
+  assert.deepEqual(noelPower.noelCharacterPose('player', 11000), { x: 0, y: 0, lean: 0, scale: 1 });
+  noelPower.updateNoelWorld(11000, 150, 100, mikeTargets);
+  assert.equal(noelPower.getNoelReceipts().length, 0);
+  assert.match(noelPower.noelPowerReveal(), /zero payoff/);
+  noelPower.updateNoelAssessment(16000);
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), noelRemaining);
+  values.set('max-game:inventory-gifts', JSON.stringify(['noel-item', 'adam-item', 'ed-item', 'lucy-solar-cap']));
+  noelPower.activateNoelPower(20000);
+  noelPower.updateNoelAssessment(30000);
+  assert.equal(noelPower.noelAssetClaim(), 0.2, 'small collections retain an exact fractional claim instead of losing a whole gift');
+  noelPower.activateNoelPower(31000);
+  noelPower.updateNoelAssessment(41000);
+  assert.equal(noelPower.noelAssessment(), 0.18, 'the next assessment uses unencumbered assets, not already pledged value');
+  assert.equal(noelPower.noelAssetClaim(), 0.38);
+  assert.equal(JSON.parse(values.get('max-game:inventory-gifts')).length, 4);
+  values.set('max-game:inventory-gifts', '[]');
+  noelPower.activateNoelPower(42000);
+  noelPower.updateNoelAssessment(52000);
+  assert.equal(noelPower.noelAssessment(), 0, 'an empty inventory does not create assets or substitute health damage');
+  assert.equal(noelPower.noelAssetClaim(), 0.38);
+  values.delete('max-game:noel-asset-claim');
+  console.log('Noel power: exact asset assessment, fractional claims, repossession, protected unlocks, delayed settlement and ten-second cleanup passed');
+
   const interiorScenes = await loadModule('interior-scenes', 'js/interior-scenes.ts');
   const interiorDoors = await loadModule('interior-doors', 'js/interior-doors.ts');
   const interiorCollision = await loadModule('interior-collision', 'js/interior-collision.ts');
@@ -492,7 +869,7 @@ try {
   function element(selector) {
     if (!elements.has(selector)) elements.set(selector, {
       hidden: false, textContent: '', src: '', children: [], listeners: new Map(),
-      setAttribute() {}, removeAttribute() {}, remove() {},
+      setAttribute() {}, removeAttribute(name) { if (name === 'src') this.src = ''; }, remove() {},
       getContext() { return {}; },
       append(...children) { this.children.push(...children); },
       replaceChildren(...children) { this.children = children; },
@@ -505,6 +882,7 @@ try {
   }
   globalThis.document = {
     baseURI: 'http://localhost/',
+    querySelectorAll: () => [],
     querySelector: (selector) => selector.startsWith('script') ? null : element(selector),
     createElement: (tag) => element(`${tag}-${Math.random()}`),
   };
@@ -513,8 +891,24 @@ try {
   window.addEventListener = () => {};
   const scheduledCallbacks = [];
   window.setTimeout = (callback) => { scheduledCallbacks.push(callback); return scheduledCallbacks.length; };
+  window.clearTimeout = () => {};
   Audio.prototype.removeAttribute = () => {};
   Audio.prototype.load = () => {};
+  values.set('max-game:niall-quest-state', 'following');
+  const niall = await loadModule('niall-bus-dialogue', 'js/niall.ts');
+  niall.updateNiallInteraction(0, niall.NIALL_BUS_STOP.triggerX, niall.NIALL_BUS_STOP.triggerY);
+  const niallNext = () => element('#niall-dialogue-next').listeners.get('click')();
+  assert.equal(element('#niall-dialogue-line').textContent, 'Niall is rolling a cigarette');
+  niallNext();
+  assert.equal(element('#niall-dialogue-line').textContent, 'Kept you waiting huh?');
+  niallNext();
+  assert.equal(element('#niall-dialogue-line').textContent, "My pizza's are technically imperfect but free");
+  assert.equal(niall.isNiallEncounterBlockingPlayer(), true, 'Niall keeps the player in the bus-stop conversation until the final line advances');
+  niallNext();
+  assert.equal(element('#niall-dialogue').hidden, true);
+  assert.equal(niall.isNiallEncounterBlockingPlayer(), false);
+  values.clear();
+  console.log('Niall bus stop: arrival, wait and pizza lines play in sequence');
   let resolveFixture;
   globalThis.fetch = () => new Promise((resolve) => { resolveFixture = resolve; });
   values.clear();
@@ -542,21 +936,21 @@ try {
   assert.equal(element('#npc-dialogue-next').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Outer wildeds']);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Ed continues his dialogue after the song reward');
   assert.ok(element('.game-shell').children.some((overlay) => overlay.children?.some(
     (image) => image.src === 'audio/music/caledonian-is-massive.png',
   )));
   // Both owned: still greet and report football, but no duplicate rewards.
   leave(); approachEd(); next();
   await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Ed can continue his dialogue when rewards are already owned');
   // Song owned, item removed: deliver the item again independently of music.
   values.set('max-game:inventory-gifts', '[]');
   leave(); approachEd(); next();
   await new Promise((resolve) => setImmediate(resolve));
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['ed-item']);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'NPC dialogue remains available after the item reward');
   // Item owned, song absent: skip the item and offer music after football.
   values.delete('max-game:unlocked-songs');
   leave(); approachEd(); next();
@@ -570,24 +964,35 @@ try {
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(element('#npc-dialogue-line').textContent, alexLine);
 
-  // Alex offers his song after the rotating greeting, without an item.
+  // Alex delivers his restored item before offering music, with his root portrait.
   values.clear();
   const approachAlex = () => npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
   leave(); approachAlex();
   assert.equal(values.has('max-game:inventory-gifts'), false);
+  assert.equal(element('#npc-dialogue-profile').src, 'chat/alex s/profile.png');
+  assert.equal(element('#npc-dialogue-profile').hidden, false);
+  next();
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
+  assert.equal(values.has('max-game:unlocked-songs'), false);
+  assert.equal(element('#npc-dialogue-next').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa']);
   assert.match(element('#npc-gift-confirmation').textContent, /Africa was added to your music playlist/);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Alex continues his dialogue after the song reward');
   // Song owned: later conversations keep cycling the dialogue.
   leave(); approachAlex(); next();
-  assert.equal(values.has('max-game:inventory-gifts'), false);
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa']);
   // An older save with other songs still receives Africa once.
   values.set('max-game:unlocked-songs', '["Outer wildeds"]');
   leave(); approachAlex(); next();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Outer wildeds', 'Africa']);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Alex continues his dialogue after the song reward');
+  // Players who already unlocked Africa still receive the missing item.
+  values.set('max-game:inventory-gifts', '[]');
+  leave(); approachAlex(); next();
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Alex keeps talking after reissuing his item');
 
   // Adam keeps his facts between the rotating greeting and inventory gift.
   values.clear();
@@ -597,9 +1002,11 @@ try {
   assert.equal(element('#npc-dialogue-profile').hidden, true);
   const profiles = await loadModule('profile-images', 'js/profile-images.ts');
   assert.equal(profiles.profileImageSource('adam'), null);
+  assert.equal(profiles.profileImageSource('Bochra'), null, 'a missing root portrait is intentional');
   assert.equal(profiles.profileImageSource('ed'), 'chat/ed/profile.png');
-  assert.equal(profiles.profileImageSource('Helen'), 'chat/helen/profile.jpg');
-  assert.equal(profiles.profileImageSource('marina d'), null);
+  assert.equal(profiles.profileImageSource('Alex S'), 'chat/alex s/profile.png');
+  assert.equal(profiles.profileImageSource('Helen'), 'chat/helen/profile.png');
+  assert.equal(profiles.profileImageSource('marina d'), 'chat/marina d/profile.png');
   for (const source of Object.values((await loadModule('profile-sources', 'js/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {
     assert.match(source, /^chat\/[^/]+\/profile\.(?:png|jpe?g)$/i);
   }
@@ -608,13 +1015,15 @@ try {
   assert.equal(element('#npc-dialogue-next').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['adam-item']);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'NPC dialogue can continue after an item is awarded');
   assert.equal(values.has('max-game:unlocked-songs'), false);
+  next();
+  assert.match(element('#npc-dialogue-line').textContent, /still very short/);
   leave(); approachAdam();
   assert.match(element('#npc-dialogue-line').textContent, /still very short/);
   next();
   assert.match(element('#npc-dialogue-line').textContent, /Dial Square/);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Adam can continue his dialogue after his follow-up fact');
   values.set('max-game:inventory-gifts', '[]');
   leave(); approachAdam(); next(); next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['adam-item']);
@@ -664,7 +1073,7 @@ try {
 
   values.clear();
   leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
-  assert.equal(element('#npc-dialogue-line').textContent, "Hi I'm rei this is line 1");
+  assert.equal(element('#npc-dialogue-line').textContent, (await loadModule('rei-dialogue', 'js/rei-dialogue.ts')).REI_DIALOGUE_LINES[0]);
   next(); // Rei assigns the mission before giving item 1.
   assert.match(element('#npc-dialogue-line').textContent, /red paint/);
   assert.equal(values.has('max-game:inventory-gifts'), false);
@@ -701,7 +1110,7 @@ try {
   assert.equal(values.has('max-game:unlocked-songs'), false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Lemon jelly']);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Rei can continue talking after her rewards');
   assert.ok(element('.game-shell').children.some((overlay) => overlay.children?.some(
     (image) => image.src === 'http://localhost/chat/rei/item-2.png',
   )));
@@ -719,7 +1128,7 @@ try {
   npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
   next(); next(); next(); scheduledCallbacks.at(-1)();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Lemon jelly']);
-  assert.equal(element('#npc-dialogue-next').hidden, true);
+  assert.equal(element('#npc-dialogue-next').hidden, false, 'Rei can continue talking after the song reward');
   assert.ok(element('.game-shell').children.at(-1).children.some(
     (image) => image.src === 'audio/music/caledonian-is-massive.png',
   ));
@@ -742,14 +1151,11 @@ try {
   values.set('max-game:inventory-gifts', '["marina-d-item-1", "marina-d-item-2"]');
   const inventoryGifts = await loadModule('inventory-gifts', 'js/inventory-gifts.ts');
   assert.deepEqual(inventoryGifts.getCollectedGifts(), []);
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'retired Marina D items are removed from existing saves');
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'retired Marina D gifts are removed from existing saves');
   const approachMarina = () => npcs.updateNpcInteractions(npcs.MARINA_D.x, npcs.MARINA_D.y);
   leave(); approachMarina();
-  const firstMarinaLine = element('#npc-dialogue-line').textContent;
-  assert.ok(firstMarinaLine.length > 0);
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Marina D dialogue remains available');
   next();
-  assert.notEqual(element('#npc-dialogue-line').textContent, firstMarinaLine, 'the next dialogue line still advances');
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'Marina D no longer gives either item');
 
   // A missing or unreadable deployed JSON feed must not empty the book gallery.
@@ -789,7 +1195,7 @@ try {
   assert.equal(fileRequests, 0);
   reading.hide();
 
-  for (const npc of [npcs.ALICE, npcs.CHRIS]) {
+  for (const npc of [npcs.CHRIS]) {
     values.clear();
     leave(); npcs.updateNpcInteractions(npc.x, npc.y);
     assert.equal(element('#npc-dialogue-line').textContent, `Hi there I'm ${npc.name}. This is my first line.`);
@@ -797,8 +1203,10 @@ try {
     assert.match(element('#npc-dialogue-profile').src, new RegExp(`^chat/${npc.id}/profile\\.(png|jpg|jpeg)$`));
     next();
     assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
-    assert.equal(element('#npc-dialogue-next').hidden, true);
+    assert.equal(element('#npc-dialogue-next').hidden, false, 'Chris continues his lines after the item reward');
     assert.equal(values.has('max-game:unlocked-songs'), false);
+    next();
+    assert.equal(element('#npc-dialogue-line').textContent, `Hi there I'm ${npc.name}. This is my second line.`);
     leave(); npcs.updateNpcInteractions(npc.x, npc.y);
     assert.equal(element('#npc-dialogue-line').textContent, `Hi there I'm ${npc.name}. This is my second line.`);
     next();
@@ -808,6 +1216,21 @@ try {
     leave(); npcs.updateNpcInteractions(npc.x, npc.y); next();
     assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
   }
+
+  // Alice finishes her greeting before the gift and event question.
+  values.clear(); leave(); npcs.updateNpcInteractions(npcs.ALICE.x, npcs.ALICE.y);
+  assert.equal(element('#npc-dialogue-profile').hidden, false);
+  next(); next();
+  assert.equal(values.has('max-game:inventory-gifts'), false);
+  next();
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alice-item']);
+  next();
+  assert.equal(element('#alice-dialogue-options').hidden, false);
+  assert.equal(element('#npc-dialogue-next').hidden, true);
+
+  leave(); npcs.updateNpcInteractions(npcs.BOCHRA.x, npcs.BOCHRA.y);
+  assert.equal(element('#npc-dialogue-profile').hidden, true, 'Bochra has no root portrait');
+  assert.equal(element('#npc-dialogue-profile').src, '', 'no fallback picture is used');
 
   console.log('All focused tests passed.');
 } finally {

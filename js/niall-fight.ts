@@ -1,280 +1,203 @@
-import { getPlayerHealth } from './player-health.js';
+import { createBattleOpening } from './niall-opening.js';
+import { getPlayerHealth, PLAYER_MAX_HEALTH } from './player-health.js';
 import { getBattleResult, type BattleOutcome } from './battle-outcome.js';
 import { requireElement } from './elements.js';
-import {
-  chooseNiallAttack,
-  NiallBattle,
-} from './niall-battle.js';
+import { NIALL_MAX_HP, PLAYER_MAX_HP, NiallBattle } from './niall-battle.js';
 import { setNiallQuestState } from './world-state.js';
 
 const playerHpMeter = requireElement<HTMLMeterElement>('#player-hp');
 const niallHpMeter = requireElement<HTMLMeterElement>('#niall-hp');
 const playerHpText = requireElement<HTMLElement>('#player-hp-text');
+const niallHpText = requireElement<HTMLElement>('#niall-hp-text');
 const fomoStatus = requireElement<HTMLElement>('#fomo-status');
+const playerBattler = requireElement<HTMLImageElement>('#player-battler');
+const niallBattler = requireElement<HTMLImageElement>('#niall-battler');
 const battleLog = requireElement<HTMLElement>('#battle-log');
 const actionGrid = requireElement<HTMLElement>('#move-grid');
-const itemGrid = requireElement<HTMLElement>('#item-grid'); const busLink = requireElement<HTMLAnchorElement>('#bus-link');
-const battleDice = requireElement<HTMLElement>('#battle-dice'); const niallBattler = requireElement<HTMLImageElement>('#niall-battler'); const niallOpeningDamage = requireElement<HTMLElement>('#niall-opening-damage');
-const openingGrid = requireElement<HTMLElement>('#opening-grid'); const openingNext = requireElement<HTMLButtonElement>('#opening-next');
-const playerOpeningDamage = requireElement<HTMLElement>('#player-opening-damage');
-const niallFoodPhoto = requireElement<HTMLElement>('#niall-food-photo');
+const itemGrid = requireElement<HTMLElement>('#item-grid');
+const busLink = requireElement<HTMLAnchorElement>('#bus-link');
+const openingGrid = requireElement<HTMLElement>('#opening-grid');
+const openingNext = requireElement<HTMLButtonElement>('#opening-next');
+const healthItem = requireElement<HTMLButtonElement>('[data-item="capri-sun"]');
+const attackButton = requireElement<HTMLButtonElement>('[data-action="attack"]');
+const battle = new NiallBattle(getPlayerHealth() / PLAYER_MAX_HEALTH);
+const opening = createBattleOpening(appendLog);
+let started = false;
+let showingPlayerMove = false;
+let victoryFollowUp: ReturnType<typeof getBattleResult> | null = null;
 
-const battle = new NiallBattle();
-battle.playerHp = getPlayerHealth();
-let runInterval: number | null = null;
-let openingStage = 0;
-let firstAttackStage = 0;
-let hasUsedFirstAttack = false;
-
-function setControlsDisabled(disabled: boolean): void {
-  document.querySelectorAll<HTMLButtonElement>('.move-grid button').forEach((button) => { button.disabled = disabled; });
-}
+playerHpMeter.max = PLAYER_MAX_HP;
+niallHpMeter.max = NIALL_MAX_HP;
 
 function renderBattle(): void {
   playerHpMeter.value = battle.playerHp;
   niallHpMeter.value = battle.niallHp;
   playerHpText.textContent = String(battle.playerHp);
-  fomoStatus.textContent = `FOMO: ${battle.fomoStacks}`;
-  fomoStatus.classList.toggle('active', battle.fomoStacks > 0);
-  setControlsDisabled(!battle.canAct);
+  niallHpText.textContent = String(battle.niallHp);
+  fomoStatus.textContent = battle.hasFomo ? 'FOMO' : '';
+  fomoStatus.classList.toggle('active', battle.hasFomo);
+  playerBattler.classList.toggle('fomo', battle.hasFomo);
+  document.querySelectorAll<HTMLButtonElement>('#move-grid button, #item-grid button').forEach((button) => {
+    button.disabled = !battle.canAct;
+  });
+  healthItem.disabled = !battle.canAct || battle.healthItemUsed;
+  healthItem.textContent = battle.healthItemUsed ? 'Capri Sun (used)' : 'Capri Sun (+50 HP)';
+  attackButton.textContent = battle.playerAttackIndex >= 5 ? 'Portuguese hot sauce' : 'Attack';
 }
 
-function appendLog(message: string): void { battleLog.textContent = message; }
-
-function playOpeningSequence(): void {
-  appendLog('Niall wants to fight!');
-  openingGrid.hidden = false;
+function appendLog(message: string): void {
+  battleLog.textContent = message;
 }
 
-function advanceOpeningSequence(): void {
-  if (openingStage === 0) { appendLog('Niall opened a can of Red Stripe'); openingStage = 1; return; }
-  if (openingStage === 1) { appendLog('Niall poisoned himself'); niallBattler.classList.add('poisoned'); openingStage = 2; return; }
-  if (openingStage === 2) { appendLog('Niall took damage.'); battle.damageNiall(5); niallOpeningDamage.hidden = false; niallOpeningDamage.classList.remove('fly-away'); void niallOpeningDamage.offsetWidth; niallOpeningDamage.classList.add('fly-away'); renderBattle(); openingStage = 3; return; }
-  niallOpeningDamage.hidden = true; openingGrid.hidden = true; actionGrid.hidden = false; appendLog('What will PLAYER do?'); renderBattle();
-}
-
-function finishBattle(outcome: BattleOutcome): void {
+function finishBattle(outcome: BattleOutcome, moveMessage = ''): void {
   const result = getBattleResult(outcome);
   battle.finish();
   actionGrid.hidden = true;
   itemGrid.hidden = true;
   busLink.textContent = result.linkLabel;
   busLink.href = result.href;
-  busLink.hidden = false;
   if (result.niallQuestState) setNiallQuestState(result.niallQuestState);
-  appendLog(result.message);
+  if (outcome === 'victory') {
+    victoryFollowUp = result;
+    busLink.hidden = true;
+    openingNext.textContent = 'Next >';
+    openingGrid.hidden = false;
+    appendLog(moveMessage || 'YOU WIN!');
+  } else {
+    openingGrid.hidden = true;
+    busLink.hidden = false;
+    appendLog(`${moveMessage}${moveMessage ? ' ' : ''}${result.message}`);
+  }
   renderBattle();
 }
 
-function applyFomoDamage(): boolean {
-  if (battle.fomoStacks === 0) return false;
-  const amount = battle.applyFomoDamage();
-  appendLog(`FOMO hurt PLAYER for ${amount} damage.`);
-  renderBattle();
+function checkOutcome(message = ''): boolean {
   if (battle.playerHp <= 0) {
-    finishBattle('defeat');
+    finishBattle('defeat', message);
+    return true;
+  }
+  if (battle.niallHp <= 0) {
+    finishBattle('victory', message);
     return true;
   }
   return false;
 }
 
-function niallTurn(): void {
-  if (battle.battleOver) return;
-  const attack = chooseNiallAttack();
-  const result = battle.applyNiallAttack(attack);
-  appendLog(result.defended
-    ? `${attack.message} PLAYER defended. Damage was halved.`
-    : attack.message);
+function animateDamage(selector: string, amount: number): void {
+  if (!amount) return;
+  const indicator = requireElement<HTMLElement>(selector);
+  indicator.textContent = `-${amount}`;
+  indicator.hidden = false;
+  indicator.classList.remove('fly-away');
+  void indicator.offsetWidth;
+  indicator.classList.add('fly-away');
+}
+
+function takePlayerTurn(attack: boolean, message = 'PLAYER waits.'): void {
+  const previousHp = battle.niallHp;
+  const move = battle.takePlayerTurn(attack);
+  if (!move) return;
+  const line = attack ? move.message : message;
+  animateDamage('#niall-opening-damage', previousHp - battle.niallHp);
   renderBattle();
-  if (battle.playerHp <= 0) {
-    finishBattle('defeat');
-    return;
-  }
-  window.setTimeout(() => {
-    if (!battle.battleOver) applyFomoDamage();
-  }, 850);
+  if (checkOutcome(line)) return;
+  appendLog(line);
+  showingPlayerMove = true;
+  actionGrid.hidden = true;
+  itemGrid.hidden = true;
+  openingGrid.hidden = false;
 }
 
-function queueNiallTurn(): void {
+function advanceTurn(): void {
+  if (victoryFollowUp) {
+    appendLog(victoryFollowUp.message);
+    openingGrid.hidden = true;
+    busLink.hidden = false;
+    victoryFollowUp = null;
+    return;
+  }
   if (battle.battleOver) return;
-  battle.queueNiallTurn();
-  renderBattle();
-  window.setTimeout(niallTurn, 850);
-}
-
-function attack(): void {
-  if (!battle.canAct) return;
-  if (!hasUsedFirstAttack) {
-    hasUsedFirstAttack = true;
-    firstAttackStage = 0;
-    actionGrid.hidden = true;
-    openingGrid.hidden = false;
-    openingNext.textContent = 'Next >';
-    appendLog('Attack: PLAYER begs NIALL for help on hobby project.');
+  if (!started) {
+    started = true;
+    if (!checkOutcome()) opening.advanceOpeningSequence();
     return;
   }
-  battleDice.hidden = false;
-  battleDice.classList.remove('shake');
-  void battleDice.offsetWidth;
-  battleDice.classList.add('shake');
-  battleDice.textContent = '?';
-  setControlsDisabled(true);
-
-  window.setTimeout(() => {
-    const amount = Math.floor(Math.random() * 61);
-    battleDice.textContent = String(amount);
-    battle.damageNiall(amount);
-    appendLog(`PLAYER rolled ${amount}. NIALL took ${amount} damage.`);
+  if (showingPlayerMove || battle.waitingForNiall) {
+    showingPlayerMove = false;
+    const previousPlayerHp = battle.playerHp;
+    const previousNiallHp = battle.niallHp;
+    const move = battle.takeNiallTurn();
+    if (!move) return;
+    if (move.selfDamage) niallBattler.classList.add('poisoned');
+    animateDamage('#player-opening-damage', previousPlayerHp - battle.playerHp);
+    animateDamage('#niall-opening-damage', previousNiallHp - battle.niallHp);
     renderBattle();
-    if (battle.niallHp <= 0) {
-      finishBattle('victory');
-      return;
-    }
-    queueNiallTurn();
-  }, 650);
-}
-
-function advanceFirstAttack(): void {
-  if (firstAttackStage === 0) {
-    appendLog('NIALL: "I\'ll help you this friday"');
-    firstAttackStage = 1;
-    return;
-  }
-  if (firstAttackStage === 1) {
-    appendLog('NIALL does not help you and takes 10 damage.');
-    battle.damageNiall(10);
-    niallOpeningDamage.hidden = false;
-    niallOpeningDamage.classList.remove('fly-away');
-    void niallOpeningDamage.offsetWidth;
-    niallOpeningDamage.classList.add('fly-away');
-    renderBattle();
-    firstAttackStage = 2;
-    return;
-  }
-  if (firstAttackStage === 2) {
-    appendLog('NIALL shows you a photo of some food he made.');
-    niallFoodPhoto.hidden = false;
-    firstAttackStage = 3;
-    return;
-  }
-  if (firstAttackStage === 3) {
-    appendLog("IT'S SUPER EFFECTIVE! PLAYER takes 30 damage.");
-    battle.applyNiallAttack({ damage: 30, message: '' });
-    playerOpeningDamage.hidden = false;
-    playerOpeningDamage.classList.remove('fly-away');
-    void playerOpeningDamage.offsetWidth;
-    playerOpeningDamage.classList.add('fly-away');
-    renderBattle();
-    firstAttackStage = 4;
+    if (!checkOutcome(move.message)) appendLog(move.message);
     return;
   }
   openingGrid.hidden = true;
   actionGrid.hidden = false;
-  niallFoodPhoto.hidden = true;
-  niallOpeningDamage.hidden = true;
-  playerOpeningDamage.hidden = true;
   appendLog('What will PLAYER do?');
-}
-
-function run(): void {
-  if (!battle.canAct) return;
-  battle.queueNiallTurn();
-  let dots = 1;
-  appendLog('You tried to runaway and you were.');
   renderBattle();
-  runInterval = window.setInterval(() => {
-    dots = dots === 3 ? 1 : dots + 1;
-    appendLog(`You tried to runaway and you were${'.'.repeat(dots)}`);
-  }, 500);
-
-  window.setTimeout(() => {
-    if (runInterval !== null) window.clearInterval(runInterval);
-    runInterval = null;
-    appendLog('Successful!');
-    window.setTimeout(() => finishBattle('escape'), 1_200);
-  }, 3000);
-}
-
-function showItems(): void {
-  if (!battle.canAct) return;
-  actionGrid.hidden = true;
-  itemGrid.hidden = false;
-  appendLog('Choose an item.');
-}
-
-function showActions(): void {
-  if (!battle.canAct) return;
-  itemGrid.hidden = true;
-  actionGrid.hidden = false;
-  appendLog('What will PLAYER do?');
-}
-
-function defend(): void {
-  if (!battle.canAct) return;
-  battle.defend();
-  appendLog('PLAYER curled into fetal position.');
-  renderBattle();
-  window.setTimeout(niallTurn, 850);
 }
 
 function useItem(item: string): void {
   if (!battle.canAct) return;
-  itemGrid.hidden = true;
-  actionGrid.hidden = false;
-
-  if (item === 'vape') {
-    appendLog('PLAYER used VAPE. NIALL took it and appreciated it.');
-    queueNiallTurn();
-    return;
-  }
   if (item === 'capri-sun') {
-    battle.healPlayer(50);
-    appendLog('PLAYER used CAPRI SUN. PLAYER recovered 50 HP.');
-    queueNiallTurn();
-    return;
-  }
-  if (item === 'pocket-lint') {
-    appendLog('PLAYER used POCKET LINT. NIALL looked at it and shrugged.');
-    queueNiallTurn();
-    return;
-  }
-  if (item === 'gun') {
-    battle.damageNiall(50);
-    appendLog('PLAYER used GUN. NIALL took 50 damage. It was super effective.');
-    renderBattle();
-    if (battle.niallHp <= 0) {
-      finishBattle('victory');
+    if (battle.healthItemUsed) return;
+    if (battle.playerHp === PLAYER_MAX_HP) {
+      appendLog('PLAYER already has full HP. Save CAPRI SUN for later.');
       return;
     }
-    queueNiallTurn();
+    const healed = battle.useHealthItem();
+    itemGrid.hidden = true;
+    actionGrid.hidden = false;
+    appendLog(`PLAYER used CAPRI SUN and recovered ${healed} HP.`);
+    renderBattle();
+  } else if (item === 'vape' || item === 'pocket-lint') {
+    takePlayerTurn(false, item === 'vape'
+      ? 'PLAYER used VAPE. NIALL took it and appreciated it.'
+      : 'PLAYER used POCKET LINT. NIALL looked at it and shrugged.');
+  }
+}
+
+function run(): void {
+  if (!battle.canAct) return;
+  actionGrid.hidden = true;
+  appendLog('You tried to run away...');
+  // Lock the battle while the escape animation is playing.
+  battle.waitingForNiall = true;
+  renderBattle();
+  window.setTimeout(() => finishBattle('escape'), 3000);
+}
+
+function handleAction(action: string | undefined): void {
+  if (!battle.canAct || actionGrid.hidden) return;
+  if (action === 'attack') takePlayerTurn(true);
+  else if (action === 'wait') takePlayerTurn(false);
+  else if (action === 'run') run();
+  else if (action === 'items') {
+    actionGrid.hidden = true;
+    itemGrid.hidden = false;
+    appendLog('Choose an item.');
   }
 }
 
 actionGrid.addEventListener('click', (event) => {
-  const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-action]');
-  if (!button) return;
-  const action = button.dataset.action;
-  if (action === 'attack') attack();
-  else if (action === 'run') run();
-  else if (action === 'items') showItems();
-  else if (action === 'defend') defend();
+  handleAction((event.target as HTMLElement).closest<HTMLButtonElement>('[data-action]')?.dataset.action);
 });
 
 itemGrid.addEventListener('click', (event) => {
+  if (!battle.canAct || itemGrid.hidden) return;
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-action], [data-item]');
   if (!button) return;
   if (button.dataset.action === 'back') {
-    showActions();
-    return;
-  }
-  const item = button.dataset.item;
-  if (item) useItem(item);
+    itemGrid.hidden = true;
+    actionGrid.hidden = false;
+    appendLog('What will PLAYER do?');
+  } else if (button.dataset.item) useItem(button.dataset.item);
 });
 
-openingNext.addEventListener('click', () => {
-  if (hasUsedFirstAttack && firstAttackStage < 5) advanceFirstAttack();
-  else advanceOpeningSequence();
-});
-
+openingNext.addEventListener('click', advanceTurn);
 renderBattle();
-playOpeningSequence();
+opening.playOpeningSequence();

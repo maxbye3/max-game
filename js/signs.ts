@@ -16,6 +16,8 @@ import {
   SCALE,
 } from './config.js';
 import { requireElement } from './dom.js';
+import { releaseAllInput } from './input.js';
+import { announceWorldInteraction } from './world-interactions.js';
 import type { CollisionShape } from './types.js';
 
 interface Sign {
@@ -103,11 +105,13 @@ const dialogueSignature = requireElement<HTMLElement>('#sign-dialogue-signature'
 const signatureImage = requireElement<HTMLImageElement>('#sign-dialogue-signature-image');
 const busImage = requireElement<HTMLImageElement>('#sign-dialogue-bus-image');
 const announcer = requireElement<HTMLElement>('#announcer');
+const closeButton = requireElement<HTMLButtonElement>('#sign-dialogue-close');
 
 // Signs should be read from right beside them, not across the pavement.
 const READ_DISTANCE = 20;
 const DISMISS_DISTANCE = 28;
 let activeSign: Sign | null = null;
+let dismissedSignId: string | null = null;
 
 function playerFootIntersectsSign(playerX: number, playerY: number, sign: Sign): boolean {
   const footHalfWidth = Math.max(4, FRAME_WIDTH * SCALE * 0.3);
@@ -129,8 +133,11 @@ function distanceToSign(playerX: number, playerY: number, sign: Sign): number {
 }
 
 function showSign(sign: Sign): void {
+  if (dismissedSignId === sign.id) return;
   if (activeSign?.id === sign.id) return;
 
+  announceWorldInteraction();
+  releaseAllInput();
   activeSign = sign;
   dialogueTitle.textContent = sign.title;
   dialogueText.textContent = sign.message;
@@ -149,6 +156,15 @@ export function hideSignDialogue(): void {
   dialogueSignature.hidden = true;
   signatureImage.hidden = true;
   busImage.hidden = true;
+}
+
+function dismissSignDialogue(): void {
+  dismissedSignId = activeSign?.id ?? null;
+  hideSignDialogue();
+}
+
+export function isSignDialogueOpen(): boolean {
+  return !dialogue.hidden;
 }
 
 /** Called with each attempted player position so contact opens the sign immediately. */
@@ -173,9 +189,19 @@ export function updateSigns(playerX: number, playerY: number): void {
     }
   }
 
-  if (nearestSign && nearestDistance <= READ_DISTANCE) {
+  if (dismissedSignId) {
+    const dismissedSign = SIGNS.find((sign) => sign.id === dismissedSignId);
+    if (!dismissedSign || distanceToSign(playerX, playerY, dismissedSign) > DISMISS_DISTANCE) {
+      dismissedSignId = null;
+    }
+  }
+
+  if (nearestSign && nearestDistance <= READ_DISTANCE && dismissedSignId !== nearestSign.id) {
     showSign(nearestSign);
   } else if (activeSign && distanceToSign(playerX, playerY, activeSign) > DISMISS_DISTANCE) {
     hideSignDialogue();
   }
 }
+
+closeButton.addEventListener('click', dismissSignDialogue);
+window.addEventListener('max-game:world-interaction-opened', hideSignDialogue);

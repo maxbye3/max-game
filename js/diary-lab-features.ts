@@ -42,6 +42,7 @@ export class DiaryLabFeatures {
   }
 
   bind(onOpen: (feature: DiaryLabFeature) => void, onClose: () => void): void {
+    window.addEventListener('max-game:world-interaction-opened', () => this.hide());
     document.querySelector<HTMLButtonElement>('#noel-read-diary')?.addEventListener('click', () => onOpen('diary'));
     document.querySelector<HTMLButtonElement>('#noel-view-experiments')?.addEventListener('click', () => onOpen('experiments'));
     this.unlockForm.addEventListener('submit', (event) => this.unlockDiary(event));

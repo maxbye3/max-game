@@ -1,3 +1,8 @@
+import { isTimInputPowerActive, updateTimInputWorld } from './tim-input-power.js';
+import { isReiPowerActive, reiWorldDeltaTime, updateReiWorld } from './rei-power.js';
+import { isNoelPowerActive, updateNoelWorld } from './noel-power.js';
+import { isMikePowerActive, mikeWorldDeltaTime, updateMikeWorld } from './mike-power.js';
+import { isLucyPowerActive, updateLucyWorld } from './lucy-power.js';
 import { isKatiePowerActive, katieWorldDeltaTime, updateKatieWorld } from './katie-power.js';
 import { isJulianPowerActive, julianWorldDeltaTime, updateJulianWorld } from './julian-power.js';
 import { isJuPowerActive, juWorldDeltaTime, updateJuWorld } from './ju-power.js';
@@ -7,6 +12,7 @@ import { isGeorgiaPowerActive, updateGeorgiaWorld } from './georgia-power.js';
 import { danWorldDeltaTime, isDanPowerActive, updateDanWorld } from './dan-power.js';
 import { chrisWorldDeltaTime, isChrisPowerActive, updateChrisWorld } from './chris-power.js';
 import { updateBochraWorld } from './bochra-power.js';
+import { startGameLoop } from './game-loop.js';
 import { loadAssets } from './assets.js';
 import { setupAudioMute } from './audio-mute.js';
 import { setupBusIntro, updateBusIntro } from './bus-intro.js';
@@ -31,14 +37,15 @@ import { MAP_CHARACTER_DEFINITIONS } from './map-characters.js';
 import { isNiallFollowing, niallState, updateNiallInteraction } from './niall.js';
 import { restoreBuildingAmbience, updateBuildingAmbience } from './nightclub-audio.js';
 import { hasMikeAftermath } from './world-state.js';
-import { ADAM, ALEX_S, ED, KATY, MIKE, REI, isNpcDialogueOpen, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
+import { ADAM, ALEX_S, ED, KATY, MIKE, REI, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
-import { updateSigns } from './signs.js';
+import { hideSignDialogue, updateSigns } from './signs.js';
+import { isAlexResurrectionUiBlocking } from './alex-s-power-ui.js';
 import { maddyWorldDeltaTime } from './maddy-tea-power.js';
 import { georgiaState } from './georgia.js';
-import { samTargetId, type SamPowerTarget, updateSamPower } from './sam-power.js';
-import { isOscarEaten, updateOscarPower } from './oscar-power.js';
+import { isSamPowerActive, samTargetId, type SamPowerTarget, updateSamPower } from './sam-power.js';
+import { isOscarEaten, isOscarPowerActive, updateOscarPower } from './oscar-power.js';
 import { andyWorldDeltaTime } from './andy-power.js';
 import { updateAndyWorld } from './andy-world-power.js';
 
@@ -76,48 +83,52 @@ function currentSamTargets(): readonly SamPowerTarget[] {
 
 function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
-  const worldDeltaTime = katieWorldDeltaTime(julianWorldDeltaTime(juWorldDeltaTime(helenWorldDeltaTime(danWorldDeltaTime(chrisWorldDeltaTime(andyWorldDeltaTime(maddyWorldDeltaTime(deltaTime, time), time), time), time), time), time), time), time);
-  worldAnimationTime = previousTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
+  const worldDeltaTime = reiWorldDeltaTime(mikeWorldDeltaTime(katieWorldDeltaTime(julianWorldDeltaTime(juWorldDeltaTime(helenWorldDeltaTime(danWorldDeltaTime(chrisWorldDeltaTime(andyWorldDeltaTime(maddyWorldDeltaTime(deltaTime, time), time), time), time), time), time), time), time), time), time);
+  worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
   if (!isDanPowerActive(time) && !isKatiePowerActive(time)) updateBusIntro(deltaTime, player);
   updatePlayer(deltaTime, 1);
-  if (!isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isKatiePowerActive(time)) updateHole(deltaTime, player);
+  updateTimInputWorld(time, player.x, player.y);
+  if (!isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isKatiePowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateHole(deltaTime, player);
   updateBuildingAmbience(player.x, player.y);
-  updateKatieWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  updateJulianWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  updateSamPower(time, player.x, player.y, currentSamTargets());
-  updateOscarPower(time, player.x, player.y, currentSamTargets().filter((target) => target.id !== 'niall' && target.id !== 'georgia'));
-  updateAndyWorld(time, player.x, player.y, currentSamTargets());
-  updateBochraWorld(time, player.x, player.y, currentSamTargets());
-  updateChrisWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  updateDanWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  updateGeorgiaWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  updateJoeWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  updateJuWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  updateHelenWorld(time, player.x, player.y, currentSamTargets().filter((target) => !isOscarEaten(target.id)));
-  if (isJumpMenuOpen()) {
+  const targets = currentSamTargets();
+  let visibleTargets = targets.filter((target) => !isOscarEaten(target.id));
+  updateReiWorld(time, player.x, player.y, visibleTargets);
+  updateNoelWorld(time, player.x, player.y, visibleTargets);
+  updateMikeWorld(time, player.x, player.y, visibleTargets);
+  updateLucyWorld(time, player.x, player.y, visibleTargets);
+  updateKatieWorld(time, player.x, player.y, visibleTargets);
+  updateJulianWorld(time, player.x, player.y, visibleTargets);
+  updateSamPower(time, player.x, player.y, visibleTargets, player.direction);
+  updateOscarPower(time, player.x, player.y, targets.filter((target) => target.id !== 'niall' && target.id !== 'georgia'), player.direction);
+  if (isOscarPowerActive(time)) visibleTargets = targets.filter((target) => !isOscarEaten(target.id));
+  updateAndyWorld(time, player.x, player.y, targets);
+  updateBochraWorld(time, player.x, player.y, targets);
+  updateChrisWorld(time, player.x, player.y, visibleTargets);
+  updateDanWorld(time, player.x, player.y, visibleTargets);
+  updateGeorgiaWorld(time, player.x, player.y, visibleTargets);
+  updateJoeWorld(time, player.x, player.y, visibleTargets);
+  updateJuWorld(time, player.x, player.y, visibleTargets);
+  updateHelenWorld(time, player.x, player.y, visibleTargets);
+  if (isJumpMenuOpen() || isAlexResurrectionUiBlocking()) {
     draw(time, worldAnimationTime);
-    requestAnimationFrame(gameLoop);
     return;
   }
   if (!isChrisPowerActive(time)) {
     if (!isDanPowerActive(time)) updateCaveThief(worldDeltaTime, time, player.x, player.y, 1);
     updateGeorgia(worldDeltaTime);
-    if (!isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time)) {
+    if (!isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) {
       updateGymTimCutscene(worldDeltaTime, player);
       updateNpcInteractions(player.x, player.y);
       if (!isCaveThiefPursuitActive()) {
         updateNiallInteraction(worldDeltaTime, player.x, player.y);
       }
-      if (!isNpcDialogueOpen()) {
-        updateSigns(player.x, player.y);
-      }
     }
   }
-  if (!isGeorgiaPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time)) updateDoors(player.x, player.y);
+  updateSigns(player.x, player.y);
+  if (!isGeorgiaPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateDoors(player.x, player.y);
   draw(time, worldAnimationTime);
-  requestAnimationFrame(gameLoop);
 }
 
 setupInput();
@@ -127,13 +138,14 @@ setupInventory();
 setupJump();
 setupMusicPlayer();
 setupNpcInteractions();
+window.addEventListener('max-game:alex-s-dialogue', hideSignDialogue);
 setupCaveThief();
 setupGymTimCutscene();
 
-Promise.all([loadAssets(), loadMapCharacters()])
+Promise.all([loadAssets(isCaveThiefPursuitActive()), loadMapCharacters()])
   .then(() => {
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES.length);
-    requestAnimationFrame(gameLoop);
+    startGameLoop(gameLoop, () => { previousTime = 0; });
   })
   .catch((error: unknown) => {
     console.error(error);

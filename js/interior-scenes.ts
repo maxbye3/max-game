@@ -42,10 +42,10 @@ import {
   MANSION_COLLISION_COLUMNS,
   MANSION_COLLISION_ROWS,
 } from './mansion-collision-mask.js';
-import { isTimAtMusicShop } from './tim-location.js';
+import { isTimAtCinema, isTimAtMusicShop } from './tim-location.js';
 
-export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave';
-export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen';
+export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio';
+export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -122,6 +122,17 @@ export const CAVE_WALLS = [
   [574, 0, 66, CAVE_HEIGHT],
 ] as const;
 
+// Coarse bounds for the walls and large furniture in the painted studio.
+// The bottom doorway is opened by InteriorDoorsController as the player approaches it.
+export const ART_STUDIO_WALLS = [
+  [0, 0, 512, 286],
+  [0, 286, 45, 304], [467, 286, 45, 304],
+  [45, 286, 130, 30], [319, 286, 148, 65],
+  [45, 345, 116, 230], [151, 422, 67, 121], [112, 500, 70, 78],
+  [412, 355, 55, 235],
+  [0, 590, 512, 178],
+] as const;
+
 const DIARY_LAB_DOORS: readonly InteriorDoor[] = [
   {
     triggerX: 153, triggerY: 595, exitX: 153, exitY: 650,
@@ -174,6 +185,12 @@ const BOOKSHOP_DOORS: readonly InteriorDoor[] = [{
   triggerX: 256, triggerY: 610, exitX: 256, exitY: 645,
   sourceX: 0, sourceY: 0, sourceWidth: 1024, sourceHeight: 1536,
   x: 208, y: 558, width: 95, height: 130,
+}];
+
+const ART_STUDIO_DOORS: readonly InteriorDoor[] = [{
+  triggerX: 256, triggerY: 605, exitX: 256, exitY: 650,
+  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
+  x: 256, y: 605, width: 1, height: 1,
 }];
 
 const MANSION_DOORS: readonly InteriorDoor[] = [{
@@ -252,7 +269,9 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       doorOverlaySource: '../img/internal/cinema-open-door.png',
       collision: CINEMA_COLLISION,
       doors: CINEMA_DOORS,
-      interactions: [],
+      interactions: [
+        { kind: 'dad', label: 'Talk to Dad', x: 398, y: 462, distance: 64 },
+      ],
       playerStart: { x: 256, y: 650 },
     };
   }
@@ -300,7 +319,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       doors: GYM_DOORS,
       interactions: [
         { kind: 'julian', label: 'Talk to Julian', x: 331, y: 310, distance: 82 },
-        { kind: 'tim', label: 'Talk to Tim', x: 160, y: 445, distance: 105 },
+        ...(!isTimAtMusicShop() && !isTimAtCinema() ? [{ kind: 'tim' as const, label: 'Talk to Tim', x: 160, y: 445, distance: 105 }] : []),
       ],
       playerStart: { x: 256, y: 575 },
     };
@@ -318,6 +337,17 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
         { kind: 'helen', label: 'Talk to Helen', x: 350, y: 505, distance: 110 },
       ],
       playerStart: { x: 256, y: 560 },
+    };
+  }
+
+  if (enteredDoor === 'artist-studio') {
+    return {
+      kind: 'artStudio', title: 'Art Gallery', ariaLabel: 'Art Gallery interior',
+      width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
+      backgroundSource: '../img/internal/art-studio.png',
+      doors: ART_STUDIO_DOORS,
+      interactions: [],
+      playerStart: { x: 256, y: 545 },
     };
   }
 

@@ -15,7 +15,7 @@ import { GEORGIA_DIALOGUE_LINES } from './georgia-dialogue.js';
 import { GEORGIA, georgiaState, setGeorgiaInteractionPaused } from './georgia.js';
 import { getNextArsenalFixtureDialogue } from './arsenal-fixture.js';
 import { ED_DIALOGUE_LINES } from './ed-dialogue.js';
-import { addGift, ADAM_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
+import { addGift, ADAM_ITEM, ALEX_S_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from './inventory-gifts.js';
 import { MARINA_D_DIALOGUE_LINES } from './marina-d-dialogue.js';
 import { MADDY_DIALOGUE_LINES } from './maddy-dialogue.js';
 import { MASON_DIALOGUE_LINES } from './mason-dialogue.js';
@@ -24,6 +24,7 @@ import { MIKE_DIALOGUE_LINES } from './mike-dialogue.js';
 import { OSCAR_DIALOGUE_LINES } from './oscar-dialogue.js';
 import { REI_DIALOGUE_LINES } from './rei-dialogue.js';
 import { SAM_DIALOGUE_LINES } from './sam-dialogue.js';
+import { announceWorldInteraction } from './world-interactions.js';
 import { hideSignDialogue } from './signs.js';
 import { readStorage, writeStorage } from './storage.js';
 import { setProfileImage } from './profile-images.js';
@@ -32,6 +33,7 @@ import { getSongArtwork, getUnlockedSongs, unlockSong, type Song } from './music
 import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
 import { nextDialogueVisitIndex } from './dialogue-visit.js';
 import { isOscarEaten, oscarCharacterId } from './oscar-power.js';
+import { releaseAllInput } from './input.js';
 
 interface NpcDefinition {
   readonly id: 'adam' | 'alice' | 'bochra' | 'chris' | 'dan' | 'ed' | 'joe' | 'ju' | 'mike' | 'rei' | 'marinaD' | 'maddy' | 'sam' | 'katie' | 'mason' | 'meli' | 'oscar' | 'alexS' | 'katy' | 'georgia';
@@ -270,6 +272,7 @@ export const ALEX_S: NpcDefinition = {
   height: 46,
   interactionDistance: 58,
   songReward: 'Africa',
+  itemGift: ALEX_S_ITEM,
   dialogueLines: ALEX_S_DIALOGUE_LINES,
 };
 
@@ -313,7 +316,7 @@ const aliceOptions = requireElement<HTMLElement>('#alice-dialogue-options');
 const gameShell = requireElement<HTMLElement>('.game-shell');
 let adamFactIndex = 0;
 const maddyDialogueAudio = createGameAudio('chat/maddy/dialogue.mp3');
-maddyDialogueAudio.preload = 'auto';
+maddyDialogueAudio.preload = 'none';
 let maddyDisplayedLineIndex = -1;
 
 function showMaddyTimedLine(index: number): void {
@@ -391,7 +394,7 @@ function showQuestOverlay(imageSource: string, additionalClass = '', soundSource
   window.setTimeout(() => overlay.remove(), QUEST_ACCEPTED_OVERLAY_DURATION);
 
   const sound = createGameAudio(soundSource);
-  sound.preload = 'auto';
+  sound.preload = 'none';
   void sound.play().catch(() => {
     // Browsers may reject audio until a keyboard or pointer gesture.
   });
@@ -413,6 +416,10 @@ function nextAdamFact(): string {
   const fact = ADAM_FACTS[adamFactIndex % ADAM_FACTS.length] ?? '';
   adamFactIndex += 1;
   return fact;
+}
+
+function hasMoreDialogue(): boolean {
+  return !!activeNpc && activeNpc.dialogueLines.length > 1;
 }
 
 function closeDialogue(): void {
@@ -479,7 +486,7 @@ function showGiftLine(): void {
   giftConfirmation.textContent = giftWasAdded ? pendingGiftConfirmation : '';
   pendingGiftConfirmation = null;
   giftConfirmation.hidden = !giftWasAdded;
-  nextButton.hidden = pendingSongReward === null && pendingRequestLine === null && activeNpc?.id !== 'oscar' && activeNpc?.id !== 'alice';
+  nextButton.hidden = pendingSongReward === null && pendingRequestLine === null && activeNpc?.id !== 'oscar' && activeNpc?.id !== 'alice' && !hasMoreDialogue();
 }
 
 function showAliceEventQuestion(): void {
@@ -503,7 +510,7 @@ function showFollowUpLine(): void {
   dialogueLine.textContent = pendingFollowUpLine;
   pendingFollowUpLine = null;
   dialogueProgress.hidden = true;
-  nextButton.hidden = pendingGiftLine === null && pendingSongReward === null;
+  nextButton.hidden = pendingGiftLine === null && pendingSongReward === null && !hasMoreDialogue();
 }
 
 function awardSong(song: Song): void {
@@ -527,7 +534,7 @@ async function showFixtureLine(): Promise<void> {
   if (session !== dialogueSession || !activeNpc) return;
   fixtureLoading = false;
   dialogueLine.textContent = line;
-  nextButton.hidden = pendingGiftLine === null && pendingSongReward === null;
+  nextButton.hidden = pendingGiftLine === null && pendingSongReward === null && !hasMoreDialogue();
 }
 
 function showSongLine(): void {
@@ -537,7 +544,7 @@ function showSongLine(): void {
   giftConfirmation.hidden = true;
   awardSong(pendingSongReward);
   pendingSongReward = null;
-  nextButton.hidden = true;
+  nextButton.hidden = !hasMoreDialogue();
 }
 
 function acceptQuest(): void {
@@ -602,6 +609,12 @@ function advanceDialogue(): void {
     }, QUEST_ACCEPTED_OVERLAY_DURATION);
   } else if (reiCompletionStage === 'complete') {
     if (pendingSongReward && !dialogue.hidden) showSongLine();
+    else if (activeNpc?.dialogueLines.length && activeNpc.dialogueLines.length > 1) {
+      currentDialogueLineIndex = (currentDialogueLineIndex + 1) % activeNpc.dialogueLines.length;
+      dialogueLine.textContent = activeNpc.dialogueLines[currentDialogueLineIndex] ?? '';
+      dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${activeNpc.dialogueLines.length}`;
+      dialogueProgress.hidden = false;
+    }
     return;
   } else if (pendingRequestLine) {
     showRequestLine();
@@ -637,6 +650,8 @@ function showDialogueLine(npc: NpcDefinition): void {
 }
 
 function openDialogue(npc: NpcDefinition): void {
+  announceWorldInteraction();
+  releaseAllInput();
   hideSignDialogue();
   reiDialogueLinesButton.hidden = npc.id !== 'rei';
   oscarOptions.hidden = true;
@@ -731,11 +746,20 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
 }
 
 export function setupNpcInteractions(): void {
+  window.addEventListener('max-game:alex-s-dialogue', closeDialogue);
+  window.addEventListener('max-game:world-interaction-opened', closeDialogue);
   window.addEventListener('max-game:helen-power-activated', closeDialogue);
   window.addEventListener('max-game:joe-power-activated', closeDialogue);
   window.addEventListener('max-game:ju-power-activated', closeDialogue);
   window.addEventListener('max-game:julian-power-activated', closeDialogue);
   window.addEventListener('max-game:katie-power-activated', closeDialogue);
+  window.addEventListener('max-game:lucy-power-activated', closeDialogue);
+  window.addEventListener('max-game:oscar-power-activated', closeDialogue);
+  window.addEventListener('max-game:tim-power-activated', closeDialogue);
+  window.addEventListener('max-game:sam-power-activated', closeDialogue);
+  window.addEventListener('max-game:rei-power-activated', closeDialogue);
+  window.addEventListener('max-game:noel-power-activated', closeDialogue);
+  window.addEventListener('max-game:mike-power-activated', closeDialogue);
   window.addEventListener('max-game:georgia-power-activated', () => {
     closeDialogue();
     setGeorgiaInteractionPaused(false);

@@ -1,0 +1,276 @@
+{
+  "images": {
+    "img/external/overworld.png": {
+      "sourceHash": "2a91b8c6d3f7",
+      "output": "img/web/overworld.2a91b8c6d3f7.webp"
+    },
+    "map/event-tinder.png": {
+      "sourceHash": "4c5ed159e951",
+      "output": "img/web/event-tinder.4c5ed159e951.webp"
+    },
+    "img/external/road.png": {
+      "sourceHash": "c2c9b53037c8",
+      "output": "img/web/road.c2c9b53037c8.webp"
+    },
+    "img/external/tree.png": {
+      "sourceHash": "23ab3b6252ee",
+      "output": "img/web/tree.23ab3b6252ee.webp"
+    },
+    "img/external/music-shop-sign.png": {
+      "sourceHash": "c6f2294fe600",
+      "output": "img/web/music-shop-sign.a04617c0674e.webp"
+    },
+    "img/external/door-open.png": {
+      "sourceHash": "9ae55aea83dd",
+      "output": "img/web/door-open.9ae55aea83dd.webp"
+    },
+    "img/external/billboard-unfinished.png": {
+      "sourceHash": "006ff4176196",
+      "output": "img/web/billboard-unfinished.006ff4176196.webp"
+    },
+    "img/external/billboard-finished.png": {
+      "sourceHash": "bb974f79c9ce",
+      "output": "img/web/billboard-finished.bb974f79c9ce.webp"
+    },
+    "img/external/buildings/snow-mansion.png": {
+      "sourceHash": "6d639370a96d",
+      "output": "img/web/snow-mansion.6d639370a96d.webp"
+    },
+    "img/external/snowman-fallen.png": {
+      "sourceHash": "a3514804e725",
+      "output": "img/web/snowman-fallen.a3514804e725.webp"
+    },
+    "img/external/buildings/diary-lab.png": {
+      "sourceHash": "f858c988a210",
+      "output": "img/web/diary-lab.f858c988a210.webp"
+    },
+    "img/external/buildings/bookshop.png": {
+      "sourceHash": "d1aa56fa000e",
+      "output": "img/web/bookshop.d1aa56fa000e.webp"
+    },
+    "player/seal-game.png": {
+      "sourceHash": "e47e428347fd",
+      "output": "img/web/seal-game.e47e428347fd.webp"
+    },
+    "chat/georgia/avatar.png": {
+      "sourceHash": "9f5b01e5beac",
+      "output": "img/web/avatar.9f5b01e5beac.webp"
+    },
+    "chat/georgia/georgie-bike.png": {
+      "sourceHash": "9f5b01e5beac",
+      "output": "img/web/georgie-bike.9f5b01e5beac.webp"
+    },
+    "chat/mike/overworld-avatar.png": {
+      "sourceHash": "a85e426feace",
+      "output": "img/web/overworld-avatar.a85e426feace.webp"
+    },
+    "img/external/mike-aftermath.png": {
+      "sourceHash": "bb28cb7e9478",
+      "output": "img/web/mike-aftermath.bb28cb7e9478.webp"
+    },
+    "chat/rei/overworld-avatar.png": {
+      "sourceHash": "d5c4103d1343",
+      "output": "img/web/overworld-avatar.d5c4103d1343.webp"
+    },
+    "chat/adam/avatar.png": {
+      "sourceHash": "6d67dbbacf42",
+      "output": "img/web/avatar.6d67dbbacf42.webp"
+    },
+    "chat/tim/map-sprite.png": {
+      "sourceHash": "ce443bf3798f",
+      "output": "img/web/map-sprite.ce443bf3798f.webp"
+    },
+    "chat/niall/niall-sprite.png": {
+      "sourceHash": "21398072c37b",
+      "output": "img/web/niall-sprite.21398072c37b.webp"
+    },
+    "chat/siblings/girls-sprite.png": {
+      "sourceHash": "d75c09020b66",
+      "output": "img/web/girls-sprite.d75c09020b66.webp"
+    },
+    "chat/bochra/map-sprite.png": {
+      "sourceHash": "08c6c026197d",
+      "output": "img/web/map-sprite.08c6c026197d.webp"
+    },
+    "chat/katie/map-sprite.png": {
+      "sourceHash": "f81a310d645c",
+      "output": "img/web/map-sprite.524014429428.webp"
+    },
+    "img/internal/cinema-popcorn-redrawn.png": {
+      "sourceHash": "eb470bb4fc71",
+      "output": "img/web/cinema-popcorn-redrawn.eb470bb4fc71.webp"
+    },
+    "img/internal/cinema-open-door.png": {
+      "sourceHash": "dfed51ae6913",
+      "output": "img/web/cinema-open-door.dfed51ae6913.webp"
+    },
+    "img/internal/garden.png": {
+      "sourceHash": "cdab0e7718ed",
+      "output": "img/web/garden.cdab0e7718ed.webp"
+    },
+    "img/internal/garden-door.png": {
+      "sourceHash": "cf8a0e55e74b",
+      "output": "img/web/garden-door.cf8a0e55e74b.webp"
+    },
+    "img/internal/internal-music.png": {
+      "sourceHash": "07580744c558",
+      "output": "img/web/internal-music.07580744c558.webp"
+    },
+    "img/internal/internal-gym.png": {
+      "sourceHash": "ea75b31ce3f6",
+      "output": "img/web/internal-gym.ea75b31ce3f6.webp"
+    },
+    "img/internal/gym-door-open.png": {
+      "sourceHash": "25929306b27f",
+      "output": "img/web/gym-door-open.25929306b27f.webp"
+    },
+    "img/internal/bookshop-internal.png": {
+      "sourceHash": "93b31c1dd5a3",
+      "output": "img/web/bookshop-internal.93b31c1dd5a3.webp"
+    },
+    "img/internal/bookshop-door-open.png": {
+      "sourceHash": "dc8f43895e79",
+      "output": "img/web/bookshop-door-open.dc8f43895e79.webp"
+    },
+    "img/internal/mansion.png": {
+      "sourceHash": "44c89e738fcd",
+      "output": "img/web/mansion.44c89e738fcd.webp"
+    },
+    "img/internal/diary-lab.png": {
+      "sourceHash": "d0abc7dca25b",
+      "output": "img/web/diary-lab.d0abc7dca25b.webp"
+    },
+    "img/internal/diary-lab-doors-out.png": {
+      "sourceHash": "13e2bdc1314a",
+      "output": "img/web/diary-lab-doors-out.13e2bdc1314a.webp"
+    }
+  },
+  "themes": {
+    "chat/katy/theme.m4a": {
+      "sourceHash": "1726a33d388e",
+      "output": "audio/powers/katy.c486b30aaa4d.mp3"
+    },
+    "chat/lucy/theme.mp3": {
+      "sourceHash": "717c5d1c994e",
+      "output": "audio/powers/lucy.0f5ffcc488d8.mp3"
+    },
+    "chat/julian/player/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/julian.6257b6e17b6e.mp3"
+    },
+    "chat/tim/theme.mp3": {
+      "sourceHash": "21b4ea960ab6",
+      "output": "audio/powers/tim.43feca8c8374.mp3"
+    },
+    "chat/maddy/theme.mp3": {
+      "sourceHash": "e7d0c6822a84",
+      "output": "audio/powers/maddy.e1d6d7c65e03.mp3"
+    },
+    "chat/ed/theme.mp3": {
+      "sourceHash": "91ec635f7494",
+      "output": "audio/powers/ed.9d6b149f50a3.mp3"
+    },
+    "chat/ju/theme.mp3": {
+      "sourceHash": "5824bf7fd493",
+      "output": "audio/powers/ju.29994a6002e1.mp3"
+    },
+    "chat/katie/theme.mp3": {
+      "sourceHash": "c91b40f57ce0",
+      "output": "audio/powers/katie.e67196d0ce12.mp3"
+    },
+    "chat/joe/theme.mp3": {
+      "sourceHash": "2ec3c44a4471",
+      "output": "audio/powers/joe.ae72d2c19ca7.mp3"
+    },
+    "chat/helen/player/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/helen.6257b6e17b6e.mp3"
+    },
+    "chat/niall/player/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/niall.6c51828bde98.mp3"
+    },
+    "chat/sam/theme.mp3": {
+      "sourceHash": "d814f84ff323",
+      "output": "audio/powers/sam.598329a08c39.mp3"
+    },
+    "chat/rei/theme.mp3": {
+      "sourceHash": "e24ca988920e",
+      "output": "audio/powers/rei.056e52204ebb.mp3"
+    },
+    "chat/oscar/theme.mp3": {
+      "sourceHash": "58e73c08d946",
+      "output": "audio/powers/oscar.300ac94ebb9c.mp3"
+    },
+    "chat/dan/theme.mp3": {
+      "sourceHash": "5c6d6db49245",
+      "output": "audio/powers/dan.f6e024a77598.mp3"
+    },
+    "chat/georgia/theme.mp3": {
+      "sourceHash": "e84da5fe17f1",
+      "output": "audio/powers/georgia.85fb5632839d.mp3"
+    },
+    "chat/chris/theme.mp3": {
+      "sourceHash": "a24db51dc1a2",
+      "output": "audio/powers/chris.34908814bec7.mp3"
+    },
+    "chat/bochra/theme.mp3": {
+      "sourceHash": "df656c4d1d8b",
+      "output": "audio/powers/bochra.730e8f28e6db.mp3"
+    },
+    "chat/andy/theme.mp3": {
+      "sourceHash": "fa17e41b0d7f",
+      "output": "audio/powers/andy.3675929c46c2.mp3"
+    },
+    "chat/alex s/theme.mp3": {
+      "sourceHash": "286e0ee12da3",
+      "output": "audio/powers/alex-s-dialogue.e6f6fa1d774a.mp3"
+    },
+    "chat/alice/player/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/alice-dialogue.6257b6e17b6e.mp3"
+    },
+    "chat/ed/player/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/ed-dialogue.6257b6e17b6e.mp3"
+    },
+    "chat/marina d/theme.mp3": {
+      "sourceHash": "709c58f01877",
+      "output": "audio/powers/marina-d-dialogue.e8be336f6d82.mp3"
+    },
+    "chat/alex w/player/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/alex-w-dialogue.6257b6e17b6e.mp3"
+    },
+    "chat/aliya/example/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/aliya-dialogue.6257b6e17b6e.mp3"
+    },
+    "chat/josh/example/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/josh-dialogue.6257b6e17b6e.mp3"
+    },
+    "chat/real/alex s/player/theme.mp3": {
+      "sourceHash": "c10897859756",
+      "output": "audio/powers/real-dialogue.3fc6a7b42178.mp3"
+    }
+  },
+  "fonts": {
+    "fonts/ARCADECLASSIC.ttf": {
+      "sourceHash": "af1addeae051",
+      "output": "fonts/ARCADECLASSIC.af1addeae051.woff2"
+    },
+    "fonts/Exo2-ExtraLight.ttf": {
+      "sourceHash": "7033c763f4cc",
+      "output": "fonts/Exo2-ExtraLight.7033c763f4cc.woff2"
+    },
+    "fonts/Orbitron-Bold.ttf": {
+      "sourceHash": "69403fffca24",
+      "output": "fonts/Orbitron-Bold.69403fffca24.woff2"
+    },
+    "fonts/PressStart2P.ttf": {
+      "sourceHash": "8d0248e41694",
+      "output": "fonts/PressStart2P.8d0248e41694.woff2"
+    }
+  }
+}

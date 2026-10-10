@@ -58,6 +58,7 @@ export class DirectionInputController {
     });
     window.addEventListener('keyup', (event) => this.releaseCode(event.code));
     window.addEventListener('blur', () => this.releaseAll());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.releaseAll(); });
   }
 
   private holdDirection(direction: InputDirection): void {

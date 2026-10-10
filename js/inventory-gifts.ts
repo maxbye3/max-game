@@ -34,7 +34,7 @@ export const TIM_ITEM: GiftItem = {
   id: 'tim-item',
   name: "Tim's item",
   imageSource: 'chat/tim/item.png',
-  description: 'Face implodes.',
+  description: 'A surprise from Tim. Use it to discover its power.',
 };
 
 export const HELEN_ITEM: GiftItem = {
@@ -55,14 +55,21 @@ export const LUCY_ITEM: GiftItem = {
   id: 'lucy-item',
   name: "Lucy's item",
   imageSource: 'chat/lucy/item.png',
-  description: 'World spins around and around.',
+  description: 'A surprise from Lucy. Use it to discover its power.',
+};
+
+export const LUCY_SOLAR_CAP: GiftItem = {
+  id: 'lucy-solar-cap',
+  name: 'Solar-panel cap',
+  imageSource: 'img/items/lucy-solar-cap.svg',
+  description: 'Wear it to recover 1 HP per second in the bright outdoor world. It needs sunlight, so it does not charge indoors.',
 };
 
 export const NOEL_ITEM: GiftItem = {
   id: 'noel-item',
   name: "Noel's item",
-  imageSource: 'chat/noel/player/item.png',
-  description: 'Makes the protagonist move 20% faster.',
+  imageSource: 'chat/noel/item.png',
+  description: 'A mysterious contract from Noel. Use it to discover its power.',
 };
 
 export const PORTABLE_WALKMAN: GiftItem = {
@@ -91,14 +98,14 @@ export const REI_ITEM_1: GiftItem = {
   id: 'rei-item',
   name: "Rei's first item",
   imageSource: 'chat/rei/item-1.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'Use to discover Rei’s first power.',
 };
 
 export const REI_ITEM_2: GiftItem = {
   id: 'rei-item-2',
   name: "Rei's second item",
   imageSource: 'chat/rei/item-2.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'Use to discover Rei’s second power.',
 };
 
 export const MADDY_ITEM: GiftItem = {
@@ -112,7 +119,7 @@ export const OSCAR_ITEM: GiftItem = {
   id: 'oscar-item',
   name: "Oscar's item",
   imageSource: 'chat/oscar/item.png',
-  description: 'Makes protagonist able to eat things.',
+  description: 'A mysterious fork from Oscar. Use it to discover its power.',
 };
 
 export const ED_ITEM: GiftItem = {
@@ -147,7 +154,7 @@ export const SAM_ITEM: GiftItem = {
   id: 'sam-item',
   name: "Sam's item",
   imageSource: 'chat/sam/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'A surprise from Sam. Use it to discover its power.',
 };
 
 export const KATIE_ITEM: GiftItem = {
@@ -185,6 +192,13 @@ export const JOE_ITEM: GiftItem = {
   description: 'A surprise from Joe. Use it to find out what happens.',
 };
 
+export const ALEX_S_ITEM: GiftItem = {
+  id: 'alex-s-item',
+  name: "Alex S's item",
+  imageSource: 'chat/alex s/item.png',
+  description: 'A mysterious gift from Alex S. Use it to discover its power.',
+};
+
 const INVENTORY_GIFTS_KEY = 'max-game:inventory-gifts';
 const REMOVED_GIFT_IDS = new Set(['marina-d-item-1', 'marina-d-item-2']);
 const ITEM_RECEIVED_OVERLAY_DURATION = 3200;
@@ -209,7 +223,7 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     id: 'mike-item',
     name: "Mike's item",
     imageSource: 'chat/mike/item.png',
-    description: 'Makes the protagonist 36% happier.',
+    description: 'A mysterious cookie from Mike. Use it to discover its power.',
   },
   {
     id: 'katy-item',
@@ -218,6 +232,7 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
     description: 'Character trips over occasionally',
   },
   LUCY_ITEM,
+  LUCY_SOLAR_CAP,
   NOEL_ITEM,
   JULIAN_ITEM,
   TIM_ITEM,
@@ -240,6 +255,7 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   BOCHRA_ITEM,
   DAN_ITEM,
   JOE_ITEM,
+  ALEX_S_ITEM,
 ];
 
 function readGiftIds(): string[] {

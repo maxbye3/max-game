@@ -8,6 +8,9 @@ const LOOP_DURATION = 8000;
 const SOCCER_START = 1600;
 const SOCCER_END = 6400;
 const STATIC_PALETTE = ['#101827', '#35445a', '#7f91a5', '#d8e0e4'] as const;
+let screen: HTMLCanvasElement | null = null;
+let screenContext: CanvasRenderingContext2D | null = null;
+let previousFrame = '';
 
 function drawStatic(context: CanvasRenderingContext2D, x: number, y: number, time: number): void {
   const staticFrame = Math.floor(time / 70);
@@ -83,17 +86,28 @@ export function drawTvScreen(
   const screenX = Math.round(TV_X - cameraX + SCREEN_OFFSET_X);
   const screenY = Math.round(TV_Y - cameraY + SCREEN_OFFSET_Y);
   const cycleTime = time % LOOP_DURATION;
+  if (screenX + SCREEN_WIDTH < 0 || screenY + SCREEN_HEIGHT < 0 || screenX > context.canvas.width || screenY > context.canvas.height) return;
+  if (!screen) {
+    screen = document.createElement('canvas');
+    screen.width = SCREEN_WIDTH;
+    screen.height = SCREEN_HEIGHT;
+    screenContext = screen.getContext('2d');
+  }
+  if (!screenContext) return;
+  const soccer = cycleTime >= SOCCER_START && cycleTime < SOCCER_END;
+  const frame = soccer ? `soccer:${Math.floor((cycleTime - SOCCER_START) / 220)}` : `static:${Math.floor(time / 70)}`;
+  if (frame !== previousFrame) {
+    previousFrame = frame;
+    if (soccer) drawSoccer(screenContext, 0, 0, cycleTime);
+    else drawStatic(screenContext, 0, 0, time);
+  }
 
   context.save();
   context.beginPath();
   context.rect(screenX, screenY, SCREEN_WIDTH, SCREEN_HEIGHT);
   context.clip();
   context.globalAlpha = 0.82;
-  if (cycleTime >= SOCCER_START && cycleTime < SOCCER_END) {
-    drawSoccer(context, screenX, screenY, cycleTime);
-  } else {
-    drawStatic(context, screenX, screenY, time);
-  }
+  context.drawImage(screen, screenX, screenY);
   context.globalAlpha = 0.16;
   context.fillStyle = '#d7f4ff';
   context.fillRect(screenX + 3, screenY + 2, 8, 1);

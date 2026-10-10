@@ -10,7 +10,7 @@ import {
   ZEN_GARDEN_X,
   ZEN_GARDEN_Y,
 } from './config.js';
-import { createGameAudio } from './audio-mute.js';
+import { createGameAudio, hasPowerAudioFocus } from './audio-mute.js';
 import { hasDialogueAudioFocus } from './dialogue-audio.js';
 import { ambienceSourceForDoor, carriedAmbienceFor, rememberAmbience } from './ambient-theme.js';
 
@@ -22,11 +22,16 @@ interface BuildingAmbience {
   readonly y: number;
   readonly audio: HTMLAudioElement;
 }
+const attempts = new WeakMap<HTMLAudioElement, number>();
+const pending = new WeakSet<HTMLAudioElement>();
+let gestureVersion = 0;
+window.addEventListener('pointerdown', () => { gestureVersion += 1; });
+window.addEventListener('keydown', () => { gestureVersion += 1; });
 
 function createAmbience(source: string): HTMLAudioElement {
   const audio = createGameAudio(source);
   audio.loop = true;
-  audio.preload = 'auto';
+  audio.preload = 'none';
   return audio;
 }
 
@@ -45,21 +50,25 @@ const BUILDING_AMBIENCE: readonly BuildingAmbience[] = [
 
 function updateAmbience(ambience: BuildingAmbience, playerX: number, playerY: number): void {
   const distance = Math.hypot(playerX - ambience.x, playerY - ambience.y);
-  if (distance > HEAR_DISTANCE) {
+  if (distance > HEAR_DISTANCE || hasPowerAudioFocus() || document.hidden) {
     if (!ambience.audio.paused) {
       ambience.audio.pause();
       ambience.audio.currentTime = 0;
     }
+    attempts.delete(ambience.audio);
     return;
   }
 
   const fadeRange = HEAR_DISTANCE - FULL_VOLUME_DISTANCE;
   const distanceVolume = Math.max(0, Math.min(1, (HEAR_DISTANCE - distance) / fadeRange));
-  ambience.audio.volume = distanceVolume * (hasDialogueAudioFocus() ? 0.5 : 1);
-  if (ambience.audio.paused) {
+  const volume = distanceVolume * (hasDialogueAudioFocus() ? 0.5 : 1);
+  if (Math.abs(ambience.audio.volume - volume) > 0.001) ambience.audio.volume = volume;
+  if (ambience.audio.paused && !pending.has(ambience.audio) && attempts.get(ambience.audio) !== gestureVersion) {
+    attempts.set(ambience.audio, gestureVersion);
+    pending.add(ambience.audio);
     void ambience.audio.play().catch(() => {
       // Browsers may wait for a player gesture before allowing ambience.
-    });
+    }).finally(() => { pending.delete(ambience.audio); });
   }
 }
 
