@@ -748,6 +748,7 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
 export function setupNpcInteractions(): void {
   window.addEventListener('max-game:alex-s-dialogue', closeDialogue);
   window.addEventListener('max-game:world-interaction-opened', closeDialogue);
+  window.addEventListener('max-game:alice-power-activated', closeDialogue);
   window.addEventListener('max-game:helen-power-activated', closeDialogue);
   window.addEventListener('max-game:joe-power-activated', closeDialogue);
   window.addEventListener('max-game:ju-power-activated', closeDialogue);

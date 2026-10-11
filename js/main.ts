@@ -1,6 +1,7 @@
 import { isTimInputPowerActive, updateTimInputWorld } from './tim-input-power.js';
 import { isReiPowerActive, reiWorldDeltaTime, updateReiWorld } from './rei-power.js';
 import { isNoelPowerActive, updateNoelWorld } from './noel-power.js';
+import { aliceWorldDeltaTime, isAlicePowerActive, updateAliceWorld } from './alice-power.js';
 import { isMikePowerActive, mikeWorldDeltaTime, updateMikeWorld } from './mike-power.js';
 import { isLucyPowerActive, updateLucyWorld } from './lucy-power.js';
 import { isKatiePowerActive, katieWorldDeltaTime, updateKatieWorld } from './katie-power.js';
@@ -86,7 +87,7 @@ function currentSamTargets(): readonly SamPowerTarget[] {
 
 function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
-  const worldDeltaTime = reiWorldDeltaTime(mikeWorldDeltaTime(katieWorldDeltaTime(julianWorldDeltaTime(juWorldDeltaTime(helenWorldDeltaTime(danWorldDeltaTime(chrisWorldDeltaTime(andyWorldDeltaTime(maddyWorldDeltaTime(deltaTime, time), time), time), time), time), time), time), time), time), time);
+  const worldDeltaTime = aliceWorldDeltaTime(reiWorldDeltaTime(mikeWorldDeltaTime(katieWorldDeltaTime(julianWorldDeltaTime(juWorldDeltaTime(helenWorldDeltaTime(danWorldDeltaTime(chrisWorldDeltaTime(andyWorldDeltaTime(maddyWorldDeltaTime(deltaTime, time), time), time), time), time), time), time), time), time), time), time);
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
@@ -97,10 +98,11 @@ function gameLoop(time: number): void {
   if (!isDanPowerActive(time) && !isKatiePowerActive(time)) updateBusIntro(deltaTime, player);
   updatePlayer(deltaTime, 1);
   updateTimInputWorld(time, player.x, player.y);
-  if (!isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isKatiePowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateHole(deltaTime, player);
+  if (!isAlicePowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isKatiePowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateHole(deltaTime, player);
   updateBuildingAmbience(player.x, player.y);
   const targets = currentSamTargets();
   let visibleTargets = targets.filter((target) => !isOscarEaten(target.id));
+  updateAliceWorld(time, player.x, player.y, visibleTargets);
   updateReiWorld(time, player.x, player.y, visibleTargets);
   updateNoelWorld(time, player.x, player.y, visibleTargets);
   updateMikeWorld(time, player.x, player.y, visibleTargets);
@@ -125,7 +127,7 @@ function gameLoop(time: number): void {
   if (!isChrisPowerActive(time)) {
     if (!isDanPowerActive(time)) updateCaveThief(worldDeltaTime, time, player.x, player.y, 1);
     updateGeorgia(worldDeltaTime);
-    if (!isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) {
+    if (!isAlicePowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) {
       updateGymTimCutscene(worldDeltaTime, player);
       updateNpcInteractions(player.x, player.y);
       if (!isCaveThiefPursuitActive()) {
@@ -134,7 +136,7 @@ function gameLoop(time: number): void {
     }
   }
   updateSigns(player.x, player.y);
-  if (!isGeorgiaPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateDoors(player.x, player.y);
+  if (!isAlicePowerActive(time) && !isGeorgiaPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateDoors(player.x, player.y);
   draw(time, worldAnimationTime);
 }
 

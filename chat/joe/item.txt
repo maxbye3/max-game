@@ -1,1 +1,1 @@
-Causes the protagonist to lose 10% health. (heat damage)
+Turns the world into a volcanic heatwave for ten seconds.

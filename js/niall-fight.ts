@@ -1,5 +1,4 @@
 import { createBattleOpening } from './niall-opening.js';
-import { getPlayerHealth, PLAYER_MAX_HEALTH } from './player-health.js';
 import { getBattleResult, type BattleOutcome } from './battle-outcome.js';
 import { requireElement } from './elements.js';
 import { NIALL_MAX_HP, PLAYER_MAX_HP, NiallBattle } from './niall-battle.js';
@@ -20,7 +19,7 @@ const openingGrid = requireElement<HTMLElement>('#opening-grid');
 const openingNext = requireElement<HTMLButtonElement>('#opening-next');
 const healthItem = requireElement<HTMLButtonElement>('[data-item="capri-sun"]');
 const attackButton = requireElement<HTMLButtonElement>('[data-action="attack"]');
-const battle = new NiallBattle(getPlayerHealth() / PLAYER_MAX_HEALTH);
+const battle = new NiallBattle(1);
 const opening = createBattleOpening(appendLog);
 let started = false;
 type MoveStage = 'player-setup' | 'player-effect' | 'niall-setup' | 'niall-effect' | null;

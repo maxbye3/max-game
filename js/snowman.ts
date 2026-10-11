@@ -12,7 +12,8 @@ const COLLISION_RADIUS = 25;
 
 let fallen = false;
 const fallSound = createGameAudio('map/audio/snowman.m4a');
-fallSound.preload = 'none';
+fallSound.preload = 'auto';
+fallSound.volume = 0.8;
 
 export const isSnowmanFallen = () => fallen;
 
