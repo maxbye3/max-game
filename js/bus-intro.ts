@@ -6,6 +6,7 @@ import {
   BUS_INTRO_STOP_X,
   FRAME_COUNT,
 } from './config.js';
+import { startRoadTraffic, updateRoadTraffic } from './road-traffic.js';
 import type { Player } from './types.js';
 
 const DRIVE_IN_END = 3000;
@@ -22,12 +23,42 @@ const shouldPlay = !searchParams.has('door') && searchParams.get('niall') !== 'b
 const skipButton = document.querySelector<HTMLButtonElement>('#bus-intro-skip');
 const controls = document.querySelector<HTMLElement>('.controls');
 const inventoryToggle = document.querySelector<HTMLElement>('#inventory-toggle');
-const jumpToggle = document.querySelector<HTMLElement>('#jump-toggle');
+const jumpToggle = document.querySelector<HTMLElement>('.movement-actions');
 const musicToggle = document.querySelector<HTMLElement>('#music-toggle');
 
 let active = shouldPlay;
 let elapsed = 0;
 let playbackRate = 1;
+let fastForwardOverlay: HTMLElement | null = null;
+let fastForwardStarted = 0;
+
+function showFastForwardEffect(): void {
+  const shell = document.querySelector<HTMLElement>('.game-shell');
+  if (!shell || fastForwardOverlay) return;
+  fastForwardStarted = performance.now();
+  fastForwardOverlay = document.createElement('div');
+  fastForwardOverlay.className = 'intro-fast-forward-overlay';
+  fastForwardOverlay.setAttribute('role', 'status');
+  fastForwardOverlay.setAttribute('aria-label', 'Fast forwarding intro at ten times speed');
+  fastForwardOverlay.innerHTML = `<div class="intro-fast-forward-label" aria-hidden="true">
+    <svg viewBox="0 0 48 24" focusable="false"><path d="M0 0h6v4h6v4h6v8h-6v4H6v4H0zM24 0h6v4h6v4h6v8h-6v4h-6v4h-6z" fill="currentColor"/></svg>
+    <span>FAST FORWARD <strong>10×</strong></span>
+  </div>`;
+  shell.append(fastForwardOverlay);
+  shell.classList.add('intro-fast-forward');
+}
+
+function endFastForwardEffect(): void {
+  const overlay = fastForwardOverlay;
+  if (!overlay) return;
+  document.querySelector('.game-shell')?.classList.remove('intro-fast-forward');
+  // Keep a late skip visible long enough to read, then fade it out.
+  window.setTimeout(() => {
+    overlay.classList.add('intro-fast-forward-finished');
+    window.setTimeout(() => overlay.remove(), 180);
+  }, Math.max(0, 650 - (performance.now() - fastForwardStarted)));
+  fastForwardOverlay = null;
+}
 
 function easeInOut(value: number): number {
   return value < 0.5 ? 2 * value * value : 1 - ((-2 * value + 2) ** 2) / 2;
@@ -49,10 +80,12 @@ function finishIntro(player: Player): void {
   player.animationTime = 0;
   if (skipButton) skipButton.hidden = true;
   setGameplayUiHidden(false);
+  endFastForwardEffect();
 }
 
 function speedUpIntro(): void {
   playbackRate = SKIP_SPEED_MULTIPLIER;
+  showFastForwardEffect();
   if (skipButton) skipButton.hidden = true;
 }
 
@@ -72,6 +105,8 @@ export function setupBusIntro(): void {
 export function isBusIntroActive(): boolean {
   return active;
 }
+
+export { getRoadTrafficCars } from './road-traffic.js';
 
 export function isBusIntroPlayerVisible(): boolean {
   return !active || elapsed >= DRIVE_IN_END;
@@ -104,7 +139,10 @@ export function getBusIntroBus(): {
 }
 
 export function updateBusIntro(deltaTime: number, player: Player): void {
-  if (!active) return;
+  if (!active) {
+    updateRoadTraffic(deltaTime);
+    return;
+  }
 
   elapsed += deltaTime * 1000 * playbackRate;
   player.x = BUS_INTRO_STOP_X;
@@ -125,5 +163,8 @@ export function updateBusIntro(deltaTime: number, player: Player): void {
     player.animationTime = 0;
   }
 
-  if (elapsed >= INTRO_END) finishIntro(player);
+  if (elapsed >= INTRO_END) {
+    finishIntro(player);
+    startRoadTraffic();
+  }
 }

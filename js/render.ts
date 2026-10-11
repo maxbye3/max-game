@@ -37,7 +37,7 @@ import { drawSpeechBubble } from './speech-bubble.js';
 import { drawAlexResurrection } from './alex-s-power-render.js';
 import { drawOscarPower, drawOscarWorldBites, drawOscarTerrain, drawOscarWorld } from './oscar-power-render.js';
 import { drawAndyPlayer, drawAndyWorld } from './andy-world-power.js';
-import { drawNiallAt, drawCaveThief, drawBusIntro, drawGeorgia, drawMikeAftermath } from './overworld-characters-render.js';
+import { drawNiallAt, drawCaveThief, drawBusIntro, drawGeorgia, drawMikeAftermath, drawRoadTraffic } from './overworld-characters-render.js';
 
 
 const searchParams = new URLSearchParams(window.location.search);
@@ -68,6 +68,7 @@ export function draw(time: number, worldTime = time): void {
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2 + joltX)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2 + joltY)));
   const worldDepth = drawWorldBackground(worldTime, cameraX, cameraY, player.y);
+  drawRoadTraffic(cameraX, cameraY);
   drawOscarTerrain(context, cameraX, cameraY, time);
   drawReiTerrain(context, time);
   drawSamTerrain(context, cameraX, cameraY, time);

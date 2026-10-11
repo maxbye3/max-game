@@ -44,6 +44,12 @@ const IMAGE_SOURCES = {
   niallExplanationMark: 'chat/niall/explanation-mark.png',
   girlsSprite: 'chat/siblings/girls-sprite.png',
   bus: 'img/external/bus.png',
+  roadCarBlue: 'img/external/cars/blue-hatchback.png',
+  roadCarRed: 'img/external/cars/red-hatchback.png',
+  roadCarSilver: 'img/external/cars/silver-hatchback.png',
+  roadCarGreen: 'img/external/cars/green-suv.png',
+  roadCarYellow: 'img/external/cars/yellow-taxi.png',
+  roadCarVan: 'img/external/cars/cream-van.png',
 } as const;
 
 export type AssetName = keyof typeof IMAGE_SOURCES;

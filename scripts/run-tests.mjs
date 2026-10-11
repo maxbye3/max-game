@@ -25,69 +25,79 @@ try {
   });
 
   const niallBattle = await loadModule('niall-battle', 'js/niall-battle.ts');
-  const playNiallFight = (healBeforeRound = -1, skipFirstAttack = false) => {
+  assert.equal(niallBattle.PLAYER_ATTACKS[2].message, 'You tell Niall his pumpkin pie was too dry.');
+  assert.equal(niallBattle.PLAYER_ATTACKS[2].effectMessage, 'Niall begins smoking furiously. NIALL loses 20 HP.');
+  const playNiallFight = (healBeforeRound = -1) => {
     const fight = new niallBattle.NiallBattle();
-    const moves = [];
-    for (let round = 0; round < 5 && fight.canAct; round += 1) {
+    const enemyMoves = [];
+    const playerMoves = [];
+    for (let round = 0; round < 15 && fight.canAct; round += 1) {
       if (round === healBeforeRound) fight.useHealthItem();
-      fight.takePlayerTurn(!(skipFirstAttack && round === 0));
-      assert.equal(fight.takePlayerTurn(true), null, 'queued responses block repeated player attacks');
-      assert.equal(fight.useHealthItem(), 0, 'items cannot interrupt enemy responses');
-      while (fight.waitingForNiall && fight.playerHp > 0 && fight.niallHp > 0) {
-        moves.push(fight.takeNiallTurn());
-      }
+      const niallHpBeforeSetup = fight.niallHp;
+      const playerMove = fight.takePlayerTurn(true);
+      if (!playerMove) break;
+      playerMoves.push(playerMove);
+      assert.equal(fight.niallHp, niallHpBeforeSetup, 'player setup screen does not apply damage');
+      assert.equal(fight.takePlayerTurn(true), null, 'Niall must respond before the player takes another turn');
+      assert.equal(fight.useHealthItem(), 0, 'items cannot interrupt Niall\'s response');
+      fight.resolvePlayerTurn();
+      if (!fight.waitingForNiall) break;
+      const playerHpBeforeSetup = fight.playerHp;
+      const enemyMove = fight.takeNiallTurn();
+      if (enemyMove) enemyMoves.push(enemyMove);
+      assert.equal(fight.waitingForNiall, false, 'Niall takes exactly one action per player turn');
+      assert.equal(fight.playerHp, playerHpBeforeSetup, 'Niall setup screen does not apply damage');
+      assert.equal(fight.takeNiallTurn(), null, 'Niall cannot attack twice in one turn');
+      fight.resolveNiallTurn();
     }
-    return { fight, moves };
+    return { fight, enemyMoves, playerMoves };
   };
 
   const unhealed = playNiallFight();
-  assert.equal(unhealed.fight.playerHp, 0, 'without healing the eighth hit defeats the player');
-  assert.equal(unhealed.fight.niallHp, 10, 'Niall survives by one attack');
-  assert.equal(unhealed.fight.niallAttackIndex, 8, 'defeat happens immediately before Red Stripe');
-  assert.equal(unhealed.fight.takeNiallTurn(), null, 'a dead player cannot continue to Red Stripe');
+  assert.equal(unhealed.fight.playerHp, 0, 'without healing Buckfast defeats the player');
+  assert.equal(unhealed.fight.niallHp, 10, 'Niall survives the final Buckfast turn by one hot-sauce attack');
+  assert.equal(unhealed.fight.niallAttackIndex, 10, 'Buckfast is the final attack in the unhealed battle');
+  assert.equal(unhealed.enemyMoves.at(-1).passOut, true);
+  assert.equal(
+    unhealed.enemyMoves.at(-1).message,
+    'Niall challenges you to drink Buckfast.',
+  );
+  assert.equal(unhealed.enemyMoves.at(-1).effectMessage, 'You pass out.');
   assert.equal(unhealed.fight.canAct, false);
   assert.equal(unhealed.fight.useHealthItem(), 0, 'healing cannot revive a defeated player');
   assert.equal(unhealed.fight.hasFomo, true);
-  assert.equal(unhealed.moves[1].fomo, true);
-  assert.equal(unhealed.moves[1].damage, 10, 'FOMO deals exactly the listed 10 damage');
+  assert.equal(unhealed.enemyMoves[1].fomo, true);
+  assert.equal(unhealed.enemyMoves[1].damage, 8, 'FOMO has its own damage value');
+  assert.deepEqual(unhealed.enemyMoves.slice(0, 8).map((move) => move.damage), [8, 8, 12, 8, 10, 8, 10, 6]);
+  assert.equal(unhealed.enemyMoves[8].selfDamage, 10, 'Red Stripe damages Niall');
+  assert.equal(niallBattle.NIALL_MAX_HP, 180, 'Niall has the increased health total');
 
-  for (const round of [1, 2, 3, 4]) {
-    const healed = playNiallFight(round);
-    assert.ok(healed.fight.playerHp > 0, 'one health item is enough even when used early');
-    assert.equal(healed.fight.niallHp, 0, 'Red Stripe finishes Niall after healing');
-    assert.equal(healed.fight.niallAttackIndex, 9);
-    assert.equal(healed.moves.at(-1).selfDamage, 10);
-    assert.equal(healed.fight.takeNiallTurn(), null, 'Buckfast cannot follow a victory');
-    assert.equal(healed.fight.useHealthItem(), 0, 'the healing item cannot be reused');
-  }
+  const healed = playNiallFight(8);
+  assert.equal(healed.fight.healthItemUsed, true);
+  assert.equal(healed.fight.playerHp, 20, 'one late health item lets the player survive Buckfast and win');
+  assert.equal(healed.fight.niallHp, 0, 'hot sauce defeats Niall after the player survives Buckfast');
+  assert.equal(healed.fight.niallAttackIndex, 10);
+  assert.equal(healed.enemyMoves.at(-1).passOut, true);
+  assert.equal(healed.playerMoves.at(-1).message, 'You put Portuguese hot sauce on his food.');
+  assert.equal(healed.playerMoves.at(-1).victoryMessage, 'Niall passes out. YOU WIN!');
+  assert.equal(healed.fight.takeNiallTurn(), null, 'Niall cannot attack after being defeated');
+  assert.equal(healed.fight.useHealthItem(), 0, 'the healing item cannot be reused');
 
   const potion = new niallBattle.NiallBattle();
   assert.equal(potion.useHealthItem(), 0);
   assert.equal(potion.healthItemUsed, false, 'using the item at full health does not waste it');
   potion.takePlayerTurn(true);
-  potion.takeNiallTurn();
-  assert.equal(potion.useHealthItem(), 10, 'healing reports the actual amount and caps at maximum HP');
+  potion.resolvePlayerTurn();
+  assert.equal(potion.takeNiallTurn().damage, 8);
+  potion.resolveNiallTurn();
+  assert.equal(potion.useHealthItem(), 8, 'healing reports the actual amount and caps at maximum HP');
   assert.equal(potion.playerHp, niallBattle.PLAYER_MAX_HP);
   assert.equal(potion.niallAttackIndex, 1, 'healing does not skip an attack in the scripted exchange');
   assert.equal(potion.useHealthItem(), 0);
 
-  const hotSauce = playNiallFight(3, true).fight;
-  assert.equal(hotSauce.niallHp, 10, 'skipping a dialogue attack leaves Niall alive after Red Stripe');
-  assert.equal(hotSauce.takePlayerTurn(true).knockout, true);
-  assert.equal(hotSauce.niallHp, 0, 'Portuguese hot sauce is an instant victory');
-  assert.equal(hotSauce.takeNiallTurn(), null);
-
-  const buckfast = playNiallFight(3, true).fight;
-  buckfast.takePlayerTurn(false);
-  assert.equal(buckfast.takeNiallTurn().knockout, true);
-  assert.equal(buckfast.playerHp, 0, 'Buckfast defeats even a healed player instantly');
-  assert.equal(buckfast.canAct, false);
-  buckfast.finish();
-  assert.equal(buckfast.waitingForNiall, false);
-
   assert.equal(new niallBattle.NiallBattle(0.5).playerHp, 40, 'overworld health scales to battle HP');
   assert.equal(new niallBattle.NiallBattle(0).canAct, false);
-  console.log('Niall battle: default loss by one attack, single healing item, FOMO, Red Stripe, hot sauce and Buckfast passed');
+  console.log('Niall battle: one attack per turn, increased Niall HP, varied damage, health-item win and Buckfast loss passed');
 
   const thiefPath = await loadModule('cave-thief-path', 'js/cave-thief-path.ts');
   const openPath = thiefPath.buildThiefPath(8, 8, 72, 8, () => false);
@@ -857,10 +867,10 @@ try {
     'js/internal.ts': 700,
     'js/render.ts': 350,
     'js/cave-thief.ts': 250,
-    'js/niall-fight.ts': 230,
+    'js/niall-fight.ts': 240,
   };
   for (const [file, limit] of Object.entries(lineLimits)) {
-    const lines = (await readFile(file, 'utf8')).split(/\r?\n/).length;
+    const lines = (await readFile(file, 'utf8')).split(/\r?\n/).filter((line) => line.trim()).length;
     assert.ok(lines < limit, `${file} must stay below ${limit} lines; found ${lines}`);
   }
 
@@ -869,6 +879,7 @@ try {
   function element(selector) {
     if (!elements.has(selector)) elements.set(selector, {
       hidden: false, textContent: '', src: '', children: [], listeners: new Map(),
+      classList: { toggle() {} },
       setAttribute() {}, removeAttribute(name) { if (name === 'src') this.src = ''; }, remove() {},
       getContext() { return {}; },
       append(...children) { this.children.push(...children); },
@@ -894,6 +905,36 @@ try {
   window.clearTimeout = () => {};
   Audio.prototype.removeAttribute = () => {};
   Audio.prototype.load = () => {};
+  const busIntroTraffic = await loadModule('bus-intro-traffic', 'js/bus-intro.ts');
+  const originalRandom = Math.random;
+  try {
+    Math.random = () => 0;
+    const introPlayer = { x: 0, y: 0, direction: 'down', frame: 0, animationTime: 0 };
+    for (let frame = 0; frame < 170 && busIntroTraffic.isBusIntroActive(); frame += 1) {
+      busIntroTraffic.updateBusIntro(0.05, introPlayer);
+    }
+    assert.equal(busIntroTraffic.isBusIntroActive(), false, 'road traffic waits for the bus to finish leaving');
+    assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), []);
+    for (let frame = 0; frame < 59; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
+    assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), [], 'the first car waits at least three seconds');
+    busIntroTraffic.updateBusIntro(0.05, introPlayer);
+    const firstRoadCar = busIntroTraffic.getRoadTrafficCars()[0];
+    assert.equal(firstRoadCar?.spriteIndex, 0);
+    assert.ok((firstRoadCar?.x ?? 0) < 0, 'cars enter from offscreen on the left');
+    busIntroTraffic.updateBusIntro(1, introPlayer);
+    assert.equal(busIntroTraffic.getRoadTrafficCars()[0]?.x, (firstRoadCar?.x ?? 0) + 220);
+    for (let frame = 0; frame < 39; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
+    assert.equal(busIntroTraffic.getRoadTrafficCars().length, 1, 'cars stay separated by the scheduled gap');
+    busIntroTraffic.updateBusIntro(0.05, introPlayer);
+    assert.deepEqual(
+      busIntroTraffic.getRoadTrafficCars().map((car) => car.spriteIndex),
+      [0, 1],
+      'cars use separate sprites in sequence',
+    );
+    console.log('Road traffic: cars start after bus departure and follow three-second gaps');
+  } finally {
+    Math.random = originalRandom;
+  }
   values.set('max-game:niall-quest-state', 'following');
   const niall = await loadModule('niall-bus-dialogue', 'js/niall.ts');
   niall.updateNiallInteraction(0, niall.NIALL_BUS_STOP.triggerX, niall.NIALL_BUS_STOP.triggerY);

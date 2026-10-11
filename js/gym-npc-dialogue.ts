@@ -97,6 +97,7 @@ export class GymNpcDialogueController {
 
   private showLine(): void {
     if (!this.active) return;
+    this.confirmation.hidden = true;
     this.line.textContent = this.active.dialogueLines[this.lineIndex] ?? '';
     this.progress.textContent = `${this.lineIndex + 1}/${this.active.dialogueLines.length}`;
     this.progress.hidden = this.active.dialogueLines.length === 0;
@@ -119,6 +120,6 @@ export class GymNpcDialogueController {
     this.progress.hidden = true;
     this.confirmation.textContent = added ? 'An item has been added to your inventory.' : '';
     this.confirmation.hidden = !added;
-    this.nextButton.hidden = true;
+    this.nextButton.hidden = this.active.dialogueLines.length <= 1;
   }
 }

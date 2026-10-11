@@ -17,7 +17,7 @@ const RESULTS: Record<BattleOutcome, BattleResult> = {
     niallQuestState: 'following',
   },
   defeat: {
-    message: 'PLAYER fainted. Better luck next time.',
+    message: 'YOU LOSE!',
     linkLabel: 'Back to the map',
     href: '../index.html',
   },

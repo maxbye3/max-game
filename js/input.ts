@@ -1,4 +1,6 @@
 import type { InputDirection } from './types.js';
+import { setupMobileControls } from './mobile-controls.js';
+import { setupThoughts } from './thoughts.js';
 
 /** Physical keys, so the controls survive AZERTY, Dvorak and non-Latin layouts. */
 const DIRECTION_CODES: Record<string, InputDirection> = {
@@ -46,6 +48,11 @@ export class DirectionInputController {
   }
 
   setup(): void {
+    setupThoughts(() => this.releaseAll());
+    this.releaseButtonHandlers.push(setupMobileControls(
+      (direction, held) => held ? this.holdDirection(direction) : this.releaseDirection(direction),
+      () => this.releaseAll(),
+    ));
     document.querySelectorAll<HTMLElement>('.dpad-button').forEach((button) => this.bindDpadButton(button));
     window.addEventListener('keydown', (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey) {

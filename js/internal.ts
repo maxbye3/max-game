@@ -26,6 +26,7 @@ import { GymNpcDialogueController } from './gym-npc-dialogue.js';
 import { GoodreadsReadingController } from './goodreads-reading.js';
 import { HELEN_DIALOGUE_LINES } from './helen-dialogue.js';
 import { DirectionInputController } from './input.js';
+import { isThoughtsOpen } from './thoughts.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { setupInventory, updatePowerups } from './inventory.js';
@@ -60,7 +61,7 @@ import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { DadDialogueController } from './dad-dialogue-controller.js';
 import { createInteriorRenderer } from './interior-render.js';
 
-const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal');
+const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal'); const doorLoading = requireElement<HTMLElement>('#door-loading');
 const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt');
 const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
 const noelSpeaker = requireElement<HTMLElement>('#noel-speaker');
@@ -84,7 +85,6 @@ const NOEL_NAME = NOEL_FOLDER.slice(NOEL_FOLDER.lastIndexOf('/') + 1);
 const NOEL_QUESTION = "Play a game where I'm the protagonist";
 const NOEL_GAME_URL = 'https://maxbye.co/stealth-game/';
 const NOEL_SONG = 'bleep-blops' as const;
-let noelVisitStage = 0;
 const enteredDoor = searchParams.get('door');
 const scene = getInteriorScene(enteredDoor);
 markInteriorVisited();
@@ -148,7 +148,7 @@ let previousTime = 0;
 let nearbyInteraction: InteractionKind | null = null;
 let noelDialogueOpen = false;
 let noelDialogueLineIndex = 0; let helenDialogueLineIndex = 0;
-type NoelDialogueStage = 'opening' | 'question' | 'decline' | 'reward' | 'done';
+type NoelDialogueStage = 'opening' | 'question' | 'decline' | 'reward' | 'dialogue' | 'done';
 type NoelReward = 'item' | 'song';
 let noelDialogueStage: NoelDialogueStage = 'done';
 let noelRewardQueue: NoelReward[] = [];
@@ -160,7 +160,7 @@ const katieSceneryTargets = (isGymInterior ? gymNpcs : isBookshopInterior ? book
   .flatMap(({ id, x, y, height }) => id ? [{ id, x, y, height }] : []);
 const KATIE_INTERIOR_TARGETS = [...katieSceneryTargets, ...OSCAR_INTERIOR_TARGETS.filter((target) => !katieSceneryTargets.some((npc) => npc.id === target.id))]
   .map((target) => ({ ...target, height: target.id === 'noel' ? NOEL.height : target.id === 'siblings' ? CAVE_SIBLINGS.height : target.id === 'lucy' ? 75 : target.height }));
-const input = new DirectionInputController({ canHold: () => !isAlexResurrectionUiBlocking() });
+const input = new DirectionInputController({ canHold: () => doorLoading.hidden && !isAlexResurrectionUiBlocking() });
 const dadDialogue = new DadDialogueController(() => { input.releaseAll(); openNoelDialogue(); });
 function openNoelDialogue(): void {
   announceWorldInteraction();
@@ -170,7 +170,7 @@ function openNoelDialogue(): void {
 const diaryLabFeatures = new DiaryLabFeatures();
 const goodreadsReading = new GoodreadsReadingController(closeNoelDialogue);
 const lucy = isPlantRoomInterior
-  ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation, closeNoelDialogue)
+  ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation)
   : null;
 const gymNpcDialogue = new GymNpcDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation);
 const musicHouseDialogue = new MusicHouseDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation, closeNoelDialogue);
@@ -223,19 +223,23 @@ function showNoelGameQuestion(): void {
   noelDialogueLine.textContent = '';
   noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = true;
-  noelDialogueProgress.hidden = true;
   noelDialogueQuestion.textContent = NOEL_QUESTION;
   noelDialogueQuestion.hidden = false;
   noelDialogueOptions.hidden = false;
 }
-function showNoelDialogueLine(): void {
-  noelDialogueStage = 'opening';
+function showNoelDialogueLine(stage: 'opening' | 'dialogue' = 'dialogue'): void {
+  noelDialogueStage = stage;
   noelDialogueLine.textContent = NOEL_DIALOGUE_LINES[noelDialogueLineIndex] ?? '';
   noelDialogueProgress.textContent = `${noelDialogueLineIndex + 1}/${NOEL_DIALOGUE_LINES.length}`;
   noelDialogueProgress.hidden = false;
   noelDialogueNext.hidden = false;
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
+  noelGiftConfirmation.hidden = true;
+}
+function advanceNoelDialogueLine(): void {
+  noelDialogueLineIndex = (noelDialogueLineIndex + 1) % NOEL_DIALOGUE_LINES.length;
+  showNoelDialogueLine();
 }
 function chooseNoelGame(accept: boolean): void {
   if (!noelDialogueOpen || nearbyInteraction !== 'noel' || noelDialogueStage !== 'question') return;
@@ -258,8 +262,7 @@ function chooseNoelGame(accept: boolean): void {
 function showNextNoelReward(): void {
   const reward = noelRewardQueue.shift();
   if (!reward) {
-    noelDialogueStage = 'done';
-    closeNoelDialogue();
+    advanceNoelDialogueLine();
     return;
   }
   noelDialogueStage = 'reward';
@@ -292,12 +295,6 @@ function showNextNoelReward(): void {
     window.setTimeout(() => overlay.remove(), 3200);
     void createGameAudio(resolveSiteAsset('audio/music-accepted.mp3')).play().catch(() => {});
   }
-}
-function nextNoelDialogueVisitIndex(): number {
-  const lastLine = Math.max(0, NOEL_DIALOGUE_LINES.length - 1);
-  const index = Math.min(noelVisitStage, lastLine);
-  noelVisitStage = Math.min(noelVisitStage + 1, lastLine);
-  return index;
 }
 function closeNoelDialogue(): void {
   endDialogueAudio(); caveSiblings?.closeDialogue();
@@ -352,14 +349,14 @@ function startSiblingsWebsiteReturnDialogue(): void {
 function startNoelDialogue(): void {
   if (nearbyInteraction !== 'noel' || noelDialogueOpen) return;
   openNoelDialogue(); beginDialogueAudio(NOEL_NAME, '../');
-  noelDialogueLineIndex = nextNoelDialogueVisitIndex();
+  noelDialogueLineIndex = nextDialogueVisitIndex('noel', NOEL_DIALOGUE_LINES.length);
   noelSpeaker.textContent = NOEL_NAME; setProfileImage(noelDialogueProfile, NOEL_NAME, '../');
   noelDialogueLine.textContent = '';
   noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = true;
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
-  showNoelDialogueLine();
+  showNoelDialogueLine('opening');
 }
 function startLucyDialogue(): void {
   if (nearbyInteraction !== 'lucy' || noelDialogueOpen) return;
@@ -507,6 +504,7 @@ function bindControls(): void {
     else if (nearbyInteraction === 'dad') dadDialogue.next();
     else if (nearbyInteraction === 'noel') {
       if (noelDialogueStage === 'opening') showNoelGameQuestion();
+      else if (noelDialogueStage === 'dialogue') advanceNoelDialogueLine();
       else if (noelDialogueStage === 'decline' || noelDialogueStage === 'reward') showNextNoelReward();
     }
   });
@@ -628,6 +626,7 @@ function gameLoop(time: number): void {
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
+  if (isThoughtsOpen()) { draw(time, worldAnimationTime); return; }
   if (!isKatiePowerActive(time)) settleGeorgiaFlight(player, flightLandingBlocked, FLIGHT_BOUNDS, time);
   let visibleKatieTargets = KATIE_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
   let visibleOscarTargets = OSCAR_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
@@ -687,11 +686,14 @@ const requiredImages = [
 ];
 Promise.all(requiredImages.map((image) => image.decode()))
   .then(() => {
+    input.releaseAll();
+    doorLoading.hidden = true;
     context.imageSmoothingEnabled = false;
     startGameLoop(gameLoop, () => { previousTime = 0; });
   })
   .catch((error: unknown) => {
     console.error(error);
+    doorLoading.hidden = true;
     context.fillStyle = '#f5fff6';
     context.font = '13px monospace';
     context.fillText('Could not load the interior.', 120, 240); });

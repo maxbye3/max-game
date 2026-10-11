@@ -23,9 +23,11 @@ const attackButton = requireElement<HTMLButtonElement>('[data-action="attack"]')
 const battle = new NiallBattle(getPlayerHealth() / PLAYER_MAX_HEALTH);
 const opening = createBattleOpening(appendLog);
 let started = false;
-let showingPlayerMove = false;
+type MoveStage = 'player-setup' | 'player-effect' | 'niall-setup' | 'niall-effect' | null;
+let moveStage: MoveStage = null;
+let pendingPlayerEffectMessage = '';
+let pendingPlayerAttack = false;
 let victoryFollowUp: ReturnType<typeof getBattleResult> | null = null;
-
 playerHpMeter.max = PLAYER_MAX_HP;
 niallHpMeter.max = NIALL_MAX_HP;
 
@@ -41,7 +43,7 @@ function renderBattle(): void {
     button.disabled = !battle.canAct;
   });
   healthItem.disabled = !battle.canAct || battle.healthItemUsed;
-  healthItem.textContent = battle.healthItemUsed ? 'Capri Sun (used)' : 'Capri Sun (+50 HP)';
+  healthItem.textContent = battle.healthItemUsed ? 'Capri Sun (used)' : 'Capri Sun';
   attackButton.textContent = battle.playerAttackIndex >= 5 ? 'Portuguese hot sauce' : 'Attack';
 }
 
@@ -52,6 +54,7 @@ function appendLog(message: string): void {
 function finishBattle(outcome: BattleOutcome, moveMessage = ''): void {
   const result = getBattleResult(outcome);
   battle.finish();
+  moveStage = null;
   actionGrid.hidden = true;
   itemGrid.hidden = true;
   busLink.textContent = result.linkLabel;
@@ -93,16 +96,30 @@ function animateDamage(selector: string, amount: number): void {
   indicator.classList.add('fly-away');
 }
 
-function takePlayerTurn(attack: boolean, message = 'PLAYER waits.'): void {
-  const previousHp = battle.niallHp;
+function clearDamageAnimations(): void {
+  document.querySelectorAll<HTMLElement>('.battle-damage').forEach((indicator) => {
+    indicator.hidden = true;
+    indicator.classList.remove('fly-away');
+  });
+}
+
+function showPlayerOptions(): void {
+  moveStage = null;
+  openingGrid.hidden = true;
+  actionGrid.hidden = false;
+  appendLog('What will PLAYER do?');
+  renderBattle();
+}
+
+function takePlayerTurn(attack: boolean, setupMessage?: string, effectMessage?: string): void {
   const move = battle.takePlayerTurn(attack);
   if (!move) return;
-  const line = attack ? move.message : message;
-  animateDamage('#niall-opening-damage', previousHp - battle.niallHp);
+  clearDamageAnimations();
+  appendLog(setupMessage ?? (attack ? move.message : 'PLAYER waits.'));
+  pendingPlayerEffectMessage = effectMessage ?? (attack ? move.effectMessage : 'No damage dealt.');
+  pendingPlayerAttack = attack;
   renderBattle();
-  if (checkOutcome(line)) return;
-  appendLog(line);
-  showingPlayerMove = true;
+  moveStage = 'player-setup';
   actionGrid.hidden = true;
   itemGrid.hidden = true;
   openingGrid.hidden = false;
@@ -122,23 +139,52 @@ function advanceTurn(): void {
     if (!checkOutcome()) opening.advanceOpeningSequence();
     return;
   }
-  if (showingPlayerMove || battle.waitingForNiall) {
-    showingPlayerMove = false;
-    const previousPlayerHp = battle.playerHp;
+  if (moveStage === 'player-setup') {
     const previousNiallHp = battle.niallHp;
-    const move = battle.takeNiallTurn();
+    const move = battle.resolvePlayerTurn();
     if (!move) return;
-    if (move.selfDamage) niallBattler.classList.add('poisoned');
-    animateDamage('#player-opening-damage', previousPlayerHp - battle.playerHp);
-    animateDamage('#niall-opening-damage', previousNiallHp - battle.niallHp);
+    animateDamage('#niall-opening-damage', pendingPlayerAttack ? previousNiallHp - battle.niallHp : 0);
     renderBattle();
-    if (!checkOutcome(move.message)) appendLog(move.message);
+    moveStage = 'player-effect';
+    const effect = battle.niallHp === 0 && move.victoryMessage
+      ? move.victoryMessage
+      : pendingPlayerEffectMessage;
+    appendLog(effect);
+    checkOutcome(effect);
     return;
   }
-  openingGrid.hidden = true;
-  actionGrid.hidden = false;
-  appendLog('What will PLAYER do?');
-  renderBattle();
+  if (moveStage === 'player-effect') {
+    if (battle.waitingForNiall) {
+      const move = battle.takeNiallTurn();
+      if (!move) return;
+      clearDamageAnimations();
+      appendLog(move.message);
+      moveStage = 'niall-setup';
+    } else {
+      showPlayerOptions();
+    }
+    return;
+  }
+  if (moveStage === 'niall-setup') {
+    const move = battle.resolveNiallTurn();
+    if (!move) return;
+    if (move.selfDamage) niallBattler.classList.add('poisoned');
+    animateDamage('#player-opening-damage', move.damage);
+    animateDamage('#niall-opening-damage', move.selfDamage ?? 0);
+    renderBattle();
+    moveStage = 'niall-effect';
+    const effect = move.passOut
+      ? battle.playerHp <= 0 ? move.effectMessage : 'You stay on your feet.'
+      : move.effectMessage;
+    appendLog(effect);
+    checkOutcome(effect);
+    return;
+  }
+  if (moveStage === 'niall-effect') {
+    showPlayerOptions();
+    return;
+  }
+  showPlayerOptions();
 }
 
 function useItem(item: string): void {
@@ -155,9 +201,9 @@ function useItem(item: string): void {
     appendLog(`PLAYER used CAPRI SUN and recovered ${healed} HP.`);
     renderBattle();
   } else if (item === 'vape' || item === 'pocket-lint') {
-    takePlayerTurn(false, item === 'vape'
-      ? 'PLAYER used VAPE. NIALL took it and appreciated it.'
-      : 'PLAYER used POCKET LINT. NIALL looked at it and shrugged.');
+    takePlayerTurn(false,
+      item === 'vape' ? 'PLAYER used VAPE.' : 'PLAYER used POCKET LINT.',
+      item === 'vape' ? 'NIALL took it and appreciated it.' : 'NIALL looked at it and shrugged.');
   }
 }
 
@@ -182,11 +228,9 @@ function handleAction(action: string | undefined): void {
     appendLog('Choose an item.');
   }
 }
-
 actionGrid.addEventListener('click', (event) => {
   handleAction((event.target as HTMLElement).closest<HTMLButtonElement>('[data-action]')?.dataset.action);
 });
-
 itemGrid.addEventListener('click', (event) => {
   if (!battle.canAct || itemGrid.hidden) return;
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-action], [data-item]');
@@ -197,7 +241,6 @@ itemGrid.addEventListener('click', (event) => {
     appendLog('What will PLAYER do?');
   } else if (button.dataset.item) useItem(button.dataset.item);
 });
-
 openingNext.addEventListener('click', advanceTurn);
 renderBattle();
 opening.playOpeningSequence();

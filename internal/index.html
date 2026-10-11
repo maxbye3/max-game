@@ -4,11 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Diary & Laboratory</title>
-    <link rel="stylesheet" href="../style.css?v=fbd9bab6b80e" />
+    <link rel="stylesheet" href="../style.css?v=1f12818adc39" />
   </head>
   <body>
     <main class="game-shell">
       <canvas id="game" width="480" height="480" aria-label="Diary and Laboratory interior"></canvas>
+      <div id="door-loading" class="door-loading" role="status" aria-live="polite">
+        <div class="door-loading-box">Loading<span class="door-loading-dots" aria-hidden="true"></span></div>
+      </div>
       <div class="top-actions">
         <a class="interior-exit" href="../index.html">Exit</a>
         <button id="audio-mute-toggle" class="audio-mute-toggle" type="button" aria-pressed="false">
@@ -19,13 +22,17 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
+        <button id="thoughts-toggle" class="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts</button>
         <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
           Inventory <span class="inventory-count">1</span>
         </button>
       </div>
       <button id="interaction-prompt" class="npc-talk" type="button" hidden>Interact</button>
       <div id="powerup-status" class="powerup-status" hidden></div>
-      <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
+      <div class="movement-actions">
+        <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
+        <button id="controls-toggle" class="controls-toggle" type="button" aria-controls="movement-controls">Controls: Thumbstick</button>
+      </div>
       <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
         <div class="jump-header">
           <h2>Jump</h2>
@@ -192,7 +199,7 @@
         <button id="experiment-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
         <img id="experiment-lightbox-image" alt="">
       </dialog>
-      <div class="controls">
+      <div id="movement-controls" class="controls">
         <div class="dpad" role="group" aria-label="Movement controls">
           <button class="dpad-button up-left" data-directions="up left" aria-label="Move up and left">◸</button>
           <button class="dpad-button" data-directions="up" aria-label="Move up">△</button>
@@ -207,6 +214,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=72efe271eb94"></script>
+    <script src="../dist/internal-bundle.js?v=1a8ff3cb5686"></script>
   </body>
 </html>

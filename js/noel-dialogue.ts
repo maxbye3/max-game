@@ -1,5 +1,6 @@
 // Generated from chat/noel/dialogue.txt. Run npm run generate:dialogues after editing it.
 export const NOEL_DIALOGUE_LINES = [
+  "Bet you came here because it’s halloween and your looking for a way to feed Alex. Unfortunately, I’m just here to get shares in my spooky halloween jukebox musical.",
   "Hey! Want to co-fund my spooky halloween jukebox musical about queen Bey?",
   "It's called Séyencé. We'll make millions.",
   "Featuring such hits as: ~All the tingle ladies~",

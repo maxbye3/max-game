@@ -24,10 +24,11 @@ import {
 } from './cave-thief.js';
 import { COLLISION_SHAPES } from './collision-data.js';
 import { canvas } from './dom.js';
-import { updateDoors } from './doors.js';
+import { isDoorNavigationStarted, updateDoors } from './doors.js';
 import { updateGeorgia } from './georgia.js';
 import { setupGymTimCutscene, updateGymTimCutscene } from './gym-tim-cutscene.js';
-import { setupInput } from './input.js';
+import { releaseAllInput, setupInput } from './input.js';
+import { isThoughtsOpen } from './thoughts.js';
 import { setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
@@ -43,6 +44,7 @@ import { draw, drawLoadFailure } from './render.js';
 import { hideSignDialogue, updateSigns } from './signs.js';
 import { isAlexResurrectionUiBlocking } from './alex-s-power-ui.js';
 import { maddyWorldDeltaTime } from './maddy-tea-power.js';
+import { requireElement } from './elements.js';
 import { georgiaState } from './georgia.js';
 import { isSamPowerActive, samTargetId, type SamPowerTarget, updateSamPower } from './sam-power.js';
 import { isOscarEaten, isOscarPowerActive, updateOscarPower } from './oscar-power.js';
@@ -52,6 +54,7 @@ import { updateAndyWorld } from './andy-world-power.js';
 let previousTime = 0;
 let worldAnimationTime = 0;
 restoreBuildingAmbience(new URLSearchParams(window.location.search).get('door'));
+const loadingOverlay = requireElement<HTMLElement>('#door-loading');
 
 const STATIC_SAM_TARGETS: readonly SamPowerTarget[] = [
   ...MAP_CHARACTER_DEFINITIONS.map((character) => ({
@@ -87,6 +90,10 @@ function gameLoop(time: number): void {
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
+  if (isDoorNavigationStarted() || isThoughtsOpen()) {
+    draw(time, worldAnimationTime);
+    return;
+  }
   if (!isDanPowerActive(time) && !isKatiePowerActive(time)) updateBusIntro(deltaTime, player);
   updatePlayer(deltaTime, 1);
   updateTimInputWorld(time, player.x, player.y);
@@ -144,10 +151,13 @@ setupGymTimCutscene();
 
 Promise.all([loadAssets(isCaveThiefPursuitActive()), loadMapCharacters()])
   .then(() => {
+    releaseAllInput();
+    loadingOverlay.hidden = true;
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES.length);
     startGameLoop(gameLoop, () => { previousTime = 0; });
   })
   .catch((error: unknown) => {
     console.error(error);
+    loadingOverlay.hidden = true;
     drawLoadFailure();
   });

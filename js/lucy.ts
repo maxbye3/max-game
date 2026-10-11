@@ -19,14 +19,13 @@ export class LucyController {
     private readonly nextButton: HTMLButtonElement,
     private readonly dialogueProgress: HTMLElement,
     private readonly giftConfirmation: HTMLElement,
-    private readonly closeDialogue: () => void,
   ) {
     this.sprite.src = '../chat/lucy/avatar.png';
-    this.plantDiary = new PlantDiaryGalleryController(this.closeDialogue);
+    this.plantDiary = new PlantDiaryGalleryController(() => this.resumeDialogue());
     document.querySelector<HTMLButtonElement>('#lucy-plant-diary-yeh')?.addEventListener('click', () => {
       this.showPlantDiary();
     });
-    document.querySelector<HTMLButtonElement>('#lucy-plant-diary-neh')?.addEventListener('click', this.closeDialogue);
+    document.querySelector<HTMLButtonElement>('#lucy-plant-diary-neh')?.addEventListener('click', () => this.resumeDialogue());
   }
 
   start(): void {
@@ -75,10 +74,18 @@ export class LucyController {
   }
 
   private showLine(): void {
+    this.giftConfirmation.hidden = true;
     this.dialogueLine.textContent = LUCY_DIALOGUE_LINES[this.lineIndex] ?? '';
     this.dialogueProgress.textContent = `${this.lineIndex + 1}/${LUCY_DIALOGUE_LINES.length}`;
     this.dialogueProgress.hidden = false;
-    this.nextButton.hidden = LUCY_DIALOGUE_LINES.length <= 1;
+    this.nextButton.hidden = !this.pendingGiftLine && !this.plantDiaryOfferPending && LUCY_DIALOGUE_LINES.length <= 1;
+  }
+
+  private resumeDialogue(): void {
+    if (this.plantDiaryOptions) this.plantDiaryOptions.hidden = true;
+    if (this.dialogue) this.dialogue.hidden = false;
+    this.next();
+    this.nextButton.focus();
   }
 
   private showPlantDiary(): void {

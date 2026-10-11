@@ -1,6 +1,7 @@
 import { hasCaveColander } from './colander.js';
 import { createGameAudio } from './audio-mute.js';
 import { carryBuildingAmbienceInside } from './nightclub-audio.js';
+import { releaseAllInput } from './input.js';
 
 export interface Doorway {
   readonly id: string;
@@ -56,6 +57,15 @@ function playDoorSound(): void {
   });
 }
 
+function showDoorLoading(): void {
+  document.querySelector<HTMLElement>('#door-loading')?.removeAttribute('hidden');
+  releaseAllInput();
+}
+
+export function isDoorNavigationStarted(): boolean {
+  return navigationStarted;
+}
+
 export function updateDoors(playerX: number, playerY: number): void {
   const nextOpenDoorIds = new Set(
     DOORWAYS
@@ -78,11 +88,13 @@ export function updateDoors(playerX: number, playerY: number): void {
   if (!enteredDoorway) return;
 
   navigationStarted = true;
+  showDoorLoading();
   carryBuildingAmbienceInside(enteredDoorway.id);
   const params = new URLSearchParams({ door: enteredDoorway.id });
   if (hasCaveColander()) params.set('colander', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
-  window.location.assign(`internal/index.html?${params.toString()}`);
+  const destination = `internal/index.html?${params.toString()}`;
+  window.setTimeout(() => window.location.assign(destination), 80);
 }
 
 export function getOpenDoorways(): Doorway[] {

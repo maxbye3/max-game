@@ -7,6 +7,7 @@ import { georgiaState } from './georgia.js';
 import { NIALL } from './niall.js';
 import { samVictimOffset } from './sam-power.js';
 import { hasMikeAftermath } from './world-state.js';
+import { getRoadTrafficCars, ROAD_CAR_CENTER_Y, ROAD_CAR_WIDTH } from './road-traffic.js';
 import type { Direction } from './types.js';
 const NIALL_SPRITE_COLUMNS = 4;
 const NIALL_SPRITE_FRAME_HEIGHT = 283;
@@ -16,6 +17,14 @@ const NIALL_SPRITE_FRAME_HEIGHT = 283;
 const NIALL_SPRITE_ROW_Y = [0, 270, 531, 793, 1054, 1320, 1597] as const;
 const GIRLS_RENDER_WIDTH = 56;
 const GIRLS_RENDER_HEIGHT = 44;
+const ROAD_CAR_IMAGES = [
+  images.roadCarBlue,
+  images.roadCarRed,
+  images.roadCarSilver,
+  images.roadCarGreen,
+  images.roadCarYellow,
+  images.roadCarVan,
+] as const;
 const MIKE_AFTERMATH_X = 212;
 const MIKE_AFTERMATH_Y = 439;
 const MIKE_AFTERMATH_WIDTH = 275;
@@ -151,6 +160,27 @@ export function drawBusIntro(cameraX: number, cameraY: number): void {
   context.restore();
 }
 
+export function drawRoadTraffic(cameraX: number, cameraY: number): void {
+  const cars = getRoadTrafficCars();
+  if (cars.length === 0) return;
+
+  context.save();
+  context.imageSmoothingEnabled = false;
+  for (const car of cars) {
+    const image = ROAD_CAR_IMAGES[car.spriteIndex];
+    if (!image || !isImageReady(image)) continue;
+    const height = ROAD_CAR_WIDTH * (image.naturalHeight / image.naturalWidth);
+    context.drawImage(
+      image,
+      Math.round(car.x - cameraX),
+      Math.round(ROAD_CAR_CENTER_Y - cameraY - height / 2),
+      ROAD_CAR_WIDTH,
+      height,
+    );
+  }
+  context.restore();
+}
+
 const GEORGIA_BIKE_RENDER_WIDTH = 50;
 const GEORGIA_BIKE_RENDER_HEIGHT = 51;
 
@@ -186,4 +216,3 @@ export function drawMikeAftermath(cameraX: number, cameraY: number): void {
     MIKE_AFTERMATH_HEIGHT,
   );
 }
-

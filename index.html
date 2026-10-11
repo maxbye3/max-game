@@ -4,11 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=fbd9bab6b80e" />
+    <link rel="stylesheet" href="style.css?v=1f12818adc39" />
   </head>
   <body>
     <main class="game-shell">
       <canvas id="game" width="480" height="480" aria-label="Overworld game map"></canvas>
+      <div id="door-loading" class="door-loading" role="status" aria-live="polite">
+        <div class="door-loading-box">Loading<span class="door-loading-dots" aria-hidden="true"></span></div>
+      </div>
       <button id="tim-cutscene-next" class="tim-cutscene-next" type="button" hidden>Next &gt;</button>
       <div class="top-actions">
         <button id="music-toggle" class="music-toggle" type="button" aria-expanded="false" aria-controls="music-panel">
@@ -22,6 +25,7 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
+        <button id="thoughts-toggle" class="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts</button>
         <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
           Inventory <span class="inventory-count">1</span>
         </button>
@@ -48,7 +52,10 @@
       </section>
       <div id="powerup-status" class="powerup-status" hidden></div>
       <button id="bus-intro-skip" class="bus-intro-skip" type="button" hidden>⏩ Skip intro</button>
-      <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
+      <div class="movement-actions">
+        <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
+        <button id="controls-toggle" class="controls-toggle" type="button" aria-controls="movement-controls">Controls: Thumbstick</button>
+      </div>
       <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
         <div class="jump-header">
           <h2>Jump</h2>
@@ -107,7 +114,7 @@
         <div id="gift-items" class="gift-items" aria-label="Collected gifts"></div>
         <p id="inventory-message" class="inventory-message"></p>
       </section>
-      <div class="controls">
+      <div id="movement-controls" class="controls">
         <div class="dpad" role="group" aria-label="Movement controls">
           <button class="dpad-button up-left" data-directions="up left" aria-label="Move up and left">◸</button>
           <button class="dpad-button" data-directions="up" aria-label="Move up">△</button>
@@ -123,6 +130,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=685c3ce392da"></script>
+    <script src="dist/main-bundle.js?v=91508f6f2889"></script>
   </body>
 </html>
