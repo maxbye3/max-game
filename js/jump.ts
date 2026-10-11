@@ -22,6 +22,7 @@ const JUMP_DESTINATIONS: readonly JumpDestination[] = [
   { id: 'gym', label: 'Gym' },
   { id: 'cinema', label: 'Cinema' },
   { id: 'bookshop', label: 'Bookshop' },
+  { id: 'snow-mansion', label: 'Haunted House' },
 ];
 
 const jumpToggle = document.querySelector<HTMLButtonElement>('#jump-toggle');

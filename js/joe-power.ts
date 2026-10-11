@@ -1,14 +1,10 @@
-import { damagePlayerHealth, getPlayerHealth } from './player-health.js';
-
 export const JOE_POWER_DURATION = 10_000;
-export const JOE_POWER_REVEAL = "Joe's power: you lost 10% of your health to heat damage over ten seconds. You became the centre of a volcanic heatwave: molten cracks spread beneath your footsteps, fire geysers erupted, the scenery shimmered, and nearby characters recoiled from the heat. The landscape cooled afterwards, but the health loss remained.";
+export const JOE_POWER_REVEAL = "Joe's power: for ten seconds you became the centre of a volcanic heatwave. Molten cracks spread beneath your footsteps, fire geysers erupted, the scenery shimmered, and nearby characters recoiled from the heat. The landscape cooled afterwards and no permanent health cost remained.";
 export interface JoeTarget { readonly id: string; readonly x: number; readonly y: number; readonly height: number }
 interface HeatedTarget extends JoeTarget { readonly reachedAt: number }
 interface HeatVent { readonly x: number; readonly y: number; readonly time: number; readonly seed: number }
 let startedAt = Infinity;
 let endsAt = 0;
-let damagePerPulse = 0;
-let appliedPulses = 0;
 let lastVentAt = -Infinity;
 let lastPosition: { x: number; y: number } | null = null;
 const vents: HeatVent[] = [];
@@ -16,23 +12,14 @@ const neighbours = new Map<string, HeatedTarget>();
 const protagonist = { x: 0, y: 0 };
 
 export function activateJoePower(now = performance.now()): void {
-  updateJoeDamage(now);
   startedAt = now; endsAt = now + JOE_POWER_DURATION;
-  damagePerPulse = getPlayerHealth() * 0.01;
-  appliedPulses = 0; lastVentAt = -Infinity; lastPosition = null;
+  lastVentAt = -Infinity; lastPosition = null;
   vents.length = 0; neighbours.clear();
 }
 export const isJoePowerActive = (now = performance.now()): boolean => now >= startedAt && now < endsAt;
 export const joePowerSecondsLeft = (now = performance.now()): number => isJoePowerActive(now) ? (endsAt - now) / 1000 : 0;
 export const joePowerElapsed = (now: number): number => Math.max(0, now - startedAt);
 export const joeVisualStrength = (now: number): number => isJoePowerActive(now) ? Math.min(1, joePowerElapsed(now) / 250, joePowerSecondsLeft(now) * 3) : 0;
-
-/** Ten equal hits, using elapsed real time so delayed frames cannot lose or duplicate damage. */
-export function updateJoeDamage(now: number): void {
-  const pulses = Math.min(10, Math.max(0, Math.floor((now - startedAt) / 1000)));
-  if (pulses > appliedPulses) damagePlayerHealth((pulses - appliedPulses) * damagePerPulse);
-  appliedPulses = pulses;
-}
 
 export function updateJoeWorld(now: number, x: number, y: number, targets: readonly JoeTarget[]): void {
   if (!isJoePowerActive(now)) { vents.length = 0; neighbours.clear(); lastPosition = null; return; }

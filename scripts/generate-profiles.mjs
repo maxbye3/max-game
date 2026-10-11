@@ -14,7 +14,7 @@ for (const character of characters) {
     .sort((a, b) => a.name.localeCompare(b.name));
   // These characters' newly supplied PNGs are their active portraits when
   // both root formats exist. Nested portraits remain ineligible.
-  const selectedFile = ['georgia', 'helen'].includes(character.name)
+  const selectedFile = ['chris', 'georgia', 'helen'].includes(character.name)
     ? files.find((file) => file.name.toLowerCase() === 'profile.png') ?? files[0]
     : files[0];
   if (selectedFile) profileSources[character.name] = `chat/${character.name}/${selectedFile.name}`;

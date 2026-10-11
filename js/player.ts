@@ -1,6 +1,7 @@
 import { timInputVector } from './tim-input-power.js';
 import { reiMovementMultiplier } from './rei-power.js';
 import { noelMovementMultiplier } from './noel-power.js';
+import { aliceMovementMultiplier } from './alice-power.js';
 import { mikeMovementMultiplier } from './mike-power.js';
 import { lucyMovementMultiplier } from './lucy-power.js';
 import { isKatiePowerActive } from './katie-power.js';
@@ -130,7 +131,7 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   const timDirection = timInputVector(dx, dy); dx = timDirection.x; dy = timDirection.y;
 
   const isMoving = dx !== 0 || dy !== 0;
-  const movementSpeed = SPEED * speedMultiplier * niallSpeedMultiplier() * adamAirStrideMultiplier() * samMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier();
+  const movementSpeed = SPEED * speedMultiplier * niallSpeedMultiplier() * adamAirStrideMultiplier() * aliceMovementMultiplier() * samMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier();
   const flying = isGeorgiaPowerActive();
   if (flying) moveGeorgiaFlight(player, dx, dy, movementSpeed, deltaTime, FLIGHT_BOUNDS);
   if (!isMoving) {
@@ -153,6 +154,6 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   else if (dy < 0) player.direction = 'up';
   else player.direction = 'down';
 
-  player.animationTime += deltaTime * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier();
+  player.animationTime += deltaTime * aliceMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier();
   player.frame = Math.floor(player.animationTime * 11) % FRAME_COUNT;
 }

@@ -3,6 +3,7 @@ import { withSamPinch } from './sam-power-render.js';
 import { withReiPower } from './rei-power-render.js';
 import { withOscarAppetite } from './oscar-power-render.js';
 import { withNoelContract } from './noel-power-render.js';
+import { withAliceKit } from './alice-power-render.js';
 import { withMikeJoy } from './mike-power-render.js';
 import { withLucyPicnic } from './lucy-power-render.js';
 import { withKatieBreak } from './katie-power-render.js';
@@ -29,11 +30,13 @@ import { isJulianPowerActive } from './julian-power.js';
 import { isLucyPowerActive, isLucyCapEquipped } from './lucy-power.js';
 import { isMikePowerActive } from './mike-power.js';
 import { isNoelPowerActive } from './noel-power.js';
+import { isAlicePowerActive } from './alice-power.js';
 import { isKatiePowerActive } from './katie-power.js';
 import { isTimInputPowerActive } from './tim-input-power.js';
 
 type PowerWrapper = (context: CanvasRenderingContext2D, x: number, y: number, height: number, id: string, draw: () => void, now: number) => void;
 const powers: readonly { active: (now: number) => boolean; wrap: PowerWrapper }[] = [
+  { active: isAlicePowerActive, wrap: (context, x, y, height, id, draw, now) => withAliceKit(context, x, y, height, id, draw, now) },
   { active: isSamPowerActive, wrap: (context, x, y, _height, id, draw, now) => withSamPinch(context, x, y, id, draw, now) },
   { active: isReiPowerActive, wrap: (context, x, y, height, id, draw, now) => withReiPower(context, x, y, height, id, draw, now) },
   { active: isOscarPowerActive, wrap: (context, x, y, _height, id, draw, now) => withOscarAppetite(context, x, y, id, draw, now) },

@@ -1,4 +1,3 @@
-import { getPlayerHealth, healPlayerHealth } from './player-health.js';
 import { readStorage, writeStorage } from './storage.js';
 import type { SamPowerTarget } from './sam-power.js';
 
@@ -9,9 +8,7 @@ export interface LucyPlate { readonly x: number; readonly y: number; readonly sa
 const CAP_KEY = 'max-game:lucy-solar-cap-equipped';
 const BILL_KEY = 'max-game:lucy-cleaning-charges';
 let startedAt = Infinity;
-let lastTick = 0;
 let random: () => number = Math.random;
-let healthRestored = 0;
 let cleaningCharges = 0;
 let capEarned = false;
 let delightedCount = 0;
@@ -30,7 +27,7 @@ const trails: { x: number; y: number; time: number }[] = [];
 let hasOrigin = false;
 
 export function activateLucyPower(now = performance.now(), rng = Math.random): void {
-  startedAt = now; lastTick = now; random = rng; healthRestored = 0; cleaningCharges = 0;
+  startedAt = now; random = rng; cleaningCharges = 0;
   capEarned = false; foodMultiplier = 1.5; splashUntil = 0; hasOrigin = false; nextTrailAt = now;
   delightedCount = 0; puzzledCount = 0; splatteredCount = 0;
   guests.clear(); reactions.clear(); plates.length = 0; trails.length = 0;
@@ -90,19 +87,6 @@ export function updateLucyWorld(now: number, x: number, y: number, targets: read
   while (trails.length && now - trails[0]!.time > 2200) trails.shift();
 }
 
-/** Accumulate real-time healing once; background/delayed frames cannot double-credit it. */
-export function updateLucyRecovery(now: number, outdoors: boolean): void {
-  const dt = Math.max(0, Math.min(now, startedAt + LUCY_POWER_DURATION) - Math.max(lastTick, startedAt)) / 1000;
-  if (dt > 0) {
-    const before = getPlayerHealth();
-    healPlayerHealth(dt * (2 * foodMultiplier + (outdoors && capEarned ? 1 : 0)));
-    healthRestored += getPlayerHealth() - before;
-  }
-  const capDt = Math.min(0.25, Math.max(0, now - lastTick) / 1000);
-  if (capEquipped && outdoors && !isLucyPowerActive(now)) healPlayerHealth(capDt);
-  lastTick = now;
-}
-
 export function lucyCharacterPose(id: string, now: number): { x: number; y: number; lean: number; scale: number } {
   const neutral = { x: 0, y: 0, lean: 0, scale: 1 };
   if (!isLucyPowerActive(now)) return neutral;
@@ -117,5 +101,5 @@ export function lucyCharacterPose(id: string, now: number): { x: number; y: numb
 }
 
 export function lucyPowerReveal(): string {
-  return `Lucy's power: your mayonnaise turned the landscape into a gigantic picnic for ten seconds. Savoury food boosted movement and nourishment by 50%; stepping onto a cake plate halved them. Nearby characters received a gift with a 50% chance of loving it, 25% of being puzzled and 25% of a bursting sachet. This time: ${delightedCount} delighted, ${puzzledCount} puzzled, ${splatteredCount} splattered. You recovered ${healthRestored.toFixed(1)} HP.${capEarned ? ' You earned a solar-panel cap: wear it from your inventory to slowly recover health in the bright outdoor world.' : ''}${cleaningCharges ? ` Dry-cleaning charges of £${cleaningCharges} were added to your account (total £${lucyCleaningBalance()}). The splashes briefly slowed you down.` : ''} The picnic disappeared and normal movement returned.`;
+  return `Lucy's power: your mayonnaise turned the landscape into a gigantic picnic for ten seconds. Savoury food boosted movement by 50%; stepping onto a cake plate halved it. Nearby characters received a gift with a 50% chance of loving it, 25% of being puzzled and 25% of a bursting sachet. This time: ${delightedCount} delighted, ${puzzledCount} puzzled, ${splatteredCount} splattered.${capEarned ? ' You earned a solar-panel cap.' : ''}${cleaningCharges ? ` Dry-cleaning charges of £${cleaningCharges} were added to your account (total £${lucyCleaningBalance()}). The splashes briefly slowed you down.` : ''} The picnic disappeared and normal movement returned.`;
 }

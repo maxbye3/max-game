@@ -1,7 +1,7 @@
 import { isTimInputPowerActive, timInputVector, updateTimInputWorld } from './tim-input-power.js';
 import { isSamPowerActive, samMovementMultiplier, updateSamPower } from './sam-power.js';
 import { isReiPowerActive, reiWorldDeltaTime, updateReiWorld, reiMovementMultiplier } from './rei-power.js';
-import { isNoelPowerActive, updateNoelWorld, noelMovementMultiplier } from './noel-power.js';
+import { isNoelPowerActive, updateNoelWorld, noelMovementMultiplier } from './noel-power.js'; import { aliceMovementMultiplier, aliceWorldDeltaTime, isAlicePowerActive, updateAliceWorld } from './alice-power.js';
 import { isMikePowerActive, mikeWorldDeltaTime, updateMikeWorld, mikeMovementMultiplier } from './mike-power.js';
 import { lucyMovementMultiplier, isLucyPowerActive, updateLucyWorld } from './lucy-power.js';
 import { isKatiePowerActive, katieWorldDeltaTime, updateKatieWorld } from './katie-power.js';
@@ -60,7 +60,6 @@ import { resolveSiteAsset } from './site-assets.js';
 import { NOEL_DIALOGUE_LINES } from './noel-dialogue.js';
 import { DadDialogueController } from './dad-dialogue-controller.js';
 import { createInteriorRenderer } from './interior-render.js';
-
 const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal'); const doorLoading = requireElement<HTMLElement>('#door-loading');
 const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt');
 const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
@@ -544,7 +543,7 @@ function updatePlayer(deltaTime: number): void {
   dx = juDirection.x; dy = juDirection.y;
   const timDirection = timInputVector(dx, dy); dx = timDirection.x; dy = timDirection.y;
   const flying = isGeorgiaPowerActive();
-  const movementSpeed = SPEED * niallSpeedMultiplier() * adamAirStrideMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier() * samMovementMultiplier();
+  const movementSpeed = SPEED * niallSpeedMultiplier() * adamAirStrideMultiplier() * aliceMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier() * samMovementMultiplier();
   if (flying) moveGeorgiaFlight(player, dx, dy, movementSpeed, deltaTime, FLIGHT_BOUNDS);
   if (dx === 0 && dy === 0) {
     player.animationTime = 0;
@@ -566,7 +565,7 @@ function updatePlayer(deltaTime: number): void {
   else if (dx > 0) player.direction = 'right';
   else if (dy < 0) player.direction = 'up';
   else player.direction = 'down';
-  player.animationTime += deltaTime * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier() * samMovementMultiplier();
+  player.animationTime += deltaTime * aliceMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier() * samMovementMultiplier();
   player.frame = Math.floor(player.animationTime * 11) % FRAME_COUNT;
 }
 function updateNearbyInteraction(): void {
@@ -622,7 +621,7 @@ const draw = createInteriorRenderer({
 let worldAnimationTime = 0;
 function gameLoop(time: number): void {
   const deltaTime = previousTime === 0 ? 0 : Math.min((time - previousTime) / 1000, 0.05);
-  const worldDeltaTime = reiWorldDeltaTime(mikeWorldDeltaTime(katieWorldDeltaTime(julianWorldDeltaTime(juWorldDeltaTime(helenWorldDeltaTime(danWorldDeltaTime(chrisWorldDeltaTime(andyWorldDeltaTime(maddyWorldDeltaTime(deltaTime, time), time), time), time), time), time), time), time), time), time);
+  const worldDeltaTime = aliceWorldDeltaTime(reiWorldDeltaTime(mikeWorldDeltaTime(katieWorldDeltaTime(julianWorldDeltaTime(juWorldDeltaTime(helenWorldDeltaTime(danWorldDeltaTime(chrisWorldDeltaTime(andyWorldDeltaTime(maddyWorldDeltaTime(deltaTime, time), time), time), time), time), time), time), time), time), time), time);
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
@@ -630,6 +629,7 @@ function gameLoop(time: number): void {
   if (!isKatiePowerActive(time)) settleGeorgiaFlight(player, flightLandingBlocked, FLIGHT_BOUNDS, time);
   let visibleKatieTargets = KATIE_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
   let visibleOscarTargets = OSCAR_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
+  updateAliceWorld(time, player.x, player.y, visibleKatieTargets);
   updateReiWorld(time, player.x, player.y, visibleKatieTargets);
   updateNoelWorld(time, player.x, player.y, visibleKatieTargets);
   updateMikeWorld(time, player.x, player.y, visibleKatieTargets);
@@ -660,8 +660,8 @@ function gameLoop(time: number): void {
   updateChrisWorld(time, player.x, player.y, visibleOscarTargets);
   updateDanWorld(time, player.x, player.y, visibleOscarTargets);
   updateGeorgiaWorld(time, player.x, player.y, visibleOscarTargets);
-  if (!isChrisPowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateNearbyInteraction();
-  if (!isGeorgiaPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) interiorDoors.update(player.x, player.y);
+  if (!isAlicePowerActive(time) && !isChrisPowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateNearbyInteraction();
+  if (!isAlicePowerActive(time) && !isGeorgiaPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) interiorDoors.update(player.x, player.y);
   draw(time, worldAnimationTime);
 }
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
@@ -669,7 +669,7 @@ bindControls(); setupAudioMute(); setupInteriorAmbience(enteredDoor);
 setupInventory();
 bindPowerDialogueDismissal(closeNoelDialogue);
 window.addEventListener('max-game:alex-s-dialogue', () => { input.releaseAll(); closeNoelDialogue(); });
-document.querySelector('.interior-exit')?.addEventListener('click', (event) => { if (isKatiePowerActive() || isLucyPowerActive() || isMikePowerActive() || isNoelPowerActive() || isOscarPowerActive() || isReiPowerActive() || isSamPowerActive() || isTimInputPowerActive()) event.preventDefault(); });
+document.querySelector('.interior-exit')?.addEventListener('click', (event) => { if (isAlicePowerActive() || isKatiePowerActive() || isLucyPowerActive() || isMikePowerActive() || isNoelPowerActive() || isOscarPowerActive() || isReiPowerActive() || isSamPowerActive() || isTimInputPowerActive()) event.preventDefault(); });
 setupJump();
 const requiredImages = [
   interior,

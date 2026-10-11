@@ -1,5 +1,4 @@
 import { getJoeNeighbours, getJoeProtagonist, getJoeVents, isJoePowerActive, joeCharacterPose, joePowerElapsed, joeVisualStrength } from './joe-power.js';
-import { getPlayerHealth, PLAYER_MAX_HEALTH } from './player-health.js';
 
 const FIRE = ['#8c251c', '#ff5724', '#ffab38', '#fff2a3'] as const;
 let terrainBuffer: HTMLCanvasElement | null = null;
@@ -108,22 +107,5 @@ export function drawJoeWorld(context: CanvasRenderingContext2D, cameraX: number,
     context.globalAlpha = strength * (0.25 + ember % 3 * 0.15); context.fillStyle = FIRE[ember % 3 + 1] ?? FIRE[1];
     context.fillRect(Math.round(x), Math.round(y), 2 + ember % 2, 4);
   }
-  context.restore();
-}
-
-/** Health remains visible after the spectacle: the item has a real lasting cost. */
-export function drawPlayerHealth(context: CanvasRenderingContext2D, now: number): void {
-  const health = getPlayerHealth();
-  if (health === PLAYER_MAX_HEALTH && !isJoePowerActive(now)) return;
-  context.save(); context.setTransform(1, 0, 0, 1, 0, 0);
-  // Keep this below the music/reset controls, at a readable CSS-pixel size on phones.
-  const scale = context.canvas.width / (context.canvas.clientWidth || context.canvas.width);
-  context.scale(scale, scale); context.translate(18, 110);
-  const width = Math.min(120, context.canvas.width / scale * 0.3);
-  context.fillStyle = '#17191c'; context.fillRect(0, 0, width + 8, 35);
-  context.fillStyle = '#482530'; context.fillRect(4, 20, width, 9);
-  context.fillStyle = isJoePowerActive(now) ? '#ff9d38' : '#c5ec98'; context.fillRect(4, 20, width * health / PLAYER_MAX_HEALTH, 9);
-  context.fillStyle = '#f5fff6'; context.font = '12px monospace'; context.textAlign = 'left';
-  context.fillText(`HP ${Math.round(health * 10) / 10}/${PLAYER_MAX_HEALTH}`, 4, 14);
   context.restore();
 }

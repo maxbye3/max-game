@@ -19,6 +19,7 @@ import { requireElement } from './dom.js';
 import { releaseAllInput } from './input.js';
 import { announceWorldInteraction } from './world-interactions.js';
 import type { CollisionShape } from './types.js';
+import { isMikePowerActive } from './mike-power.js';
 
 interface Sign {
   readonly id: string;
@@ -133,6 +134,7 @@ function distanceToSign(playerX: number, playerY: number, sign: Sign): number {
 }
 
 function showSign(sign: Sign): void {
+  if (isMikePowerActive()) return;
   if (dismissedSignId === sign.id) return;
   if (activeSign?.id === sign.id) return;
 
@@ -169,6 +171,7 @@ export function isSignDialogueOpen(): boolean {
 
 /** Called with each attempted player position so contact opens the sign immediately. */
 export function bumpSignAt(playerX: number, playerY: number): boolean {
+  if (isMikePowerActive()) return false;
   const sign = SIGNS.find((candidate) => playerFootIntersectsSign(playerX, playerY, candidate));
   if (!sign) return false;
 
@@ -178,6 +181,10 @@ export function bumpSignAt(playerX: number, playerY: number): boolean {
 
 /** Proximity reads the nearest sign automatically; moving away dismisses it. */
 export function updateSigns(playerX: number, playerY: number): void {
+  if (isMikePowerActive()) {
+    if (activeSign) hideSignDialogue();
+    return;
+  }
   let nearestSign: Sign | null = null;
   let nearestDistance = Number.POSITIVE_INFINITY;
 
@@ -205,3 +212,4 @@ export function updateSigns(playerX: number, playerY: number): void {
 
 closeButton.addEventListener('click', dismissSignDialogue);
 window.addEventListener('max-game:world-interaction-opened', hideSignDialogue);
+window.addEventListener('max-game:mike-power-activated', hideSignDialogue);
