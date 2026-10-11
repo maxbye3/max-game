@@ -48,7 +48,19 @@ function loadImage(character: MapCharacter): Promise<void> {
 }
 
 export function loadMapCharacters(): Promise<void> {
-  return Promise.all(mapCharacters.map(loadImage)).then(() => undefined);
+  // Character sprites are spread across the whole world. Start these after
+  // the opening frame; the canvas skips each sprite until its image is ready.
+  const loadCharacters = (): void => {
+    for (const character of mapCharacters) {
+      void loadImage(character).catch(() => {});
+    }
+  };
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(loadCharacters, { timeout: 1500 });
+  } else {
+    window.setTimeout(loadCharacters, 250);
+  }
+  return Promise.resolve();
 }
 
 export function drawMapCharacters(
@@ -60,6 +72,7 @@ export function drawMapCharacters(
   context.save();
   context.imageSmoothingEnabled = false;
   for (const character of mapCharacters) {
+    if (!character.image.complete || character.image.naturalWidth === 0) continue;
     if (!shouldDraw(character)) continue;
     // Leave room for stretched poses and recoil beyond the normal sprite.
     const margin = character.height * 4;

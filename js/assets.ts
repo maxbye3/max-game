@@ -73,7 +73,7 @@ function loadImage(image: HTMLImageElement, src: string): Promise<void> {
 
 export async function loadAssets(needsCaveThief = false): Promise<void> {
   const sealMode = new URLSearchParams(window.location.search).has('seal');
-  const blockingAssets = (Object.keys(IMAGE_SOURCES) as AssetName[]).filter((name) =>
+  const requestedAssets = (Object.keys(IMAGE_SOURCES) as AssetName[]).filter((name) =>
     name !== 'georgia' &&
     (name !== 'girlsSprite' || needsCaveThief) &&
     name !== (hasMikeAftermath() ? 'billboardUnfinished' : 'billboardFinished') &&
@@ -81,5 +81,20 @@ export async function loadAssets(needsCaveThief = false): Promise<void> {
     (name !== 'paint' || hasMikeAftermath()) &&
     name !== (sealMode ? 'spriteSheet' : 'sealSpriteSheet'),
   );
-  await Promise.all(blockingAssets.map((name) => loadImage(images[name], IMAGE_SOURCES[name])));
+  const playerImage = sealMode ? 'sealSpriteSheet' : 'spriteSheet';
+  const firstFrameAssets: AssetName[] = ['map', 'road', 'bus', playerImage];
+  await Promise.all(firstFrameAssets.map((name) => loadImage(images[name], IMAGE_SOURCES[name])));
+
+  const backgroundAssets = requestedAssets.filter((name) => !firstFrameAssets.includes(name));
+  const loadBackgroundAssets = (): void => {
+    for (const name of backgroundAssets) {
+      if (images[name].complete && images[name].naturalWidth > 0) continue;
+      void loadImage(images[name], IMAGE_SOURCES[name]).catch(() => {});
+    }
+  };
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(loadBackgroundAssets, { timeout: 1500 });
+  } else {
+    window.setTimeout(loadBackgroundAssets, 250);
+  }
 }

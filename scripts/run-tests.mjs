@@ -915,23 +915,23 @@ try {
     }
     assert.equal(busIntroTraffic.isBusIntroActive(), false, 'road traffic waits for the bus to finish leaving');
     assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), []);
-    for (let frame = 0; frame < 59; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
-    assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), [], 'the first car waits at least three seconds');
+    for (let frame = 0; frame < 599; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
+    assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), [], 'the first car waits 30 seconds');
     busIntroTraffic.updateBusIntro(0.05, introPlayer);
     const firstRoadCar = busIntroTraffic.getRoadTrafficCars()[0];
     assert.equal(firstRoadCar?.spriteIndex, 0);
-    assert.ok((firstRoadCar?.x ?? 0) < 0, 'cars enter from offscreen on the left');
+    assert.ok((firstRoadCar?.x ?? 0) > 0, 'cars enter from the right with their fronts facing the direction of travel');
     busIntroTraffic.updateBusIntro(1, introPlayer);
-    assert.equal(busIntroTraffic.getRoadTrafficCars()[0]?.x, (firstRoadCar?.x ?? 0) + 220);
-    for (let frame = 0; frame < 39; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
-    assert.equal(busIntroTraffic.getRoadTrafficCars().length, 1, 'cars stay separated by the scheduled gap');
+    assert.equal(busIntroTraffic.getRoadTrafficCars()[0]?.x, (firstRoadCar?.x ?? 0) - 220);
+    for (let frame = 0; frame < 379; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
+    assert.equal(busIntroTraffic.getRoadTrafficCars().length, 0, 'the next car waits 20 seconds');
     busIntroTraffic.updateBusIntro(0.05, introPlayer);
     assert.deepEqual(
       busIntroTraffic.getRoadTrafficCars().map((car) => car.spriteIndex),
-      [0, 1],
+      [1],
       'cars use separate sprites in sequence',
     );
-    console.log('Road traffic: cars start after bus departure and follow three-second gaps');
+    console.log('Road traffic: cars travel left, start after 30 seconds and follow 20-second gaps');
   } finally {
     Math.random = originalRandom;
   }
@@ -943,7 +943,8 @@ try {
   niallNext();
   assert.equal(element('#niall-dialogue-line').textContent, 'Kept you waiting huh?');
   niallNext();
-  assert.equal(element('#niall-dialogue-line').textContent, "My pizza's are technically imperfect but free");
+  assert.equal(element('#niall-dialogue').hidden, true, 'the bus-stop conversation ends after Niall’s two arrival lines');
+  assert.notEqual(element('#niall-dialogue-line').textContent, "My pizza's are technically imperfect but free", 'Niall keeps the fight line out of bus-stop dialogue');
   assert.equal(niall.isNiallEncounterBlockingPlayer(), true, 'Niall keeps the player in the bus-stop conversation until the final line advances');
   niallNext();
   assert.equal(element('#niall-dialogue').hidden, true);

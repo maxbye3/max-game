@@ -2166,29 +2166,65 @@ kbd {
   }
   .mobile-thumbstick.pressed .mobile-thumbstick-knob { background: #d5ffc4; }
   .controls[data-mobile-controls="split"] {
-    left: calc(12px + env(safe-area-inset-left));
-    right: calc(12px + env(safe-area-inset-right));
+    inset: 0;
     width: auto;
+    height: auto;
+    transform: none;
   }
   .controls[data-mobile-controls="split"] .mobile-split-controls {
-    display: flex;
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
-    justify-content: space-between;
-    align-items: center;
+    height: 100%;
   }
   .mobile-split-bank {
+    position: absolute;
+    top: 55%;
     display: flex;
-    gap: 6px;
+    flex-direction: column;
+    width: calc(50% - 8px);
+    min-width: 88px;
+    transform: translateY(-50%);
     pointer-events: auto;
   }
+  .mobile-split-bank:first-child {
+    left: env(safe-area-inset-left);
+    width: calc(50% - 8px - env(safe-area-inset-left));
+  }
+  .mobile-split-bank:last-child {
+    right: env(safe-area-inset-right);
+    width: calc(50% - 8px - env(safe-area-inset-right));
+  }
   .controls .mobile-split-button {
-    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 96px;
+    padding: 12px;
+    border: 0;
+    background: transparent;
+  }
+  .mobile-split-bank:last-child .mobile-split-button { justify-content: flex-end; }
+  .controls .mobile-split-button:is(:hover, :active, .pressed) {
+    background: transparent;
+    transform: none;
+  }
+  .mobile-split-key {
+    display: grid;
+    flex: 0 0 64px;
+    width: 64px;
     height: 64px;
+    place-items: center;
     border: 2px solid #a4c99c;
     border-radius: 14px;
     font-size: 32px;
     background: #143322e6;
+    pointer-events: none;
   }
+  .mobile-split-button.pressed .mobile-split-key { background: #3d6947; transform: scale(.94); }
+  .mobile-split-button:focus-visible .mobile-split-key { outline: 3px solid #fff; outline-offset: 3px; }
   .movement-actions {
     left: calc(12px + env(safe-area-inset-left));
     bottom: calc(12px + env(safe-area-inset-bottom));

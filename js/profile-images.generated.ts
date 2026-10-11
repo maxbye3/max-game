@@ -2,7 +2,7 @@
 export const PROFILE_IMAGE_SOURCES = {
   "alex s": "chat/alex s/profile.png",
   "alice": "chat/alice/profile.png",
-  "chris": "chat/chris/profile.jpg",
+  "chris": "chat/chris/profile.png",
   "dan": "chat/dan/profile.png",
   "ed": "chat/ed/profile.png",
   "georgia": "chat/georgia/profile.png",

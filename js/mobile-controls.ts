@@ -1,7 +1,7 @@
 import type { InputDirection } from './types.js';
 
 const MODES = ['stick', 'pad', 'split'] as const;
-const LABELS = { stick: 'Thumbstick', pad: 'D-pad', split: 'Split' };
+const LABELS = { stick: 'Thumbstick', pad: 'D-pad', split: 'Screen sides' };
 const STORAGE_KEY = 'max-game:mobile-controls';
 
 /** Mobile layouts share the same direction inputs as the keyboard. */
@@ -25,7 +25,7 @@ export function setupMobileControls(
   const split = document.createElement('div');
   split.className = 'mobile-split-controls';
   split.setAttribute('role', 'group');
-  split.setAttribute('aria-label', 'Split movement controls');
+  split.setAttribute('aria-label', 'Screen side movement buttons');
   const banks: ReadonlyArray<ReadonlyArray<readonly [InputDirection, string]>> = [
     [['up', '↑'], ['down', '↓']],
     [['left', '←'], ['right', '→']],
@@ -39,7 +39,11 @@ export function setupMobileControls(
       button.className = 'dpad-button mobile-split-button';
       button.dataset.directions = direction;
       button.setAttribute('aria-label', `Move ${direction}`);
-      button.textContent = symbol;
+      const key = document.createElement('span');
+      key.className = 'mobile-split-key';
+      key.setAttribute('aria-hidden', 'true');
+      key.textContent = symbol;
+      button.append(key);
       bank.append(button);
     }
     split.append(bank);
@@ -109,8 +113,8 @@ export function setupMobileControls(
   const applyMode = () => {
     releaseAll();
     controls.dataset.mobileControls = mode;
-    toggle.textContent = `Controls: ${LABELS[mode]}`;
-    toggle.setAttribute('aria-label', `Controls: ${LABELS[mode]}. Tap to switch layout.`);
+    toggle.textContent = 'Toggle Controls';
+    toggle.setAttribute('aria-label', `Toggle Controls. Current layout: ${LABELS[mode]}.`);
     try { localStorage.setItem(STORAGE_KEY, mode); } catch {}
   };
   toggle.addEventListener('click', () => {

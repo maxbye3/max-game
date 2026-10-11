@@ -149,8 +149,9 @@ window.addEventListener('max-game:alex-s-dialogue', hideSignDialogue);
 setupCaveThief();
 setupGymTimCutscene();
 
-Promise.all([loadAssets(isCaveThiefPursuitActive()), loadMapCharacters()])
+loadAssets(isCaveThiefPursuitActive())
   .then(() => {
+    void loadMapCharacters();
     releaseAllInput();
     loadingOverlay.hidden = true;
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES.length);

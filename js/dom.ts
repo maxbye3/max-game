@@ -9,6 +9,16 @@ if (!canvasContext) throw new Error('This browser does not support the 2D canvas
 export const context = canvasContext;
 context.imageSmoothingEnabled = false;
 
+// Progressive asset loading can leave world art pending for a few frames.
+// Ignore those images until decoded so they never throw from drawImage().
+if (typeof context.drawImage === 'function') {
+  const drawImage = context.drawImage.bind(context);
+  context.drawImage = ((source: CanvasImageSource, ...coordinates: number[]): void => {
+    if (source instanceof HTMLImageElement && (!source.complete || source.naturalWidth === 0)) return;
+    drawImage.apply(context, [source, ...coordinates] as Parameters<typeof context.drawImage>);
+  }) as typeof context.drawImage;
+}
+
 // Keep the game pixels in the same proportions as the visible canvas. Portrait
 // phones use a taller view; capped dimensions keep interior rooms from stretching.
 const shell = typeof canvas.closest === 'function' ? canvas.closest<HTMLElement>('.game-shell') : null;

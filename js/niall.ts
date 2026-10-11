@@ -11,7 +11,6 @@ import {
 } from './world-state.js';
 import { releaseAllInput } from './input.js';
 import { NIALL_DIALOGUE_LINES } from './niall-dialogue.js';
-import { nextDialogueVisitIndex } from './dialogue-visit.js';
 import type { Direction } from './types.js';
 import { beginDialogueAudio, endDialogueAudio } from './dialogue-audio.js';
 import { addGift, NIALL_ITEM } from './inventory-gifts.js';
@@ -89,17 +88,10 @@ function hideDialogue(): void {
   dialogue.hidden = true;
 }
 
-function nextBusDialogueLine(): string {
-  const index = nextDialogueVisitIndex('niall-bus', NIALL_DIALOGUE_LINES.length);
-  return NIALL_DIALOGUE_LINES[index] ?? '...';
-}
-
 function startBusDialogue(arrival: boolean): void {
   if (arrival) hasShownBusArrival = true;
   busDialogueActive = true;
-  busDialogueLines = arrival
-    ? ['Niall is rolling a cigarette', 'Kept you waiting huh?', nextBusDialogueLine()]
-    : [nextBusDialogueLine()];
+  busDialogueLines = arrival ? ['Niall is rolling a cigarette', 'Kept you waiting huh?'] : [];
   showDialogue(busDialogueLines.shift() ?? '...');
   if (edPowerSecondsLeft() > 0) {
     showHalsteadTattoo('Niall');
@@ -174,7 +166,7 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
   }
   if (questState === 'busStop') {
     const nearBusStop = Math.hypot(playerX - niallState.x, playerY - niallState.y) <= BUS_DIALOGUE_DISTANCE;
-    if (nearBusStop && !wasNearBusStop && !busDialogueActive) startBusDialogue(!hasShownBusArrival);
+    if (nearBusStop && !wasNearBusStop && !busDialogueActive && !hasShownBusArrival) startBusDialogue(true);
     wasNearBusStop = nearBusStop;
     return;
   }
