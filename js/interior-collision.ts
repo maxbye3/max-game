@@ -1,4 +1,4 @@
-import { ART_STUDIO_WALLS, CAVE_WALLS, type InteriorScene } from './interior-scenes.js';
+import { ART_STUDIO_WALLS, CAVE_WALLS, DOUGHNUT_SHOP_WALLS, type InteriorScene } from './interior-scenes.js';
 
 const PLAYER_FRAME_WIDTH = 23;
 const PLAYER_FRAME_HEIGHT = 36;
@@ -31,6 +31,11 @@ export class InteriorCollision {
     }
     if (this.scene.kind === 'artStudio') {
       return ART_STUDIO_WALLS.some(([wallX, wallY, width, height]) =>
+        x >= wallX && x < wallX + width && y >= wallY && y < wallY + height,
+      );
+    }
+    if (this.scene.kind === 'doughnutShop') {
+      return DOUGHNUT_SHOP_WALLS.some(([wallX, wallY, width, height]) =>
         x >= wallX && x < wallX + width && y >= wallY && y < wallY + height,
       );
     }

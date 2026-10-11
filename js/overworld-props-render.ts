@@ -83,6 +83,7 @@ export interface WorldDepth {
 }
 
 const CAVE_COVER = { x: 184, y: 224, width: 80, height: 68 } as const;
+const FEEDBACK_SHOP = { width: 91, height: 100, yOffset: -3 } as const;
 
 const BAKED_SNOWMAN_PATCH = {
   sourceX: 270,
@@ -262,7 +263,16 @@ export function drawWorldBackground(
   drawSnowman(cameraX, cameraY);
   context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
   context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
-  context.drawImage(images.feedback, FEEDBACK_X - cameraX, FEEDBACK_Y - cameraY);
+  context.save();
+  context.imageSmoothingEnabled = false;
+  context.drawImage(
+    images.feedback,
+    FEEDBACK_X - cameraX,
+    FEEDBACK_Y - cameraY + FEEDBACK_SHOP.yOffset,
+    FEEDBACK_SHOP.width,
+    FEEDBACK_SHOP.height,
+  );
+  context.restore();
 
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';

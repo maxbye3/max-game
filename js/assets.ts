@@ -23,7 +23,7 @@ const IMAGE_SOURCES = {
   snowmanFallen: 'img/external/snowman-fallen.png',
   jobCenter: 'img/external/buildings/job-center.png',
   artistStudio: 'img/external/buildings/artist-studio.png',
-  feedback: 'img/external/buildings/feedback.png?v=91x97',
+  feedback: 'img/external/doughnut_shop.png',
   diaryLab: 'img/external/buildings/diary-lab.png',
   bookshop: 'img/external/buildings/bookshop.png',
   zenGarden: 'img/external/buildings/zen-garden.png',

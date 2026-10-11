@@ -44,7 +44,7 @@ import {
 } from './mansion-collision-mask.js';
 import { isTimAtCinema, isTimAtMusicShop } from './tim-location.js';
 
-export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio';
+export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio' | 'doughnutShop';
 export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad';
 
 export interface InteriorDoor {
@@ -133,6 +133,13 @@ export const ART_STUDIO_WALLS = [
   [0, 590, 512, 178],
 ] as const;
 
+export const DOUGHNUT_SHOP_WALLS = [
+  [0, 0, 512, 304],
+  [0, 304, 24, 370], [488, 304, 24, 370],
+  [0, 674, 212, 94], [300, 674, 212, 94],
+  [163, 350, 186, 124],
+] as const;
+
 const DIARY_LAB_DOORS: readonly InteriorDoor[] = [
   {
     triggerX: 153, triggerY: 595, exitX: 153, exitY: 650,
@@ -191,6 +198,12 @@ const ART_STUDIO_DOORS: readonly InteriorDoor[] = [{
   triggerX: 256, triggerY: 605, exitX: 256, exitY: 650,
   sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
   x: 256, y: 605, width: 1, height: 1,
+}];
+
+const DOUGHNUT_SHOP_DOORS: readonly InteriorDoor[] = [{
+  triggerX: 256, triggerY: 660, exitX: 256, exitY: 700,
+  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
+  x: 256, y: 660, width: 1, height: 1,
 }];
 
 const MANSION_DOORS: readonly InteriorDoor[] = [{
@@ -272,6 +285,17 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       interactions: [
         { kind: 'dad', label: 'Talk to Dad', x: 398, y: 462, distance: 64 },
       ],
+      playerStart: { x: 256, y: 650 },
+    };
+  }
+
+  if (enteredDoor === 'feedback-center') {
+    return {
+      kind: 'doughnutShop', title: 'Doughnut Shop', ariaLabel: 'Doughnut Shop interior',
+      width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
+      backgroundSource: '../img/internal/doughnut.png',
+      doors: DOUGHNUT_SHOP_DOORS,
+      interactions: [],
       playerStart: { x: 256, y: 650 },
     };
   }

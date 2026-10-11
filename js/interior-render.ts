@@ -31,7 +31,7 @@ import { drawAlexResurrection } from './alex-s-power-render.js';
 import { drawAndyPlayer, drawAndyWorld } from './andy-world-power.js';
 import { LucyController } from './lucy.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
-import { ART_STUDIO_WALLS, CAVE_COLANDER, CAVE_WALLS, NOEL } from './interior-scenes.js';
+import { ART_STUDIO_WALLS, CAVE_COLANDER, CAVE_WALLS, DOUGHNUT_SHOP_WALLS, NOEL } from './interior-scenes.js';
 import type { Direction } from './types.js';
 import type { InteriorScene } from './interior-scenes.js';
 import type { InteriorSceneryNpc } from './interior-scenery-npcs.js';
@@ -167,9 +167,10 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     if (SHOW_COLLISION_SHAPES) {
       context.save();
       context.globalAlpha = 0.55;
-      if (isCaveInterior || scene.kind === 'artStudio') {
+      if (isCaveInterior || scene.kind === 'artStudio' || scene.kind === 'doughnutShop') {
         context.fillStyle = '#005cff';
-        for (const [wallX, wallY, wallWidth, wallHeight] of isCaveInterior ? CAVE_WALLS : ART_STUDIO_WALLS) {
+        const walls = isCaveInterior ? CAVE_WALLS : scene.kind === 'doughnutShop' ? DOUGHNUT_SHOP_WALLS : ART_STUDIO_WALLS;
+        for (const [wallX, wallY, wallWidth, wallHeight] of walls) {
           context.fillRect(
             (wallX - cameraX) * scaleX,
             (wallY - cameraY) * scaleY,
