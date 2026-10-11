@@ -140,7 +140,7 @@ export const ALICE_ITEM: GiftItem = {
   id: 'alice-item',
   name: "Alice's item",
   imageSource: 'chat/alice/item.png',
-  description: 'The world becomes arsenal football club.',
+  description: 'Flash blinds everyone nearby, including the protagonist, for 20 seconds.',
 };
 
 export const CHRIS_ITEM: GiftItem = {

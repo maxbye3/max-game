@@ -125,6 +125,28 @@ canvas {
   gap: 8px;
 }
 
+.reset-all {
+  position: absolute;
+  z-index: 8;
+  top: calc(74px + env(safe-area-inset-top));
+  left: calc(24px + env(safe-area-inset-left));
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgb(var(--panel-rgb) / 88%);
+  font: 8px/1.4 var(--font-pixel);
+  cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .reset-all {
+    top: calc(64px + env(safe-area-inset-top));
+    left: calc(12px + env(safe-area-inset-left));
+  }
+}
+
 .music-toggle,
 .audio-mute-toggle,
 .thoughts-toggle,
@@ -1317,10 +1339,11 @@ canvas {
   position: absolute;
   z-index: 9;
   left: 50%;
-  bottom: 24px;
-  width: min(350px, 78%);
-  max-height: min(360px, calc(100% - 48px));
+  bottom: 84px;
+  width: min(350px, calc(100% - 24px));
+  max-height: calc(100% - 108px);
   overflow-y: auto;
+  overflow-anchor: none;
   padding: 14px 16px 16px;
   translate: -50% 0;
   border: 2px solid #f5fff6;
@@ -1923,7 +1946,7 @@ kbd {
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }
   .sign-dialogue { width: calc(100% - 24px); }
   .npc-talk { right: 12px; bottom: 12px; }
-  .npc-dialogue { bottom: 12px; width: min(350px, 78%); }
+  .npc-dialogue { bottom: 68px; max-height: calc(100% - 80px); }
   #noel-dialogue-question { font-size: 6px !important; }
 }
 
@@ -2005,7 +2028,10 @@ kbd {
     max-height: calc(100% - var(--mobile-dock-height) - 90px);
   }
 
-  .npc-dialogue { max-height: min(360px, calc(100% - var(--mobile-dock-height) - 90px)); }
+  .npc-dialogue {
+    bottom: calc(68px + env(safe-area-inset-bottom));
+    max-height: calc(100% - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
   .inventory-panel {
     top: calc(62px + env(safe-area-inset-top));
     max-height: calc(100% - var(--mobile-dock-height) - 74px - env(safe-area-inset-top));
@@ -2014,6 +2040,12 @@ kbd {
 }
 
 @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
+  .npc-dialogue {
+    width: min(560px, calc(100% - 24px));
+    bottom: calc(68px + env(safe-area-inset-bottom));
+    max-height: calc(100% - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
   .game-shell {
     width: 100vw;
     height: 100dvh;
@@ -2084,12 +2116,20 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
+  max-width: calc(100% - 48px);
 }
 
 .movement-actions .jump-toggle {
   position: static;
   transform: none;
   min-height: 44px;
+}
+
+.movement-actions .thoughts-toggle {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 44px;
+  font-size: 9px;
 }
 
 .controls-toggle {
@@ -2170,6 +2210,8 @@ kbd {
     width: auto;
     height: auto;
     transform: none;
+    /* Keep every existing action, dialogue and menu above the movement areas. */
+    z-index: 1;
   }
   .controls[data-mobile-controls="split"] .mobile-split-controls {
     position: absolute;
@@ -2178,42 +2220,29 @@ kbd {
     width: 100%;
     height: 100%;
   }
-  .mobile-split-bank {
-    position: absolute;
-    top: 55%;
-    display: flex;
-    flex-direction: column;
-    width: calc(50% - 8px);
-    min-width: 88px;
-    transform: translateY(-50%);
-    pointer-events: auto;
-  }
-  .mobile-split-bank:first-child {
-    left: env(safe-area-inset-left);
-    width: calc(50% - 8px - env(safe-area-inset-left));
-  }
-  .mobile-split-bank:last-child {
-    right: env(safe-area-inset-right);
-    width: calc(50% - 8px - env(safe-area-inset-right));
-  }
   .controls .mobile-split-button {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
-    height: 96px;
-    padding: 12px;
+    height: 100%;
+    padding: 0;
     border: 0;
     background: transparent;
+    pointer-events: auto;
   }
-  .mobile-split-bank:last-child .mobile-split-button { justify-content: flex-end; }
+  /* Four non-overlapping sectors give each edge the largest available hit area. */
+  .mobile-split-button[data-directions="left"] { clip-path: polygon(0 0, 50% 50%, 0 100%); }
+  .mobile-split-button[data-directions="right"] { clip-path: polygon(100% 0, 100% 100%, 50% 50%); }
+  .mobile-split-button[data-directions="up"] { clip-path: polygon(0 0, 100% 0, 50% 50%); }
+  .mobile-split-button[data-directions="down"] { clip-path: polygon(0 100%, 50% 50%, 100% 100%); }
   .controls .mobile-split-button:is(:hover, :active, .pressed) {
     background: transparent;
     transform: none;
   }
   .mobile-split-key {
+    position: absolute;
     display: grid;
-    flex: 0 0 64px;
     width: 64px;
     height: 64px;
     place-items: center;
@@ -2223,12 +2252,36 @@ kbd {
     background: #143322e6;
     pointer-events: none;
   }
+  .mobile-split-button[data-directions="left"] .mobile-split-key {
+    left: calc(12px + env(safe-area-inset-left));
+    top: calc(50% - 32px);
+  }
+  .mobile-split-button[data-directions="right"] .mobile-split-key {
+    right: calc(12px + env(safe-area-inset-right));
+    top: calc(50% - 32px);
+  }
+  .mobile-split-button[data-directions="up"] .mobile-split-key {
+    left: calc(50% - 32px);
+    top: calc(76px + env(safe-area-inset-top));
+  }
+  .mobile-split-button[data-directions="down"] .mobile-split-key {
+    left: calc(50% - 32px);
+    bottom: calc(68px + env(safe-area-inset-bottom));
+  }
   .mobile-split-button.pressed .mobile-split-key { background: #3d6947; transform: scale(.94); }
   .mobile-split-button:focus-visible .mobile-split-key { outline: 3px solid #fff; outline-offset: 3px; }
   .movement-actions {
     left: calc(12px + env(safe-area-inset-left));
     bottom: calc(12px + env(safe-area-inset-bottom));
+    max-width: calc(100% - 24px - env(safe-area-inset-left) - env(safe-area-inset-right));
+    gap: 6px;
     transform: none;
+  }
+  .movement-actions > button {
+    padding-inline: 8px;
+    min-width: 0;
+    font-size: 7px;
+    white-space: nowrap;
   }
 }
 
@@ -2237,12 +2290,12 @@ kbd {
   .controls {
     left: calc(12px + env(safe-area-inset-left));
     right: calc(12px + env(safe-area-inset-right));
-    bottom: calc(12px + env(safe-area-inset-bottom));
+    bottom: calc(68px + env(safe-area-inset-bottom));
     width: auto;
   }
   .movement-actions {
     left: 50%;
-    bottom: calc(156px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
   }
   .bus-intro-skip { bottom: calc(156px + env(safe-area-inset-bottom)); }

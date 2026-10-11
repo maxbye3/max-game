@@ -1,6 +1,6 @@
 import { COLLISION_BUCKET_SIZE, FRAME_HEIGHT, FRAME_WIDTH, SCALE } from './config.js';
 import { COLLISION_SHAPES } from './collision-data.js';
-import { isDoorPassagePoint } from './doors.js';
+import { isDoorPassagePoint, isTemporarilyClosedDoorPoint } from './doors.js';
 import { playerCollidesWithGeorgia } from './georgia.js';
 import { playerCollidesWithSnowman } from './snowman.js';
 import type { CollisionShape } from './types.js';
@@ -48,6 +48,7 @@ COLLISION_SHAPES.forEach((shape) => {
 });
 
 export function playerCollidesAt(x: number, y: number): boolean {
+  if (isTemporarilyClosedDoorPoint(x, y)) return true;
   if (isDoorPassagePoint(x, y)) return false;
   if (playerCollidesWithGeorgia(x, y)) return true;
   if (playerCollidesWithSnowman(x, y)) return true;

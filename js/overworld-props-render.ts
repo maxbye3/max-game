@@ -82,6 +82,8 @@ export interface WorldDepth {
   readonly toriCoversPlayer: boolean;
 }
 
+const CAVE_COVER = { x: 184, y: 224, width: 80, height: 68 } as const;
+
 const BAKED_SNOWMAN_PATCH = {
   sourceX: 270,
   sourceY: 105,
@@ -202,6 +204,18 @@ export function drawWorldBackground(
   };
 
   context.drawImage(images.map, -cameraX, -cameraY);
+  if (isImageReady(images.caveCover)) {
+    context.save();
+    context.imageSmoothingEnabled = false;
+    context.drawImage(
+      images.caveCover,
+      Math.round(CAVE_COVER.x - cameraX),
+      Math.round(CAVE_COVER.y - cameraY),
+      CAVE_COVER.width,
+      CAVE_COVER.height,
+    );
+    context.restore();
+  }
   context.drawImage(images.eventTinder, 178 - cameraX, 44 - cameraY, 80, 80);
   context.save();
   context.imageSmoothingEnabled = true;

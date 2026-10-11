@@ -57,7 +57,7 @@ const CHRIS_THEME_SOURCE = 'chat/chris/theme.mp3';
 const BOCHRA_THEME_SOURCE = 'chat/bochra/theme.mp3';
 const ANDY_THEME_SOURCE = 'chat/andy/theme.mp3';
 const ALEX_S_THEME_SOURCE = 'chat/alex s/theme.mp3';
-const ALICE_THEME_SOURCE = 'chat/alice/player/theme.mp3';
+const ALICE_THEME_SOURCE = 'chat/alice/theme.mp3';
 const NOEL_THEME_SOURCE = 'chat/noel/player/theme.mp3';
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
@@ -624,7 +624,7 @@ export function updatePowerups(frameTime: number): void {
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (aliceSecondsLeft > 0) {
-    const status = `Alice power ${aliceSecondsLeft.toFixed(1)}s`;
+    const status = `Alice flash ${aliceSecondsLeft.toFixed(1)}s`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (noelSecondsLeft > 0) {

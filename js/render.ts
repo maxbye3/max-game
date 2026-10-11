@@ -1,7 +1,7 @@
 import { drawTimPower, drawTimPowerGround, drawTimWorld } from './tim-power-render.js';
 import { drawReiTerrain, drawReiGround, drawReiWorld } from './rei-power-render.js';
 import { drawNoelTerrain, drawNoelGround, drawNoelWorld } from './noel-power-render.js';
-import { drawAliceTerrain, drawAliceGround, drawAliceWorld } from './alice-power-render.js';
+import { drawAliceWorld } from './alice-power-render.js';
 import { drawMikeTerrain, drawMikeGround, drawMikeWorld } from './mike-power-render.js';
 import { drawLucyGround, drawLucyWorld } from './lucy-power-render.js';
 import { drawKatieTerrain, drawKatieGround, drawKatieWorld } from './katie-power-render.js';
@@ -70,7 +70,6 @@ export function draw(time: number, worldTime = time): void {
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2 + joltY)));
   const worldDepth = drawWorldBackground(worldTime, cameraX, cameraY, player.y);
   drawRoadTraffic(cameraX, cameraY);
-  drawAliceTerrain(context, time);
   drawOscarTerrain(context, cameraX, cameraY, time);
   drawReiTerrain(context, time);
   drawSamTerrain(context, cameraX, cameraY, time);
@@ -82,7 +81,6 @@ export function draw(time: number, worldTime = time): void {
   drawKatieTerrain(context, time);
   drawNoelTerrain(context, time);
   drawNoelGround(context, cameraX, cameraY, time);
-  drawAliceGround(context, cameraX, cameraY, time);
   drawMikeTerrain(context, time);
   drawMikeGround(context, cameraX, cameraY, time);
   drawLucyGround(context, cameraX, cameraY, time);
@@ -198,7 +196,6 @@ export function draw(time: number, worldTime = time): void {
   drawOscarWorld(context, cameraX, cameraY, time);
   drawReiWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   drawNoelWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
-  drawAliceWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   drawMikeWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   drawLucyWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   drawKatieWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
@@ -223,6 +220,7 @@ export function draw(time: number, worldTime = time): void {
   if (gymTimDialogue) drawSpeechBubble(context, gymTimDialogue.text, gymTimDialogue.x - cameraX, gymTimDialogue.y - cameraY);
   drawTimWorld(context, player.x - cameraX, player.y - cameraY, time, adamHeight);
   drawAlexResurrection(context, player.x - cameraX, player.y - cameraY, time);
+  drawAliceWorld(context, cameraX, cameraY, time);
 }
 
 export function drawLoadFailure(): void {

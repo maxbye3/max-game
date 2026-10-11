@@ -134,6 +134,7 @@ try {
     localStorage: {
       getItem: (key) => values.get(key) ?? null,
       setItem: (key, value) => values.set(key, value),
+      removeItem: (key) => values.delete(key),
     },
   };
   const worldState = await loadModule('world-state', 'js/world-state.ts');
@@ -152,6 +153,13 @@ try {
   assert.equal(worldState.hasVisitedInterior(), true);
   worldState.markInteriorVisited();
   assert.equal(worldState.hasMikeAftermath(), true);
+  const musicLibrary = await loadModule('music-library-reset', 'js/music-library.ts');
+  values.set('max-game:unlocked-songs', '["Africa","Lemon jelly"]');
+  let musicResetEvent = false;
+  window.dispatchEvent = (event) => { musicResetEvent = event.type === 'max-game:music-library-reset'; };
+  musicLibrary.resetMusicLibrary();
+  assert.equal(values.has('max-game:unlocked-songs'), false, 'reset clears every unlocked song');
+  assert.equal(musicResetEvent, true, 'reset refreshes the music player');
   values.clear();
 
   const resurrectionSession = new Map();
@@ -1113,81 +1121,86 @@ try {
     }
   }
 
+  const reiLines = (await loadModule('rei-dialogue-flow', 'js/rei-dialogue.ts')).REI_DIALOGUE_LINES;
+  const approachRei = () => { leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y); };
+  const finishReiMission = (completed) => {
+    next();
+    assert.match(element('#npc-dialogue-line').textContent, completed ? /finish the billboard/ : /red paint/);
+    if (completed) {
+      next();
+      assert.equal(element('#npc-dialogue-line').textContent, 'thanks anyway for the help');
+    }
+    next();
+    assert.equal(element('#npc-dialogue').hidden, true);
+    assert.ok(element('.game-shell').children.at(-1).children.some(
+      (image) => image.src === (completed ? 'img/external/quest-complete.png' : 'img/external/quest_accepted.png'),
+    ));
+    scheduledCallbacks.at(-1)();
+    assert.equal(element('#npc-dialogue').hidden, false);
+  };
+  // An old completed reward stage must never hide an item missing from inventory.
+  for (const completed of [false, true]) {
+    for (const owned of [[], ['rei-item'], ['rei-item-2'], ['rei-item', 'rei-item-2']]) {
+      for (const songOwned of [false, true]) {
+        values.clear();
+        values.set('max-game:rei-gift-stage', '2');
+        values.set('max-game:mike-aftermath', String(completed));
+        values.set('max-game:inventory-gifts', JSON.stringify(owned));
+        if (songOwned) values.set('max-game:unlocked-songs', '["Lemon jelly"]');
+        approachRei();
+        assert.equal(element('#npc-dialogue-line').textContent, reiLines[0], 'every visit starts with Rei’s greeting');
+        assert.equal(element('#npc-dialogue-profile').hidden, true, 'Rei has no root portrait');
+        finishReiMission(completed);
+        const missingGift = ['rei-item', 'rei-item-2'].find((id) => !owned.includes(id));
+        assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), missingGift ? [...owned, missingGift] : owned);
+        if (missingGift) {
+          assert.match(element('#npc-gift-confirmation').textContent, /Rei's item was added/);
+          if (!songOwned) next();
+        }
+        assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Lemon jelly']);
+        for (const line of reiLines.slice(1)) {
+          assert.equal(element('#npc-dialogue-next').hidden, false, 'all Rei topics remain reachable after rewards');
+          next();
+          assert.equal(element('#npc-dialogue-line').textContent, line);
+        }
+        assert.equal(element('#npc-dialogue-next').hidden, true);
+      }
+    }
+  }
+  // A fresh save still receives the first item after accepting the mission.
   values.clear();
-  leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
-  assert.equal(element('#npc-dialogue-line').textContent, (await loadModule('rei-dialogue', 'js/rei-dialogue.ts')).REI_DIALOGUE_LINES[0]);
-  next(); // Rei assigns the mission before giving item 1.
-  assert.match(element('#npc-dialogue-line').textContent, /red paint/);
-  assert.equal(values.has('max-game:inventory-gifts'), false);
-  next(); // Accept the mission, then show the quest overlay.
-  assert.equal(element('#npc-dialogue').hidden, true);
-  assert.equal(values.has('max-game:inventory-gifts'), false);
-  scheduledCallbacks.at(-1)();
+  approachRei();
+  finishReiMission(false);
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item']);
   assert.equal(values.get('max-game:rei-gift-stage'), '1');
-  assert.equal(values.has('max-game:unlocked-songs'), false);
-  assert.equal(element('#npc-dialogue').hidden, false);
-  leave();
-  values.set('max-game:interior-visited', 'true');
-  values.set('max-game:mike-aftermath', 'false');
-  npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
-  next(); // Without blood, Rei repeats the request and withholds item 2.
-  assert.match(element('#npc-dialogue-line').textContent, /red paint/);
-  assert.equal(element('#npc-dialogue').hidden, false);
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item']);
-  next();
-  assert.equal(element('#npc-dialogue').hidden, true);
-  worldState.markInteriorVisited(); // Restores Mike's aftermath and the blood.
-  leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
-  next(); // Explanation.
-  next(); // Thanks.
-  next(); // Quest-complete overlay.
-  assert.equal(element('#npc-dialogue').hidden, true);
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item']);
-  scheduledCallbacks.at(-1)(); // Overlay finishes, then deliver the gift.
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item', 'rei-item-2']);
-  assert.equal(values.get('max-game:rei-gift-stage'), '2');
-  assert.equal(element('#npc-dialogue').hidden, false);
-  assert.equal(element('#npc-dialogue-next').hidden, false);
-  assert.equal(values.has('max-game:unlocked-songs'), false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Lemon jelly']);
-  assert.equal(element('#npc-dialogue-next').hidden, false, 'Rei can continue talking after her rewards');
-  assert.ok(element('.game-shell').children.some((overlay) => overlay.children?.some(
-    (image) => image.src === 'http://localhost/chat/rei/item-2.png',
-  )));
-  // Leaving while the completion screen is visible must not grant a late gift.
+  // Removing that item restores it on the next visit instead of skipping it.
   values.set('max-game:inventory-gifts', '[]');
-  values.set('max-game:rei-gift-stage', '1');
-  leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
-  next(); next(); next();
+  approachRei(); finishReiMission(false);
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item']);
+  // Leaving during an overlay must cancel the pending gift.
+  values.set('max-game:inventory-gifts', '[]');
+  values.set('max-game:rei-gift-stage', '2');
+  worldState.markInteriorVisited();
+  approachRei(); next(); next(); next();
   const delayedGift = scheduledCallbacks.at(-1);
   leave(); delayedGift();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), []);
-  // Owning the item does not block a missing song reward.
+  // Both items and song owned: repeat completion survives reload without duplicates.
   values.set('max-game:inventory-gifts', '["rei-item", "rei-item-2"]');
-  values.delete('max-game:unlocked-songs');
-  npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
-  next(); next(); next(); scheduledCallbacks.at(-1)();
-  assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Lemon jelly']);
-  assert.equal(element('#npc-dialogue-next').hidden, false, 'Rei can continue talking after the song reward');
-  assert.ok(element('.game-shell').children.at(-1).children.some(
-    (image) => image.src === 'audio/music/caledonian-is-massive.png',
-  ));
-  // Deleting item 1 does not restart the first reward, and item 2 waits for blood.
-  values.clear();
-  leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y); next(); next(); scheduledCallbacks.at(-1)();
-  values.set('max-game:inventory-gifts', '[]');
-  leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y); next();
-  assert.match(element('#npc-dialogue-line').textContent, /red paint/);
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), []);
-  assert.equal(values.get('max-game:rei-gift-stage'), '1');
-  assert.equal(values.has('max-game:unlocked-songs'), false);
-  worldState.markInteriorVisited();
-  leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y);
-  next(); next(); next(); scheduledCallbacks.at(-1)();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item-2']);
-  assert.equal(values.get('max-game:rei-gift-stage'), '2');
+  values.set('max-game:unlocked-songs', '["Lemon jelly"]');
+  const savedReiProgress = new Map(values);
+  const reloadedNpcs = await loadModule('npcs-reloaded', 'js/npcs.ts');
+  reloadedNpcs.setupNpcInteractions();
+  reloadedNpcs.updateNpcInteractions(reloadedNpcs.REI.x, reloadedNpcs.REI.y);
+  finishReiMission(true);
+  assert.deepEqual(values, savedReiProgress, 'replaying completion does not duplicate owned rewards');
+  next();
+  assert.equal(element('#npc-dialogue-line').textContent, reiLines[1]);
+  reloadedNpcs.updateNpcInteractions(-100, -100);
+  npcs.setupNpcInteractions();
+  console.log('Rei: both mission phases, all inventory/song combinations, stale saves, missing item replacement, complete topics and reloads passed');
 
   values.clear();
   values.set('max-game:inventory-gifts', '["marina-d-item-1", "marina-d-item-2"]');

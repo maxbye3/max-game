@@ -307,7 +307,6 @@ const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');
 const dialogueProfile = requireElement<HTMLImageElement>('#npc-dialogue-profile');
 const dialogueProgress = requireElement<HTMLElement>('#npc-dialogue-progress');
-const reiDialogueLinesButton = requireElement<HTMLButtonElement>('#rei-dialogue-lines-button');
 const giftConfirmation = requireElement<HTMLElement>('#npc-gift-confirmation');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
@@ -359,8 +358,9 @@ function giftStage({ stageKey, first, second }: StagedGifts): number {
 }
 
 function nextStagedGift(gifts: StagedGifts): GiftItem | null {
-  const stage = giftStage(gifts);
-  return stage === 0 ? gifts.first : stage === 1 ? gifts.second : null;
+  // Quest history must not prevent replacing a gift that left the inventory.
+  if (!hasGift(gifts.first)) return gifts.first;
+  return !hasGift(gifts.second) ? gifts.second : null;
 }
 
 let activeNpc: NpcDefinition | null = null;
@@ -376,7 +376,7 @@ let fixtureLoading = false;
 let currentDialogueLineIndex = 0;
 let requestLineShown = false;
 let nearbyNpc: NpcDefinition | null = null;
-let reiCompletionStage: 'intro' | 'explanation' | 'thanks' | 'complete' | null = null;
+let reiCompletionStage: 'intro' | 'explanation' | 'thanks' | null = null;
 
 export function isNpcDialogueOpen(): boolean {
   return activeNpc !== null;
@@ -419,7 +419,11 @@ function nextAdamFact(): string {
 }
 
 function hasMoreDialogue(): boolean {
-  return !!activeNpc && activeNpc.dialogueLines.length > 1;
+  if (!activeNpc) return false;
+  if (activeNpc.id === 'rei') {
+    return reiCompletionStage === null && currentDialogueLineIndex < activeNpc.dialogueLines.length - 1;
+  }
+  return activeNpc.dialogueLines.length > 1;
 }
 
 function closeDialogue(): void {
@@ -448,15 +452,6 @@ function closeDialogue(): void {
   giftConfirmation.hidden = true;
   oscarOptions.hidden = true;
   aliceOptions.hidden = true;
-  reiDialogueLinesButton.hidden = true;
-}
-
-function showNextReiDialogueLine(): void {
-  if (activeNpc?.id !== 'rei') return;
-  currentDialogueLineIndex = (currentDialogueLineIndex + 1) % REI_DIALOGUE_LINES.length;
-  dialogueLine.textContent = REI_DIALOGUE_LINES[currentDialogueLineIndex] ?? '';
-  dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${REI_DIALOGUE_LINES.length}`;
-  dialogueProgress.hidden = false;
 }
 
 function showRequestLine(): void {
@@ -554,17 +549,15 @@ function acceptQuest(): void {
     closeDialogue();
     return;
   }
-  if (pendingGiftItem?.id !== REI_ITEM_1.id || !pendingGiftLine) {
-    closeDialogue();
-    return;
-  }
   showQuestAcceptedOverlay();
   dialogue.hidden = true;
   nextButton.hidden = true;
   const session = dialogueSession;
   window.setTimeout(() => {
     if (session !== dialogueSession || activeNpc?.id !== 'rei') return;
-    showGiftLine();
+    if (pendingGiftLine) showGiftLine();
+    else if (pendingSongReward) showSongLine();
+    else nextButton.hidden = !hasMoreDialogue();
     dialogue.hidden = false;
   }, QUEST_ACCEPTED_OVERLAY_DURATION);
 }
@@ -596,26 +589,17 @@ function advanceDialogue(): void {
     nextButton.hidden = false;
   } else if (reiCompletionStage === 'thanks') {
     showQuestCompleteOverlay();
-    reiCompletionStage = 'complete';
     dialogue.hidden = true;
     nextButton.hidden = true;
     const session = dialogueSession;
     window.setTimeout(() => {
       if (session !== dialogueSession || activeNpc?.id !== 'rei') return;
+      reiCompletionStage = null;
       if (pendingGiftLine) showGiftLine();
       else if (pendingSongReward) showSongLine();
-      else { closeDialogue(); return; }
+      else nextButton.hidden = !hasMoreDialogue();
       dialogue.hidden = false;
     }, QUEST_ACCEPTED_OVERLAY_DURATION);
-  } else if (reiCompletionStage === 'complete') {
-    if (pendingSongReward && !dialogue.hidden) showSongLine();
-    else if (activeNpc?.dialogueLines.length && activeNpc.dialogueLines.length > 1) {
-      currentDialogueLineIndex = (currentDialogueLineIndex + 1) % activeNpc.dialogueLines.length;
-      dialogueLine.textContent = activeNpc.dialogueLines[currentDialogueLineIndex] ?? '';
-      dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${activeNpc.dialogueLines.length}`;
-      dialogueProgress.hidden = false;
-    }
-    return;
   } else if (pendingRequestLine) {
     showRequestLine();
   } else if (requestLineShown) {
@@ -628,6 +612,8 @@ function advanceDialogue(): void {
     showGiftLine();
   } else if (pendingSongReward) {
     showSongLine();
+  } else if (activeNpc?.id === 'rei' && !hasMoreDialogue()) {
+    closeDialogue();
   } else if (activeNpc && activeNpc.dialogueLines.length > 1) {
     const lines = activeNpc.dialogueLines;
     if (activeNpc.id === 'oscar' && currentDialogueLineIndex === lines.length - 1) {
@@ -636,14 +622,16 @@ function advanceDialogue(): void {
     }
     currentDialogueLineIndex = (currentDialogueLineIndex + 1) % lines.length;
     dialogueLine.textContent = lines[currentDialogueLineIndex] ?? '';
+    giftConfirmation.hidden = true;
     dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${lines.length}`;
     dialogueProgress.hidden = false;
+    nextButton.hidden = !hasMoreDialogue();
   }
 }
 
 function showDialogueLine(npc: NpcDefinition): void {
   const lines = npc.dialogueLines;
-  currentDialogueLineIndex = nextDialogueIndex(npc);
+  currentDialogueLineIndex = npc.id === 'rei' ? 0 : nextDialogueIndex(npc);
   dialogueLine.textContent = lines[currentDialogueLineIndex] ?? '';
   dialogueProgress.textContent = `${currentDialogueLineIndex + 1}/${lines.length}`;
   dialogueProgress.hidden = false;
@@ -653,7 +641,6 @@ function openDialogue(npc: NpcDefinition): void {
   announceWorldInteraction();
   releaseAllInput();
   hideSignDialogue();
-  reiDialogueLinesButton.hidden = npc.id !== 'rei';
   oscarOptions.hidden = true;
   aliceOptions.hidden = true;
   beginDialogueAudio(npc.id === 'maddy' || npc.id === 'adam' ? undefined : npc.name);
@@ -691,7 +678,8 @@ function openDialogue(npc: NpcDefinition): void {
     return;
   }
   const reiStage = npc.id === 'rei' ? giftStage(REI_GIFTS) : null;
-  pendingSongReward = npc.songReward && (npc.id !== 'rei' || (hasMikeAftermath() && reiStage !== 0)) && !getUnlockedSongs().includes(npc.songReward) ? npc.songReward : null;
+  pendingSongReward = npc.songReward && !getUnlockedSongs().includes(npc.songReward) ? npc.songReward : null;
+  // Quest history chooses the mission dialogue; inventory chooses the reward.
   if (npc.id === 'rei' && hasMikeAftermath() && reiStage !== 0) {
     pendingRequestLine = null;
     pendingFollowUpLine = null;
@@ -710,7 +698,7 @@ function openDialogue(npc: NpcDefinition): void {
   }
   pendingRequestLine = npc.id === 'rei' && hasMikeAftermath() && reiStage !== 0 ? null : npc.requestLine ?? null;
   pendingFollowUpLine = npc.followUpLine?.() ?? null;
-  if (npc.id === 'rei') pendingGiftItem = reiStage === 0 ? REI_ITEM_1 : null;
+  if (npc.id === 'rei') pendingGiftItem = nextStagedGift(REI_GIFTS);
   else pendingGiftItem = npc.itemGift && !hasGift(npc.itemGift) ? npc.itemGift : null;
   pendingGiftLine = pendingGiftItem ? nextGiftLine() : null;
   pendingGiftConfirmation = !pendingGiftLine ? null : npc.id === 'rei'
@@ -721,7 +709,7 @@ function openDialogue(npc: NpcDefinition): void {
   speaker.textContent = npc.name;
   setProfileImage(dialogueProfile, npc.name);
   showDialogueLine(npc);
-  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && npc.dialogueLines.length <= 1 && npc.id !== 'alice';
+  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && !hasMoreDialogue() && npc.id !== 'alice';
   dialogue.hidden = false;
 }
 
@@ -770,7 +758,6 @@ export function setupNpcInteractions(): void {
   window.addEventListener('max-game:dan-power-activated', closeDialogue);
   closeButton.addEventListener('click', closeDialogue);
   nextButton.addEventListener('click', advanceDialogue);
-  reiDialogueLinesButton.addEventListener('click', showNextReiDialogueLine);
   requireElement<HTMLAnchorElement>('#alice-event-tinder-link').addEventListener('click', closeDialogue);
   requireElement<HTMLButtonElement>('#alice-event-tinder-dismiss').addEventListener('click', closeDialogue);
   window.addEventListener('keydown', (event) => {

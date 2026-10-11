@@ -26,27 +26,21 @@ export function setupMobileControls(
   split.className = 'mobile-split-controls';
   split.setAttribute('role', 'group');
   split.setAttribute('aria-label', 'Screen side movement buttons');
-  const banks: ReadonlyArray<ReadonlyArray<readonly [InputDirection, string]>> = [
-    [['up', '↑'], ['down', '↓']],
-    [['left', '←'], ['right', '→']],
+  const directions: ReadonlyArray<readonly [InputDirection, string]> = [
+    ['up', '↑'], ['down', '↓'], ['left', '←'], ['right', '→'],
   ];
-  for (const directions of banks) {
-    const bank = document.createElement('div');
-    bank.className = 'mobile-split-bank';
-    for (const [direction, symbol] of directions) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'dpad-button mobile-split-button';
-      button.dataset.directions = direction;
-      button.setAttribute('aria-label', `Move ${direction}`);
-      const key = document.createElement('span');
-      key.className = 'mobile-split-key';
-      key.setAttribute('aria-hidden', 'true');
-      key.textContent = symbol;
-      button.append(key);
-      bank.append(button);
-    }
-    split.append(bank);
+  for (const [direction, symbol] of directions) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'dpad-button mobile-split-button';
+    button.dataset.directions = direction;
+    button.setAttribute('aria-label', `Move ${direction}`);
+    const key = document.createElement('span');
+    key.className = 'mobile-split-key';
+    key.setAttribute('aria-hidden', 'true');
+    key.textContent = symbol;
+    button.append(key);
+    split.append(button);
   }
   controls.append(stick, split);
 

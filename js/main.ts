@@ -34,11 +34,13 @@ import { setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from './music-player.js';
+import { resetMusicLibrary } from './music-library.js';
 import { loadMapCharacters } from './map-characters.js';
 import { MAP_CHARACTER_DEFINITIONS } from './map-characters.js';
 import { isNiallFollowing, niallState, updateNiallInteraction } from './niall.js';
 import { restoreBuildingAmbience, updateBuildingAmbience } from './nightclub-audio.js';
-import { hasMikeAftermath } from './world-state.js';
+import { hasMikeAftermath, resetMikeAftermath, resetNiallQuestState } from './world-state.js';
+import { resetTimRoute } from './tim-location.js';
 import { ADAM, ALEX_S, ED, KATY, MIKE, REI, setupNpcInteractions, updateNpcInteractions } from './npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
@@ -150,6 +152,15 @@ setupNpcInteractions();
 window.addEventListener('max-game:alex-s-dialogue', hideSignDialogue);
 setupCaveThief();
 setupGymTimCutscene();
+requireElement<HTMLButtonElement>('#reset-all').addEventListener('click', () => {
+  releaseAllInput();
+  resetNiallQuestState();
+  resetTimRoute();
+  resetMikeAftermath();
+  resetMusicLibrary();
+  const sealMode = new URLSearchParams(window.location.search).has('seal');
+  window.location.assign(sealMode ? 'index.html?seal=1' : 'index.html');
+});
 
 loadAssets(isCaveThiefPursuitActive())
   .then(() => {

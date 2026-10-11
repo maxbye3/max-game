@@ -27,6 +27,10 @@ export const DOORWAYS: readonly Doorway[] = [
   { id: 'feedback-center', x: 123, y: 1103, width: 30, height: 31 },
 ];
 
+// Re-enable this entrance when the siblings' cave is ready to open.
+const TEMPORARILY_CLOSED_DOOR_IDS = new Set(['northwest-portal']);
+const ACTIVE_DOORWAYS = DOORWAYS.filter((doorway) => !TEMPORARILY_CLOSED_DOOR_IDS.has(doorway.id));
+
 const OPEN_DISTANCE = 42;
 const PASSAGE_MARGIN = 8;
 const doorSound = createGameAudio('audio/open-door.mp3');
@@ -68,7 +72,7 @@ export function isDoorNavigationStarted(): boolean {
 
 export function updateDoors(playerX: number, playerY: number): void {
   const nextOpenDoorIds = new Set(
-    DOORWAYS
+    ACTIVE_DOORWAYS
       .filter((doorway) => distanceToDoorway(playerX, playerY, doorway) <= OPEN_DISTANCE)
       .map((doorway) => doorway.id),
   );
@@ -84,7 +88,7 @@ export function updateDoors(playerX: number, playerY: number): void {
   hasSyncedInitialDoorState = true;
 
   if (navigationStarted) return;
-  const enteredDoorway = DOORWAYS.find((doorway) => pointInsideDoorway(playerX, playerY, doorway));
+  const enteredDoorway = ACTIVE_DOORWAYS.find((doorway) => pointInsideDoorway(playerX, playerY, doorway));
   if (!enteredDoorway) return;
 
   navigationStarted = true;
@@ -98,9 +102,16 @@ export function updateDoors(playerX: number, playerY: number): void {
 }
 
 export function getOpenDoorways(): Doorway[] {
-  return DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));
+  return ACTIVE_DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));
 }
 
 export function isDoorPassagePoint(x: number, y: number): boolean {
-  return DOORWAYS.some((doorway) => pointInsideDoorway(x, y, doorway, PASSAGE_MARGIN));
+  return ACTIVE_DOORWAYS.some((doorway) => pointInsideDoorway(x, y, doorway, PASSAGE_MARGIN));
+}
+
+export function isTemporarilyClosedDoorPoint(x: number, y: number): boolean {
+  return DOORWAYS.some((doorway) =>
+    TEMPORARILY_CLOSED_DOOR_IDS.has(doorway.id) &&
+    pointInsideDoorway(x, y, doorway, PASSAGE_MARGIN),
+  );
 }

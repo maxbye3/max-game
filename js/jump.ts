@@ -6,7 +6,6 @@ import { isNoelPowerActive, NOEL_POWER_DURATION } from './noel-power.js';
 import { isMikePowerActive, MIKE_POWER_DURATION } from './mike-power.js';
 import { isLucyPowerActive, LUCY_POWER_DURATION } from './lucy-power.js';
 import { isKatiePowerActive, KATIE_POWER_DURATION } from './katie-power.js';
-import { isBusIntroActive } from './bus-intro.js';
 import { hasCaveColander } from './colander.js';
 import { releaseAllInput } from './input.js';
 
@@ -132,5 +131,4 @@ export function setupJump(): void {
       setJumpMenuOpen(false);
     }
   });
-  jumpToggle.classList.toggle('opening-intro-hidden', isBusIntroActive());
 }

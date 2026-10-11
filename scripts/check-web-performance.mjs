@@ -63,10 +63,16 @@ try {
   }
 
   const storage = new Map();
-  globalThis.window = { location: { search: '' }, localStorage: { getItem: (key) => storage.get(key) ?? null } };
+  globalThis.window = {
+    location: { search: '' },
+    localStorage: { getItem: (key) => storage.get(key) ?? null },
+    setTimeout: globalThis.setTimeout,
+    clearTimeout: globalThis.clearTimeout,
+  };
   const sources = [];
   globalThis.Image = class {
-    decode() { return Promise.resolve(); }
+    static stallDecode = false;
+    decode() { return Image.stallDecode ? new Promise(() => {}) : Promise.resolve(); }
     set src(source) { sources.push(source); queueMicrotask(() => this.onload()); }
   };
   const { loadAssets } = await moduleFor('assets');
@@ -75,6 +81,9 @@ try {
   assert.ok(!sources.includes(WEB_IMAGE_SOURCES['img/external/mike-aftermath.png']));
   assert.ok(!sources.includes(WEB_IMAGE_SOURCES['player/seal-game.png']));
   assert.ok(sources.includes(WEB_IMAGE_SOURCES['img/external/billboard-unfinished.png']));
+  Image.stallDecode = true;
+  await loadAssets();
+  Image.stallDecode = false;
   sources.length = 0; storage.set('max-game:mike-aftermath', 'true'); window.location.search = '?seal=1';
   await loadAssets(true);
   assert.ok(sources.includes(WEB_IMAGE_SOURCES['chat/siblings/girls-sprite.png']));

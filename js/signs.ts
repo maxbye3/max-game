@@ -43,7 +43,7 @@ const SIGN_MESSAGES = [
 export const SIGNS: readonly Sign[] = [
   {
     id: 'north-directory',
-    title: 'Check back for more',
+    title: 'Feed me your thoughts',
     message: SIGN_MESSAGES[3],
     x: 392,
     y: 157,

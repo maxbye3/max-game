@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=7bb51c6f11ea" />
+    <link rel="stylesheet" href="style.css?v=7373ed4677c4" />
   </head>
   <body>
     <main class="game-shell">
@@ -13,6 +13,7 @@
         <div class="door-loading-box">Loading<span class="door-loading-dots" aria-hidden="true"></span></div>
       </div>
       <button id="tim-cutscene-next" class="tim-cutscene-next" type="button" hidden>Next &gt;</button>
+      <button id="reset-all" class="reset-all" type="button" aria-label="Reset Niall, Tim, Mike and songs">↻ Reset</button>
       <div class="top-actions">
         <button id="music-toggle" class="music-toggle" type="button" aria-expanded="false" aria-controls="music-panel">
           ♪ Music
@@ -25,7 +26,6 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
-        <button id="thoughts-toggle" class="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts</button>
         <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
           Inventory <span class="inventory-count">1</span>
         </button>
@@ -55,6 +55,7 @@
       <div class="movement-actions">
         <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
         <button id="controls-toggle" class="controls-toggle" type="button" aria-controls="movement-controls">Toggle Controls</button>
+        <button id="thoughts-toggle" class="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts</button>
       </div>
       <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
         <div class="jump-header">
@@ -87,7 +88,6 @@
         </div>
         <p id="npc-gift-confirmation" class="dialogue-gift-confirmation" hidden></p>
         <button id="npc-dialogue-next" class="npc-dialogue-next" type="button" aria-label="Next dialogue line" hidden>&gt;</button>
-        <button id="rei-dialogue-lines-button" class="npc-dialogue-next rei-dialogue-lines-button" type="button" aria-label="Show next Rei dialogue line" hidden>See next dialogue</button>
         <div id="oscar-dialogue-options" class="npc-dialogue-options" hidden>
           <button type="button">Yes</button>
           <button type="button">No</button>
@@ -130,6 +130,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=ea2763840600"></script>
+    <script src="dist/main-bundle.js?v=7e9c95ec2dc4"></script>
   </body>
 </html>

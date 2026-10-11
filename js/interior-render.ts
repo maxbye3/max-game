@@ -2,7 +2,7 @@ import { drawTimPower, drawTimPowerGround, drawTimWorld } from './tim-power-rend
 import { drawSamPower, drawSamVictimEffects, drawSamWorldOverlay, drawSamTerrain, drawSamGround } from './sam-power-render.js';
 import { drawReiTerrain, drawReiGround, drawReiWorld } from './rei-power-render.js';
 import { drawNoelTerrain, drawNoelGround, drawNoelWorld } from './noel-power-render.js';
-import { drawAliceTerrain, drawAliceGround, drawAliceWorld } from './alice-power-render.js';
+import { drawAliceWorld } from './alice-power-render.js';
 import { drawMikeTerrain, drawMikeGround, drawMikeWorld } from './mike-power-render.js';
 import { drawLucyGround, drawLucyWorld } from './lucy-power-render.js';
 import { drawKatieTerrain, drawKatieGround, drawKatieWorld } from './katie-power-render.js';
@@ -87,7 +87,6 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
       viewportWidth * scaleX,
       viewportHeight * scaleY,
     );
-    drawAliceTerrain(context, timeMs);
     drawOscarTerrain(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawReiTerrain(context, timeMs);
     drawSamTerrain(context, cameraX, cameraY, timeMs, scaleX, scaleY);
@@ -98,7 +97,6 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     drawKatieTerrain(context, timeMs);
     drawNoelTerrain(context, timeMs);
     drawNoelGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
-    drawAliceGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawMikeTerrain(context, timeMs);
     drawMikeGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawLucyGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
@@ -280,7 +278,6 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     drawSamVictimEffects(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawSamWorldOverlay(context, timeMs);
     drawNoelWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
-    drawAliceWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
     drawMikeWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
     drawLucyWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight, false);
     drawKatieWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
@@ -298,5 +295,6 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     context.restore();
     drawTimWorld(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, timeMs, adamHeight * scaleY);
     drawAlexResurrection(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, timeMs, scaleX, scaleY);
+    drawAliceWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
   }
 }
