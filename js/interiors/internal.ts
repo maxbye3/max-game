@@ -48,6 +48,7 @@ import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { isTimAtMusicShop } from '../characters/tim/tim-location.js';
 import { markInteriorVisited } from '../core/world-state.js';
 import { JOSH, WHELDON, getInteriorScene, type InteractionKind } from './interior-scenes.js';
+import { JoshDialogueController } from './josh-dialogue.js';
 import type { Direction } from '../core/types.js';
 import { moveWithCollisions } from '../core/movement.js';
 import { setProfileImage } from '../core/profile-images.js';
@@ -58,7 +59,6 @@ import { SHOW_COLLISION_SHAPES } from '../core/config.js';
 import { startGameLoop } from '../core/game-loop.js';
 import { webImageSource } from '../core/web-images.js';
 import { WHELDON_DIALOGUE_LINES } from '../generated/dialogues/wheldon-dialogue.js';
-import { JOSH_DIALOGUE_LINES } from '../generated/dialogues/josh-dialogue.js';
 import { DadDialogueController } from '../characters/dad/dad-dialogue-controller.js';
 import { createInteriorRenderer } from './interior-render.js';
 const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal'); const doorLoading = requireElement<HTMLElement>('#door-loading');
@@ -79,12 +79,6 @@ const musicDialogueOptions = requireElement<HTMLElement>('#music-dialogue-option
 const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-close');
 const wheldonNoButton = requireElement<HTMLButtonElement>('#wheldon-no');
 const wheldonYesButton = requireElement<HTMLButtonElement>('#wheldon-yes');
-const joshDialogueOptions = requireElement<HTMLElement>('#josh-dialogue-options');
-const joshYesButton = requireElement<HTMLButtonElement>('#josh-yes');
-const joshNoButton = requireElement<HTMLButtonElement>('#josh-no');
-const joshArtClassLink = requireElement<HTMLAnchorElement>('#josh-art-class-link');
-const joshCodec = requireElement<HTMLElement>('#josh-codec');
-const joshCodecContinue = requireElement<HTMLButtonElement>('#josh-codec-continue');
 const FRAME_COUNT = SEAL_MODE ? 8 : 9;
 const SPEED = 145;
 const enteredDoor = searchParams.get('door');
@@ -155,11 +149,6 @@ let noelDialogueOpen = false;
 let helenDialogueLineIndex = 0;
 type WheldonDialogueStage = 'opening' | 'question' | 'answer' | 'final' | 'done';
 let wheldonDialogueStage: WheldonDialogueStage = 'done';
-type JoshDialogueStage = 'opening' | 'class' | 'callIntro' | 'codec' | 'signup' | 'final' | 'done';
-let joshDialogueStage: JoshDialogueStage = 'done';
-let codecRingtoneTimer: number | null = null;
-let codecAdvanceTimer: number | null = null;
-let codecAudioContext: AudioContext | null = null;
 const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'wheldon' || interaction === 'josh' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim' || interaction === 'helen' || interaction === 'dad';
 const OSCAR_INTERIOR_TARGETS = INTERACTION_TARGETS
   .filter((interaction) => isCharacterInteraction(interaction.kind))
@@ -175,6 +164,22 @@ function openNoelDialogue(): void {
   input.releaseAll();
   noelDialogueOpen = true;
 }
+const joshDialogue = new JoshDialogueController({
+  dialogue: noelDialogue,
+  speaker: noelSpeaker,
+  line: noelDialogueLine,
+  profile: noelDialogueProfile,
+  progress: noelDialogueProgress,
+  next: noelDialogueNext,
+  question: noelDialogueQuestion,
+  options: noelDialogueOptions,
+  artOptions: requireElement<HTMLElement>('#josh-dialogue-options'),
+  yes: requireElement<HTMLButtonElement>('#josh-yes'),
+  no: requireElement<HTMLButtonElement>('#josh-no'),
+  link: requireElement<HTMLAnchorElement>('#josh-art-class-link'),
+  codec: requireElement<HTMLElement>('#josh-codec'),
+  codecContinue: requireElement<HTMLButtonElement>('#josh-codec-continue'),
+}, () => { input.releaseAll(); openNoelDialogue(); });
 const diaryLabFeatures = new DiaryLabFeatures();
 const goodreadsReading = new GoodreadsReadingController(closeNoelDialogue);
 const lucy = isPlantRoomInterior
@@ -253,112 +258,16 @@ function showWheldonFinalLine(): void {
   noelDialogueOptions.hidden = true;
   noelGiftConfirmation.hidden = true;
 }
-function stopJoshCodec(): void {
-  if (codecRingtoneTimer !== null) {
-    window.clearInterval(codecRingtoneTimer);
-    codecRingtoneTimer = null;
-  }
-  if (codecAudioContext) {
-    void codecAudioContext.close().catch(() => {});
-    codecAudioContext = null;
-  }
-}
-function playJoshCodecRingtone(): void {
-  stopJoshCodec();
-  const AudioContextConstructor = window.AudioContext;
-  if (!AudioContextConstructor) return;
-  codecAudioContext = new AudioContextConstructor();
-  void codecAudioContext.resume().catch(() => {});
-  const ring = (): void => {
-    if (!codecAudioContext) return;
-    const now = codecAudioContext.currentTime;
-    const gain = codecAudioContext.createGain();
-    const oscillator = codecAudioContext.createOscillator();
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(440, now);
-    oscillator.frequency.setValueAtTime(660, now + 0.12);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
-    oscillator.connect(gain).connect(codecAudioContext.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.3);
-  };
-  ring();
-  codecRingtoneTimer = window.setInterval(ring, 900);
-  window.setTimeout(stopJoshCodec, 3200);
-}
-function chooseJoshArt(_wantsToSeeArt: boolean): void {
-  if (nearbyInteraction !== 'josh' || !noelDialogueOpen || joshDialogueStage !== 'opening') return;
-  joshDialogueStage = 'class';
-  joshDialogueOptions.hidden = true;
-  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[1] ?? '';
-  noelDialogueNext.hidden = false;
-  noelDialogueProgress.hidden = true;
-  noelDialogueQuestion.hidden = true;
-}
-function showJoshCallIntro(): void {
-  joshDialogueStage = 'callIntro';
-  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[2] ?? 'Ooo hang on I\'m getting a call';
-  noelDialogueNext.hidden = true;
-  joshDialogueOptions.hidden = true;
-  joshArtClassLink.hidden = true;
-  playJoshCodecRingtone();
-  if (codecAdvanceTimer !== null) window.clearTimeout(codecAdvanceTimer);
-  codecAdvanceTimer = window.setTimeout(() => {
-    codecAdvanceTimer = null;
-    if (nearbyInteraction === 'josh' && noelDialogueOpen) {
-      joshDialogueStage = 'codec';
-      noelDialogue.hidden = true;
-      joshCodec.hidden = false;
-      joshCodecContinue.focus();
-    }
-  }, 1400);
-}
-function returnFromJoshCodec(): void {
-  if (nearbyInteraction !== 'josh' || !noelDialogueOpen || joshDialogueStage !== 'codec') return;
-  stopJoshCodec();
-  joshDialogueStage = 'signup';
-  joshCodec.hidden = true;
-  noelSpeaker.textContent = 'Josh';
-  setProfileImage(noelDialogueProfile, 'Josh', '../');
-  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[3] ?? 'Anyway, please consider signing up for the next term here.';
-  noelDialogueNext.hidden = false;
-  noelDialogueProgress.hidden = true;
-  noelDialogueQuestion.hidden = true;
-  noelDialogueOptions.hidden = true;
-  joshDialogueOptions.hidden = true;
-  joshArtClassLink.hidden = false;
-  noelDialogue.hidden = false;
-  joshCodecContinue.blur();
-}
-function showJoshFinalLine(): void {
-  joshDialogueStage = 'final';
-  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[4] ?? 'Why not join Max and myself.';
-  noelDialogueNext.hidden = true;
-  noelDialogueProgress.hidden = true;
-  noelDialogueQuestion.hidden = true;
-  noelDialogueOptions.hidden = true;
-  joshDialogueOptions.hidden = true;
-}
 function closeNoelDialogue(): void {
   endDialogueAudio(); caveSiblings?.closeDialogue();
-  stopJoshCodec();
-  if (codecAdvanceTimer !== null) {
-    window.clearTimeout(codecAdvanceTimer);
-    codecAdvanceTimer = null;
-  }
+  joshDialogue.stop();
   noelDialogueOpen = false;
   wheldonDialogueStage = 'done';
-  joshDialogueStage = 'done';
   noelDialogue.hidden = true;
-  joshCodec.hidden = true;
   noelDialogueNext.hidden = true;
   noelDialogueProgress.hidden = true;
   noelGiftConfirmation.hidden = true;
   noelDialogueOptions.hidden = true;
-  joshDialogueOptions.hidden = true;
-  joshArtClassLink.hidden = true;
   siblingsDialogueOptions.hidden = true;
   musicDialogueOptions.hidden = true;
   helenReadingOptions.hidden = true;
@@ -414,18 +323,7 @@ function startWheldonDialogue(): void {
 }
 function startJoshDialogue(): void {
   if (nearbyInteraction !== 'josh' || noelDialogueOpen) return;
-  input.releaseAll();
-  openNoelDialogue(); beginDialogueAudio('Josh', '../');
-  joshDialogueStage = 'opening';
-  noelSpeaker.textContent = 'Josh'; setProfileImage(noelDialogueProfile, 'Josh', '../');
-  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[0] ?? '';
-  noelDialogueQuestion.hidden = true;
-  noelDialogueOptions.hidden = true;
-  joshDialogueOptions.hidden = false;
-  joshArtClassLink.hidden = true;
-  noelDialogueProgress.hidden = true;
-  noelDialogueNext.hidden = true;
-  noelDialogue.hidden = false;
+  joshDialogue.start();
   interactionPrompt.hidden = true;
 }
 function startLucyDialogue(): void {
@@ -576,19 +474,14 @@ function bindControls(): void {
       if (wheldonDialogueStage === 'opening') showWheldonQuestion();
       else if (wheldonDialogueStage === 'answer') showWheldonFinalLine();
     }
-    else if (nearbyInteraction === 'josh') {
-      if (joshDialogueStage === 'class') showJoshCallIntro();
-      else if (joshDialogueStage === 'signup') showJoshFinalLine();
-    }
+    else if (nearbyInteraction === 'josh') joshDialogue.next();
   });
   noelDialogueClose.addEventListener('click', closeNoelDialogue);
   requireElement<HTMLButtonElement>('#helen-reading-yes').addEventListener('click', () => openFeature('reading'));
   requireElement<HTMLButtonElement>('#helen-reading-no').addEventListener('click', closeNoelDialogue);
   wheldonYesButton.addEventListener('click', () => showWheldonAnswer(true));
   wheldonNoButton.addEventListener('click', () => showWheldonAnswer(false));
-  joshYesButton.addEventListener('click', () => chooseJoshArt(true));
-  joshNoButton.addEventListener('click', () => chooseJoshArt(false));
-  joshCodecContinue.addEventListener('click', returnFromJoshCodec);
+  joshDialogue.bind();
   siblingsViewWebsite.addEventListener('click', () => {
     caveSiblings?.chooseWebsite();
     closeNoelDialogue();
