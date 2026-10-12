@@ -705,6 +705,21 @@ canvas {
   cursor: pointer;
 }
 
+.jump-option.is-current {
+  border-color: #f5fff6;
+  color: #17120b;
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px rgb(23 50 28 / 55%);
+}
+
+.jump-option.is-current::after {
+  float: right;
+  margin-left: 10px;
+  color: #17321c;
+  content: 'Here';
+  font-size: 7px;
+}
+
 .sign-dialogue {
   position: absolute;
   z-index: 6;

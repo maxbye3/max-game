@@ -51,6 +51,12 @@ function internalPageHref(): string {
   return window.location.pathname.includes('/internal/') ? 'index.html' : 'internal/index.html';
 }
 
+function currentDestinationId(): string | null {
+  if (!window.location.pathname.includes('/internal/')) return null;
+  const destinationId = new URLSearchParams(window.location.search).get('door');
+  return JUMP_DESTINATIONS.some((destination) => destination.id === destinationId) ? destinationId : null;
+}
+
 function jumpTo(destinationId: string): void {
   if (navigationStarted || isKatiePowerActive() || isLucyPowerActive() || isMikePowerActive() || isNoelPowerActive() || isOscarPowerActive() || isReiPowerActive() || isSamPowerActive() || isTimInputPowerActive()) return;
   navigationStarted = true;
@@ -63,11 +69,17 @@ function jumpTo(destinationId: string): void {
 
 function buildOptions(): void {
   if (!jumpOptions) return;
+  const currentId = currentDestinationId();
   JUMP_DESTINATIONS.forEach((destination) => {
     const button = document.createElement('button');
-    button.className = 'jump-option';
+    const isCurrent = destination.id === currentId;
+    button.className = `jump-option${isCurrent ? ' is-current' : ''}`;
     button.type = 'button';
     button.textContent = destination.label;
+    if (isCurrent) {
+      button.setAttribute('aria-current', 'page');
+      button.title = `You are here: ${destination.label}`;
+    }
     button.addEventListener('click', () => jumpTo(destination.id));
     jumpOptions.append(button);
   });
