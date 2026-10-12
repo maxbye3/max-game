@@ -35,6 +35,7 @@ import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
 import { releaseAllInput } from '../core/input.js';
 import { characterAsset } from '../core/character-assets.js';
+import { refreshLetterboxdReviews } from '../core/letterboxd-reviews.js';
 
 interface NpcDefinition {
   readonly id: 'adam' | 'alice' | 'bochra' | 'chris' | 'dan' | 'ed' | 'joe' | 'ju' | 'mike' | 'rei' | 'marinaD' | 'maddy' | 'sam' | 'katie' | 'mason' | 'meli' | 'oscar' | 'alexS' | 'katy' | 'georgia';
@@ -646,6 +647,7 @@ function openDialogue(npc: NpcDefinition): void {
   aliceOptions.hidden = true;
   beginDialogueAudio(npc.id === 'maddy' || npc.id === 'adam' ? undefined : npc.name);
   activeNpc = npc;
+  if (npc.id === 'ed') void refreshLetterboxdReviews('data/letterboxd-reviews.json');
   dialogueSession += 1;
   fixtureLoading = false;
   pendingFixtureLine = npc.getFixtureLine ?? null;

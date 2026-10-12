@@ -25,6 +25,7 @@ import { DiaryLabFeatures } from './diary-lab-features.js';
 import { canvas, context, requireElement } from '../core/dom.js';
 import { GymNpcDialogueController } from './gym-npc-dialogue.js';
 import { GoodreadsReadingController } from './goodreads-reading.js';
+import { LetterboxdReviewsController } from './letterboxd-reviews.js';
 import { HELEN_DIALOGUE_LINES } from '../generated/dialogues/helen-dialogue.js';
 import { DirectionInputController } from '../core/input.js';
 import { isThoughtsOpen } from '../core/thoughts.js';
@@ -158,7 +159,10 @@ const katieSceneryTargets = (isGymInterior ? gymNpcs : isBookshopInterior ? book
 const KATIE_INTERIOR_TARGETS = [...katieSceneryTargets, ...OSCAR_INTERIOR_TARGETS.filter((target) => !katieSceneryTargets.some((npc) => npc.id === target.id))]
   .map((target) => ({ ...target, height: target.id === 'wheldon' ? WHELDON.height : target.id === 'josh' ? JOSH.height : target.id === 'siblings' ? CAVE_SIBLINGS.height : target.id === 'lucy' ? 75 : target.height }));
 const input = new DirectionInputController({ canHold: () => doorLoading.hidden && !isAlexResurrectionUiBlocking() });
-const dadDialogue = new DadDialogueController(() => { input.releaseAll(); openNoelDialogue(); });
+const dadDialogue = new DadDialogueController(
+  () => { input.releaseAll(); openNoelDialogue(); },
+  () => openFeature('movies'),
+);
 function openNoelDialogue(): void {
   announceWorldInteraction();
   input.releaseAll();
@@ -182,6 +186,7 @@ const joshDialogue = new JoshDialogueController({
 }, () => { input.releaseAll(); openNoelDialogue(); });
 const diaryLabFeatures = new DiaryLabFeatures();
 const goodreadsReading = new GoodreadsReadingController(closeNoelDialogue);
+const letterboxdReviews = new LetterboxdReviewsController(closeNoelDialogue);
 const lucy = isPlantRoomInterior
   ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation)
   : null;
@@ -271,8 +276,10 @@ function closeNoelDialogue(): void {
   siblingsDialogueOptions.hidden = true;
   musicDialogueOptions.hidden = true;
   helenReadingOptions.hidden = true;
+  dadDialogue.hide();
   diaryLabFeatures.hide();
   goodreadsReading.hide();
+  letterboxdReviews.hide();
   lucy?.stop();
   gymNpcDialogue.stop();
   musicHouseDialogue.stop();
@@ -352,11 +359,12 @@ function showHelenReadingOffer(): void {
   }
 }
 function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); openNoelDialogue(); beginDialogueAudio('Helen', '../'); helenDialogueLineIndex = nextDialogueVisitIndex('helen', HELEN_DIALOGUE_LINES.length); helenReadingOfferPending = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; helenReadingOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; if (edPowerSecondsLeft() > 0) { showHalsteadTattoo('Helen'); addGift(HELEN_ITEM); chargeEdGift(HELEN_ITEM); } }
-function openFeature(kind: 'diary' | 'experiments' | 'reading'): void {
+function openFeature(kind: 'diary' | 'experiments' | 'reading' | 'movies'): void {
   input.releaseAll(); endDialogueAudio();
   openNoelDialogue();
   [interactionPrompt, noelDialogueNext, noelDialogue, helenReadingOptions].forEach((element) => { element.hidden = true; });
   if (kind === 'reading') goodreadsReading.open();
+  else if (kind === 'movies') letterboxdReviews.open();
   else diaryLabFeatures.open(kind);
 }
 function startFeatureInteraction(kind: 'diary' | 'experiments'): void {
@@ -432,6 +440,7 @@ function activateNearbyInteraction(): void {
 function bindControls(): void {
   window.addEventListener('keydown', (event) => {
     if (goodreadsReading.isOpen()) return;
+    if (letterboxdReviews.isOpen()) return;
     if (event.ctrlKey || event.metaKey || event.altKey) {
       input.releaseAll();
       return;

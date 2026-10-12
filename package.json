@@ -20,6 +20,7 @@
     "generate:map-character-sprites": "node scripts/generate-map-character-sprites.mjs",
     "optimize:internal-assets": "node scripts/optimize-internal-assets.mjs",
     "sync:goodreads": "node scripts/sync-goodreads-read.mjs",
+    "sync:letterboxd": "node scripts/sync-letterboxd-reviews.mjs",
     "watch": "npm run generate:source && npm run clean:dist && esbuild js/core/main.ts js/interiors/internal.ts js/characters/niall/niall-fight.ts js/core/transform.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
     "pretest": "npm run generate:typescript",
     "test": "node scripts/run-tests.mjs && node scripts/check-web-performance.mjs",

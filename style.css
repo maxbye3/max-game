@@ -1780,6 +1780,7 @@ canvas {
 .reading-rating { color: #ffd76a; font: 20px/1.4 var(--font-display); letter-spacing: 1px; }
 .reading-review { white-space: pre-wrap; overflow-wrap: anywhere; }
 .reading-list-link { display: block; width: fit-content; margin: 12px 0 0; padding: 12px; border: 1px solid #8eaf93; border-radius: 5px; color: #17321c; background: var(--accent); font: 8px/1.6 var(--font-pixel); text-decoration: none; }
+.letterboxd-follow-link { width: 100%; box-sizing: border-box; min-height: 58px; display: grid; place-items: center; font-size: 12px; text-transform: uppercase; }
 .reading-lightbox { overflow-y: auto; align-items: start; padding-top: 72px; padding-bottom: 28px; }
 .reading-book { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 540px); align-items: start; gap: 28px; width: min(100%, 828px); }
 .reading-book > img { width: 100%; max-height: 65dvh; }

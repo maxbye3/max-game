@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Diary & Laboratory</title>
-    <link rel="stylesheet" href="../style.css?v=66f75878e07e" />
+    <link rel="stylesheet" href="../style.css?v=1ec6999545b8" />
   </head>
   <body>
     <main class="game-shell">
@@ -108,6 +108,10 @@
           <button id="helen-reading-yes" type="button">Yes please</button>
           <button id="helen-reading-no" type="button">Neh, I'm good</button>
         </div>
+        <div id="dad-movie-options" class="npc-dialogue-options" hidden>
+          <button id="dad-movie-yes" type="button">Yes</button>
+          <button id="dad-movie-no" type="button">No</button>
+        </div>
       </section>
       <section id="josh-codec" class="josh-codec" aria-label="Codec call" role="dialog" aria-modal="true" hidden>
         <div class="josh-codec-frame">
@@ -160,6 +164,34 @@
         </div>
         <button id="reading-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next book">›</button>
       </dialog>
+      <section id="letterboxd-reviews-panel" class="internal-feature-panel workout-journal-panel reading-list-panel" role="dialog" aria-modal="true" aria-labelledby="letterboxd-reviews-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="letterboxd-reviews-title">Max's Letterboxd reviews</h2>
+          <button id="letterboxd-reviews-close" class="internal-feature-close" type="button" aria-label="Close movie review gallery">×</button>
+        </header>
+        <p class="workout-gallery-help">Scroll through the films. Tap a poster to see Max's rating and review.</p>
+        <div class="reading-content">
+          <p id="letterboxd-reviews-status" class="reading-list-status" role="status"></p>
+          <div id="letterboxd-reviews-list" class="workout-gallery reading-list" aria-label="Movie poster thumbnails"></div>
+        </div>
+        <a class="reading-list-link letterboxd-follow-link" href="https://boxd.it/kzTRP" target="_blank" rel="noopener noreferrer">follow me on letterboxed ↗</a>
+      </section>
+      <dialog id="movie-review-lightbox" class="workout-lightbox reading-lightbox" aria-labelledby="movie-review-title">
+        <button id="movie-review-lightbox-close" class="workout-lightbox-close" type="button" aria-label="Close movie review">×</button>
+        <button id="movie-review-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous movie">‹</button>
+        <div class="reading-book">
+          <img id="movie-review-lightbox-image" alt="" referrerpolicy="no-referrer">
+          <div class="reading-details">
+            <p id="movie-review-counter" class="reading-counter" aria-live="polite"></p>
+            <h2 id="movie-review-title" class="reading-title"></h2>
+            <p id="movie-review-year" class="reading-author"></p>
+            <p id="movie-review-rating" class="reading-rating"></p>
+            <p id="movie-review-text" class="reading-review"></p>
+            <a id="movie-review-link" class="reading-list-link" target="_blank" rel="noopener noreferrer">Read on Letterboxd ↗</a>
+          </div>
+        </div>
+        <button id="movie-review-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next movie">›</button>
+      </dialog>
       <section id="tim-workout-journal-panel" class="internal-feature-panel workout-journal-panel" role="dialog" aria-modal="true" aria-labelledby="tim-workout-journal-title" hidden>
         <header class="internal-feature-header">
           <h2 id="tim-workout-journal-title">Max's work out journal</h2>
@@ -207,21 +239,7 @@
           <h2 id="experiments-title">Experiments</h2>
           <button class="internal-feature-close" type="button" aria-label="Close experiments">×</button>
         </header>
-        <p>Pick a test image to inspect it full screen.</p>
-        <div class="experiment-gallery">
-          <button type="button" data-experiment-src="../character-assets/noel/player/profile.png">
-            <img src="../character-assets/noel/player/profile.png" alt="Noel profile test">
-            <span>Profile test</span>
-          </button>
-          <button type="button" data-experiment-src="../character-assets/noel/player/item.png">
-            <img src="../character-assets/noel/player/item.png" alt="Noel item test">
-            <span>Item test</span>
-          </button>
-          <button type="button" data-experiment-src="../character-assets/noel/avatar.png">
-            <img src="../character-assets/noel/avatar.png" alt="Noel avatar test">
-            <span>Avatar test</span>
-          </button>
-        </div>
+        <p>No experiment images are currently configured.</p>
       </section>
       <dialog id="experiment-lightbox" class="experiment-lightbox" aria-label="Expanded experiment image">
         <button id="experiment-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
@@ -242,6 +260,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=305aa1e6be29"></script>
+    <script src="../dist/internal-bundle.js?v=3e5b0326dfa2"></script>
   </body>
 </html>
