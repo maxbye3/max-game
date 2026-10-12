@@ -53,6 +53,7 @@ import { isSamPowerActive, samTargetId, type SamPowerTarget, updateSamPower } fr
 import { isOscarEaten, isOscarPowerActive, updateOscarPower } from './oscar-power.js';
 import { andyWorldDeltaTime } from './andy-power.js';
 import { updateAndyWorld } from './andy-world-power.js';
+import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 
 let previousTime = 0;
 let worldAnimationTime = 0;
@@ -143,6 +144,13 @@ function gameLoop(time: number): void {
 }
 
 setupInput();
+const wheldonTestToggle = requireElement<HTMLButtonElement>('#wheldon-test-toggle');
+wheldonTestToggle.addEventListener('click', () => {
+  const enabled = wheldonTestToggle.getAttribute('aria-pressed') !== 'true';
+  setWheldonPlayerSpriteEnabled(enabled);
+  wheldonTestToggle.setAttribute('aria-pressed', String(enabled));
+  wheldonTestToggle.textContent = enabled ? 'Wheldon On' : 'Wheldon Off';
+});
 setupAudioMute();
 setupBusIntro();
 setupInventory();

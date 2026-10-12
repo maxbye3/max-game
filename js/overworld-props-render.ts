@@ -26,6 +26,10 @@ import {
   GATE_WIDTH,
   GATE_X,
   GATE_Y,
+  GRAVEYARD_HEIGHT,
+  GRAVEYARD_WIDTH,
+  GRAVEYARD_X,
+  GRAVEYARD_Y,
   GYM_ROOF_TOGGLE_INTERVAL,
   GYM_ROOF_X,
   GYM_ROOF_Y,
@@ -264,7 +268,8 @@ export function drawWorldBackground(
   context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
   context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
   context.save();
-  context.imageSmoothingEnabled = false;
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
   context.drawImage(
     images.feedback,
     FEEDBACK_X - cameraX,
@@ -292,6 +297,15 @@ export function drawWorldBackground(
   );
   context.imageSmoothingEnabled = false;
   context.drawImage(images.zenGarden, ZEN_GARDEN_X - cameraX, ZEN_GARDEN_Y - cameraY);
+  if (isImageReady(images.graveyard)) {
+    context.drawImage(
+      images.graveyard,
+      GRAVEYARD_X - cameraX,
+      GRAVEYARD_Y - cameraY,
+      GRAVEYARD_WIDTH,
+      GRAVEYARD_HEIGHT,
+    );
+  }
 
   if (!depth.gateCoversPlayer) drawGate(cameraX, cameraY);
   if (!depth.toriCoversPlayer) drawTori(cameraX, cameraY);

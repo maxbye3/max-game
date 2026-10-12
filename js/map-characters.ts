@@ -9,6 +9,7 @@ export interface MapCharacterDefinition {
   readonly x: number;
   readonly y: number;
   readonly height: number;
+  readonly smoothScaling?: boolean;
 }
 
 export interface MapCharacter extends MapCharacterDefinition {
@@ -24,7 +25,7 @@ export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
   { name: 'Ju', source: 'chat/ju/map-sprite.png', x: 1000, y: 180, height: 52 },
   { name: 'Katie', source: 'chat/katie/map-sprite.png', x: 1130, y: 1018, height: 52 },
   { name: 'Maddy', source: 'chat/maddy/map-sprite.png', x: 383, y: 1045, height: 59 },
-  { name: 'Marina', source: 'chat/marina d/map-sprite.png', x: 201, y: 1034, height: 52 },
+  { name: 'Marina', source: 'chat/marina d/map-sprite.png', x: 201, y: 1034, height: 52, smoothScaling: true },
   { name: 'Mason', source: 'chat/mason/map-sprite.png', x: 820, y: 570, height: 69 },
   { name: 'Meli', source: 'chat/meli/map-sprite.png', x: 858, y: 570, height: 69 },
   { name: 'Oscar', source: 'chat/oscar/map-sprite.png', x: 636, y: 564, height: 52 },
@@ -70,7 +71,7 @@ export function drawMapCharacters(
   shouldDraw: (character: MapCharacter) => boolean = (character) => !isOscarEaten(oscarCharacterId(character.name)),
 ): void {
   context.save();
-  context.imageSmoothingEnabled = false;
+  context.imageSmoothingQuality = 'high';
   for (const character of mapCharacters) {
     if (!character.image.complete || character.image.naturalWidth === 0) continue;
     if (!shouldDraw(character)) continue;
@@ -80,6 +81,7 @@ export function drawMapCharacters(
       character.y - cameraY < -margin || character.y - cameraY > context.canvas.height + margin) continue;
     const width = Math.round(character.height * (character.image.naturalWidth / character.image.naturalHeight));
     const offset = samVictimOffset(samTargetId(character.name));
+    context.imageSmoothingEnabled = character.smoothScaling ?? false;
     withCharacterPowers(context, character.x - cameraX, character.y - cameraY, character.height, samTargetId(character.name), () => context.drawImage(
       character.image,
       Math.round(character.x - cameraX - width / 2 + offset.x),

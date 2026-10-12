@@ -196,6 +196,23 @@ try {
   assert.equal(sprites.getPlayerSpriteFrame(true, 'down', 0, 2).sourceY, 1290);
   assert.equal(sprites.getPlayerSpriteFrame(true, 'left', 0, 2).sourceY, 486);
 
+  const wheldon = await loadModule('wheldon-sprite', 'js/player-sprite-test.ts');
+  const wheldonFrame = (direction, tick) => wheldon.getWheldonPlayerSpriteFrame(direction, (tick + 0.01) / 8);
+  for (const direction of ['down', 'left', 'right', 'up']) {
+    const idle = wheldon.getWheldonPlayerSpriteFrame(direction, 0);
+    assert.deepEqual(wheldonFrame(direction, 0), idle, 'walking starts from the idle pose');
+    assert.deepEqual(wheldonFrame(direction, 2), idle, 'opposite steps pass through the neutral pose');
+    assert.notDeepEqual(wheldonFrame(direction, 1), wheldonFrame(direction, 3), 'steps alternate');
+    for (let tick = 0; tick < 24; tick += 1) {
+      assert.deepEqual(wheldonFrame(direction, tick), wheldonFrame(direction, tick % 4), 'Wheldon keeps a steady cycle across default frame wraps');
+    }
+  }
+  assert.equal(wheldonFrame('down', 1).sourceY + wheldonFrame('down', 1).sourceHeight, 372, 'front shoes are not clipped at the old grid boundary');
+  assert.equal(wheldonFrame('up', 3).sourceX, 707, 'rightmost pose is centered within its own crop');
+  for (const [diagonal, cardinal] of [['upLeft', 'left'], ['downLeft', 'left'], ['upRight', 'right'], ['downRight', 'right']]) {
+    assert.deepEqual(wheldonFrame(diagonal, 3), wheldonFrame(cardinal, 3));
+  }
+
   const katyPower = await loadModule('katy-power', 'js/katy-power.ts');
   katyPower.activateKatyPower(1000);
   assert.equal(katyPower.katyPowerSecondsLeft(1000), 10);

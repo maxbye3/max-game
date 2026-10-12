@@ -16,6 +16,7 @@ import { withCharacterPowers } from './character-power-render.js';
 import { drawChrisPlayer, drawChrisWorld } from './chris-power-render.js';
 import { drawBochraFloor, drawBochraLights } from './bochra-power-render.js';
 import { images } from './assets.js';
+import { getWheldonPlayerSpriteFrame, isWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { getBusIntroCameraCenter, isBusIntroPlayerVisible } from './bus-intro.js';
 import { getCaveTheftCameraCenter, getCaveThief, getCaveThiefDialogue } from './cave-thief.js';
 import { drawColander, hasCaveColander } from './colander.js';
@@ -115,8 +116,11 @@ export function draw(time: number, worldTime = time): void {
   drawMaddyTeaWorldOverlay(context, time);
   if (isGeorgiaPowerActive(time)) drawWorldForeground(cameraX, cameraY, worldDepth);
 
-  const playerSpriteSheet = SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
-  const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, SCALE);
+  const wheldonMode = isWheldonPlayerSpriteEnabled();
+  const playerSpriteSheet = wheldonMode ? images.wheldonSprite : SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
+  const spriteFrame = wheldonMode
+    ? getWheldonPlayerSpriteFrame(player.direction, player.animationTime)
+    : getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, SCALE);
   const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
   const adamActive = adamPowerSecondsLeft() > 0;
   const adamLift = adamJumpOffset();

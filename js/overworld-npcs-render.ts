@@ -41,7 +41,11 @@ export function drawOverworldNpcs(
   if (hasMikeAftermath()) drawNpc(context, 'rei', images.paint, REI_PAINT, cameraX, cameraY);
   drawNpc(context, 'adam', images.adam, ADAM, cameraX, cameraY);
   drawNpc(context, 'ed', images.ed, ED, cameraX, cameraY);
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
   drawNpc(context, 'alex-s', images.alexS, ALEX_S, cameraX, cameraY);
+  context.restore();
   drawNpc(context, 'katy', images.katy, KATY, cameraX, cameraY);
   drawGymTimCutscene(context, images.timMap, cameraX, cameraY);
   context.restore();
