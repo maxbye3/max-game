@@ -24,7 +24,7 @@ import { DiaryLabFeatures } from './diary-lab-features.js';
 import { canvas, context, requireElement } from '../core/dom.js';
 import { GymNpcDialogueController } from './gym-npc-dialogue.js';
 import { GoodreadsReadingController } from './goodreads-reading.js';
-import { HELEN_DIALOGUE_LINES } from '../characters/helen/helen-dialogue.js';
+import { HELEN_DIALOGUE_LINES } from '../generated/dialogues/helen-dialogue.js';
 import { DirectionInputController } from '../core/input.js';
 import { isThoughtsOpen } from '../core/thoughts.js';
 import { InteriorCollision } from './interior-collision.js';
@@ -37,6 +37,7 @@ import { adamAirStrideMultiplier } from '../powers/adam/adam-power.js';
 import { isOscarEaten, isOscarPowerActive, isOscarTerrainEaten, oscarMovementMultiplier, updateOscarPower, settleOscarDigestion } from '../powers/oscar/oscar-power.js';
 import { andyMovementMultiplier, andyWorldDeltaTime } from '../powers/andy/andy-power.js';
 import { updateAndyWorld } from '../powers/andy/andy-world-power.js';
+import { characterAsset, playerAsset } from '../core/character-assets.js';
 import { isJumpMenuOpen, setupJump } from '../core/jump.js';
 import { GYM_NPCS } from './gym-npcs.js';
 import { LucyController } from '../characters/lucy/lucy.js';
@@ -57,7 +58,7 @@ import { SHOW_COLLISION_SHAPES } from '../core/config.js';
 import { startGameLoop } from '../core/game-loop.js';
 import { webImageSource } from '../core/web-images.js';
 import { resolveSiteAsset } from '../core/site-assets.js';
-import { NOEL_DIALOGUE_LINES } from '../characters/noel/noel-dialogue.js';
+import { NOEL_DIALOGUE_LINES } from '../generated/dialogues/noel-dialogue.js';
 import { DadDialogueController } from '../characters/dad/dad-dialogue-controller.js';
 import { createInteriorRenderer } from './interior-render.js';
 const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal'); const doorLoading = requireElement<HTMLElement>('#door-loading');
@@ -79,8 +80,7 @@ const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-clos
 const noelDeclineButton = requireElement<HTMLButtonElement>('#noel-decline');
 const FRAME_COUNT = SEAL_MODE ? 8 : 9;
 const SPEED = 145;
-const NOEL_FOLDER = 'chat/noel';
-const NOEL_NAME = NOEL_FOLDER.slice(NOEL_FOLDER.lastIndexOf('/') + 1);
+const NOEL_NAME = 'noel';
 const NOEL_QUESTION = "Play a game where I'm the protagonist";
 const NOEL_GAME_URL = 'https://maxbye.co/stealth-game/';
 const NOEL_SONG = 'bleep-blops' as const;
@@ -109,13 +109,14 @@ const musicDjMachine = new Image(); const gymGloves = new Image();
 const bookshopNpcs = BOOKSHOP_NPCS.map((npc, index) => ({ ...npc, id: index === 0 ? 'alex-w' : 'helen', image: new Image() }));
 const musicHouseNpcs = MUSIC_HOUSE_NPCS.filter((npc) => npc.id !== 'tim' || isTimAtMusicShop()).map((npc, index) => ({ ...npc, id: npc.id ?? (index === 0 ? 'andy' : 'aliya'), image: new Image() }));
 const gymNpcs = GYM_NPCS.map((npc) => ({ ...npc, image: new Image() }));
-const cinemaNpcs = isCinemaInterior ? [{ id: 'dad', source: '../chat/dad/avatar.png', x: 398, y: 462, width: 48, height: 72, image: new Image() }] : [];
+const cinemaNpcs = isCinemaInterior ? [{ id: 'dad', source: `../${characterAsset('dad', 'avatar')}`, x: 398, y: 462, width: 48, height: 72, image: new Image() }] : [];
 interior.src = webImageSource(scene.backgroundSource);
 if (SHOW_COLLISION_SHAPES && scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
 if (scene.doorOverlaySource) doorOverlay.src = webImageSource(scene.doorOverlaySource);
-spriteSheet.src = webImageSource(SEAL_MODE ? '../player/seal-game.png?v=20260831-transparent' : '../player/SpriteSheet.png');
-if (isDiaryLabInterior || isMansionInterior) noelSprite.src = webImageSource('../chat/noel/interior-avatar.png');
-if (isCaveInterior) siblingsSprite.src = webImageSource('../chat/siblings/girls-sprite.png');
+const playerSpriteSource = SEAL_MODE ? `${playerAsset('sealSpriteSheet')}?v=20260831-transparent` : playerAsset('spriteSheet');
+spriteSheet.src = webImageSource(`../${playerSpriteSource}`);
+if (isDiaryLabInterior || isMansionInterior) noelSprite.src = webImageSource(`../${characterAsset('noel', 'interiorAvatar')}`);
+if (isCaveInterior) siblingsSprite.src = webImageSource(`../${characterAsset('siblings', 'girlsSprite')}`);
 if (isMusicShopInterior) musicDjMachine.src = '../img/internal/music-dj-machine.png';
 if (isBookshopInterior) {
   bookshopNpcs.forEach((npc) => {
@@ -130,8 +131,8 @@ if (isMusicShopInterior) {
 if (isGymInterior) { gymGloves.src = '../img/internal/gloves.png'; gymNpcs.forEach((npc) => { npc.image.src = webImageSource(npc.source); }); }
 if (isCinemaInterior) cinemaNpcs.forEach((npc) => { npc.image.src = webImageSource(npc.source); });
 const colanderWarningVoices = [
-  createGameAudio('../chat/siblings/maddy.mp3'),
-  createGameAudio('../chat/siblings/marina.mp3'),
+  createGameAudio(`../${characterAsset('siblings', 'maddyAudio')}`),
+  createGameAudio(`../${characterAsset('siblings', 'marinaAudio')}`),
 ];
 colanderWarningVoices.forEach((voice) => {
   voice.preload = 'none';

@@ -1,6 +1,7 @@
 import { requireElement } from '../core/dom.js';
 import { createGameAudio } from '../core/audio-mute.js';
 import { releaseAllInput } from '../core/input.js';
+import { characterAsset } from '../core/character-assets.js';
 
 const CATCH_TRANSITION_DURATION = 1200;
 const CATCH_TRANSITION_BANDS = 12;
@@ -9,8 +10,8 @@ const gameShell = requireElement<HTMLElement>('.game-shell');
 
 // Both sisters shout the line together, so both clips play at once.
 const messageVoices = [
-  createGameAudio('chat/siblings/maddy.mp3'),
-  createGameAudio('chat/siblings/marina.mp3'),
+  createGameAudio(characterAsset('siblings', 'maddyAudio')),
+  createGameAudio(characterAsset('siblings', 'marinaAudio')),
 ];
 messageVoices.forEach((voice) => {
   voice.preload = 'none';

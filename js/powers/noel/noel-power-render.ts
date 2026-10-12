@@ -115,7 +115,7 @@ export function drawNoelWorld(context: CanvasRenderingContext2D, cameraX: number
     ghost(context, x + Math.sin(elapsed / 300 + x) * 7, y - guest.height - 13, 22, elapsed, x);
     if (now - guest.reachedAt < 1200) { context.fillStyle = '#ffdda0'; context.font = 'bold 9px monospace'; context.fillText('WHERE’S THE SHOW?', x, y - guest.height - 32); }
   }
-  const contract = imageFor('chat/noel/item.png');
+  const contract = imageFor('character-assets/noel/item.png');
   context.globalAlpha = strength * 0.85;
   if (contract.complete && contract.naturalWidth) context.drawImage(contract, px - 28, py - playerHeight - 65, 56, 56);
   context.globalAlpha = strength; context.font = 'bold 11px monospace'; context.textAlign = 'center';

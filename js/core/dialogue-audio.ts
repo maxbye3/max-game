@@ -1,6 +1,7 @@
-import { DIALOGUE_THEME_SOURCES } from './dialogue-themes.generated.js';
-import { POWER_THEME_SOURCES } from './power-themes.generated.js';
+import { DIALOGUE_THEME_SOURCES } from '../generated/core/dialogue-themes.generated.js';
+import { POWER_THEME_SOURCES } from '../generated/core/power-themes.generated.js';
 import { createGameAudio, hasPowerAudioFocus } from './audio-mute.js';
+import { characterIdForName } from './character-assets.js';
 import { addAndyDialogueReply } from '../powers/andy/andy-power.js';
 
 const theme = createGameAudio();
@@ -18,13 +19,8 @@ function cancelThemeStop(): void {
 }
 
 function themeSourceFor(name: string): string | null {
-  const normalizedName = name.trim().toLowerCase();
-  const exactMatch = DIALOGUE_THEME_SOURCES[normalizedName as keyof typeof DIALOGUE_THEME_SOURCES];
-  if (exactMatch) return exactMatch;
-  const matchingKey = Object.keys(DIALOGUE_THEME_SOURCES).find((key) =>
-    normalizedName.startsWith(`${key} `) || key.startsWith(`${normalizedName} `),
-  );
-  return matchingKey ? DIALOGUE_THEME_SOURCES[matchingKey as keyof typeof DIALOGUE_THEME_SOURCES] : null;
+  const characterId = characterIdForName(name);
+  return characterId ? DIALOGUE_THEME_SOURCES[characterId as keyof typeof DIALOGUE_THEME_SOURCES] ?? null : null;
 }
 
 function notifyAudioFocusChanged(): void {

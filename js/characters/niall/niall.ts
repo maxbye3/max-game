@@ -10,7 +10,7 @@ import {
   setNiallQuestState,
 } from '../../core/world-state.js';
 import { releaseAllInput } from '../../core/input.js';
-import { NIALL_DIALOGUE_LINES } from './niall-dialogue.js';
+import { NIALL_DIALOGUE_LINES } from '../../generated/dialogues/niall-dialogue.js';
 import type { Direction } from '../../core/types.js';
 import { beginDialogueAudio, endDialogueAudio } from '../../core/dialogue-audio.js';
 import { addGift, NIALL_ITEM } from '../../core/inventory-gifts.js';

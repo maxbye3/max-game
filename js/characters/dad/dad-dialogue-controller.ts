@@ -1,5 +1,5 @@
 import { beginDialogueAudio } from '../../core/dialogue-audio.js';
-import { DAD_DIALOGUE_LINES } from './dad-dialogue.js';
+import { DAD_DIALOGUE_LINES } from '../../generated/dialogues/dad-dialogue.js';
 import { requireElement } from '../../core/dom.js';
 import { nextDialogueVisitIndex } from '../../core/dialogue-visit.js';
 import { setProfileImage } from '../../core/profile-images.js';

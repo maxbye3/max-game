@@ -6,8 +6,8 @@ import { basename } from 'node:path';
 // Stale copies fall back to the source until preparation is run again.
 const manifest = JSON.parse(await readFile('scripts/web-assets.manifest.json', 'utf8'));
 for (const [kind, file, variable] of [
-  ['images', 'js/core/web-images.generated.ts', 'WEB_IMAGE_SOURCES'],
-  ['themes', 'js/core/power-themes.generated.ts', 'POWER_THEME_SOURCES'],
+  ['images', 'js/generated/core/web-images.generated.ts', 'WEB_IMAGE_SOURCES'],
+  ['themes', 'js/generated/core/power-themes.generated.ts', 'POWER_THEME_SOURCES'],
 ]) {
   const sources = {};
   for (const [source, asset] of Object.entries(manifest[kind])) {

@@ -1,4 +1,4 @@
-import { ANDY_DIALOGUE_LINES } from '../characters/andy/andy-dialogue.js';
+import { ANDY_DIALOGUE_LINES } from '../generated/dialogues/andy-dialogue.js';
 import { createGameAudio } from '../core/audio-mute.js';
 import { addGift, ANDY_ITEM, hasGift, PORTABLE_WALKMAN } from '../core/inventory-gifts.js';
 import { getSongArtwork, getUnlockedSongs, unlockSong } from './music-library.js';

@@ -1,9 +1,10 @@
-import { JULIAN_DIALOGUE_LINES } from '../characters/julian/julian-dialogue.js';
-import { TIM_DIALOGUE_LINES } from '../characters/tim/tim-dialogue.js';
+import { JULIAN_DIALOGUE_LINES } from '../generated/dialogues/julian-dialogue.js';
+import { TIM_DIALOGUE_LINES } from '../generated/dialogues/tim-dialogue.js';
 import { addGift, hasGift, JULIAN_ITEM, nextGiftLine, TIM_ITEM, type GiftItem } from '../core/inventory-gifts.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 import { WorkoutGalleryController } from './workout-gallery.js';
 import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from '../powers/ed/ed-power.js';
+import { characterAsset } from '../core/character-assets.js';
 
 export type GymNpcId = 'julian' | 'tim';
 
@@ -22,7 +23,7 @@ const GYM_NPC_CHATS: Record<GymNpcId, GymNpcChat> = {
   },
   tim: {
     id: 'tim', name: 'Tim', dialogueLines: TIM_DIALOGUE_LINES,
-    profileSource: '../chat/tim/profile.png', item: TIM_ITEM,
+    profileSource: `../${characterAsset('tim', 'profile')}`, item: TIM_ITEM,
   },
 };
 

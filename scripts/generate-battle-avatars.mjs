@@ -4,14 +4,14 @@ import { readPng, writePng } from './png.mjs';
 
 const OUTPUTS = [
   {
-    source: 'chat/niall/avatar.png',
+    source: 'character-assets/niall/avatar.png',
     target: 'img/battle/niall-avatar.png',
     // Keep Niall's dark hair and jacket intact; the previous threshold treated
     // those connected pixels as part of the black background.
     threshold: 5,
   },
   {
-    source: 'player/avatar.png',
+    source: 'character-assets/player/avatar.png',
     target: 'img/battle/max-avatar.png',
     threshold: 42,
   },

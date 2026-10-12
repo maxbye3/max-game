@@ -14,7 +14,7 @@ import { activateGeorgiaPower, georgiaPowerSecondsLeft, GEORGIA_POWER_DURATION, 
 import { activateDanPower, danPowerSecondsLeft, DAN_POWER_DURATION, DAN_POWER_REVEAL } from '../powers/dan/dan-power.js';
 import { activateChrisPower, chrisPowerSecondsLeft, CHRIS_POWER_DURATION, CHRIS_POWER_REVEAL } from '../powers/chris/chris-power.js';
 import { createGameAudio, focusPowerAudio, releaseGameAudio } from './audio-mute.js';
-import { POWER_THEME_SOURCES } from './power-themes.generated.js';
+import { POWER_THEME_SOURCES } from '../generated/core/power-themes.generated.js';
 import { requireElement } from './dom.js';
 import { addGift, hasGift, LUCY_SOLAR_CAP, getCollectedGifts, removeAllCollectedGifts, removeGift } from './inventory-gifts.js';
 import {
@@ -35,30 +35,31 @@ import { activateAndyPower, andyPowerSecondsLeft, ANDY_POWER_DURATION, ANDY_POWE
 import { endDialogueAudio } from './dialogue-audio.js';
 import { activateAlexSPower, alexSPowerSecondsLeft, alexSPowerReveal, alexSThemeSecondsLeft } from '../powers/alex-s/alex-s-power.js';
 import { openAlexResurrectionChoice, openAlexToastDialogue, updateAlexResurrectionUi } from '../powers/alex-s/alex-s-power-ui.js';
+import { characterAsset, characterAssetOrNull } from './character-assets.js';
 
 const ITEM_THEME_DURATION = 10_000;
-const KATY_THEME_SOURCE = 'chat/katy/theme.m4a';
-const LUCY_THEME_SOURCE = 'chat/lucy/theme.mp3';
-const JULIAN_THEME_SOURCE = 'chat/julian/player/theme.mp3';
-const TIM_THEME_SOURCE = 'chat/tim/theme.mp3';
-const MADDY_THEME_SOURCE = 'chat/maddy/theme.mp3';
-const ED_THEME_SOURCE = 'chat/ed/theme.mp3';
-const JU_THEME_SOURCE = 'chat/ju/theme.mp3';
-const KATIE_THEME_SOURCE = 'chat/katie/theme.mp3';
-const JOE_THEME_SOURCE = 'chat/joe/theme.mp3';
-const HELEN_THEME_SOURCE = 'chat/helen/player/theme.mp3';
-const NIALL_THEME_SOURCE = 'chat/niall/player/theme.mp3';
-const SAM_THEME_SOURCE = 'chat/sam/theme.mp3';
-const REI_THEME_SOURCE = 'chat/rei/theme.mp3';
-const OSCAR_THEME_SOURCE = 'chat/oscar/theme.mp3';
-const DAN_THEME_SOURCE = 'chat/dan/theme.mp3';
-const GEORGIA_THEME_SOURCE = 'chat/georgia/theme.mp3';
-const CHRIS_THEME_SOURCE = 'chat/chris/theme.mp3';
-const BOCHRA_THEME_SOURCE = 'chat/bochra/theme.mp3';
-const ANDY_THEME_SOURCE = 'chat/andy/theme.mp3';
-const ALEX_S_THEME_SOURCE = 'chat/alex s/theme.mp3';
-const ALICE_THEME_SOURCE = 'chat/alice/theme.mp3';
-const NOEL_THEME_SOURCE = 'chat/noel/player/theme.mp3';
+const KATY_THEME_SOURCE = characterAsset('katy', 'theme');
+const LUCY_THEME_SOURCE = characterAsset('lucy', 'theme');
+const JULIAN_THEME_SOURCE = characterAsset('julian', 'theme');
+const TIM_THEME_SOURCE = characterAsset('tim', 'theme');
+const MADDY_THEME_SOURCE = characterAsset('maddy', 'theme');
+const ED_THEME_SOURCE = characterAsset('ed', 'theme');
+const JU_THEME_SOURCE = characterAsset('ju', 'theme');
+const KATIE_THEME_SOURCE = characterAsset('katie', 'theme');
+const JOE_THEME_SOURCE = characterAsset('joe', 'theme');
+const HELEN_THEME_SOURCE = characterAsset('helen', 'theme');
+const NIALL_THEME_SOURCE = characterAsset('niall', 'theme');
+const SAM_THEME_SOURCE = characterAsset('sam', 'theme');
+const REI_THEME_SOURCE = characterAsset('rei', 'theme');
+const OSCAR_THEME_SOURCE = characterAsset('oscar', 'theme');
+const DAN_THEME_SOURCE = characterAsset('dan', 'theme');
+const GEORGIA_THEME_SOURCE = characterAsset('georgia', 'theme');
+const CHRIS_THEME_SOURCE = characterAsset('chris', 'theme');
+const BOCHRA_THEME_SOURCE = characterAsset('bochra', 'theme');
+const ANDY_THEME_SOURCE = characterAssetOrNull('andy', 'theme');
+const ALEX_S_THEME_SOURCE = characterAsset('alex-s', 'theme');
+const ALICE_THEME_SOURCE = characterAsset('alice', 'theme');
+const NOEL_THEME_SOURCE = characterAsset('noel', 'theme');
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
@@ -259,7 +260,7 @@ function renderGiftItems(): void {
         setInventoryOpen(false);
       } else if (item.id === 'andy-item') {
         activateAndyPower();
-        playItemTheme(ANDY_THEME_SOURCE, true, ANDY_POWER_DURATION);
+        if (ANDY_THEME_SOURCE) playItemTheme(ANDY_THEME_SOURCE, true, ANDY_POWER_DURATION);
         andyPowerPendingReveal = true;
         powerupStatus.textContent = 'Andy power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;

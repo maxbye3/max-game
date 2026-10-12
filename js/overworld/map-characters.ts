@@ -1,9 +1,11 @@
 import { withCharacterPowers } from '../powers/shared/character-power-render.js';
 import { webImageSource } from '../core/web-images.js';
+import { characterAsset, type CharacterId } from '../core/character-assets.js';
 import { samTargetId, samVictimOffset } from '../powers/sam/sam-power.js';
 import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
 
 export interface MapCharacterDefinition {
+  readonly id: CharacterId;
   readonly name: string;
   readonly source: string;
   readonly x: number;
@@ -16,19 +18,19 @@ export interface MapCharacter extends MapCharacterDefinition {
 }
 
 export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
-  { name: 'Alice', source: 'chat/alice/map-sprite.png', x: 260, y: 120, height: 52 },
-  { name: 'Bochra', source: 'chat/bochra/map-sprite.png', x: 1114, y: 172, height: 52 },
-  { name: 'Chris', source: 'chat/chris/map-sprite.png', x: 475, y: 270, height: 52 },
-  { name: 'Dan', source: 'chat/dan/map-sprite.png', x: 1150, y: 372, height: 48 },
-  { name: 'Joe', source: 'chat/joe/map-sprite.png', x: 1080, y: 1070, height: 52 },
-  { name: 'Ju', source: 'chat/ju/map-sprite.png', x: 1000, y: 180, height: 52 },
-  { name: 'Katie', source: 'chat/katie/map-sprite.png', x: 1130, y: 1018, height: 52 },
-  { name: 'Maddy', source: 'chat/maddy/map-sprite.png', x: 383, y: 1045, height: 59 },
-  { name: 'Marina', source: 'chat/marina d/map-sprite.png', x: 201, y: 1034, height: 52 },
-  { name: 'Mason', source: 'chat/mason/map-sprite.png', x: 820, y: 570, height: 69 },
-  { name: 'Meli', source: 'chat/meli/map-sprite.png', x: 858, y: 570, height: 69 },
-  { name: 'Oscar', source: 'chat/oscar/map-sprite.png', x: 636, y: 564, height: 52 },
-  { name: 'Sam', source: 'chat/sam/map-sprite.png', x: 324, y: 974, height: 52 },
+  { id: 'alice', name: 'Alice', source: characterAsset('alice', 'mapSprite'), x: 260, y: 120, height: 52 },
+  { id: 'bochra', name: 'Bochra', source: characterAsset('bochra', 'mapSprite'), x: 1114, y: 172, height: 52 },
+  { id: 'chris', name: 'Chris', source: characterAsset('chris', 'mapSprite'), x: 475, y: 270, height: 52 },
+  { id: 'dan', name: 'Dan', source: characterAsset('dan', 'mapSprite'), x: 1150, y: 372, height: 48 },
+  { id: 'joe', name: 'Joe', source: characterAsset('joe', 'mapSprite'), x: 1080, y: 1070, height: 52 },
+  { id: 'ju', name: 'Ju', source: characterAsset('ju', 'mapSprite'), x: 1000, y: 180, height: 52 },
+  { id: 'katie', name: 'Katie', source: characterAsset('katie', 'mapSprite'), x: 1130, y: 1018, height: 52 },
+  { id: 'maddy', name: 'Maddy', source: characterAsset('maddy', 'mapSprite'), x: 383, y: 1045, height: 59 },
+  { id: 'marina-d', name: 'Marina', source: characterAsset('marina-d', 'mapSprite'), x: 201, y: 1034, height: 52 },
+  { id: 'mason', name: 'Mason', source: characterAsset('mason', 'mapSprite'), x: 820, y: 570, height: 69 },
+  { id: 'meli', name: 'Meli', source: characterAsset('meli', 'mapSprite'), x: 858, y: 570, height: 69 },
+  { id: 'oscar', name: 'Oscar', source: characterAsset('oscar', 'mapSprite'), x: 636, y: 564, height: 52 },
+  { id: 'sam', name: 'Sam', source: characterAsset('sam', 'mapSprite'), x: 324, y: 974, height: 52 },
 ];
 
 export const mapCharacters: readonly MapCharacter[] = MAP_CHARACTER_DEFINITIONS.map((character) => ({
@@ -67,7 +69,7 @@ export function drawMapCharacters(
   context: CanvasRenderingContext2D,
   cameraX: number,
   cameraY: number,
-  shouldDraw: (character: MapCharacter) => boolean = (character) => !isOscarEaten(oscarCharacterId(character.name)),
+  shouldDraw: (character: MapCharacter) => boolean = (character) => !isOscarEaten(oscarCharacterId(character.id)),
 ): void {
   context.save();
   context.imageSmoothingEnabled = false;
@@ -79,8 +81,8 @@ export function drawMapCharacters(
     if (character.x - cameraX < -margin || character.x - cameraX > context.canvas.width + margin ||
       character.y - cameraY < -margin || character.y - cameraY > context.canvas.height + margin) continue;
     const width = Math.round(character.height * (character.image.naturalWidth / character.image.naturalHeight));
-    const offset = samVictimOffset(samTargetId(character.name));
-    withCharacterPowers(context, character.x - cameraX, character.y - cameraY, character.height, samTargetId(character.name), () => context.drawImage(
+    const offset = samVictimOffset(samTargetId(character.id));
+    withCharacterPowers(context, character.x - cameraX, character.y - cameraY, character.height, samTargetId(character.id), () => context.drawImage(
       character.image,
       Math.round(character.x - cameraX - width / 2 + offset.x),
       Math.round(character.y - cameraY - character.height + offset.y),

@@ -1,3 +1,5 @@
+import { characterAsset } from '../core/character-assets.js';
+
 export interface MusicHouseNpc {
   readonly id?: 'tim';
   readonly source: string;
@@ -18,14 +20,14 @@ export interface MusicHouseNpc {
 // the Music House artwork. These are scenery characters, not interactables.
 export const MUSIC_HOUSE_NPCS: readonly MusicHouseNpc[] = [
   {
-    source: '../chat/andy/overworld-sprite.png',
+    source: `../${characterAsset('andy', 'overworldSprite')}`,
     x: 258,
     y: 280,
     width: 90,
     height: 100,
   },
   {
-    source: '../chat/aliya/overworld-sprite.png',
+    source: `../${characterAsset('aliya', 'overworldSprite')}`,
     x: 130,
     y: 350,
     width: 51,
@@ -33,7 +35,7 @@ export const MUSIC_HOUSE_NPCS: readonly MusicHouseNpc[] = [
   },
   {
     id: 'tim',
-    source: '../chat/tim/dancing.png',
+    source: `../${characterAsset('tim', 'dancing')}`,
     x: 380,
     y: 475,
     width: 56,

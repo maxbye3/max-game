@@ -1,7 +1,8 @@
-import { LUCY_DIALOGUE_LINES } from './lucy-dialogue.js';
+import { LUCY_DIALOGUE_LINES } from '../../generated/dialogues/lucy-dialogue.js';
 import { addGift, hasGift, LUCY_ITEM, nextGiftLine } from '../../core/inventory-gifts.js';
 import { PlantDiaryGalleryController } from '../../interiors/plant-diary-gallery.js';
 import { nextDialogueVisitIndex } from '../../core/dialogue-visit.js';
+import { characterAsset } from '../../core/character-assets.js';
 
 export class LucyController {
   readonly sprite = new Image();
@@ -20,7 +21,7 @@ export class LucyController {
     private readonly dialogueProgress: HTMLElement,
     private readonly giftConfirmation: HTMLElement,
   ) {
-    this.sprite.src = '../chat/lucy/avatar.png';
+    this.sprite.src = `../${characterAsset('lucy', 'avatar')}`;
     this.plantDiary = new PlantDiaryGalleryController(() => this.resumeDialogue());
     document.querySelector<HTMLButtonElement>('#lucy-plant-diary-yeh')?.addEventListener('click', () => {
       this.showPlantDiary();

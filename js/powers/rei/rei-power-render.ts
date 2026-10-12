@@ -14,8 +14,8 @@ function steam(context: CanvasRenderingContext2D, x: number, y: number, size: nu
   for (let segment = 0; segment < 5; segment++) context.fillRect(Math.round(x + Math.sin(now / 650 + segment) * 3), Math.round(y - segment * size), 3, size - 1);
 }
 function itemImage(kind: 'slow' | 'sparkle'): HTMLImageElement {
-  if (kind === 'slow') { tray ??= new Image(); if (!tray.src) tray.src = resolveSiteAsset('chat/rei/item-1.png'); return tray; }
-  palette ??= new Image(); if (!palette.src) palette.src = resolveSiteAsset('chat/rei/item-2.png'); return palette;
+  if (kind === 'slow') { tray ??= new Image(); if (!tray.src) tray.src = resolveSiteAsset('character-assets/rei/item-1.png'); return tray; }
+  palette ??= new Image(); if (!palette.src) palette.src = resolveSiteAsset('character-assets/rei/item-2.png'); return palette;
 }
 
 export function withReiPower(context: CanvasRenderingContext2D, x: number, y: number, height: number, id: string, draw: () => void, now: number): void {

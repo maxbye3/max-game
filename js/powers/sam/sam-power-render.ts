@@ -134,7 +134,7 @@ export function drawSamPower(context: CanvasRenderingContext2D, playerX: number,
     context.strokeStyle = '#7d2534'; context.lineWidth = 9; context.beginPath(); context.moveTo(playerX + side * playerHeight * 0.28, centreY); context.lineTo(clawX - side * 8, clawY); context.stroke();
     context.strokeStyle = '#ed6b48'; context.lineWidth = 5; context.stroke(); drawClaw(context, clawX, clawY, -side, size, snap);
   }
-  cartridge ??= new Image(); if (!cartridge.src) cartridge.src = resolveSiteAsset('chat/sam/item.png');
+  cartridge ??= new Image(); if (!cartridge.src) cartridge.src = resolveSiteAsset('character-assets/sam/item.png');
   if (cartridge.complete && cartridge.naturalWidth && elapsed < 1600) {
     const artSize = Math.min(92, context.canvas.width * 0.16); context.globalAlpha = strength * Math.min(1, (1600 - elapsed) / 400);
     context.drawImage(cartridge, playerX - artSize / 2, playerY - playerHeight - artSize - 14, artSize, artSize);

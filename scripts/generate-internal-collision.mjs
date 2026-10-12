@@ -254,14 +254,14 @@ function generateRedOutlineCollisionMask({
 
 generateCollisionMask({
   sourceName: 'diary-lab-collision.png',
-  outputName: 'interiors/internal-collision-mask.ts',
+  outputName: 'generated/interiors/internal-collision-mask.ts',
   prefix: 'INTERNAL',
   sourceScale: 1,
 });
 
 generateCollisionMask({
   sourceName: 'cinema-collisions.png',
-  outputName: 'interiors/cinema-collision-mask.ts',
+  outputName: 'generated/interiors/cinema-collision-mask.ts',
   prefix: 'CINEMA',
   sourceScale: 1,
 });
@@ -269,14 +269,14 @@ generateCollisionMask({
 generateOutlinedCollisionMask({
   guideName: 'internal-music-house-collision.png',
   cleanName: 'internal-music.png',
-  outputName: 'interiors/music-house-collision-mask.ts',
+  outputName: 'generated/interiors/music-house-collision-mask.ts',
   prefix: 'MUSIC_HOUSE',
   sourceScale: 2,
 });
 
 generateRedOutlineCollisionMask({
   guideName: 'internal-gym-collision.png',
-  outputName: 'interiors/gym-collision-mask.ts',
+  outputName: 'generated/interiors/gym-collision-mask.ts',
   prefix: 'GYM',
   sourceScale: 2,
   seed: { x: 512, y: 1120 },
@@ -286,7 +286,7 @@ generateRedOutlineCollisionMask({
 
 generateRedOutlineCollisionMask({
   guideName: 'mansion-collision.png',
-  outputName: 'interiors/mansion-collision-mask.ts',
+  outputName: 'generated/interiors/mansion-collision-mask.ts',
   prefix: 'MANSION',
   sourceScale: 1,
   seed: { x: 256, y: 520 },
@@ -297,7 +297,7 @@ generateRedOutlineCollisionMask({
 
 generateRedOutlineCollisionMask({
   guideName: 'bookshop-internal-collision.png',
-  outputName: 'interiors/bookshop-collision-mask.ts',
+  outputName: 'generated/interiors/bookshop-collision-mask.ts',
   prefix: 'BOOKSHOP',
   sourceScale: 2,
   seed: { x: 512, y: 1040 },
@@ -309,7 +309,7 @@ generateRedOutlineCollisionMask({
 
 generateRedOutlineCollisionMask({
   guideName: 'garden-collisions.png',
-  outputName: 'interiors/garden-collision-mask.ts',
+  outputName: 'generated/interiors/garden-collision-mask.ts',
   prefix: 'GARDEN',
   sourceScale: 2,
   seed: { x: 512, y: 900 },

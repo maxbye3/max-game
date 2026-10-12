@@ -3,7 +3,7 @@ import {
   CINEMA_COLLISION_CELL_SIZE,
   CINEMA_COLLISION_COLUMNS,
   CINEMA_COLLISION_ROWS,
-} from './cinema-collision-mask.js';
+} from '../generated/interiors/cinema-collision-mask.js';
 import { CAVE_SIBLINGS } from './cave-siblings.js';
 import { CAVE_DOOR_ID } from '../core/colander.js';
 import {
@@ -11,37 +11,37 @@ import {
   BOOKSHOP_COLLISION_CELL_SIZE,
   BOOKSHOP_COLLISION_COLUMNS,
   BOOKSHOP_COLLISION_ROWS,
-} from './bookshop-collision-mask.js';
+} from '../generated/interiors/bookshop-collision-mask.js';
 import {
   GYM_COLLISION_BITS,
   GYM_COLLISION_CELL_SIZE,
   GYM_COLLISION_COLUMNS,
   GYM_COLLISION_ROWS,
-} from './gym-collision-mask.js';
+} from '../generated/interiors/gym-collision-mask.js';
 import {
   GARDEN_COLLISION_BITS,
   GARDEN_COLLISION_CELL_SIZE,
   GARDEN_COLLISION_COLUMNS,
   GARDEN_COLLISION_ROWS,
-} from './garden-collision-mask.js';
+} from '../generated/interiors/garden-collision-mask.js';
 import {
   INTERNAL_COLLISION_BITS,
   INTERNAL_COLLISION_CELL_SIZE,
   INTERNAL_COLLISION_COLUMNS,
   INTERNAL_COLLISION_ROWS,
-} from './internal-collision-mask.js';
+} from '../generated/interiors/internal-collision-mask.js';
 import {
   MUSIC_HOUSE_COLLISION_BITS,
   MUSIC_HOUSE_COLLISION_CELL_SIZE,
   MUSIC_HOUSE_COLLISION_COLUMNS,
   MUSIC_HOUSE_COLLISION_ROWS,
-} from './music-house-collision-mask.js';
+} from '../generated/interiors/music-house-collision-mask.js';
 import {
   MANSION_COLLISION_BITS,
   MANSION_COLLISION_CELL_SIZE,
   MANSION_COLLISION_COLUMNS,
   MANSION_COLLISION_ROWS,
-} from './mansion-collision-mask.js';
+} from '../generated/interiors/mansion-collision-mask.js';
 import { isTimAtCinema, isTimAtMusicShop } from '../characters/tim/tim-location.js';
 
 export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio' | 'doughnutShop';

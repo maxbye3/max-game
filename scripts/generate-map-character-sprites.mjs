@@ -3,29 +3,28 @@ import { dirname, resolve } from 'node:path';
 import { readPng, writePng } from './png.mjs';
 
 const CHARACTERS = [
-  ['alex w', 'chat/alex w/player/avatar.png'],
-  ['alice', 'chat/alice/player/avatar.png'],
-  ['aliya', 'chat/aliya/example/avatar.png'],
-  ['andy', 'chat/andy/player/avatar.png'],
-  ['bochra', 'chat/bochra/player/avatar.png'],
-  ['chris', 'chat/chris/player/avatar.png'],
-  ['dan', 'chat/dan/player/avatar.png'],
-  ['helen', 'chat/helen/player/avatar.png'],
-  ['joe', 'chat/joe/player/avatar.png'],
-  ['josh', 'chat/josh/example/avatar.png'],
-  ['ju', 'chat/ju/player/avatar.png'],
-  ['julian', 'chat/julian/player/avatar.png'],
-  ['katie', 'chat/katie/player/avatar.png'],
-  ['katy', 'chat/katy/player/avatar.png'],
-  ['lucy', 'chat/lucy/player/avatar.png'],
-  ['maddy', 'chat/maddy/example/avatar.png'],
-  ['marina d', 'chat/marina d/player/avatar.png'],
-  ['mason', 'chat/mason/player/avatar.png'],
-  ['meli', 'chat/meli/player/avatar.png'],
-  ['noel', 'chat/noel/player/avatar.png'],
-  ['oscar', 'chat/oscar/player/avatar.png'],
-  ['sam', 'chat/sam/player/avatar.png'],
-  ['tim', 'chat/tim/player/avatar.png'],
+  ['alex-w', 'character-assets/alex-w/player/avatar.png'],
+  ['alice', 'character-assets/alice/player/avatar.png'],
+  ['aliya', 'character-assets/aliya/avatar.png'],
+  ['andy', 'character-assets/andy/avatar.png'],
+  ['bochra', 'character-assets/bochra/player/avatar.png'],
+  ['chris', 'character-assets/chris/player/avatar.png'],
+  ['dan', 'character-assets/dan/player/avatar.png'],
+  ['helen', 'character-assets/helen/player/avatar.png'],
+  ['joe', 'character-assets/joe/player/avatar.png'],
+  ['ju', 'character-assets/ju/player/avatar.png'],
+  ['julian', 'character-assets/julian/player/avatar.png'],
+  ['katie', 'character-assets/katie/player/avatar.png'],
+  ['katy', 'character-assets/katy/avatar.png'],
+  ['lucy', 'character-assets/lucy/player/avatar.png'],
+  ['maddy', 'character-assets/maddy/avatar.png'],
+  ['marina-d', 'character-assets/marina-d/player/avatar.png'],
+  ['mason', 'character-assets/mason/player/avatar.png'],
+  ['meli', 'character-assets/meli/player/avatar.png'],
+  ['noel', 'character-assets/noel/player/avatar.png'],
+  ['oscar', 'character-assets/oscar/avatar.png'],
+  ['sam', 'character-assets/sam/avatar.png'],
+  ['tim', 'character-assets/tim/avatar.png'],
 ];
 
 const TARGET_HEIGHT = 52;
@@ -156,7 +155,7 @@ function scaleToHeight(image, targetHeight) {
 }
 
 for (const [name, source] of CHARACTERS) {
-  const target = `chat/${name}/map-sprite.png`;
+  const target = `img/generated/characters/${name}-map-sprite.png`;
   const image = readPng(readFileSync(resolve(source)));
   const sprite = scaleToHeight(cropToAlpha(makeTransparent(image)), TARGET_HEIGHT);
   mkdirSync(dirname(resolve(target)), { recursive: true });

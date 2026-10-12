@@ -1,4 +1,5 @@
 import { createGameAudio } from '../core/audio-mute.js';
+import { characterAsset } from '../core/character-assets.js';
 
 export const CAVE_SIBLINGS = {
   x: 320,
@@ -73,8 +74,8 @@ export class CaveSiblingsController {
 
   constructor(private readonly view: CaveSiblingsView) {
     this.voices = {
-      Maddy: createGameAudio('../chat/siblings/maddy.mp3'),
-      Marina: createGameAudio('../chat/siblings/marina.mp3'),
+      Maddy: createGameAudio(`../${characterAsset('siblings', 'maddyAudio')}`),
+      Marina: createGameAudio(`../${characterAsset('siblings', 'marinaAudio')}`),
     };
     Object.values(this.voices).forEach((voice) => {
       voice.preload = 'none';

@@ -1,4 +1,4 @@
-import { WEB_IMAGE_SOURCES } from './web-images.generated.js';
+import { WEB_IMAGE_SOURCES } from '../generated/core/web-images.generated.js';
 
 /** Keep source paths canonical; select a lossless browser copy when available. */
 export function webImageSource(source: string): string {

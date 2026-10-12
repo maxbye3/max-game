@@ -969,7 +969,7 @@ try {
   // Approach from Ed's east side so Adam's nearby interaction does not win.
   const approachEd = () => npcs.updateNpcInteractions(npcs.ED.x + 30, npcs.ED.y);
   approachEd();
-  assert.equal(element('#npc-dialogue-profile').src, 'chat/ed/profile.png');
+  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/ed/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   assert.match(element('#npc-dialogue-line').textContent, /Halstead Court/);
   next();
@@ -1019,7 +1019,7 @@ try {
   const approachAlex = () => npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
   leave(); approachAlex();
   assert.equal(values.has('max-game:inventory-gifts'), false);
-  assert.equal(element('#npc-dialogue-profile').src, 'chat/alex s/profile.png');
+  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/alex-s/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
@@ -1053,12 +1053,12 @@ try {
   const profiles = await loadModule('profile-images', 'js/core/profile-images.ts');
   assert.equal(profiles.profileImageSource('adam'), null);
   assert.equal(profiles.profileImageSource('Bochra'), null, 'a missing root portrait is intentional');
-  assert.equal(profiles.profileImageSource('ed'), 'chat/ed/profile.png');
-  assert.equal(profiles.profileImageSource('Alex S'), 'chat/alex s/profile.png');
-  assert.equal(profiles.profileImageSource('Helen'), 'chat/helen/profile.png');
-  assert.equal(profiles.profileImageSource('marina d'), 'chat/marina d/profile.png');
-  for (const source of Object.values((await loadModule('profile-sources', 'js/core/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {
-    assert.match(source, /^chat\/[^/]+\/profile\.(?:png|jpe?g)$/i);
+  assert.equal(profiles.profileImageSource('ed'), 'character-assets/ed/profile.png');
+  assert.equal(profiles.profileImageSource('Alex S'), 'character-assets/alex-s/profile.png');
+  assert.equal(profiles.profileImageSource('Helen'), 'character-assets/helen/profile.png');
+  assert.equal(profiles.profileImageSource('marina d'), 'character-assets/marina-d/profile.png');
+  for (const source of Object.values((await loadModule('profile-sources', 'js/generated/core/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {
+    assert.match(source, /^character-assets\/[^/]+\/profile\.(?:png|jpe?g)$/i);
   }
   next();
   assert.match(element('#npc-dialogue-line').textContent, /2006 Champions League final/);
@@ -1121,7 +1121,7 @@ try {
     }
   }
 
-  const reiLines = (await loadModule('rei-dialogue-flow', 'js/characters/rei/rei-dialogue.ts')).REI_DIALOGUE_LINES;
+  const reiLines = (await loadModule('rei-dialogue-flow', 'js/generated/dialogues/rei-dialogue.ts')).REI_DIALOGUE_LINES;
   const approachRei = () => { leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y); };
   const finishReiMission = (completed) => {
     next();
@@ -1255,7 +1255,7 @@ try {
     leave(); npcs.updateNpcInteractions(npc.x, npc.y);
     assert.equal(element('#npc-dialogue-line').textContent, `Hi there I'm ${npc.name}. This is my first line.`);
     assert.equal(element('#npc-dialogue-profile').hidden, false);
-    assert.match(element('#npc-dialogue-profile').src, new RegExp(`^chat/${npc.id}/profile\\.(png|jpg|jpeg)$`));
+    assert.match(element('#npc-dialogue-profile').src, new RegExp(`^character-assets/${npc.id}/profile\\.(png|jpg|jpeg)$`));
     next();
     assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
     assert.equal(element('#npc-dialogue-next').hidden, false, 'Chris continues his lines after the item reward');

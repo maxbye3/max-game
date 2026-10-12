@@ -1,4 +1,5 @@
 import { resolveSiteAsset } from './site-assets.js';
+import { characterAsset } from './character-assets.js';
 import { clearEdGiftCharge } from '../powers/ed/ed-power.js';
 
 export interface GiftItem {
@@ -26,35 +27,35 @@ export const GIFT_LINES = [
 export const JULIAN_ITEM: GiftItem = {
   id: 'julian-item',
   name: "Julian's item",
-  imageSource: 'chat/julian/item.png',
+  imageSource: characterAsset('julian', 'item'),
   description: 'A mysterious gift from Julian. Use it to discover its power.',
 };
 
 export const TIM_ITEM: GiftItem = {
   id: 'tim-item',
   name: "Tim's item",
-  imageSource: 'chat/tim/item.png',
+  imageSource: characterAsset('tim', 'item'),
   description: 'A surprise from Tim. Use it to discover its power.',
 };
 
 export const HELEN_ITEM: GiftItem = {
   id: 'helen-item',
   name: "Helen's item",
-  imageSource: 'chat/helen/item.png',
+  imageSource: characterAsset('helen', 'item'),
   description: 'A surprise from Helen. Use it to find out what happens.',
 };
 
 export const NIALL_ITEM: GiftItem = {
   id: 'niall-item',
   name: "Niall's item",
-  imageSource: 'chat/niall/player/item.png',
+  imageSource: characterAsset('niall', 'item'),
   description: 'Makes the protagonist move 20% faster.',
 };
 
 export const LUCY_ITEM: GiftItem = {
   id: 'lucy-item',
   name: "Lucy's item",
-  imageSource: 'chat/lucy/item.png',
+  imageSource: characterAsset('lucy', 'item'),
   description: 'A surprise from Lucy. Use it to discover its power.',
 };
 
@@ -68,7 +69,7 @@ export const LUCY_SOLAR_CAP: GiftItem = {
 export const NOEL_ITEM: GiftItem = {
   id: 'noel-item',
   name: "Noel's item",
-  imageSource: 'chat/noel/item.png',
+  imageSource: characterAsset('noel', 'item'),
   description: 'A mysterious contract from Noel. Use it to discover its power.',
 };
 
@@ -83,119 +84,119 @@ export const PORTABLE_WALKMAN: GiftItem = {
 export const GEORGIA_ITEM: GiftItem = {
   id: 'georgia-item',
   name: "Georgia's item",
-  imageSource: 'chat/georgia/item.png',
+  imageSource: characterAsset('georgia', 'item'),
   description: 'A surprise from Georgia. Use it to find out what happens.',
 };
 
 export const ANDY_ITEM: GiftItem = {
   id: 'andy-item',
   name: "Andy's item",
-  imageSource: 'chat/andy/Item.png',
+  imageSource: characterAsset('andy', 'item'),
   description: 'Creates the apocalypse.',
 };
 
 export const REI_ITEM_1: GiftItem = {
   id: 'rei-item',
   name: "Rei's first item",
-  imageSource: 'chat/rei/item-1.png',
+  imageSource: characterAsset('rei', 'itemOne'),
   description: 'Use to discover Rei’s first power.',
 };
 
 export const REI_ITEM_2: GiftItem = {
   id: 'rei-item-2',
   name: "Rei's second item",
-  imageSource: 'chat/rei/item-2.png',
+  imageSource: characterAsset('rei', 'itemTwo'),
   description: 'Use to discover Rei’s second power.',
 };
 
 export const MADDY_ITEM: GiftItem = {
   id: 'maddy-item',
   name: "Maddy's item",
-  imageSource: 'chat/maddy/item.png',
+  imageSource: characterAsset('maddy', 'item'),
   description: 'Protagonist has a cup of tea',
 };
 
 export const OSCAR_ITEM: GiftItem = {
   id: 'oscar-item',
   name: "Oscar's item",
-  imageSource: 'chat/oscar/item.png',
+  imageSource: characterAsset('oscar', 'item'),
   description: 'A mysterious fork from Oscar. Use it to discover its power.',
 };
 
 export const ED_ITEM: GiftItem = {
   id: 'ed-item',
   name: "Ed's item",
-  imageSource: 'chat/ed/item.png',
+  imageSource: characterAsset('ed', 'item'),
   description: 'This power has no time limit. When the protagonist speaks to Helen or Niall or Tim or Max the items they give you are doubled in effectiveness (if possible) and last twice as long. Also, they show you their Halstead tattoos as part of the interaction.',
 };
 
 export const ADAM_ITEM: GiftItem = {
   id: 'adam-item',
   name: "Adam's item",
-  imageSource: 'chat/adam/item.png',
+  imageSource: characterAsset('adam', 'item'),
   description: "Adds 5 inches to the protagonist's height and accentuates their muscular calves. Allows them to jump twice as high for 20 seconds.",
 };
 
 export const ALICE_ITEM: GiftItem = {
   id: 'alice-item',
   name: "Alice's item",
-  imageSource: 'chat/alice/item.png',
+  imageSource: characterAsset('alice', 'item'),
   description: 'Flash blinds everyone nearby, including the protagonist, for 20 seconds.',
 };
 
 export const CHRIS_ITEM: GiftItem = {
   id: 'chris-item',
   name: "Chris's item",
-  imageSource: 'chat/chris/item.png',
+  imageSource: characterAsset('chris', 'item'),
   description: 'A surprise from Chris. Use it to find out what happens.',
 };
 
 export const SAM_ITEM: GiftItem = {
   id: 'sam-item',
   name: "Sam's item",
-  imageSource: 'chat/sam/item.png',
+  imageSource: characterAsset('sam', 'item'),
   description: 'A surprise from Sam. Use it to discover its power.',
 };
 
 export const KATIE_ITEM: GiftItem = {
   id: 'katie-item',
   name: "Katie's item",
-  imageSource: 'chat/katie/item.png',
+  imageSource: characterAsset('katie', 'item'),
   description: 'A surprise from Katie. Use it to discover its power.',
 };
 
 export const JU_ITEM: GiftItem = {
   id: 'ju-item',
   name: "Ju's item",
-  imageSource: 'chat/ju/item.png',
+  imageSource: characterAsset('ju', 'item'),
   description: 'A mysterious amulet from Ju. Use it to discover its power.',
 };
 
 export const BOCHRA_ITEM: GiftItem = {
   id: 'bochra-item',
   name: "Bochra's item",
-  imageSource: 'chat/bochra/item.png',
+  imageSource: characterAsset('bochra', 'item'),
   description: 'A surprise from Bochra. Use it to find out what happens.',
 };
 
 export const DAN_ITEM: GiftItem = {
   id: 'dan-item',
   name: "Dan's item",
-  imageSource: 'chat/dan/item.png',
+  imageSource: characterAsset('dan', 'item'),
   description: 'A surprise from Dan. Use it to find out what happens.',
 };
 
 export const JOE_ITEM: GiftItem = {
   id: 'joe-item',
   name: "Joe's item",
-  imageSource: 'chat/joe/item.png',
+  imageSource: characterAsset('joe', 'item'),
   description: 'A surprise from Joe. Use it to find out what happens.',
 };
 
 export const ALEX_S_ITEM: GiftItem = {
   id: 'alex-s-item',
   name: "Alex S's item",
-  imageSource: 'chat/alex s/item.png',
+  imageSource: characterAsset('alex-s', 'item'),
   description: 'A mysterious gift from Alex S. Use it to discover its power.',
 };
 
@@ -222,13 +223,13 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   {
     id: 'mike-item',
     name: "Mike's item",
-    imageSource: 'chat/mike/item.png',
+    imageSource: characterAsset('mike', 'item'),
     description: 'A mysterious cookie from Mike. Use it to discover its power.',
   },
   {
     id: 'katy-item',
     name: "Katy's item",
-    imageSource: 'chat/katy/item.png',
+    imageSource: characterAsset('katy', 'item'),
     description: 'Character trips over occasionally',
   },
   LUCY_ITEM,

@@ -1,6 +1,7 @@
 import { CAVE_SIBLINGS, CAVE_SIBLINGS_IDLE_FRAME } from '../interiors/cave-siblings.js';
 import { canvas, context } from './dom.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
+import { characterAsset, playerAsset } from './character-assets.js';
 import { CAVE_HEIGHT, CAVE_WIDTH } from '../interiors/interior-scenes.js';
 
 const CAVE_DARKNESS_ALPHA = 0.68;
@@ -15,10 +16,10 @@ const sealChair = new Image();
 const playerChair = new Image();
 const spriteSheet = new Image();
 background.src = 'img/internal/cave.jpg?v=20260901-half-size-no-sword';
-siblingsSprite.src = 'chat/siblings/girls-sprite.png';
-sealChair.src = 'chat/siblings/seal-chair.png';
-playerChair.src = 'chat/siblings/player-chair.png';
-spriteSheet.src = 'player/SpriteSheet.png';
+siblingsSprite.src = characterAsset('siblings', 'girlsSprite');
+sealChair.src = characterAsset('siblings', 'sealChair');
+playerChair.src = characterAsset('siblings', 'playerChair');
+spriteSheet.src = playerAsset('spriteSheet');
 
 const player = { x: CAVE_WIDTH / 2, y: CAVE_HEIGHT - 36 };
 const playerChairPlacement = { x: 284, y: 136, width: 72, height: 72 };
