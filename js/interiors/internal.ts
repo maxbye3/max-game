@@ -1,7 +1,8 @@
 import { isTimInputPowerActive, timInputVector, updateTimInputWorld } from '../powers/tim/tim-input-power.js';
 import { isSamPowerActive, samMovementMultiplier, updateSamPower } from '../powers/sam/sam-power.js';
 import { isReiPowerActive, reiWorldDeltaTime, updateReiWorld, reiMovementMultiplier } from '../powers/rei/rei-power.js';
-import { isNoelPowerActive, updateNoelWorld, noelMovementMultiplier } from '../powers/noel/noel-power.js'; import { aliceMovementMultiplier, aliceWorldDeltaTime, isAlicePowerActive, updateAliceWorld } from '../powers/alice/alice-power.js';
+import { isNoelPowerActive, updateNoelWorld, noelMovementMultiplier } from '../powers/noel/noel-power.js';
+import { aliceMovementMultiplier, aliceWorldDeltaTime, isAlicePowerActive, updateAliceWorld } from '../powers/alice/alice-power.js';
 import { isMikePowerActive, mikeWorldDeltaTime, updateMikeWorld, mikeMovementMultiplier } from '../powers/mike/mike-power.js';
 import { lucyMovementMultiplier, isLucyPowerActive, updateLucyWorld } from '../powers/lucy/lucy-power.js';
 import { isKatiePowerActive, katieWorldDeltaTime, updateKatieWorld } from '../powers/katie/katie-power.js';
@@ -318,7 +319,7 @@ function closeNoelDialogue(): void {
     voice.pause();
     voice.currentTime = 0;
   });
-  interactionPrompt.hidden = nearbyInteraction === null || (isCharacterInteraction(nearbyInteraction) && nearbyInteraction !== 'dad');
+  interactionPrompt.hidden = nearbyInteraction === null || isCharacterInteraction(nearbyInteraction);
 }
 function showSiblingsDialogue(): void {
   noelDialogueProgress.hidden = true;
@@ -459,7 +460,6 @@ function activateNearbyInteraction(): void {
   else if (nearbyInteraction === 'lucy') startLucyDialogue();
   else if (nearbyInteraction === 'helen') startHelenDialogue();
   else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') startGymNpcDialogue(nearbyInteraction);
-  else if (nearbyInteraction === 'dad') startDadDialogue();
 }
 function bindControls(): void {
   window.addEventListener('keydown', (event) => {
@@ -571,13 +571,15 @@ function updatePlayer(deltaTime: number): void {
 }
 function updateNearbyInteraction(): void {
   if (isCinemaInterior) {
+    const previousInteraction = nearbyInteraction;
     const target = INTERACTION_TARGETS
       .map((interaction) => ({ ...interaction, playerDistance: Math.hypot(player.x - interaction.x, player.y - interaction.y) }))
       .filter((interaction) => interaction.playerDistance <= interaction.distance)
       .sort((first, second) => first.playerDistance - second.playerDistance)[0];
     nearbyInteraction = target?.kind ?? null;
+    if (nearbyInteraction === 'dad' && previousInteraction !== 'dad') startDadDialogue();
     if (target) interactionPrompt.textContent = target.label;
-    interactionPrompt.hidden = !target || noelDialogueOpen;
+    interactionPrompt.hidden = true;
     cinemaAudience?.update(player.x, player.y, noelDialogueOpen);
     return;
   }

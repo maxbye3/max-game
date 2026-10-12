@@ -2,15 +2,59 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readPng, rgbaAt } from './png.mjs';
 
+const WORLD_CELL_SIZE = 2;
+
+function writeCollisionMask({ outputName, prefix, columns, rows, bits, sourceComment, editComment }) {
+  const outputPath = resolve(`js/${outputName}`);
+  const source = `// Generated from ${sourceComment}.\n` +
+    `// Run npm run generate:internal-collision after editing ${editComment}.\n` +
+    `export const ${prefix}_COLLISION_CELL_SIZE = ${WORLD_CELL_SIZE};\n` +
+    `export const ${prefix}_COLLISION_COLUMNS = ${columns};\n` +
+    `export const ${prefix}_COLLISION_ROWS = ${rows};\n` +
+    `export const ${prefix}_COLLISION_BITS = '${bits.toString('base64')}';\n`;
+
+  writeFileSync(outputPath, source);
+  console.log(`Generated ${outputPath} (${columns}x${rows} collision cells).`);
+}
+
+function createFloodFilledCollisionBits(barriers, columns, rows, seed, sourceCellSize) {
+  const reachable = new Uint8Array(barriers.length);
+  const seedColumn = Math.floor(seed.x / sourceCellSize);
+  const seedRow = Math.floor(seed.y / sourceCellSize);
+  const queue = [seedRow * columns + seedColumn];
+  reachable[queue[0]] = 1;
+
+  for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
+    const cellIndex = queue[queueIndex];
+    const column = cellIndex % columns;
+    const row = Math.floor(cellIndex / columns);
+    const neighbors = [
+      column > 0 ? cellIndex - 1 : -1,
+      column + 1 < columns ? cellIndex + 1 : -1,
+      row > 0 ? cellIndex - columns : -1,
+      row + 1 < rows ? cellIndex + columns : -1,
+    ];
+    for (const neighbor of neighbors) {
+      if (neighbor < 0 || neighbor >= barriers.length || barriers[neighbor] || reachable[neighbor]) continue;
+      reachable[neighbor] = 1;
+      queue.push(neighbor);
+    }
+  }
+
+  const bits = Buffer.alloc(Math.ceil(columns * rows / 8));
+  for (let cellIndex = 0; cellIndex < barriers.length; cellIndex += 1) {
+    if (!reachable[cellIndex]) bits[Math.floor(cellIndex / 8)] |= 1 << (cellIndex % 8);
+  }
+  return bits;
+}
+
 function generateCollisionMask({ sourceName, outputName, prefix, sourceScale }) {
   const sourcePath = resolve(`img/internal/${sourceName}`);
   const image = readPng(readFileSync(sourcePath));
   const { width, height } = image;
-  const worldCellSize = 2;
-  const sourceCellSize = worldCellSize * sourceScale;
+  const sourceCellSize = WORLD_CELL_SIZE * sourceScale;
   const columns = Math.ceil(width / sourceCellSize);
   const rows = Math.ceil(height / sourceCellSize);
-  const outputPath = resolve(`js/${outputName}`);
   const bits = Buffer.alloc(Math.ceil(columns * rows / 8));
 
   for (let row = 0; row < rows; row += 1) {
@@ -36,15 +80,15 @@ function generateCollisionMask({ sourceName, outputName, prefix, sourceScale }) 
     }
   }
 
-  const source = `// Generated from img/internal/${sourceName}.\n` +
-    `// Run npm run generate:internal-collision after editing that image.\n` +
-    `export const ${prefix}_COLLISION_CELL_SIZE = ${worldCellSize};\n` +
-    `export const ${prefix}_COLLISION_COLUMNS = ${columns};\n` +
-    `export const ${prefix}_COLLISION_ROWS = ${rows};\n` +
-    `export const ${prefix}_COLLISION_BITS = '${bits.toString('base64')}';\n`;
-
-  writeFileSync(outputPath, source);
-  console.log(`Generated ${outputPath} (${columns}x${rows} collision cells).`);
+  writeCollisionMask({
+    outputName,
+    prefix,
+    columns,
+    rows,
+    bits,
+    sourceComment: `img/internal/${sourceName}`,
+    editComment: 'that image',
+  });
 }
 
 function generateOutlinedCollisionMask({ guideName, cleanName, outputName, prefix, sourceScale }) {
@@ -54,8 +98,7 @@ function generateOutlinedCollisionMask({ guideName, cleanName, outputName, prefi
     throw new Error(`${guideName} and ${cleanName} must have matching dimensions.`);
   }
 
-  const worldCellSize = 2;
-  const sourceCellSize = worldCellSize * sourceScale;
+  const sourceCellSize = WORLD_CELL_SIZE * sourceScale;
   const columns = Math.ceil(guide.width / sourceCellSize);
   const rows = Math.ceil(guide.height / sourceCellSize);
   const barriers = new Uint8Array(columns * rows);
@@ -98,49 +141,22 @@ function generateOutlinedCollisionMask({ guideName, cleanName, outputName, prefi
     barriers[row * columns + leftWallColumn] = 1;
   }
 
-  const reachable = new Uint8Array(columns * rows);
-  const seedColumn = Math.floor(543 / sourceCellSize);
-  const seedRow = Math.floor(900 / sourceCellSize);
-  const queue = [seedRow * columns + seedColumn];
-  reachable[queue[0]] = 1;
-
-  for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
-    const cellIndex = queue[queueIndex];
-    const column = cellIndex % columns;
-    const row = Math.floor(cellIndex / columns);
-    const neighbors = [
-      column > 0 ? cellIndex - 1 : -1,
-      column + 1 < columns ? cellIndex + 1 : -1,
-      row > 0 ? cellIndex - columns : -1,
-      row + 1 < rows ? cellIndex + columns : -1,
-    ];
-    for (const neighbor of neighbors) {
-      if (
-        neighbor < 0 ||
-        neighbor >= barriers.length ||
-        barriers[neighbor] ||
-        reachable[neighbor]
-      ) continue;
-      reachable[neighbor] = 1;
-      queue.push(neighbor);
-    }
-  }
-
-  const bits = Buffer.alloc(Math.ceil(columns * rows / 8));
-  for (let cellIndex = 0; cellIndex < barriers.length; cellIndex += 1) {
-    if (!reachable[cellIndex]) bits[Math.floor(cellIndex / 8)] |= 1 << (cellIndex % 8);
-  }
-
-  const outputPath = resolve(`js/${outputName}`);
-  const source = `// Generated from img/internal/${guideName} and img/internal/${cleanName}.\n` +
-    `// Run npm run generate:internal-collision after editing either image.\n` +
-    `export const ${prefix}_COLLISION_CELL_SIZE = ${worldCellSize};\n` +
-    `export const ${prefix}_COLLISION_COLUMNS = ${columns};\n` +
-    `export const ${prefix}_COLLISION_ROWS = ${rows};\n` +
-    `export const ${prefix}_COLLISION_BITS = '${bits.toString('base64')}';\n`;
-
-  writeFileSync(outputPath, source);
-  console.log(`Generated ${outputPath} (${columns}x${rows} collision cells).`);
+  const bits = createFloodFilledCollisionBits(
+    barriers,
+    columns,
+    rows,
+    { x: 543, y: 900 },
+    sourceCellSize,
+  );
+  writeCollisionMask({
+    outputName,
+    prefix,
+    columns,
+    rows,
+    bits,
+    sourceComment: `img/internal/${guideName} and img/internal/${cleanName}`,
+    editComment: 'either image',
+  });
 }
 
 function generateRedOutlineCollisionMask({
@@ -166,8 +182,7 @@ function generateRedOutlineCollisionMask({
     );
     return;
   }
-  const worldCellSize = 2;
-  const sourceCellSize = worldCellSize * sourceScale;
+  const sourceCellSize = WORLD_CELL_SIZE * sourceScale;
   const columns = Math.ceil(width / sourceCellSize);
   const rows = Math.ceil(height / sourceCellSize);
   const barriers = new Uint8Array(columns * rows);
@@ -212,44 +227,16 @@ function generateRedOutlineCollisionMask({
     }
   }
 
-  const seedColumn = Math.floor(seed.x / sourceCellSize);
-  const seedRow = Math.floor(seed.y / sourceCellSize);
-  const reachable = new Uint8Array(columns * rows);
-  const queue = [seedRow * columns + seedColumn];
-  reachable[queue[0]] = 1;
-
-  for (let queueIndex = 0; queueIndex < queue.length; queueIndex += 1) {
-    const cellIndex = queue[queueIndex];
-    const column = cellIndex % columns;
-    const row = Math.floor(cellIndex / columns);
-    const neighbors = [
-      column > 0 ? cellIndex - 1 : -1,
-      column + 1 < columns ? cellIndex + 1 : -1,
-      row > 0 ? cellIndex - columns : -1,
-      row + 1 < rows ? cellIndex + columns : -1,
-    ];
-    for (const neighbor of neighbors) {
-      if (neighbor < 0 || barriers[neighbor] || reachable[neighbor]) continue;
-      reachable[neighbor] = 1;
-      queue.push(neighbor);
-    }
-  }
-
-  const bits = Buffer.alloc(Math.ceil(columns * rows / 8));
-  for (let cellIndex = 0; cellIndex < barriers.length; cellIndex += 1) {
-    if (!reachable[cellIndex]) bits[Math.floor(cellIndex / 8)] |= 1 << (cellIndex % 8);
-  }
-
-  const outputPath = resolve(`js/${outputName}`);
-  const source = `// Generated from the red barriers in img/internal/${guideName}.\n` +
-    `// Run npm run generate:internal-collision after editing that image.\n` +
-    `export const ${prefix}_COLLISION_CELL_SIZE = ${worldCellSize};\n` +
-    `export const ${prefix}_COLLISION_COLUMNS = ${columns};\n` +
-    `export const ${prefix}_COLLISION_ROWS = ${rows};\n` +
-    `export const ${prefix}_COLLISION_BITS = '${bits.toString('base64')}';\n`;
-
-  writeFileSync(outputPath, source);
-  console.log(`Generated ${outputPath} (${columns}x${rows} collision cells).`);
+  const bits = createFloodFilledCollisionBits(barriers, columns, rows, seed, sourceCellSize);
+  writeCollisionMask({
+    outputName,
+    prefix,
+    columns,
+    rows,
+    bits,
+    sourceComment: `the red barriers in img/internal/${guideName}`,
+    editComment: 'that image',
+  });
 }
 
 generateCollisionMask({
