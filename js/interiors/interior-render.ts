@@ -31,7 +31,7 @@ import { drawAlexResurrection } from '../powers/alex-s/alex-s-power-render.js';
 import { drawAndyPlayer, drawAndyWorld } from '../powers/andy/andy-world-power.js';
 import { LucyController } from '../characters/lucy/lucy.js';
 import { getPlayerSpriteFrame } from '../core/player-sprite.js';
-import { ART_STUDIO_WALLS, CAVE_COLANDER, CAVE_WALLS, DOUGHNUT_SHOP_WALLS, NOEL } from './interior-scenes.js';
+import { ART_STUDIO_WALLS, CAVE_COLANDER, CAVE_WALLS, DOUGHNUT_SHOP_WALLS, JOSH, WHELDON } from './interior-scenes.js';
 import type { Direction } from '../core/types.js';
 import type { InteriorScene } from './interior-scenes.js';
 import type { InteriorSceneryNpc } from './interior-scenery-npcs.js';
@@ -42,7 +42,7 @@ interface InteriorRenderOptions {
   sealMode: boolean;
   collision: InteriorCollision;
   interior: HTMLImageElement; collisionMask: HTMLImageElement; doorOverlay: HTMLImageElement;
-  spriteSheet: HTMLImageElement; noelSprite: HTMLImageElement; siblingsSprite: HTMLImageElement;
+  spriteSheet: HTMLImageElement; wheldonSprite: HTMLImageElement; joshSprite: HTMLImageElement; siblingsSprite: HTMLImageElement;
   musicDjMachine: HTMLImageElement; gymGloves: HTMLImageElement;
   bookshopNpcs: readonly InteriorSceneryNpc[]; musicHouseNpcs: readonly InteriorSceneryNpc[]; gymNpcs: readonly InteriorSceneryNpc[]; cinemaNpcs: readonly InteriorSceneryNpc[];
   caveSiblings: CaveSiblingsController | null;
@@ -52,12 +52,12 @@ interface InteriorRenderOptions {
 }
 
 export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs: number, worldTimeMs?: number) => void {
-  const { scene, player, collision, interior, collisionMask, doorOverlay, spriteSheet, noelSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, caveSiblings, lucy, interiorDoors } = options;
+  const { scene, player, collision, interior, collisionMask, doorOverlay, spriteSheet, wheldonSprite, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, caveSiblings, lucy, interiorDoors } = options;
   const SEAL_MODE = options.sealMode;
   const WORLD_WIDTH = scene.width; const WORLD_HEIGHT = scene.height;
   const VIEW_SCALE = 1; const PLAYER_SCALE = 2;
   const isCaveInterior = scene.kind === 'cave'; const isDiaryLabInterior = scene.kind === 'diaryLab';
-  const isMansionInterior = scene.kind === 'mansion'; const isMusicShopInterior = scene.kind === 'musicShop';
+  const isMusicShopInterior = scene.kind === 'musicShop';
   const isGymInterior = scene.kind === 'gym'; const isBookshopInterior = scene.kind === 'bookshop'; const isPlantRoomInterior = scene.kind === 'plantRoom';
   return function draw(timeMs = 0, worldTimeMs = timeMs): void {
     const caveColanderHeld = options.getCaveColanderHeld();
@@ -145,13 +145,22 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
         ), timeMs);
       }
     }
-    if ((isDiaryLabInterior || isMansionInterior) && !isOscarEaten('noel')) {
-      withCharacterPowers(context, (NOEL.x - cameraX) * scaleX, (NOEL.y - cameraY) * scaleY, NOEL.height * scaleY, 'noel', () => context.drawImage(
-        noelSprite,
-        Math.round((NOEL.x - cameraX - NOEL.width / 2) * scaleX),
-        Math.round((NOEL.y - cameraY - NOEL.height) * scaleY),
-        NOEL.width * scaleX,
-        NOEL.height * scaleY,
+    if (isDiaryLabInterior && !isOscarEaten('wheldon')) {
+      withCharacterPowers(context, (WHELDON.x - cameraX) * scaleX, (WHELDON.y - cameraY) * scaleY, WHELDON.height * scaleY, 'wheldon', () => context.drawImage(
+        wheldonSprite,
+        Math.round((WHELDON.x - cameraX - WHELDON.width / 2) * scaleX),
+        Math.round((WHELDON.y - cameraY - WHELDON.height) * scaleY),
+        WHELDON.width * scaleX,
+        WHELDON.height * scaleY,
+      ), timeMs);
+    }
+    if (scene.kind === 'artStudio' && !isOscarEaten('josh')) {
+      withCharacterPowers(context, (JOSH.x - cameraX) * scaleX, (JOSH.y - cameraY) * scaleY, JOSH.height * scaleY, 'josh', () => context.drawImage(
+        joshSprite,
+        Math.round((JOSH.x - cameraX - JOSH.width / 2) * scaleX),
+        Math.round((JOSH.y - cameraY - JOSH.height) * scaleY),
+        JOSH.width * scaleX,
+        JOSH.height * scaleY,
       ), timeMs);
     }
     if (isMusicShopInterior) {

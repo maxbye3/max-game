@@ -7,6 +7,8 @@ const dialogues = [
   { name: 'ED', source: '../character-assets/ed/dialogue.txt', output: '../js/generated/dialogues/ed-dialogue.ts' },
   { name: 'MIKE', source: '../character-assets/mike/dialogue.txt', output: '../js/generated/dialogues/mike-dialogue.ts' },
   { name: 'NOEL', source: '../character-assets/noel/dialogue.txt', output: '../js/generated/dialogues/noel-dialogue.ts' },
+  { name: 'WHELDON', source: '../character-assets/wheldon/dialogue.txt', output: '../js/generated/dialogues/wheldon-dialogue.ts' },
+  { name: 'JOSH', source: '../character-assets/josh/dialogue.txt', output: '../js/generated/dialogues/josh-dialogue.ts' },
   { name: 'NIALL', source: '../character-assets/niall/dialogue.txt', output: '../js/generated/dialogues/niall-dialogue.ts' },
   { name: 'REI', source: '../character-assets/rei/dialogue.txt', output: '../js/generated/dialogues/rei-dialogue.ts' },
   { name: 'MARINA_D', source: '../character-assets/marina-d/dialogue.txt', output: '../js/generated/dialogues/marina-d-dialogue.ts' },

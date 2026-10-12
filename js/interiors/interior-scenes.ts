@@ -45,7 +45,7 @@ import {
 import { isTimAtCinema, isTimAtMusicShop } from '../characters/tim/tim-location.js';
 
 export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio' | 'doughnutShop';
-export type InteractionKind = 'noel' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad';
+export type InteractionKind = 'wheldon' | 'josh' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -100,10 +100,17 @@ const DEFAULT_HEIGHT = 768;
 export const CAVE_WIDTH = 640;
 export const CAVE_HEIGHT = 320;
 
-export const NOEL = {
+export const WHELDON = {
   x: DEFAULT_WIDTH / 2,
   y: DEFAULT_HEIGHT / 2 + 36,
   width: 52,
+  height: 72,
+} as const;
+
+export const JOSH = {
+  x: 354,
+  y: 466,
+  width: 48,
   height: 72,
 } as const;
 
@@ -370,7 +377,9 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
       backgroundSource: '../img/internal/art-studio.png',
       doors: ART_STUDIO_DOORS,
-      interactions: [],
+      interactions: [
+        { kind: 'josh', label: 'Talk to Josh', x: JOSH.x, y: JOSH.y, distance: 72 },
+      ],
       playerStart: { x: 256, y: 545 },
     };
   }
@@ -382,9 +391,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       backgroundSource: '../img/internal/mansion.png',
       collision: MANSION_COLLISION,
       doors: MANSION_DOORS,
-      interactions: [
-        { kind: 'noel', label: 'Talk to noel', x: NOEL.x, y: NOEL.y, distance: 62 },
-      ],
+      interactions: [],
       playerStart: { x: 256, y: 575 },
     };
   }
@@ -398,7 +405,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
     collision: DIARY_COLLISION,
     doors: DIARY_LAB_DOORS,
     interactions: [
-      { kind: 'noel', label: 'Talk to noel', x: NOEL.x, y: NOEL.y, distance: 62 },
+      { kind: 'wheldon', label: 'Talk to Wheldon', x: WHELDON.x, y: WHELDON.y, distance: 62 },
       { kind: 'diary', label: 'See journal', x: 170, y: 466, distance: 54 },
       { kind: 'experiments', label: 'See experiments', x: 350, y: 285, distance: 54 },
     ],

@@ -47,19 +47,18 @@ import { MusicHouseDialogueController } from './music-house-dialogue.js';
 import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { isTimAtMusicShop } from '../characters/tim/tim-location.js';
 import { markInteriorVisited } from '../core/world-state.js';
-import { NOEL, getInteriorScene, type InteractionKind } from './interior-scenes.js';
+import { JOSH, WHELDON, getInteriorScene, type InteractionKind } from './interior-scenes.js';
 import type { Direction } from '../core/types.js';
 import { moveWithCollisions } from '../core/movement.js';
 import { setProfileImage } from '../core/profile-images.js';
 import { beginDialogueAudio, endDialogueAudio, bindPowerDialogueDismissal } from '../core/dialogue-audio.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
-import { addGift, hasGift, HELEN_ITEM, NOEL_ITEM } from '../core/inventory-gifts.js';
-import { getSongArtwork, getUnlockedSongs, unlockSong } from './music-library.js';
+import { addGift, HELEN_ITEM } from '../core/inventory-gifts.js';
 import { SHOW_COLLISION_SHAPES } from '../core/config.js';
 import { startGameLoop } from '../core/game-loop.js';
 import { webImageSource } from '../core/web-images.js';
-import { resolveSiteAsset } from '../core/site-assets.js';
-import { NOEL_DIALOGUE_LINES } from '../generated/dialogues/noel-dialogue.js';
+import { WHELDON_DIALOGUE_LINES } from '../generated/dialogues/wheldon-dialogue.js';
+import { JOSH_DIALOGUE_LINES } from '../generated/dialogues/josh-dialogue.js';
 import { DadDialogueController } from '../characters/dad/dad-dialogue-controller.js';
 import { createInteriorRenderer } from './interior-render.js';
 const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal'); const doorLoading = requireElement<HTMLElement>('#door-loading');
@@ -78,19 +77,22 @@ const siblingsViewWebsite = requireElement<HTMLAnchorElement>('#siblings-view-we
 const siblingsDeclineButton = requireElement<HTMLButtonElement>('#siblings-decline');
 const musicDialogueOptions = requireElement<HTMLElement>('#music-dialogue-options');
 const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-close');
-const noelDeclineButton = requireElement<HTMLButtonElement>('#noel-decline');
+const wheldonNoButton = requireElement<HTMLButtonElement>('#wheldon-no');
+const wheldonYesButton = requireElement<HTMLButtonElement>('#wheldon-yes');
+const joshDialogueOptions = requireElement<HTMLElement>('#josh-dialogue-options');
+const joshYesButton = requireElement<HTMLButtonElement>('#josh-yes');
+const joshNoButton = requireElement<HTMLButtonElement>('#josh-no');
+const joshArtClassLink = requireElement<HTMLAnchorElement>('#josh-art-class-link');
+const joshCodec = requireElement<HTMLElement>('#josh-codec');
+const joshCodecContinue = requireElement<HTMLButtonElement>('#josh-codec-continue');
 const FRAME_COUNT = SEAL_MODE ? 8 : 9;
 const SPEED = 145;
-const NOEL_NAME = 'noel';
-const NOEL_QUESTION = "Play a game where I'm the protagonist";
-const NOEL_GAME_URL = 'https://maxbye.co/stealth-game/';
-const NOEL_SONG = 'bleep-blops' as const;
 const enteredDoor = searchParams.get('door');
 const scene = getInteriorScene(enteredDoor);
 markInteriorVisited();
 const isCinemaInterior = scene.kind === 'cinema'; const isMusicShopInterior = scene.kind === 'musicShop';
 const isGymInterior = scene.kind === 'gym'; const isBookshopInterior = scene.kind === 'bookshop'; const isPlantRoomInterior = scene.kind === 'plantRoom';
-const isMansionInterior = scene.kind === 'mansion'; const isCaveInterior = scene.kind === 'cave';
+const isCaveInterior = scene.kind === 'cave';
 const isDiaryLabInterior = scene.kind === 'diaryLab';
 document.title = scene.title;
 canvas.setAttribute('aria-label', scene.ariaLabel);
@@ -105,7 +107,7 @@ if (isCaveInterior) {
 }
 const interior = new Image(); const collisionMask = new Image();
 const doorOverlay = new Image(); const spriteSheet = new Image();
-const noelSprite = new Image(); const siblingsSprite = new Image();
+const wheldonSprite = new Image(); const joshSprite = new Image(); const siblingsSprite = new Image();
 const musicDjMachine = new Image(); const gymGloves = new Image();
 const bookshopNpcs = BOOKSHOP_NPCS.map((npc, index) => ({ ...npc, id: index === 0 ? 'alex-w' : 'helen', image: new Image() }));
 const musicHouseNpcs = MUSIC_HOUSE_NPCS.filter((npc) => npc.id !== 'tim' || isTimAtMusicShop()).map((npc, index) => ({ ...npc, id: npc.id ?? (index === 0 ? 'andy' : 'aliya'), image: new Image() }));
@@ -116,7 +118,9 @@ if (SHOW_COLLISION_SHAPES && scene.collisionMaskSource) collisionMask.src = scen
 if (scene.doorOverlaySource) doorOverlay.src = webImageSource(scene.doorOverlaySource);
 const playerSpriteSource = SEAL_MODE ? `${playerAsset('sealSpriteSheet')}?v=20260831-transparent` : playerAsset('spriteSheet');
 spriteSheet.src = webImageSource(`../${playerSpriteSource}`);
-if (isDiaryLabInterior || isMansionInterior) noelSprite.src = webImageSource(`../${characterAsset('noel', 'interiorAvatar')}`);
+// Wheldon has no dedicated interior sprite yet; keep the existing slot until one is supplied.
+if (isDiaryLabInterior) wheldonSprite.src = webImageSource(`../${characterAsset('noel', 'interiorAvatar')}`);
+if (scene.kind === 'artStudio') joshSprite.src = webImageSource(`../${characterAsset('josh', 'avatar')}`);
 if (isCaveInterior) siblingsSprite.src = webImageSource(`../${characterAsset('siblings', 'girlsSprite')}`);
 if (isMusicShopInterior) musicDjMachine.src = '../img/internal/music-dj-machine.png';
 if (isBookshopInterior) {
@@ -148,19 +152,22 @@ const player = {
 let previousTime = 0;
 let nearbyInteraction: InteractionKind | null = null;
 let noelDialogueOpen = false;
-let noelDialogueLineIndex = 0; let helenDialogueLineIndex = 0;
-type NoelDialogueStage = 'opening' | 'question' | 'decline' | 'reward' | 'dialogue' | 'done';
-type NoelReward = 'item' | 'song';
-let noelDialogueStage: NoelDialogueStage = 'done';
-let noelRewardQueue: NoelReward[] = [];
-const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'noel' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim' || interaction === 'helen' || interaction === 'dad';
+let helenDialogueLineIndex = 0;
+type WheldonDialogueStage = 'opening' | 'question' | 'answer' | 'final' | 'done';
+let wheldonDialogueStage: WheldonDialogueStage = 'done';
+type JoshDialogueStage = 'opening' | 'class' | 'callIntro' | 'codec' | 'signup' | 'final' | 'done';
+let joshDialogueStage: JoshDialogueStage = 'done';
+let codecRingtoneTimer: number | null = null;
+let codecAdvanceTimer: number | null = null;
+let codecAudioContext: AudioContext | null = null;
+const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'wheldon' || interaction === 'josh' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim' || interaction === 'helen' || interaction === 'dad';
 const OSCAR_INTERIOR_TARGETS = INTERACTION_TARGETS
   .filter((interaction) => isCharacterInteraction(interaction.kind))
   .map((interaction) => ({ id: interaction.kind, x: interaction.x, y: interaction.y, height: 42 }));
 const katieSceneryTargets = (isGymInterior ? gymNpcs : isBookshopInterior ? bookshopNpcs : isMusicShopInterior ? musicHouseNpcs : isCinemaInterior ? cinemaNpcs : [])
   .flatMap(({ id, x, y, height }) => id ? [{ id, x, y, height }] : []);
 const KATIE_INTERIOR_TARGETS = [...katieSceneryTargets, ...OSCAR_INTERIOR_TARGETS.filter((target) => !katieSceneryTargets.some((npc) => npc.id === target.id))]
-  .map((target) => ({ ...target, height: target.id === 'noel' ? NOEL.height : target.id === 'siblings' ? CAVE_SIBLINGS.height : target.id === 'lucy' ? 75 : target.height }));
+  .map((target) => ({ ...target, height: target.id === 'wheldon' ? WHELDON.height : target.id === 'josh' ? JOSH.height : target.id === 'siblings' ? CAVE_SIBLINGS.height : target.id === 'lucy' ? 75 : target.height }));
 const input = new DirectionInputController({ canHold: () => doorLoading.hidden && !isAlexResurrectionUiBlocking() });
 const dadDialogue = new DadDialogueController(() => { input.releaseAll(); openNoelDialogue(); });
 function openNoelDialogue(): void {
@@ -219,94 +226,139 @@ const cinemaAudience = isCinemaInterior
     closeDialogue: () => closeNoelDialogue(),
   })
   : null;
-function showNoelGameQuestion(): void {
-  noelDialogueStage = 'question';
+function showWheldonQuestion(): void {
+  wheldonDialogueStage = 'question';
   noelDialogueLine.textContent = '';
   noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = true;
-  noelDialogueQuestion.textContent = NOEL_QUESTION;
+  noelDialogueQuestion.textContent = WHELDON_DIALOGUE_LINES[1];
   noelDialogueQuestion.hidden = false;
   noelDialogueOptions.hidden = false;
 }
-function showNoelDialogueLine(stage: 'opening' | 'dialogue' = 'dialogue'): void {
-  noelDialogueStage = stage;
-  noelDialogueLine.textContent = NOEL_DIALOGUE_LINES[noelDialogueLineIndex] ?? '';
-  noelDialogueProgress.textContent = `${noelDialogueLineIndex + 1}/${NOEL_DIALOGUE_LINES.length}`;
-  noelDialogueProgress.hidden = false;
+function showWheldonAnswer(wantsToRead: boolean): void {
+  wheldonDialogueStage = 'answer';
+  noelDialogueLine.textContent = WHELDON_DIALOGUE_LINES[wantsToRead ? 2 : 3];
+  noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = false;
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
   noelGiftConfirmation.hidden = true;
 }
-function advanceNoelDialogueLine(): void {
-  noelDialogueLineIndex = (noelDialogueLineIndex + 1) % NOEL_DIALOGUE_LINES.length;
-  showNoelDialogueLine();
-}
-function chooseNoelGame(accept: boolean): void {
-  if (!noelDialogueOpen || nearbyInteraction !== 'noel' || noelDialogueStage !== 'question') return;
-  if (accept) window.open(NOEL_GAME_URL, '_blank', 'noopener,noreferrer');
-  noelDialogueOptions.hidden = true;
-  noelDialogueQuestion.hidden = true;
+function showWheldonFinalLine(): void {
+  wheldonDialogueStage = 'final';
+  noelDialogueLine.textContent = WHELDON_DIALOGUE_LINES[4];
   noelDialogueProgress.hidden = true;
-  noelGiftConfirmation.hidden = true;
-  noelRewardQueue = [];
-  if (!hasGift(NOEL_ITEM)) noelRewardQueue.push('item');
-  if (!getUnlockedSongs().includes(NOEL_SONG)) noelRewardQueue.push('song');
-  if (!accept) {
-    noelDialogueStage = 'decline';
-    noelDialogueLine.textContent = 'ah. I haven’t actually finished it either';
-    noelDialogueNext.hidden = false;
-    return;
-  }
-  showNextNoelReward();
-}
-function showNextNoelReward(): void {
-  const reward = noelRewardQueue.shift();
-  if (!reward) {
-    advanceNoelDialogueLine();
-    return;
-  }
-  noelDialogueStage = 'reward';
+  noelDialogueNext.hidden = true;
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
-  noelDialogueProgress.hidden = true;
   noelGiftConfirmation.hidden = true;
+}
+function stopJoshCodec(): void {
+  if (codecRingtoneTimer !== null) {
+    window.clearInterval(codecRingtoneTimer);
+    codecRingtoneTimer = null;
+  }
+  if (codecAudioContext) {
+    void codecAudioContext.close().catch(() => {});
+    codecAudioContext = null;
+  }
+}
+function playJoshCodecRingtone(): void {
+  stopJoshCodec();
+  const AudioContextConstructor = window.AudioContext;
+  if (!AudioContextConstructor) return;
+  codecAudioContext = new AudioContextConstructor();
+  void codecAudioContext.resume().catch(() => {});
+  const ring = (): void => {
+    if (!codecAudioContext) return;
+    const now = codecAudioContext.currentTime;
+    const gain = codecAudioContext.createGain();
+    const oscillator = codecAudioContext.createOscillator();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(440, now);
+    oscillator.frequency.setValueAtTime(660, now + 0.12);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+    oscillator.connect(gain).connect(codecAudioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.3);
+  };
+  ring();
+  codecRingtoneTimer = window.setInterval(ring, 900);
+  window.setTimeout(stopJoshCodec, 3200);
+}
+function chooseJoshArt(_wantsToSeeArt: boolean): void {
+  if (nearbyInteraction !== 'josh' || !noelDialogueOpen || joshDialogueStage !== 'opening') return;
+  joshDialogueStage = 'class';
+  joshDialogueOptions.hidden = true;
+  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[1] ?? '';
   noelDialogueNext.hidden = false;
-  if (reward === 'item') {
-    noelDialogueLine.textContent = 'Here, take my item.';
-    const added = addGift(NOEL_ITEM);
-    noelGiftConfirmation.textContent = added ? "Noel’s item was added to your inventory." : '';
-    noelGiftConfirmation.hidden = !added;
-    return;
-  }
-  noelDialogueLine.textContent = `And here’s ${NOEL_SONG}.`;
-  if (!unlockSong(NOEL_SONG)) return showNextNoelReward();
-  noelGiftConfirmation.textContent = `${NOEL_SONG} was added to your music playlist.`;
-  noelGiftConfirmation.hidden = false;
-  const shell = document.querySelector<HTMLElement>('.game-shell');
-  if (shell) {
-    const overlay = document.createElement('div');
-    overlay.className = 'quest-accepted-overlay item-received-overlay';
-    overlay.setAttribute('aria-hidden', 'true');
-    const image = document.createElement('img');
-    image.src = resolveSiteAsset(getSongArtwork(NOEL_SONG));
-    image.alt = '';
-    overlay.append(image);
-    shell.append(overlay);
-    window.setTimeout(() => overlay.remove(), 3200);
-    void createGameAudio(resolveSiteAsset('audio/music-accepted.mp3')).play().catch(() => {});
-  }
+  noelDialogueProgress.hidden = true;
+  noelDialogueQuestion.hidden = true;
+}
+function showJoshCallIntro(): void {
+  joshDialogueStage = 'callIntro';
+  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[2] ?? 'Ooo hang on I\'m getting a call';
+  noelDialogueNext.hidden = true;
+  joshDialogueOptions.hidden = true;
+  joshArtClassLink.hidden = true;
+  playJoshCodecRingtone();
+  if (codecAdvanceTimer !== null) window.clearTimeout(codecAdvanceTimer);
+  codecAdvanceTimer = window.setTimeout(() => {
+    codecAdvanceTimer = null;
+    if (nearbyInteraction === 'josh' && noelDialogueOpen) {
+      joshDialogueStage = 'codec';
+      noelDialogue.hidden = true;
+      joshCodec.hidden = false;
+      joshCodecContinue.focus();
+    }
+  }, 1400);
+}
+function returnFromJoshCodec(): void {
+  if (nearbyInteraction !== 'josh' || !noelDialogueOpen || joshDialogueStage !== 'codec') return;
+  stopJoshCodec();
+  joshDialogueStage = 'signup';
+  joshCodec.hidden = true;
+  noelSpeaker.textContent = 'Josh';
+  setProfileImage(noelDialogueProfile, 'Josh', '../');
+  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[3] ?? 'Anyway, please consider signing up for the next term here.';
+  noelDialogueNext.hidden = false;
+  noelDialogueProgress.hidden = true;
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
+  joshDialogueOptions.hidden = true;
+  joshArtClassLink.hidden = false;
+  noelDialogue.hidden = false;
+  joshCodecContinue.blur();
+}
+function showJoshFinalLine(): void {
+  joshDialogueStage = 'final';
+  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[4] ?? 'Why not join Max and myself.';
+  noelDialogueNext.hidden = true;
+  noelDialogueProgress.hidden = true;
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
+  joshDialogueOptions.hidden = true;
 }
 function closeNoelDialogue(): void {
   endDialogueAudio(); caveSiblings?.closeDialogue();
+  stopJoshCodec();
+  if (codecAdvanceTimer !== null) {
+    window.clearTimeout(codecAdvanceTimer);
+    codecAdvanceTimer = null;
+  }
   noelDialogueOpen = false;
-  noelDialogueStage = 'done';
-  noelRewardQueue = [];
+  wheldonDialogueStage = 'done';
+  joshDialogueStage = 'done';
   noelDialogue.hidden = true;
+  joshCodec.hidden = true;
   noelDialogueNext.hidden = true;
   noelDialogueProgress.hidden = true;
   noelGiftConfirmation.hidden = true;
   noelDialogueOptions.hidden = true;
+  joshDialogueOptions.hidden = true;
+  joshArtClassLink.hidden = true;
   siblingsDialogueOptions.hidden = true;
   musicDialogueOptions.hidden = true;
   helenReadingOptions.hidden = true;
@@ -347,17 +399,34 @@ function startSiblingsWebsiteReturnDialogue(): void {
   openNoelDialogue(); beginDialogueAudio('Maddy', '../');
   showSiblingsDialogue();
 }
-function startNoelDialogue(): void {
-  if (nearbyInteraction !== 'noel' || noelDialogueOpen) return;
-  openNoelDialogue(); beginDialogueAudio(NOEL_NAME, '../');
-  noelDialogueLineIndex = nextDialogueVisitIndex('noel', NOEL_DIALOGUE_LINES.length);
-  noelSpeaker.textContent = NOEL_NAME; setProfileImage(noelDialogueProfile, NOEL_NAME, '../');
-  noelDialogueLine.textContent = '';
+function startWheldonDialogue(): void {
+  if (nearbyInteraction !== 'wheldon' || noelDialogueOpen) return;
+  openNoelDialogue(); beginDialogueAudio('Wheldon', '../');
+  wheldonDialogueStage = 'opening';
+  noelSpeaker.textContent = 'Wheldon'; setProfileImage(noelDialogueProfile, 'Wheldon', '../');
+  noelDialogueLine.textContent = WHELDON_DIALOGUE_LINES[0];
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
+  noelDialogueProgress.hidden = true;
+  noelDialogueNext.hidden = false;
+  noelDialogue.hidden = false;
+  interactionPrompt.hidden = true;
+}
+function startJoshDialogue(): void {
+  if (nearbyInteraction !== 'josh' || noelDialogueOpen) return;
+  input.releaseAll();
+  openNoelDialogue(); beginDialogueAudio('Josh', '../');
+  joshDialogueStage = 'opening';
+  noelSpeaker.textContent = 'Josh'; setProfileImage(noelDialogueProfile, 'Josh', '../');
+  noelDialogueLine.textContent = JOSH_DIALOGUE_LINES[0] ?? '';
+  noelDialogueQuestion.hidden = true;
+  noelDialogueOptions.hidden = true;
+  joshDialogueOptions.hidden = false;
+  joshArtClassLink.hidden = true;
   noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = true;
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
-  showNoelDialogueLine('opening');
 }
 function startLucyDialogue(): void {
   if (nearbyInteraction !== 'lucy' || noelDialogueOpen) return;
@@ -452,7 +521,8 @@ function startDadDialogue(): void {
   dadDialogue.start(); interactionPrompt.hidden = true;
 }
 function activateNearbyInteraction(): void {
-  if (nearbyInteraction === 'noel') startNoelDialogue();
+  if (nearbyInteraction === 'wheldon') startWheldonDialogue();
+  else if (nearbyInteraction === 'josh') startJoshDialogue();
   else if (nearbyInteraction === 'siblings') startSiblingsDialogue(performance.now());
   else if (nearbyInteraction === 'diary' || nearbyInteraction === 'experiments') startFeatureInteraction(nearbyInteraction);
   else if (nearbyInteraction === 'colander') startColanderPickup();
@@ -502,17 +572,23 @@ function bindControls(): void {
     else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') musicHouseDialogue.next();
     else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') gymNpcDialogue.next();
     else if (nearbyInteraction === 'dad') dadDialogue.next();
-    else if (nearbyInteraction === 'noel') {
-      if (noelDialogueStage === 'opening') showNoelGameQuestion();
-      else if (noelDialogueStage === 'dialogue') advanceNoelDialogueLine();
-      else if (noelDialogueStage === 'decline' || noelDialogueStage === 'reward') showNextNoelReward();
+    else if (nearbyInteraction === 'wheldon') {
+      if (wheldonDialogueStage === 'opening') showWheldonQuestion();
+      else if (wheldonDialogueStage === 'answer') showWheldonFinalLine();
+    }
+    else if (nearbyInteraction === 'josh') {
+      if (joshDialogueStage === 'class') showJoshCallIntro();
+      else if (joshDialogueStage === 'signup') showJoshFinalLine();
     }
   });
   noelDialogueClose.addEventListener('click', closeNoelDialogue);
   requireElement<HTMLButtonElement>('#helen-reading-yes').addEventListener('click', () => openFeature('reading'));
   requireElement<HTMLButtonElement>('#helen-reading-no').addEventListener('click', closeNoelDialogue);
-  requireElement<HTMLButtonElement>('#noel-yes').addEventListener('click', () => chooseNoelGame(true));
-  noelDeclineButton.addEventListener('click', () => chooseNoelGame(false));
+  wheldonYesButton.addEventListener('click', () => showWheldonAnswer(true));
+  wheldonNoButton.addEventListener('click', () => showWheldonAnswer(false));
+  joshYesButton.addEventListener('click', () => chooseJoshArt(true));
+  joshNoButton.addEventListener('click', () => chooseJoshArt(false));
+  joshCodecContinue.addEventListener('click', returnFromJoshCodec);
   siblingsViewWebsite.addEventListener('click', () => {
     caveSiblings?.chooseWebsite();
     closeNoelDialogue();
@@ -600,8 +676,12 @@ function updateNearbyInteraction(): void {
   if (previousInteraction === 'siblings' && nextInteraction !== 'siblings') {
     caveSiblings?.leaveRange();
   }
-  if (nextInteraction === 'noel') {
-    startNoelDialogue();
+  if (nextInteraction === 'wheldon') {
+    startWheldonDialogue();
+    return;
+  }
+  if (nextInteraction === 'josh') {
+    startJoshDialogue();
     return;
   }
   if (nextInteraction === 'siblings') {
@@ -618,7 +698,7 @@ function updateNearbyInteraction(): void {
 }
 const draw = createInteriorRenderer({
   scene, player, sealMode: SEAL_MODE, collision, interior, collisionMask, doorOverlay, spriteSheet,
-  noelSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs,
+  wheldonSprite, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs,
   caveSiblings, lucy, interiorDoors, getCaveColanderHeld: () => caveColanderHeld,
 });
 let worldAnimationTime = 0;
@@ -679,7 +759,8 @@ const requiredImages = [
   spriteSheet,
   ...(SHOW_COLLISION_SHAPES && scene.collisionMaskSource ? [collisionMask] : []),
   ...(scene.doorOverlaySource ? [doorOverlay] : []),
-  ...(isDiaryLabInterior || isMansionInterior ? [noelSprite] : []),
+  ...(isDiaryLabInterior ? [wheldonSprite] : []),
+  ...(scene.kind === 'artStudio' ? [joshSprite] : []),
   ...(lucy ? [lucy.sprite] : []),
   ...(isBookshopInterior ? bookshopNpcs.map((npc) => npc.image) : []),
   ...(isCaveInterior ? [siblingsSprite] : []),
