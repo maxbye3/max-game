@@ -37,4 +37,4 @@ await collectThemes(chatDirectory);
 
 const generated = `// Generated from chat/**/theme.mp3. Run npm run generate:dialogue-themes after adding themes.\n` +
   `export const DIALOGUE_THEME_SOURCES = ${JSON.stringify(themeSources, null, 2)} as const;\n`;
-await writeFile(new URL('../js/dialogue-themes.generated.ts', import.meta.url), generated);
+await writeFile(new URL('../js/core/dialogue-themes.generated.ts', import.meta.url), generated);

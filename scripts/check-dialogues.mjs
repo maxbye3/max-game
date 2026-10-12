@@ -4,7 +4,7 @@ import { readdir, readFile } from 'node:fs/promises';
 const root = new URL('../', import.meta.url);
 const sources = new Set();
 
-for (const name of await readdir(new URL('js/', root))) {
+for (const name of await readdir(new URL('js/', root), { recursive: true })) {
   if (!name.endsWith('-dialogue.ts')) continue;
   const generated = await readFile(new URL(`js/${name}`, root), 'utf8');
   const source = /^\/\/ Generated from (.+)\. Run npm run generate:dialogues after editing it\./.exec(generated)?.[1];

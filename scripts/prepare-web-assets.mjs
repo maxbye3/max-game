@@ -16,7 +16,7 @@ const images = {};
 const manifest = { images: {}, themes: {} };
 const prepared = new Set();
 const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'chat/katie/map-sprite.png': '208x208!' };
-for (const file of ['js/assets.ts', 'js/map-characters.ts', 'js/interior-scenes.ts']) {
+for (const file of ['js/core/assets.ts', 'js/overworld/map-characters.ts', 'js/interiors/interior-scenes.ts']) {
   const source = await readFile(file, 'utf8');
   for (const match of source.matchAll(/['"]((?:\.\.\/)?(?:img|chat|player|map)\/[^'"?]+\.png)(?:\?[^'"]*)?['"]/g)) {
     const path = match[1].replace(/^\.\.\//, '');
@@ -48,11 +48,11 @@ async function prepareTheme(name, path, duration) {
   themes[path] = output;
   manifest.themes[path] = { sourceHash: hash(bytes), output };
 }
-const inventory = await readFile('js/inventory.ts', 'utf8');
+const inventory = await readFile('js/core/inventory.ts', 'utf8');
 for (const [, name, path] of inventory.matchAll(/const (\w+)_THEME_SOURCE = '([^']+)'/g)) {
   await prepareTheme(name, path, name === 'SAM' ? 13 : name === 'NIALL' ? 20 : 10);
 }
-const dialogues = await readFile('js/dialogue-themes.generated.ts', 'utf8');
+const dialogues = await readFile('js/core/dialogue-themes.generated.ts', 'utf8');
 for (const [, name, path] of dialogues.matchAll(/^\s+"([^"]+)": "([^"]+)"/gm)) {
   await prepareTheme(`${name.replace(/\W+/g, '-')}-dialogue`, path, name === 'sam' ? 13 : 10);
 }

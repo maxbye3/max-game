@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, stat, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, stat, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 
 const directory = await mkdtemp(join(tmpdir(), 'max-web-tests-'));
+const sourceFiles = await readdir('js', { recursive: true });
+function sourcePathFor(name) {
+  const suffix = `${name}.ts`;
+  const source = sourceFiles.find((file) => file === suffix || file.endsWith(`/${suffix}`));
+  if (!source) throw new Error(`Cannot find js source for ${name}`);
+  return join('js', source);
+}
 async function moduleFor(name) {
   const file = join(directory, `${name}.mjs`);
-  await build({ entryPoints: [`js/${name}.ts`], outfile: file, bundle: true, format: 'esm', platform: 'node' });
+  await build({ entryPoints: [sourcePathFor(name)], outfile: file, bundle: true, format: 'esm', platform: 'node' });
   return import(pathToFileURL(file).href);
 }
 try {
@@ -43,7 +50,7 @@ try {
   assert.equal(listeners.size, 0);
 
   const { POWER_THEME_SOURCES } = await moduleFor('power-themes.generated');
-  const inventory = await readFile('js/inventory.ts', 'utf8');
+  const inventory = await readFile('js/core/inventory.ts', 'utf8');
   for (const [, source] of inventory.matchAll(/const \w+_THEME_SOURCE = '([^']+)'/g)) {
     assert.ok((await stat(source)).size > 0, `missing power soundtrack: ${source}`);
     if (POWER_THEME_SOURCES[source]) assert.ok((await stat(POWER_THEME_SOURCES[source])).size < 300_000, 'prepared power music stays bounded');
@@ -94,7 +101,7 @@ try {
   // The permanent solar cap must still render after temporary powers expire.
   window.localStorage.setItem = (key, value) => storage.set(key, value);
   const characterFile = join(directory, 'character-render.mjs');
-  await build({ stdin: { contents: "export { withCharacterPowers } from './js/character-power-render.ts'; export { setLucyCapEquipped } from './js/lucy-power.ts';", resolveDir: process.cwd() }, outfile: characterFile, bundle: true, format: 'esm', platform: 'node' });
+  await build({ stdin: { contents: "export { withCharacterPowers } from './js/powers/shared/character-power-render.ts'; export { setLucyCapEquipped } from './js/powers/lucy/lucy-power.ts';", resolveDir: process.cwd() }, outfile: characterFile, bundle: true, format: 'esm', platform: 'node' });
   const characters = await import(pathToFileURL(characterFile).href);
   let sprites = 0, capPixels = 0;
   const context = { save() {}, restore() {}, translate() {}, scale() {}, rotate() {}, fillRect() { capPixels += 1; } };

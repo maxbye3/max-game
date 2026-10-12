@@ -22,4 +22,4 @@ for (const character of characters) {
 
 const generated = `// Generated from chat/<character>/profile.(png|jpg|jpeg). No nested fallbacks.\n` +
   `export const PROFILE_IMAGE_SOURCES = ${JSON.stringify(profileSources, null, 2)} as const;\n`;
-await writeFile(new URL('../js/profile-images.generated.ts', import.meta.url), generated);
+await writeFile(new URL('../js/core/profile-images.generated.ts', import.meta.url), generated);
