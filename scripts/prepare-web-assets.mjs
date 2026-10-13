@@ -17,7 +17,7 @@ const characterManifest = JSON.parse(await readFile('character-assets/manifest.j
 const images = {};
 const manifest = { images: {}, themes: {}, fonts: existingManifest.fonts ?? {} };
 const prepared = new Set();
-const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'img/generated/characters/katie-map-sprite.png': '208x208!' };
+const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'character-assets/katie/map-sprite.png': '208x208!' };
 for (const path of Object.keys(existingManifest.images ?? {})) {
   if (prepared.has(path) || path.includes('collision')) continue;
   prepared.add(path);

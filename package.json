@@ -11,7 +11,7 @@
     "extend:internal-collision": "node scripts/extend-internal-collision.mjs && npm run generate:internal-collision",
     "generate:internal-collision": "node scripts/generate-internal-collision.mjs",
     "generate:typescript": "npm run generate:dialogues && npm run generate:profiles && npm run generate:dialogue-themes && npm run generate:internal-collision && node scripts/refresh-web-assets.mjs",
-    "generate:source": "npm run generate:typescript && npm run generate:battle-avatars && npm run generate:bookshop-npcs && npm run generate:map-character-sprites",
+    "generate:source": "npm run generate:typescript && npm run generate:battle-avatars",
     "generate:dialogues": "node scripts/generate-dialogues.mjs",
     "generate:profiles": "node scripts/generate-profiles.mjs",
     "generate:dialogue-themes": "node scripts/generate-dialogue-themes.mjs",

@@ -132,7 +132,7 @@
       "sourceHash": "13e2bdc1314a",
       "output": "img/web/diary-lab-doors-out.13e2bdc1314a.webp"
     },
-    "img/generated/characters/katie-map-sprite.png": {
+    "character-assets/katie/map-sprite.png": {
       "sourceHash": "f81a310d645c",
       "output": "img/web/map-sprite.524014429428.webp"
     }
