@@ -1,0 +1,47 @@
+{
+  "player": {
+    "directory": "player",
+    "files": {
+      "spriteSheet": "SpriteSheet.png",
+      "sealSpriteSheet": "seal-game.png",
+      "avatar": "avatar.png",
+      "item": "item.png",
+      "profile": "profile.png",
+      "theme": "theme.mp3"
+    }
+  },
+  "characters": {
+    "adam": { "displayName": "Adam", "directory": "adam", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png" } },
+    "alex-s": { "displayName": "Alex S", "directory": "alex-s", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "profile": "profile.png", "theme": "theme.mp3", "wheldonSprite": "alex-sprite.png" } },
+    "alex-w": { "displayName": "Alex W", "directory": "alex-w", "dialogueTheme": "player/theme.mp3", "files": { "avatar": "avatar.png", "mapSprite": "img/generated/characters/alex-w-map-sprite.png" } },
+    "alice": { "displayName": "Alice", "directory": "alice", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/alice-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "andy": { "displayName": "Andy", "directory": "andy", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "Item.png", "mapSprite": "img/generated/characters/andy-map-sprite.png", "overworldSprite": "overworld-sprite.png" } },
+    "aliya": { "displayName": "Aliya", "directory": "aliya", "files": { "avatar": "avatar.png", "mapSprite": "img/generated/characters/aliya-map-sprite.png", "overworldSprite": "overworld-sprite.png" } },
+    "bochra": { "displayName": "Bochra", "directory": "bochra", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/bochra-map-sprite.png", "theme": "theme.mp3" } },
+    "chris": { "displayName": "Chris", "directory": "chris", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/chris-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "dad": { "displayName": "Dad", "directory": "dad", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "theme": "theme.mp3" } },
+    "dan": { "displayName": "Dan", "directory": "dan", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/dan-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "ed": { "displayName": "Ed", "directory": "ed", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "georgia": { "displayName": "Georgia", "directory": "georgia", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "bike": "georgie-bike.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "helen": { "displayName": "Helen", "directory": "helen", "dialogueTheme": "player/theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/helen-map-sprite.png", "profile": "profile.png", "theme": "player/theme.mp3" } },
+    "joe": { "displayName": "Joe", "directory": "joe", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/joe-map-sprite.png", "theme": "theme.mp3" } },
+    "josh": { "displayName": "Josh", "directory": "josh", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "mapSprite": "map-sprite.png" } },
+    "ju": { "displayName": "Ju", "directory": "ju", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/ju-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "julian": { "displayName": "Julian", "directory": "julian", "dialogueTheme": "player/theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/julian-map-sprite.png", "overworldSprite": "overworld-sprite.png", "theme": "player/theme.mp3" } },
+    "katie": { "displayName": "Katie", "directory": "katie", "dialogueTheme": "theme.mp3", "files": { "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/katie-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "katy": { "displayName": "Katy", "directory": "katy", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/katy-map-sprite.png", "theme": "theme.m4a" } },
+    "lucy": { "displayName": "Lucy", "directory": "lucy", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/lucy-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "maddy": { "displayName": "Maddy", "directory": "maddy", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "dialogueAudio": "dialogue.mp3", "item": "item.png", "mapSprite": "img/generated/characters/maddy-map-sprite.png", "theme": "theme.mp3" } },
+    "marina-d": { "displayName": "Marina D", "directory": "marina-d", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "mapSprite": "img/generated/characters/marina-d-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "mason": { "displayName": "Mason", "directory": "mason", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "mapSprite": "img/generated/characters/mason-map-sprite.png", "theme": "player/theme.mp3" } },
+    "meli": { "displayName": "Meli", "directory": "meli", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "mapSprite": "img/generated/characters/meli-map-sprite.png", "theme": "player/theme.mp3" } },
+    "mike": { "displayName": "Mike", "directory": "mike", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "overworldAvatar": "overworld-avatar.png", "theme": "player/theme.mp3" } },
+    "niall": { "displayName": "Niall", "directory": "niall", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "explanationMark": "explanation-mark.png", "item": "player/item.png", "niallSprite": "niall-sprite.png", "theme": "player/theme.mp3" } },
+    "noel": { "displayName": "Noel", "directory": "noel", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "interiorAvatar": "interior-avatar.png", "item": "item.png", "mapSprite": "img/generated/characters/noel-map-sprite.png", "theme": "player/theme.mp3" } },
+    "oscar": { "displayName": "Oscar", "directory": "oscar", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/oscar-map-sprite.png", "theme": "theme.mp3" } },
+    "rei": { "displayName": "Rei", "directory": "rei", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "itemOne": "item-1.png", "itemTwo": "item-2.png", "overworldAvatar": "overworld-avatar.png", "theme": "theme.mp3" } },
+    "sam": { "displayName": "Sam", "directory": "sam", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/sam-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
+    "siblings": { "displayName": "Siblings", "directory": "siblings", "files": { "girlsSprite": "girls-sprite.png", "maddyAudio": "maddy.mp3", "marinaAudio": "marina.mp3", "playerChair": "player-chair.png", "sealChair": "seal-chair.png" } },
+    "tim": { "displayName": "Tim", "directory": "tim", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dancing": "dancing.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "img/generated/characters/tim-map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } }
+  }
+}

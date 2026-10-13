@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Diary & Laboratory</title>
-    <link rel="stylesheet" href="../style.css?v=7373ed4677c4" />
+    <link rel="stylesheet" href="../style.css?v=1ec6999545b8" />
   </head>
   <body>
     <main class="game-shell">
@@ -48,7 +48,7 @@
         </div>
         <div class="inventory-item-row">
           <button id="inventory-item" class="inventory-item" type="button" aria-expanded="false" aria-controls="item-actions">
-            <img src="../player/item.png" alt="Suspiciously powerful sandwich" />
+            <img src="../character-assets/player/item.png" alt="Suspiciously powerful sandwich" />
             <span class="item-text">
               <strong>Power Sandwich</strong>
               <small id="item-status">Ready to use</small>
@@ -80,9 +80,14 @@
         <button id="noel-dialogue-next" class="npc-dialogue-next" type="button" aria-label="Next dialogue line" hidden>&gt;</button>
         <p id="noel-dialogue-question" class="npc-dialogue-question" hidden></p>
         <div id="noel-dialogue-options" class="npc-dialogue-options" hidden>
-          <button id="noel-yes" type="button">Yes</button>
-          <button id="noel-decline" type="button">No</button>
+          <button id="wheldon-yes" type="button">Yes</button>
+          <button id="wheldon-no" type="button">No</button>
         </div>
+        <div id="josh-dialogue-options" class="npc-dialogue-options" hidden>
+          <button id="josh-yes" type="button">Yes</button>
+          <button id="josh-no" type="button">No</button>
+        </div>
+        <a id="josh-art-class-link" class="josh-art-class-link" href="https://maxbye.co/art-class/" target="_blank" rel="noopener noreferrer" hidden>Join the next term ↗</a>
         <div id="siblings-dialogue-options" class="npc-dialogue-options" hidden>
           <a id="siblings-view-website" href="https://siblingscomedy.com/" target="_blank" rel="noopener noreferrer">View website</a>
           <button id="siblings-decline" type="button">Neh. I'm good</button>
@@ -102,6 +107,33 @@
         <div id="helen-reading-options" class="npc-dialogue-options" hidden>
           <button id="helen-reading-yes" type="button">Yes please</button>
           <button id="helen-reading-no" type="button">Neh, I'm good</button>
+        </div>
+        <div id="dad-movie-options" class="npc-dialogue-options" hidden>
+          <button id="dad-movie-yes" type="button">Yes</button>
+          <button id="dad-movie-no" type="button">No</button>
+        </div>
+      </section>
+      <section id="josh-codec" class="josh-codec" aria-label="Codec call" role="dialog" aria-modal="true" hidden>
+        <div class="josh-codec-frame">
+          <div class="josh-codec-header">
+            <span>CODEC // INCOMING CALL</span>
+            <span id="josh-codec-signal">●●●</span>
+          </div>
+          <div class="josh-codec-portraits">
+            <div class="josh-codec-portrait josh-codec-player">
+              <img src="../character-assets/player/avatar.png" alt="Player">
+              <span>PLAYER</span>
+            </div>
+            <div class="josh-codec-portrait josh-codec-max">
+              <img src="../character-assets/player/profile.png" alt="Max">
+              <span>MAX</span>
+            </div>
+          </div>
+          <div class="josh-codec-subtitle">
+            <span class="josh-codec-speaker">ME:</span>
+            <p>hey just to say thanks for playing the game and do consider joining Josh's art class my skills have gone supernova since joining</p>
+          </div>
+          <button id="josh-codec-continue" class="josh-codec-continue" type="button">Return to game</button>
         </div>
       </section>
       <section id="goodreads-reading-panel" class="internal-feature-panel workout-journal-panel reading-list-panel" role="dialog" aria-modal="true" aria-labelledby="goodreads-reading-title" hidden>
@@ -131,6 +163,34 @@
           </div>
         </div>
         <button id="reading-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next book">›</button>
+      </dialog>
+      <section id="letterboxd-reviews-panel" class="internal-feature-panel workout-journal-panel reading-list-panel" role="dialog" aria-modal="true" aria-labelledby="letterboxd-reviews-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="letterboxd-reviews-title">Max's Letterboxd reviews</h2>
+          <button id="letterboxd-reviews-close" class="internal-feature-close" type="button" aria-label="Close movie review gallery">×</button>
+        </header>
+        <p class="workout-gallery-help">Scroll through the films. Tap a poster to see Max's rating and review.</p>
+        <div class="reading-content">
+          <p id="letterboxd-reviews-status" class="reading-list-status" role="status"></p>
+          <div id="letterboxd-reviews-list" class="workout-gallery reading-list" aria-label="Movie poster thumbnails"></div>
+        </div>
+        <a class="reading-list-link letterboxd-follow-link" href="https://boxd.it/kzTRP" target="_blank" rel="noopener noreferrer">follow me on letterboxed ↗</a>
+      </section>
+      <dialog id="movie-review-lightbox" class="workout-lightbox reading-lightbox" aria-labelledby="movie-review-title">
+        <button id="movie-review-lightbox-close" class="workout-lightbox-close" type="button" aria-label="Close movie review">×</button>
+        <button id="movie-review-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous movie">‹</button>
+        <div class="reading-book">
+          <img id="movie-review-lightbox-image" alt="" referrerpolicy="no-referrer">
+          <div class="reading-details">
+            <p id="movie-review-counter" class="reading-counter" aria-live="polite"></p>
+            <h2 id="movie-review-title" class="reading-title"></h2>
+            <p id="movie-review-year" class="reading-author"></p>
+            <p id="movie-review-rating" class="reading-rating"></p>
+            <p id="movie-review-text" class="reading-review"></p>
+            <a id="movie-review-link" class="reading-list-link" target="_blank" rel="noopener noreferrer">Read on Letterboxd ↗</a>
+          </div>
+        </div>
+        <button id="movie-review-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next movie">›</button>
       </dialog>
       <section id="tim-workout-journal-panel" class="internal-feature-panel workout-journal-panel" role="dialog" aria-modal="true" aria-labelledby="tim-workout-journal-title" hidden>
         <header class="internal-feature-header">
@@ -179,21 +239,7 @@
           <h2 id="experiments-title">Experiments</h2>
           <button class="internal-feature-close" type="button" aria-label="Close experiments">×</button>
         </header>
-        <p>Pick a test image to inspect it full screen.</p>
-        <div class="experiment-gallery">
-          <button type="button" data-experiment-src="../chat/noel/player/profile.png">
-            <img src="../chat/noel/player/profile.png" alt="Noel profile test">
-            <span>Profile test</span>
-          </button>
-          <button type="button" data-experiment-src="../chat/noel/player/item.png">
-            <img src="../chat/noel/player/item.png" alt="Noel item test">
-            <span>Item test</span>
-          </button>
-          <button type="button" data-experiment-src="../chat/noel/avatar.png">
-            <img src="../chat/noel/avatar.png" alt="Noel avatar test">
-            <span>Avatar test</span>
-          </button>
-        </div>
+        <p>No experiment images are currently configured.</p>
       </section>
       <dialog id="experiment-lightbox" class="experiment-lightbox" aria-label="Expanded experiment image">
         <button id="experiment-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
@@ -214,6 +260,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=3d3043469db2"></script>
+    <script src="../dist/internal-bundle.js?v=8cacc8b26eb1"></script>
   </body>
 </html>

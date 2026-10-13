@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, stat, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, stat, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 
 const directory = await mkdtemp(join(tmpdir(), 'max-web-tests-'));
+const sourceFiles = await readdir('js', { recursive: true });
+function sourcePathFor(name) {
+  const suffix = `${name}.ts`;
+  const source = sourceFiles.find((file) => file === suffix || file.endsWith(`/${suffix}`));
+  if (!source) throw new Error(`Cannot find js source for ${name}`);
+  return join('js', source);
+}
 async function moduleFor(name) {
   const file = join(directory, `${name}.mjs`);
-  await build({ entryPoints: [`js/${name}.ts`], outfile: file, bundle: true, format: 'esm', platform: 'node' });
+  await build({ entryPoints: [sourcePathFor(name)], outfile: file, bundle: true, format: 'esm', platform: 'node' });
   return import(pathToFileURL(file).href);
 }
 try {
@@ -43,19 +50,22 @@ try {
   assert.equal(listeners.size, 0);
 
   const { POWER_THEME_SOURCES } = await moduleFor('power-themes.generated');
-  const inventory = await readFile('js/inventory.ts', 'utf8');
-  for (const [, source] of inventory.matchAll(/const \w+_THEME_SOURCE = '([^']+)'/g)) {
+  const characterManifest = JSON.parse(await readFile('character-assets/manifest.json', 'utf8'));
+  for (const character of Object.values(characterManifest.characters)) {
+    if (!character.files.theme) continue;
+    const source = `character-assets/${character.directory}/${character.files.theme}`;
     assert.ok((await stat(source)).size > 0, `missing power soundtrack: ${source}`);
     if (POWER_THEME_SOURCES[source]) assert.ok((await stat(POWER_THEME_SOURCES[source])).size < 300_000, 'prepared power music stays bounded');
   }
   const { WEB_IMAGE_SOURCES } = await moduleFor('web-images.generated');
+  const imageSource = (source) => WEB_IMAGE_SOURCES[source] ?? source;
   for (const [source, output] of Object.entries(WEB_IMAGE_SOURCES)) {
     assert.ok((await stat(output)).size < (await stat(source)).size, 'browser copy is smaller');
     assert.ok(!source.includes('collision'), 'collision guides stay untouched');
   }
   const { webImageSource } = await moduleFor('web-images');
-  assert.equal(webImageSource('../img/external/overworld.png?v=old'), `../${WEB_IMAGE_SOURCES['img/external/overworld.png']}`);
-  assert.equal(webImageSource('../chat/bochra/profile.jpg'), '../chat/bochra/profile.jpg');
+  assert.equal(webImageSource('../img/external/overworld.png?v=old'), `../${imageSource('img/external/overworld.png')}`);
+  assert.equal(webImageSource('../character-assets/bochra/profile.jpg'), '../character-assets/bochra/profile.jpg');
 
   const stylesheet = await readFile('style.css', 'utf8');
   for (const [, font] of stylesheet.matchAll(/url\("(fonts\/[^"]+\.woff2)"\)/g)) {
@@ -77,24 +87,24 @@ try {
   };
   const { loadAssets } = await moduleFor('assets');
   await loadAssets();
-  assert.ok(!sources.includes(WEB_IMAGE_SOURCES['chat/siblings/girls-sprite.png']));
-  assert.ok(!sources.includes(WEB_IMAGE_SOURCES['img/external/mike-aftermath.png']));
-  assert.ok(!sources.includes(WEB_IMAGE_SOURCES['player/seal-game.png']));
-  assert.ok(sources.includes(WEB_IMAGE_SOURCES['img/external/billboard-unfinished.png']));
+  assert.ok(!sources.includes(imageSource('character-assets/siblings/girls-sprite.png')));
+  assert.ok(!sources.includes(imageSource('img/external/mike-aftermath.png')));
+  assert.ok(!sources.includes(imageSource('character-assets/player/seal-game.png')));
+  assert.ok(sources.includes(imageSource('img/external/billboard-unfinished.png')));
   Image.stallDecode = true;
   await loadAssets();
   Image.stallDecode = false;
   sources.length = 0; storage.set('max-game:mike-aftermath', 'true'); window.location.search = '?seal=1';
   await loadAssets(true);
-  assert.ok(sources.includes(WEB_IMAGE_SOURCES['chat/siblings/girls-sprite.png']));
-  assert.ok(sources.includes(WEB_IMAGE_SOURCES['img/external/mike-aftermath.png']));
-  assert.ok(sources.includes(WEB_IMAGE_SOURCES['player/seal-game.png']));
-  assert.ok(!sources.includes(WEB_IMAGE_SOURCES['chat/mike/overworld-avatar.png']));
-  assert.ok(sources.includes(WEB_IMAGE_SOURCES['chat/rei/overworld-avatar.png']), 'Rei remains visible after the quest');
+  assert.ok(sources.includes(imageSource('character-assets/siblings/girls-sprite.png')));
+  assert.ok(sources.includes(imageSource('img/external/mike-aftermath.png')));
+  assert.ok(sources.includes(imageSource('character-assets/player/seal-game.png')));
+  assert.ok(!sources.includes(imageSource('character-assets/mike/overworld-avatar.png')));
+  assert.ok(sources.includes(imageSource('character-assets/rei/overworld-avatar.png')), 'Rei remains visible after the quest');
   // The permanent solar cap must still render after temporary powers expire.
   window.localStorage.setItem = (key, value) => storage.set(key, value);
   const characterFile = join(directory, 'character-render.mjs');
-  await build({ stdin: { contents: "export { withCharacterPowers } from './js/character-power-render.ts'; export { setLucyCapEquipped } from './js/lucy-power.ts';", resolveDir: process.cwd() }, outfile: characterFile, bundle: true, format: 'esm', platform: 'node' });
+  await build({ stdin: { contents: "export { withCharacterPowers } from './js/powers/shared/character-power-render.ts'; export { setLucyCapEquipped } from './js/powers/lucy/lucy-power.ts';", resolveDir: process.cwd() }, outfile: characterFile, bundle: true, format: 'esm', platform: 'node' });
   const characters = await import(pathToFileURL(characterFile).href);
   let sprites = 0, capPixels = 0;
   const context = { save() {}, restore() {}, translate() {}, scale() {}, rotate() {}, fillRect() { capPixels += 1; } };

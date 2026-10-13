@@ -14,7 +14,7 @@ async function loadModule(name, source) {
 }
 
 try {
-  const battle = await loadModule('battle-outcome', 'js/battle-outcome.ts');
+  const battle = await loadModule('battle-outcome', 'js/characters/niall/battle-outcome.ts');
   assert.equal(battle.getBattleResult('victory').niallQuestState, 'following');
   assert.equal(battle.getBattleResult('defeat').niallQuestState, undefined);
   assert.deepEqual(battle.getBattleResult('escape'), {
@@ -24,7 +24,7 @@ try {
     niallQuestState: 'following',
   });
 
-  const niallBattle = await loadModule('niall-battle', 'js/niall-battle.ts');
+  const niallBattle = await loadModule('niall-battle', 'js/characters/niall/niall-battle.ts');
   assert.equal(niallBattle.PLAYER_ATTACKS[2].message, 'You tell Niall his pumpkin pie was too dry.');
   assert.equal(niallBattle.PLAYER_ATTACKS[2].effectMessage, 'Niall begins smoking furiously. NIALL loses 20 HP.');
   const playNiallFight = (healBeforeRound = -1) => {
@@ -99,7 +99,7 @@ try {
   assert.equal(new niallBattle.NiallBattle(0).canAct, false);
   console.log('Niall battle: one attack per turn, increased Niall HP, varied damage, health-item win and Buckfast loss passed');
 
-  const thiefPath = await loadModule('cave-thief-path', 'js/cave-thief-path.ts');
+  const thiefPath = await loadModule('cave-thief-path', 'js/overworld/cave-thief-path.ts');
   const openPath = thiefPath.buildThiefPath(8, 8, 72, 8, () => false);
   assert.equal(openPath.targetCell, thiefPath.thiefPathCell(72, 8));
   assert.ok(openPath.points.length > 0);
@@ -111,7 +111,7 @@ try {
     play() { return Promise.resolve(); }
     pause() {}
   };
-  const caveSiblings = await loadModule('cave-siblings', 'js/cave-siblings.ts');
+  const caveSiblings = await loadModule('cave-siblings', 'js/interiors/cave-siblings.ts');
   const siblingEvents = [];
   const siblings = new caveSiblings.CaveSiblingsController({
     showLine: ({ speaker, line }) => siblingEvents.push(`${speaker}: ${line}`),
@@ -137,7 +137,7 @@ try {
       removeItem: (key) => values.delete(key),
     },
   };
-  const worldState = await loadModule('world-state', 'js/world-state.ts');
+  const worldState = await loadModule('world-state', 'js/core/world-state.ts');
   assert.equal(worldState.getNiallQuestState(), 'hostile');
   values.set('max-game:niall-fight-complete', 'true');
   assert.equal(worldState.getNiallQuestState(), 'following');
@@ -153,7 +153,7 @@ try {
   assert.equal(worldState.hasVisitedInterior(), true);
   worldState.markInteriorVisited();
   assert.equal(worldState.hasMikeAftermath(), true);
-  const musicLibrary = await loadModule('music-library-reset', 'js/music-library.ts');
+  const musicLibrary = await loadModule('music-library-reset', 'js/interiors/music-library.ts');
   values.set('max-game:unlocked-songs', '["Africa","Lemon jelly"]');
   let musicResetEvent = false;
   window.dispatchEvent = (event) => { musicResetEvent = event.type === 'max-game:music-library-reset'; };
@@ -167,7 +167,7 @@ try {
     getItem: (key) => resurrectionSession.get(key) ?? null,
     setItem: (key, value) => resurrectionSession.set(key, value),
   };
-  const alexPower = await loadModule('alex-s-power', 'js/alex-s-power.ts');
+  const alexPower = await loadModule('alex-s-power', 'js/powers/alex-s/alex-s-power.ts');
   assert.equal(alexPower.activateAlexSPower('alex-s', 10000), false, 'Alex can only resurrect another character');
   assert.equal(alexPower.activateAlexSPower('mike', 10000), true);
   assert.equal(alexPower.getAlexResurrection(9999), null);
@@ -176,7 +176,7 @@ try {
   assert.equal(alexPower.alexSThemeSecondsLeft(20000), 0, 'music ends after ten seconds even though resurrection continues');
   assert.equal(alexPower.getAlexResurrection(29999).id, 'mike');
   assert.equal(alexPower.getAlexResurrection(30000), null, 'the resurrected character disappears at exactly twenty seconds');
-  const restoredAlexPower = await loadModule('alex-s-power-restored', 'js/alex-s-power.ts');
+  const restoredAlexPower = await loadModule('alex-s-power-restored', 'js/powers/alex-s/alex-s-power.ts');
   assert.equal(restoredAlexPower.getAlexResurrection(25000).id, 'mike', 'moving to another page restores the selected character');
   assert.equal(restoredAlexPower.alexSPowerSecondsLeft(25000), 5, 'navigation does not restart the spell');
   assert.equal(alexPower.activateAlexSPower('unknown', 26000), false);
@@ -191,12 +191,12 @@ try {
   resurrectionSession.clear();
   console.log('Alex S: selectable resurrection, exact twenty-second expiry, ten-second theme, navigation continuity and character assets passed');
 
-  const sprites = await loadModule('player-sprite', 'js/player-sprite.ts');
+  const sprites = await loadModule('player-sprite', 'js/core/player-sprite.ts');
   assert.equal(sprites.getPlayerSpriteFrame(false, 'up', 2, 2).sourceY, 144);
   assert.equal(sprites.getPlayerSpriteFrame(true, 'down', 0, 2).sourceY, 1290);
   assert.equal(sprites.getPlayerSpriteFrame(true, 'left', 0, 2).sourceY, 486);
 
-  const wheldon = await loadModule('wheldon-sprite', 'js/player-sprite-test.ts');
+  const wheldon = await loadModule('wheldon-sprite', 'js/core/player-sprite-test.ts');
   const wheldonFrame = (direction, tick) => wheldon.getWheldonPlayerSpriteFrame(direction, (tick + 0.01) / 8);
   for (const direction of ['down', 'left', 'right', 'up']) {
     const idle = wheldon.getWheldonPlayerSpriteFrame(direction, 0);
@@ -213,7 +213,7 @@ try {
     assert.deepEqual(wheldonFrame(diagonal, 3), wheldonFrame(cardinal, 3));
   }
 
-  const katyPower = await loadModule('katy-power', 'js/katy-power.ts');
+  const katyPower = await loadModule('katy-power', 'js/powers/katy/katy-power.ts');
   katyPower.activateKatyPower(1000);
   assert.equal(katyPower.katyPowerSecondsLeft(1000), 10);
   assert.equal(katyPower.updateKatyPower(1699, true), false);
@@ -224,7 +224,7 @@ try {
   assert.equal(katyPower.updateKatyPower(11000, true), true);
   assert.equal(katyPower.katyPowerSecondsLeft(11000), 0);
 
-  const maddyPower = await loadModule('maddy-tea-power', 'js/maddy-tea-power.ts');
+  const maddyPower = await loadModule('maddy-tea-power', 'js/powers/maddy/maddy-tea-power.ts');
   assert.equal(maddyPower.maddyWorldDeltaTime(0.05, 500), 0.05);
   maddyPower.activateMaddyTeaPower(1000);
   assert.equal(maddyPower.maddyTeaSecondsLeft(1000), 10);
@@ -235,7 +235,7 @@ try {
   assert.ok(Math.abs(maddyPower.maddyWorldDeltaTime(0.05, 11025) - 0.026) < 1e-9);
   assert.equal(maddyPower.maddyWorldDeltaTime(0.05, 11050), 0.05);
 
-  const samPower = await loadModule('sam-power', 'js/sam-power.ts');
+  const samPower = await loadModule('sam-power', 'js/powers/sam/sam-power.ts');
   samPower.activateSamPower(1000);
   assert.equal(samPower.samPowerSecondsLeft(1000), 13);
   assert.equal(samPower.samMovementMultiplier(1000), 1.28);
@@ -287,7 +287,7 @@ try {
   assert.equal(samPower.getSamFootsteps(30000).length, 0, 'reactivation clears the earlier transformation');
   console.log('Sam power: thirteen-second timing, friend/foe contacts, repeat cooldown, live target tracking, world trails, exact cleanup and completed stats passed');
 
-  const timInputPower = await loadModule('tim-input-power', 'js/tim-input-power.ts');
+  const timInputPower = await loadModule('tim-input-power', 'js/powers/tim/tim-input-power.ts');
   assert.deepEqual(timInputPower.timInputVector(1, 0, 500), { x: 1, y: 0 }, 'Tim controls stay normal before activation');
   timInputPower.activateTimInputPower(1000);
   assert.equal(timInputPower.timPowerVisualState(999), null);
@@ -320,7 +320,7 @@ try {
   assert.match(timInputPower.timInputPowerReveal(), /opposite/);
   console.log('Tim power: reversed movement vectors, diagonal controls, floor trails, ten-second reset and reactivation passed');
 
-  const oscarPower = await loadModule('oscar-power', 'js/oscar-power.ts');
+  const oscarPower = await loadModule('oscar-power', 'js/powers/oscar/oscar-power.ts');
   oscarPower.activateOscarPower(1000);
   assert.equal(oscarPower.oscarPowerSecondsLeft(1000), 10);
   assert.equal(oscarPower.oscarMovementMultiplier(1000), 1.35);
@@ -360,7 +360,7 @@ try {
   assert.equal(hungryPlayer.x, 115, 'safe end positions are preserved');
   console.log('Oscar power: terrain eating, bounded collision changes, growth, safe restoration and exact expiry passed');
 
-  const reiPower = await loadModule('rei-power', 'js/rei-power.ts');
+  const reiPower = await loadModule('rei-power', 'js/powers/rei/rei-power.ts');
   assert.equal(reiPower.reiMovementMultiplier(500), 1);
   assert.equal(reiPower.reiWorldDeltaTime(0.05, 500), 0.05);
   reiPower.activateReiPower('slow', 1000);
@@ -407,7 +407,7 @@ try {
   assert.equal(reiPower.getReiTrails('sparkle').length, 0, 'reactivation starts clean');
   console.log('Rei powers: exact ten-second timers, half-speed movement/world, independent overlap, real NPC propagation, trails and cleanup passed');
 
-  const andyPower = await loadModule('andy-power', 'js/andy-power.ts');
+  const andyPower = await loadModule('andy-power', 'js/powers/andy/andy-power.ts');
   andyPower.activateAndyPower(1000);
   assert.equal(andyPower.andyPowerSecondsLeft(1000), 10);
   assert.equal(andyPower.isAndyPowerActive(10999), true);
@@ -426,7 +426,7 @@ try {
   assert.match(andyPower.createAndyReply('That was quite a sentence.'), /Simon de Montfort/);
   assert.match(andyPower.createAndyReply('Another perfectly ordinary sentence.'), /Louis the Pious/);
 
-  const bochraPower = await loadModule('bochra-power', 'js/bochra-power.ts');
+  const bochraPower = await loadModule('bochra-power', 'js/powers/bochra/bochra-power.ts');
   assert.equal(bochraPower.bochraPowerSecondsLeft(0), 0);
   bochraPower.activateBochraPower(1000);
   assert.equal(bochraPower.bochraPowerSecondsLeft(1000), 10);
@@ -456,7 +456,7 @@ try {
   assert.equal(bochraPower.bochraPowerSecondsLeft(12000), 10);
   console.log('Bochra power: duration, movement, idle, NPCs, expiry and reactivation passed');
 
-  const chrisPower = await loadModule('chris-power', 'js/chris-power.ts');
+  const chrisPower = await loadModule('chris-power', 'js/powers/chris/chris-power.ts');
   assert.equal(chrisPower.chrisPowerSecondsLeft(0), 0);
   chrisPower.activateChrisPower(1000);
   assert.equal(chrisPower.chrisPowerSecondsLeft(1000), 10);
@@ -492,7 +492,7 @@ try {
   assert.equal(chrisPower.chrisPowerSecondsLeft(12000), 10);
   console.log('Chris power: ten-second duration, propagation, audience, movement and cleanup passed');
 
-  const danPower = await loadModule('dan-power', 'js/dan-power.ts');
+  const danPower = await loadModule('dan-power', 'js/powers/dan/dan-power.ts');
   assert.equal(danPower.isDanPowerActive(0), false);
   danPower.activateDanPower(1000);
   assert.equal(danPower.danPowerSecondsLeft(1000), 10);
@@ -520,7 +520,7 @@ try {
   assert.equal(danPower.getDanRavers().length, 0);
   console.log('Dan power: duration, world speed, audience bounds, expiry and reactivation passed');
 
-  const georgiaPower = await loadModule('georgia-power', 'js/georgia-power.ts');
+  const georgiaPower = await loadModule('georgia-power', 'js/powers/georgia/georgia-power.ts');
   const flightBounds = { minX: 0, minY: 0, maxX: 1000, maxY: 1000 };
   const flightPosition = { x: 100, y: 100 };
   const flightObstacle = (x, y) => x >= 200 && x <= 500 && y >= 50 && y <= 200;
@@ -559,7 +559,7 @@ try {
   assert.ok(flightPosition.x < 160 && flightPosition.y < 160, 'a large blocked area uses the full-scene landing fallback');
   console.log('Georgia power: ten-second duration, obstacle flight, glide, world passengers, bounds and safe landing passed');
 
-  const helenPower = await loadModule('helen-power', 'js/helen-power.ts');
+  const helenPower = await loadModule('helen-power', 'js/powers/helen/helen-power.ts');
   helenPower.activateHelenPower(1000);
   assert.equal(helenPower.helenPowerSecondsLeft(1000), 10);
   assert.equal(helenPower.helenMovementMultiplier(999), 1);
@@ -594,7 +594,7 @@ try {
   assert.equal(helenPower.getHelenNeighbours().length, 0);
   console.log('Helen power: duration, player changes, world propagation, idle, expiry and reactivation passed');
 
-  const juPower = await loadModule('ju-power', 'js/ju-power.ts');
+  const juPower = await loadModule('ju-power', 'js/powers/ju/ju-power.ts');
   juPower.activateJuPower(1000);
   assert.equal(juPower.juPowerSecondsLeft(1000), 10);
   assert.equal(juPower.isJuPowerActive(999), false);
@@ -636,7 +636,7 @@ try {
   assert.equal(juPower.getJuRevellers().length, 0);
   console.log('Ju power: duration, possessions, movement, world timing, propagation, shadow pursuit and cleanup passed');
 
-  const julianPower = await loadModule('julian-power', 'js/julian-power.ts');
+  const julianPower = await loadModule('julian-power', 'js/powers/julian/julian-power.ts');
   const julianTargets = [{ id: 'far', x: 300, y: 100, height: 48 }, { id: 'tim', x: 50, y: 50, height: 48 }];
   julianPower.activateJulianPower(1000);
   julianPower.updateJulianWorld(1000, 100, 100, julianTargets);
@@ -673,7 +673,7 @@ try {
   assert.match(julianPower.getJulianVerdict(), /No other character/);
   console.log('Julian power: duration, exclusive bargains, oracle, target restoration and time boundaries pass');
 
-  const katiePower = await loadModule('katie-power', 'js/katie-power.ts');
+  const katiePower = await loadModule('katie-power', 'js/powers/katie/katie-power.ts');
   const katieTargets = [{ id: 'near', x: 200, y: 100, height: 52 }, { id: 'far', x: 1800, y: 100, height: 52 }];
   katiePower.activateKatiePower(1000);
   assert.equal(katiePower.isKatiePowerActive(999), false);
@@ -707,7 +707,7 @@ try {
   console.log('Katie power: ten-second duration, smoke propagation, delayed frames, NPC reactions, world time and cleanup passed');
 
   values.set('max-game:player-health', '50');
-  const lucyPower = await loadModule('lucy-power', 'js/lucy-power.ts');
+  const lucyPower = await loadModule('lucy-power', 'js/powers/lucy/lucy-power.ts');
   const lucyTargets = [
     { id: 'love', x: 110, y: 100, height: 50 },
     { id: 'puzzled', x: 120, y: 100, height: 50 },
@@ -764,7 +764,7 @@ try {
 
   console.log('Lucy power: gift odds, food effects, recovery, charges, cap, reactivation and ten-second cleanup passed');
 
-  const mikePower = await loadModule('mike-power', 'js/mike-power.ts');
+  const mikePower = await loadModule('mike-power', 'js/powers/mike/mike-power.ts');
   const mikeTargets = [{ id: 'near', x: 220, y: 100, height: 52 }, { id: 'far', x: 2000, y: 100, height: 52 }];
   mikePower.activateMikePower(1000);
   assert.equal(mikePower.isMikePowerActive(999), false);
@@ -804,7 +804,7 @@ try {
   console.log('Mike power: exact happiness lift, movement, world time, propagation, trails, expiry and reactivation passed');
 
   window.dispatchEvent = () => {};
-  const noelPower = await loadModule('noel-power', 'js/noel-power.ts');
+  const noelPower = await loadModule('noel-power', 'js/powers/noel/noel-power.ts');
   const noelIds = ['mike-item', 'katy-item', 'lucy-item', 'julian-item', 'tim-item', 'helen-item', 'niall-item', 'georgia-item', 'andy-item', 'rei-item'];
   values.set('max-game:inventory-gifts', JSON.stringify([...noelIds, 'noel-item', 'lucy-solar-cap', 'portable-walkman']));
   values.set('max-game:noel-asset-claim', '0');
@@ -860,9 +860,9 @@ try {
   values.delete('max-game:noel-asset-claim');
   console.log('Noel power: exact asset assessment, fractional claims, repossession, protected unlocks, delayed settlement and ten-second cleanup passed');
 
-  const interiorScenes = await loadModule('interior-scenes', 'js/interior-scenes.ts');
-  const interiorDoors = await loadModule('interior-doors', 'js/interior-doors.ts');
-  const interiorCollision = await loadModule('interior-collision', 'js/interior-collision.ts');
+  const interiorScenes = await loadModule('interior-scenes', 'js/interiors/interior-scenes.ts');
+  const interiorDoors = await loadModule('interior-doors', 'js/interiors/interior-doors.ts');
+  const interiorCollision = await loadModule('interior-collision', 'js/interiors/interior-collision.ts');
   const plantRoom = interiorScenes.getInteriorScene('garden-room');
   const plantRoomDoors = new interiorDoors.InteriorDoorsController(plantRoom, {
     enteredDoor: 'garden-room', sealMode: false, hasCaveColander: () => false,
@@ -883,16 +883,16 @@ try {
   assert.equal(plantRoomCollision.playerIsBlocked(256, 610), false);
 
   const packageJson = JSON.parse(await readFile('package.json', 'utf8'));
-  for (const entry of ['js/main.ts', 'js/internal.ts', 'js/niall-fight.ts']) {
+  for (const entry of ['js/core/main.ts', 'js/interiors/internal.ts', 'js/characters/niall/niall-fight.ts']) {
     assert.match(packageJson.scripts.watch, new RegExp(entry.replace('.', '\\.')));
     assert.match(packageJson.scripts.bundle, new RegExp(entry.replace('.', '\\.')));
   }
   assert.equal(packageJson.scripts['watch:bundle'], undefined);
   const lineLimits = {
-    'js/internal.ts': 700,
-    'js/render.ts': 350,
-    'js/cave-thief.ts': 250,
-    'js/niall-fight.ts': 240,
+    'js/interiors/internal.ts': 700,
+    'js/core/render.ts': 350,
+    'js/overworld/cave-thief.ts': 250,
+    'js/characters/niall/niall-fight.ts': 240,
   };
   for (const [file, limit] of Object.entries(lineLimits)) {
     const lines = (await readFile(file, 'utf8')).split(/\r?\n/).filter((line) => line.trim()).length;
@@ -930,7 +930,7 @@ try {
   window.clearTimeout = () => {};
   Audio.prototype.removeAttribute = () => {};
   Audio.prototype.load = () => {};
-  const busIntroTraffic = await loadModule('bus-intro-traffic', 'js/bus-intro.ts');
+  const busIntroTraffic = await loadModule('bus-intro-traffic', 'js/overworld/bus-intro.ts');
   const originalRandom = Math.random;
   try {
     Math.random = () => 0;
@@ -961,7 +961,7 @@ try {
     Math.random = originalRandom;
   }
   values.set('max-game:niall-quest-state', 'following');
-  const niall = await loadModule('niall-bus-dialogue', 'js/niall.ts');
+  const niall = await loadModule('niall-bus-dialogue', 'js/characters/niall/niall.ts');
   niall.updateNiallInteraction(0, niall.NIALL_BUS_STOP.triggerX, niall.NIALL_BUS_STOP.triggerY);
   const niallNext = () => element('#niall-dialogue-next').listeners.get('click')();
   assert.equal(element('#niall-dialogue-line').textContent, 'Niall is rolling a cigarette');
@@ -979,14 +979,14 @@ try {
   let resolveFixture;
   globalThis.fetch = () => new Promise((resolve) => { resolveFixture = resolve; });
   values.clear();
-  const npcs = await loadModule('npcs', 'js/npcs.ts');
+  const npcs = await loadModule('npcs', 'js/overworld/npcs.ts');
   npcs.setupNpcInteractions();
   const next = () => element('#npc-dialogue-next').listeners.get('click')();
   const leave = () => npcs.updateNpcInteractions(-100, -100);
   // Approach from Ed's east side so Adam's nearby interaction does not win.
   const approachEd = () => npcs.updateNpcInteractions(npcs.ED.x + 30, npcs.ED.y);
   approachEd();
-  assert.equal(element('#npc-dialogue-profile').src, 'chat/ed/profile.png');
+  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/ed/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   assert.match(element('#npc-dialogue-line').textContent, /Halstead Court/);
   next();
@@ -1036,7 +1036,7 @@ try {
   const approachAlex = () => npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
   leave(); approachAlex();
   assert.equal(values.has('max-game:inventory-gifts'), false);
-  assert.equal(element('#npc-dialogue-profile').src, 'chat/alex s/profile.png');
+  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/alex-s/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
@@ -1067,15 +1067,15 @@ try {
   leave(); approachAdam();
   assert.match(element('#npc-dialogue-line').textContent, /You\'re shorter than I was expecting/);
   assert.equal(element('#npc-dialogue-profile').hidden, true);
-  const profiles = await loadModule('profile-images', 'js/profile-images.ts');
+  const profiles = await loadModule('profile-images', 'js/core/profile-images.ts');
   assert.equal(profiles.profileImageSource('adam'), null);
   assert.equal(profiles.profileImageSource('Bochra'), null, 'a missing root portrait is intentional');
-  assert.equal(profiles.profileImageSource('ed'), 'chat/ed/profile.png');
-  assert.equal(profiles.profileImageSource('Alex S'), 'chat/alex s/profile.png');
-  assert.equal(profiles.profileImageSource('Helen'), 'chat/helen/profile.png');
-  assert.equal(profiles.profileImageSource('marina d'), 'chat/marina d/profile.png');
-  for (const source of Object.values((await loadModule('profile-sources', 'js/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {
-    assert.match(source, /^chat\/[^/]+\/profile\.(?:png|jpe?g)$/i);
+  assert.equal(profiles.profileImageSource('ed'), 'character-assets/ed/profile.png');
+  assert.equal(profiles.profileImageSource('Alex S'), 'character-assets/alex-s/profile.png');
+  assert.equal(profiles.profileImageSource('Helen'), 'character-assets/helen/profile.png');
+  assert.equal(profiles.profileImageSource('marina d'), 'character-assets/marina-d/profile.png');
+  for (const source of Object.values((await loadModule('profile-sources', 'js/generated/core/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {
+    assert.match(source, /^character-assets\/[^/]+\/profile\.(?:png|jpe?g)$/i);
   }
   next();
   assert.match(element('#npc-dialogue-line').textContent, /2006 Champions League final/);
@@ -1097,7 +1097,7 @@ try {
   assert.equal(values.has('max-game:unlocked-songs'), false);
 
   // Andy gives his item, Walkman, then song; each reward checks its own ownership.
-  const { MusicHouseDialogueController } = await loadModule('music-house-dialogue', 'js/music-house-dialogue.ts');
+  const { MusicHouseDialogueController } = await loadModule('music-house-dialogue', 'js/interiors/music-house-dialogue.ts');
   window.open = () => {};
   for (const accept of [false, true]) {
     for (let owned = 0; owned < 8; owned += 1) {
@@ -1138,7 +1138,7 @@ try {
     }
   }
 
-  const reiLines = (await loadModule('rei-dialogue-flow', 'js/rei-dialogue.ts')).REI_DIALOGUE_LINES;
+  const reiLines = (await loadModule('rei-dialogue-flow', 'js/generated/dialogues/rei-dialogue.ts')).REI_DIALOGUE_LINES;
   const approachRei = () => { leave(); npcs.updateNpcInteractions(npcs.REI.x, npcs.REI.y); };
   const finishReiMission = (completed) => {
     next();
@@ -1208,7 +1208,7 @@ try {
   values.set('max-game:inventory-gifts', '["rei-item", "rei-item-2"]');
   values.set('max-game:unlocked-songs', '["Lemon jelly"]');
   const savedReiProgress = new Map(values);
-  const reloadedNpcs = await loadModule('npcs-reloaded', 'js/npcs.ts');
+  const reloadedNpcs = await loadModule('npcs-reloaded', 'js/overworld/npcs.ts');
   reloadedNpcs.setupNpcInteractions();
   reloadedNpcs.updateNpcInteractions(reloadedNpcs.REI.x, reloadedNpcs.REI.y);
   finishReiMission(true);
@@ -1221,7 +1221,7 @@ try {
 
   values.clear();
   values.set('max-game:inventory-gifts', '["marina-d-item-1", "marina-d-item-2"]');
-  const inventoryGifts = await loadModule('inventory-gifts', 'js/inventory-gifts.ts');
+  const inventoryGifts = await loadModule('inventory-gifts', 'js/core/inventory-gifts.ts');
   assert.deepEqual(inventoryGifts.getCollectedGifts(), []);
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'retired Marina D gifts are removed from existing saves');
   const approachMarina = () => npcs.updateNpcInteractions(npcs.MARINA_D.x, npcs.MARINA_D.y);
@@ -1232,7 +1232,7 @@ try {
 
   // A missing or unreadable deployed JSON feed must not empty the book gallery.
   const savedShelf = JSON.parse(await readFile('data/goodreads-read.json', 'utf8')).reviews;
-  const { GoodreadsReadingController } = await loadModule('goodreads-reading', 'js/goodreads-reading.ts');
+  const { GoodreadsReadingController } = await loadModule('goodreads-reading', 'js/interiors/goodreads-reading.ts');
   const reading = new GoodreadsReadingController(() => {});
   const gallery = element('#goodreads-reading-list');
   window.location.protocol = 'https:';
@@ -1272,7 +1272,7 @@ try {
     leave(); npcs.updateNpcInteractions(npc.x, npc.y);
     assert.equal(element('#npc-dialogue-line').textContent, `Hi there I'm ${npc.name}. This is my first line.`);
     assert.equal(element('#npc-dialogue-profile').hidden, false);
-    assert.match(element('#npc-dialogue-profile').src, new RegExp(`^chat/${npc.id}/profile\\.(png|jpg|jpeg)$`));
+    assert.match(element('#npc-dialogue-profile').src, new RegExp(`^character-assets/${npc.id}/profile\\.(png|jpg|jpeg)$`));
     next();
     assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
     assert.equal(element('#npc-dialogue-next').hidden, false, 'Chris continues his lines after the item reward');

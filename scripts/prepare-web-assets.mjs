@@ -12,32 +12,30 @@ function run(command, args) {
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex').slice(0, 12);
 await mkdir('img/web', { recursive: true });
 await mkdir('audio/powers', { recursive: true });
+const existingManifest = JSON.parse(await readFile('scripts/web-assets.manifest.json', 'utf8'));
+const characterManifest = JSON.parse(await readFile('character-assets/manifest.json', 'utf8'));
 const images = {};
-const manifest = { images: {}, themes: {} };
+const manifest = { images: {}, themes: {}, fonts: existingManifest.fonts ?? {} };
 const prepared = new Set();
-const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'chat/katie/map-sprite.png': '208x208!' };
-for (const file of ['js/assets.ts', 'js/map-characters.ts', 'js/interior-scenes.ts']) {
-  const source = await readFile(file, 'utf8');
-  for (const match of source.matchAll(/['"]((?:\.\.\/)?(?:img|chat|player|map)\/[^'"?]+\.png)(?:\?[^'"]*)?['"]/g)) {
-    const path = match[1].replace(/^\.\.\//, '');
-    if (prepared.has(path) || path.includes('collision')) continue;
-    prepared.add(path);
-    const bytes = await readFile(path);
-    if (bytes.length < 40_000) continue;
-    const size = sizes[path];
-    const output = `img/web/${basename(path, '.png')}.${hash(Buffer.concat([bytes, Buffer.from(size ?? '')]))}.webp`;
-    const input = size ? `${output}.png` : path;
-    if (!(await stat(output).catch(() => null))?.size) {
-      if (size) run('magick', [path, '-sample', size, input]);
-      run('cwebp', ['-quiet', '-lossless', '-z', '9', input, '-o', output]);
-      if (size) await unlink(input);
-    }
-    if ((await stat(output)).size < bytes.length) {
-      images[path] = output;
-      manifest.images[path] = { sourceHash: hash(bytes), output };
-    }
-    else await unlink(output);
+const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'img/generated/characters/katie-map-sprite.png': '208x208!' };
+for (const path of Object.keys(existingManifest.images ?? {})) {
+  if (prepared.has(path) || path.includes('collision')) continue;
+  prepared.add(path);
+  const bytes = await readFile(path).catch(() => null);
+  if (!bytes || bytes.length < 40_000) continue;
+  const size = sizes[path];
+  const output = `img/web/${basename(path, '.png')}.${hash(Buffer.concat([bytes, Buffer.from(size ?? '')]))}.webp`;
+  const input = size ? `${output}.png` : path;
+  if (!(await stat(output).catch(() => null))?.size) {
+    if (size) run('magick', [path, '-sample', size, input]);
+    run('cwebp', ['-quiet', '-lossless', '-z', '9', input, '-o', output]);
+    if (size) await unlink(input);
   }
+  if ((await stat(output)).size < bytes.length) {
+    images[path] = output;
+    manifest.images[path] = { sourceHash: hash(bytes), output };
+  }
+  else await unlink(output);
 }
 const themes = {};
 async function prepareTheme(name, path, duration) {
@@ -48,11 +46,13 @@ async function prepareTheme(name, path, duration) {
   themes[path] = output;
   manifest.themes[path] = { sourceHash: hash(bytes), output };
 }
-const inventory = await readFile('js/inventory.ts', 'utf8');
-for (const [, name, path] of inventory.matchAll(/const (\w+)_THEME_SOURCE = '([^']+)'/g)) {
-  await prepareTheme(name, path, name === 'SAM' ? 13 : name === 'NIALL' ? 20 : 10);
+for (const [id, character] of Object.entries(characterManifest.characters)) {
+  const path = character.files.theme && `character-assets/${character.directory}/${character.files.theme}`;
+  if (path && await stat(path).catch(() => null)) {
+    await prepareTheme(id, path, id === 'sam' ? 13 : id === 'niall' ? 20 : 10);
+  }
 }
-const dialogues = await readFile('js/dialogue-themes.generated.ts', 'utf8');
+const dialogues = await readFile('js/generated/core/dialogue-themes.generated.ts', 'utf8');
 for (const [, name, path] of dialogues.matchAll(/^\s+"([^"]+)": "([^"]+)"/gm)) {
   await prepareTheme(`${name.replace(/\W+/g, '-')}-dialogue`, path, name === 'sam' ? 13 : 10);
 }

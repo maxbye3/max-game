@@ -48,19 +48,19 @@
       "sourceHash": "d1aa56fa000e",
       "output": "img/web/bookshop.d1aa56fa000e.webp"
     },
-    "player/seal-game.png": {
+    "character-assets/player/seal-game.png": {
       "sourceHash": "e47e428347fd",
       "output": "img/web/seal-game.e47e428347fd.webp"
     },
-    "chat/georgia/avatar.png": {
+    "character-assets/georgia/avatar.png": {
       "sourceHash": "9f5b01e5beac",
       "output": "img/web/avatar.9f5b01e5beac.webp"
     },
-    "chat/georgia/georgie-bike.png": {
+    "character-assets/georgia/georgie-bike.png": {
       "sourceHash": "9f5b01e5beac",
       "output": "img/web/georgie-bike.9f5b01e5beac.webp"
     },
-    "chat/mike/overworld-avatar.png": {
+    "character-assets/mike/overworld-avatar.png": {
       "sourceHash": "a85e426feace",
       "output": "img/web/overworld-avatar.a85e426feace.webp"
     },
@@ -68,33 +68,21 @@
       "sourceHash": "bb28cb7e9478",
       "output": "img/web/mike-aftermath.bb28cb7e9478.webp"
     },
-    "chat/rei/overworld-avatar.png": {
+    "character-assets/rei/overworld-avatar.png": {
       "sourceHash": "d5c4103d1343",
       "output": "img/web/overworld-avatar.d5c4103d1343.webp"
     },
-    "chat/adam/avatar.png": {
+    "character-assets/adam/avatar.png": {
       "sourceHash": "6d67dbbacf42",
       "output": "img/web/avatar.6d67dbbacf42.webp"
     },
-    "chat/tim/map-sprite.png": {
-      "sourceHash": "ce443bf3798f",
-      "output": "img/web/map-sprite.ce443bf3798f.webp"
-    },
-    "chat/niall/niall-sprite.png": {
+    "character-assets/niall/niall-sprite.png": {
       "sourceHash": "21398072c37b",
       "output": "img/web/niall-sprite.21398072c37b.webp"
     },
-    "chat/siblings/girls-sprite.png": {
+    "character-assets/siblings/girls-sprite.png": {
       "sourceHash": "d75c09020b66",
       "output": "img/web/girls-sprite.d75c09020b66.webp"
-    },
-    "chat/bochra/map-sprite.png": {
-      "sourceHash": "08c6c026197d",
-      "output": "img/web/map-sprite.08c6c026197d.webp"
-    },
-    "chat/katie/map-sprite.png": {
-      "sourceHash": "f81a310d645c",
-      "output": "img/web/map-sprite.524014429428.webp"
     },
     "img/internal/cinema-popcorn-redrawn.png": {
       "sourceHash": "eb470bb4fc71",
@@ -143,116 +131,100 @@
     "img/internal/diary-lab-doors-out.png": {
       "sourceHash": "13e2bdc1314a",
       "output": "img/web/diary-lab-doors-out.13e2bdc1314a.webp"
+    },
+    "img/generated/characters/katie-map-sprite.png": {
+      "sourceHash": "f81a310d645c",
+      "output": "img/web/map-sprite.524014429428.webp"
     }
   },
   "themes": {
-    "chat/katy/theme.m4a": {
+    "character-assets/katy/theme.m4a": {
       "sourceHash": "1726a33d388e",
       "output": "audio/powers/katy.c486b30aaa4d.mp3"
     },
-    "chat/lucy/theme.mp3": {
+    "character-assets/lucy/theme.mp3": {
       "sourceHash": "717c5d1c994e",
       "output": "audio/powers/lucy.0f5ffcc488d8.mp3"
     },
-    "chat/julian/player/theme.mp3": {
+    "character-assets/julian/player/theme.mp3": {
       "sourceHash": "bde365013839",
       "output": "audio/powers/julian.6257b6e17b6e.mp3"
     },
-    "chat/tim/theme.mp3": {
+    "character-assets/tim/theme.mp3": {
       "sourceHash": "21b4ea960ab6",
       "output": "audio/powers/tim.43feca8c8374.mp3"
     },
-    "chat/maddy/theme.mp3": {
+    "character-assets/maddy/theme.mp3": {
       "sourceHash": "e7d0c6822a84",
       "output": "audio/powers/maddy.e1d6d7c65e03.mp3"
     },
-    "chat/ed/theme.mp3": {
+    "character-assets/ed/theme.mp3": {
       "sourceHash": "91ec635f7494",
       "output": "audio/powers/ed.9d6b149f50a3.mp3"
     },
-    "chat/ju/theme.mp3": {
+    "character-assets/ju/theme.mp3": {
       "sourceHash": "5824bf7fd493",
       "output": "audio/powers/ju.29994a6002e1.mp3"
     },
-    "chat/katie/theme.mp3": {
+    "character-assets/katie/theme.mp3": {
       "sourceHash": "c91b40f57ce0",
       "output": "audio/powers/katie.e67196d0ce12.mp3"
     },
-    "chat/joe/theme.mp3": {
+    "character-assets/joe/theme.mp3": {
       "sourceHash": "2ec3c44a4471",
       "output": "audio/powers/joe.ae72d2c19ca7.mp3"
     },
-    "chat/helen/player/theme.mp3": {
+    "character-assets/helen/player/theme.mp3": {
       "sourceHash": "bde365013839",
       "output": "audio/powers/helen.6257b6e17b6e.mp3"
     },
-    "chat/niall/player/theme.mp3": {
+    "character-assets/niall/player/theme.mp3": {
       "sourceHash": "bde365013839",
       "output": "audio/powers/niall.6c51828bde98.mp3"
     },
-    "chat/sam/theme.mp3": {
+    "character-assets/sam/theme.mp3": {
       "sourceHash": "d814f84ff323",
       "output": "audio/powers/sam.598329a08c39.mp3"
     },
-    "chat/rei/theme.mp3": {
+    "character-assets/rei/theme.mp3": {
       "sourceHash": "e24ca988920e",
       "output": "audio/powers/rei.056e52204ebb.mp3"
     },
-    "chat/oscar/theme.mp3": {
+    "character-assets/oscar/theme.mp3": {
       "sourceHash": "58e73c08d946",
       "output": "audio/powers/oscar.300ac94ebb9c.mp3"
     },
-    "chat/dan/theme.mp3": {
+    "character-assets/dan/theme.mp3": {
       "sourceHash": "5c6d6db49245",
       "output": "audio/powers/dan.f6e024a77598.mp3"
     },
-    "chat/georgia/theme.mp3": {
+    "character-assets/georgia/theme.mp3": {
       "sourceHash": "e84da5fe17f1",
       "output": "audio/powers/georgia.85fb5632839d.mp3"
     },
-    "chat/chris/theme.mp3": {
+    "character-assets/chris/theme.mp3": {
       "sourceHash": "a24db51dc1a2",
       "output": "audio/powers/chris.34908814bec7.mp3"
     },
-    "chat/bochra/theme.mp3": {
+    "character-assets/bochra/theme.mp3": {
       "sourceHash": "df656c4d1d8b",
       "output": "audio/powers/bochra.730e8f28e6db.mp3"
     },
-    "chat/andy/theme.mp3": {
-      "sourceHash": "fa17e41b0d7f",
-      "output": "audio/powers/andy.3675929c46c2.mp3"
-    },
-    "chat/alex s/theme.mp3": {
+    "character-assets/alex-s/theme.mp3": {
       "sourceHash": "286e0ee12da3",
       "output": "audio/powers/alex-s-dialogue.e6f6fa1d774a.mp3"
     },
-    "chat/alice/player/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/alice-dialogue.6257b6e17b6e.mp3"
-    },
-    "chat/ed/player/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/ed-dialogue.6257b6e17b6e.mp3"
-    },
-    "chat/marina d/theme.mp3": {
+    "character-assets/marina-d/theme.mp3": {
       "sourceHash": "709c58f01877",
       "output": "audio/powers/marina-d-dialogue.e8be336f6d82.mp3"
     },
-    "chat/alex w/player/theme.mp3": {
+    "character-assets/alice/theme.mp3": {
+      "sourceHash": "bde365013839",
+      "output": "audio/powers/alice-dialogue.6257b6e17b6e.mp3"
+    },
+    "character-assets/alex-w/player/theme.mp3": {
       "sourceHash": "bde365013839",
       "output": "audio/powers/alex-w-dialogue.6257b6e17b6e.mp3"
-    },
-    "chat/aliya/example/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/aliya-dialogue.6257b6e17b6e.mp3"
-    },
-    "chat/josh/example/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/josh-dialogue.6257b6e17b6e.mp3"
-    },
-    "chat/real/alex s/player/theme.mp3": {
-      "sourceHash": "c10897859756",
-      "output": "audio/powers/real-dialogue.3fc6a7b42178.mp3"
     }
   },
   "fonts": {

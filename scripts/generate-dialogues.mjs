@@ -1,34 +1,38 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const dialogues = [
-  { name: 'ALICE', source: '../chat/alice/dialogue.txt', output: '../js/alice-dialogue.ts' },
-  { name: 'CHRIS', source: '../chat/chris/dialogue.txt', output: '../js/chris-dialogue.ts' },
-  { name: 'ADAM', source: '../chat/adam/dialogue.txt', output: '../js/adam-dialogue.ts' },
-  { name: 'ED', source: '../chat/ed/dialogue.txt', output: '../js/ed-dialogue.ts' },
-  { name: 'MIKE', source: '../chat/mike/dialogue.txt', output: '../js/mike-dialogue.ts' },
-  { name: 'NOEL', source: '../chat/noel/dialogue.txt', output: '../js/noel-dialogue.ts' },
-  { name: 'NIALL', source: '../chat/niall/dialogue.txt', output: '../js/niall-dialogue.ts' },
-  { name: 'REI', source: '../chat/rei/dialogue.txt', output: '../js/rei-dialogue.ts' },
-  { name: 'MARINA_D', source: '../chat/marina d/dialogue.txt', output: '../js/marina-d-dialogue.ts' },
-  { name: 'SAM', source: '../chat/sam/dialogue.txt', output: '../js/sam-dialogue.ts' },
-  { name: 'KATIE', source: '../chat/katie/dialogue.txt', output: '../js/katie-dialogue.ts' },
-  { name: 'MASON', source: '../chat/mason/dialogue.txt', output: '../js/mason-dialogue.ts' },
-  { name: 'MADDY', source: '../chat/maddy/dialogue.txt', output: '../js/maddy-dialogue.ts' },
-  { name: 'MELI', source: '../chat/meli/dialogue.txt', output: '../js/meli-dialogue.ts' },
-  { name: 'OSCAR', source: '../chat/oscar/dialogue.txt', output: '../js/oscar-dialogue.ts' },
-  { name: 'JU', source: '../chat/ju/dialogue.txt', output: '../js/ju-dialogue.ts' },
-  { name: 'BOCHRA', source: '../chat/bochra/dialogue.txt', output: '../js/bochra-dialogue.ts' },
-  { name: 'DAN', source: '../chat/dan/dialogue.txt', output: '../js/dan-dialogue.ts' },
-  { name: 'JOE', source: '../chat/joe/dialogue.txt', output: '../js/joe-dialogue.ts' },
-  { name: 'ANDY', source: '../chat/andy/dialogue.txt', output: '../js/andy-dialogue.ts' },
-  { name: 'LUCY', source: '../chat/lucy/dialogue.txt', output: '../js/lucy-dialogue.ts' },
-  { name: 'ALEX_S', source: '../chat/alex s/dialogue.txt', output: '../js/alex-s-dialogue.ts' },
-  { name: 'JULIAN', source: '../chat/julian/dialogue.txt', output: '../js/julian-dialogue.ts' },
-  { name: 'KATY', source: '../chat/katy/dialogue.txt', output: '../js/katy-dialogue.ts' },
-  { name: 'GEORGIA', source: '../chat/georgia/dialogue.txt', output: '../js/georgia-dialogue.ts' },
-  { name: 'HELEN', source: '../chat/helen/dialogue.txt', output: '../js/helen-dialogue.ts' },
-  { name: 'TIM', source: '../chat/tim/dialogue.txt', output: '../js/tim-dialogue.ts' },
-  { name: 'DAD', source: '../chat/dad/dialogue.txt', output: '../js/dad-dialogue.ts' },
+  { name: 'ALICE', source: '../character-assets/alice/dialogue.txt', output: '../js/generated/dialogues/alice-dialogue.ts' },
+  { name: 'CHRIS', source: '../character-assets/chris/dialogue.txt', output: '../js/generated/dialogues/chris-dialogue.ts' },
+  { name: 'ADAM', source: '../character-assets/adam/dialogue.txt', output: '../js/generated/dialogues/adam-dialogue.ts' },
+  { name: 'ED', source: '../character-assets/ed/dialogue.txt', output: '../js/generated/dialogues/ed-dialogue.ts' },
+  { name: 'MIKE', source: '../character-assets/mike/dialogue.txt', output: '../js/generated/dialogues/mike-dialogue.ts' },
+  { name: 'NOEL', source: '../character-assets/noel/dialogue.txt', output: '../js/generated/dialogues/noel-dialogue.ts' },
+  { name: 'WHELDON', source: '../character-assets/wheldon/dialogue.txt', output: '../js/generated/dialogues/wheldon-dialogue.ts' },
+  { name: 'JOSH', source: '../character-assets/josh/dialogue.txt', output: '../js/generated/dialogues/josh-dialogue.ts' },
+  { name: 'NIALL', source: '../character-assets/niall/dialogue.txt', output: '../js/generated/dialogues/niall-dialogue.ts' },
+  { name: 'REI', source: '../character-assets/rei/dialogue.txt', output: '../js/generated/dialogues/rei-dialogue.ts' },
+  { name: 'MARINA_D', source: '../character-assets/marina-d/dialogue.txt', output: '../js/generated/dialogues/marina-d-dialogue.ts' },
+  { name: 'SAM', source: '../character-assets/sam/dialogue.txt', output: '../js/generated/dialogues/sam-dialogue.ts' },
+  { name: 'KATIE', source: '../character-assets/katie/dialogue.txt', output: '../js/generated/dialogues/katie-dialogue.ts' },
+  { name: 'MASON', source: '../character-assets/mason/dialogue.txt', output: '../js/generated/dialogues/mason-dialogue.ts' },
+  { name: 'MADDY', source: '../character-assets/maddy/dialogue.txt', output: '../js/generated/dialogues/maddy-dialogue.ts' },
+  { name: 'MELI', source: '../character-assets/meli/dialogue.txt', output: '../js/generated/dialogues/meli-dialogue.ts' },
+  { name: 'OSCAR', source: '../character-assets/oscar/dialogue.txt', output: '../js/generated/dialogues/oscar-dialogue.ts' },
+  { name: 'JU', source: '../character-assets/ju/dialogue.txt', output: '../js/generated/dialogues/ju-dialogue.ts' },
+  { name: 'BOCHRA', source: '../character-assets/bochra/dialogue.txt', output: '../js/generated/dialogues/bochra-dialogue.ts' },
+  { name: 'DAN', source: '../character-assets/dan/dialogue.txt', output: '../js/generated/dialogues/dan-dialogue.ts' },
+  { name: 'JOE', source: '../character-assets/joe/dialogue.txt', output: '../js/generated/dialogues/joe-dialogue.ts' },
+  { name: 'ANDY', source: '../character-assets/andy/dialogue.txt', output: '../js/generated/dialogues/andy-dialogue.ts' },
+  { name: 'LUCY', source: '../character-assets/lucy/dialogue.txt', output: '../js/generated/dialogues/lucy-dialogue.ts' },
+  { name: 'ALEX_S', source: '../character-assets/alex-s/dialogue.txt', output: '../js/generated/dialogues/alex-s-dialogue.ts' },
+  { name: 'JULIAN', source: '../character-assets/julian/dialogue.txt', output: '../js/generated/dialogues/julian-dialogue.ts' },
+  { name: 'KATY', source: '../character-assets/katy/dialogue.txt', output: '../js/generated/dialogues/katy-dialogue.ts' },
+  { name: 'GEORGIA', source: '../character-assets/georgia/dialogue.txt', output: '../js/generated/dialogues/georgia-dialogue.ts' },
+  { name: 'HELEN', source: '../character-assets/helen/dialogue.txt', output: '../js/generated/dialogues/helen-dialogue.ts' },
+  { name: 'TIM', source: '../character-assets/tim/dialogue.txt', output: '../js/generated/dialogues/tim-dialogue.ts' },
+  { name: 'DAD', source: '../character-assets/dad/dialogue.txt', output: '../js/generated/dialogues/dad-dialogue.ts' },
 ];
 
 await Promise.all(dialogues.map(async ({ name, source, output }) => {
@@ -44,5 +48,7 @@ await Promise.all(dialogues.map(async ({ name, source, output }) => {
   const sourcePath = source.replace('../', '');
   const generated = `// Generated from ${sourcePath}. Run npm run generate:dialogues after editing it.\n` +
     `export const ${name}_DIALOGUE_LINES = ${JSON.stringify(lines, null, 2)} as const;\n`;
-  await writeFile(new URL(output, import.meta.url), generated);
+  const outputUrl = new URL(output, import.meta.url);
+  await mkdir(dirname(fileURLToPath(outputUrl)), { recursive: true });
+  await writeFile(outputUrl, generated);
 }));

@@ -1,2 +1,10 @@
 .DS_Store
 node_modules/
+
+# Generated source modules, optimized assets, and browser bundles.
+js/generated/
+img/generated/
+img/battle/
+img/web/
+audio/powers/
+dist/

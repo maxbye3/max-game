@@ -2,14 +2,15 @@ import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
+const characterManifest = JSON.parse(await readFile(new URL('character-assets/manifest.json', root), 'utf8'));
 const sources = new Set();
 
-for (const name of await readdir(new URL('js/', root))) {
+for (const name of await readdir(new URL('js/', root), { recursive: true })) {
   if (!name.endsWith('-dialogue.ts')) continue;
   const generated = await readFile(new URL(`js/${name}`, root), 'utf8');
   const source = /^\/\/ Generated from (.+)\. Run npm run generate:dialogues after editing it\./.exec(generated)?.[1];
   if (!source) continue;
-  assert.match(source, /^chat\/[^/]+\/dialogue\.txt$/, `${name} must use the character's root dialogue file`);
+  assert.match(source, /^character-assets\/[^/]+\/dialogue\.txt$/, `${name} must use the character's root dialogue file`);
   const text = await readFile(new URL(source, root), 'utf8');
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const array = /export const \w+_DIALOGUE_LINES = (\[[\s\S]*\]) as const;/.exec(generated)?.[1];
@@ -18,9 +19,8 @@ for (const name of await readdir(new URL('js/', root))) {
   sources.add(source);
 }
 
-for (const entry of await readdir(new URL('chat/', root), { withFileTypes: true })) {
-  if (!entry.isDirectory()) continue;
-  const source = `chat/${entry.name}/dialogue.txt`;
+for (const character of Object.values(characterManifest.characters)) {
+  const source = `character-assets/${character.directory}/dialogue.txt`;
   let text;
   try {
     text = await readFile(new URL(source, root), 'utf8');
@@ -31,4 +31,4 @@ for (const entry of await readdir(new URL('chat/', root), { withFileTypes: true 
   if (text.trim()) assert.ok(sources.has(source), `${source} has dialogue but no generated module`);
 }
 
-console.log(`All ${sources.size} generated character dialogues match their root chat files.`);
+console.log(`All ${sources.size} generated character dialogues match their character asset sources.`);
