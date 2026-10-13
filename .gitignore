@@ -3,7 +3,10 @@ node_modules/
 
 # Generated source modules, optimized assets, and browser bundles.
 js/generated/
-img/generated/
+img/generated/*
+!img/generated/characters/
+img/generated/characters/*
+!img/generated/characters/*-map-sprite.png
 img/battle/
 img/web/
 audio/powers/
