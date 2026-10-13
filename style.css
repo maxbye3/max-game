@@ -2477,6 +2477,43 @@ kbd {
   cursor: pointer;
 }
 
+.josh-codec:not([hidden]) :is(
+  .josh-codec-frame,
+  .josh-codec-header,
+  .josh-codec-portraits,
+  .josh-codec-portrait,
+  .josh-codec-subtitle,
+  .josh-codec-continue
+) {
+  transform-origin: center;
+  animation: josh-codec-reveal 220ms cubic-bezier(0.16, 1, 0.3, 1) var(--codec-reveal-delay, 0ms) both;
+}
+
+.josh-codec:not([hidden]) .josh-codec-frame { animation-duration: 300ms; }
+.josh-codec-frame { --codec-reveal-delay: 0ms; }
+.josh-codec-header { --codec-reveal-delay: 300ms; }
+.josh-codec-portraits { --codec-reveal-delay: 480ms; }
+.josh-codec-player { --codec-reveal-delay: 660ms; }
+.josh-codec-max { --codec-reveal-delay: 840ms; }
+.josh-codec-subtitle { --codec-reveal-delay: 1020ms; }
+.josh-codec-continue { --codec-reveal-delay: 1200ms; }
+
+@keyframes josh-codec-reveal {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .josh-codec:not([hidden]) :is(
+    .josh-codec-frame,
+    .josh-codec-header,
+    .josh-codec-portraits,
+    .josh-codec-portrait,
+    .josh-codec-subtitle,
+    .josh-codec-continue
+  ) { animation: none; }
+}
+
 @media (max-width: 560px) {
   .josh-codec-frame { min-height: 100%; }
   .josh-codec-portraits { min-height: 220px; gap: 8px; padding-inline: 0; }
