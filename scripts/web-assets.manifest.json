@@ -146,10 +146,6 @@
       "sourceHash": "717c5d1c994e",
       "output": "audio/powers/lucy.0f5ffcc488d8.mp3"
     },
-    "character-assets/julian/player/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/julian.6257b6e17b6e.mp3"
-    },
     "character-assets/tim/theme.mp3": {
       "sourceHash": "21b4ea960ab6",
       "output": "audio/powers/tim.43feca8c8374.mp3"
@@ -173,14 +169,6 @@
     "character-assets/joe/theme.mp3": {
       "sourceHash": "2ec3c44a4471",
       "output": "audio/powers/joe.ae72d2c19ca7.mp3"
-    },
-    "character-assets/helen/player/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/helen.6257b6e17b6e.mp3"
-    },
-    "character-assets/niall/player/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/niall.6c51828bde98.mp3"
     },
     "character-assets/sam/theme.mp3": {
       "sourceHash": "d814f84ff323",
@@ -210,21 +198,13 @@
       "sourceHash": "df656c4d1d8b",
       "output": "audio/powers/bochra.730e8f28e6db.mp3"
     },
-    "character-assets/alex-s/theme.mp3": {
+    "character-assets/wheldon/theme.mp3": {
       "sourceHash": "286e0ee12da3",
       "output": "audio/powers/alex-s-dialogue.e6f6fa1d774a.mp3"
     },
     "character-assets/marina-d/theme.mp3": {
       "sourceHash": "709c58f01877",
       "output": "audio/powers/marina-d-dialogue.e8be336f6d82.mp3"
-    },
-    "character-assets/alice/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/alice-dialogue.6257b6e17b6e.mp3"
-    },
-    "character-assets/alex-w/player/theme.mp3": {
-      "sourceHash": "bde365013839",
-      "output": "audio/powers/alex-w-dialogue.6257b6e17b6e.mp3"
     }
   },
   "fonts": {

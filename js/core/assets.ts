@@ -1,11 +1,12 @@
 import { hasMikeAftermath } from './world-state.js';
 import { characterAsset, playerAsset } from './character-assets.js';
 import { webImageSource } from './web-images.js';
+import { GHOST_SPRITE_SOURCE } from '../generated/core/ghost-sprite.generated.js';
 
 const IMAGE_SOURCES = {
   map: 'img/external/overworld.png?v=riverside-sign-bookstore',
   caveCover: 'img/external/cave-cover.png',
-  eventTinder: 'map/event-tinder.png',
+  eventTinder: 'img/external/event-tinder.png',
   road: 'img/external/road.png',
   roadTree: 'img/external/tree.png',
   roadBusRoof: 'img/external/bus-roof.png',
@@ -31,6 +32,7 @@ const IMAGE_SOURCES = {
   zenGarden: 'img/external/buildings/zen-garden.png',
   tori: 'img/external/buildings/tori.png',
   spriteSheet: playerAsset('spriteSheet'),
+  ghostSpriteSheet: GHOST_SPRITE_SOURCE,
   sealSpriteSheet: `${playerAsset('sealSpriteSheet')}?v=20260831-transparent`,
   georgia: characterAsset('georgia', 'avatar'),
   georgiaBike: characterAsset('georgia', 'bike'),
@@ -42,8 +44,9 @@ const IMAGE_SOURCES = {
   ed: characterAsset('ed', 'avatar'),
   alexS: characterAsset('alex-s', 'avatar'),
   wheldonSprite: characterAsset('alex-s', 'wheldonSprite'),
+  ghostWheldonSprite: characterAsset('alex-s', 'ghostWheldonSprite'),
   katy: characterAsset('katy', 'mapSprite'),
-  timMap: characterAsset('tim', 'mapSprite'),
+  timWalk: characterAsset('tim', 'walkSprite'),
   niallSprite: characterAsset('niall', 'niallSprite'),
   niallExplanationMark: characterAsset('niall', 'explanationMark'),
   girlsSprite: characterAsset('siblings', 'girlsSprite'),
@@ -102,7 +105,7 @@ export async function loadAssets(needsCaveThief = false): Promise<void> {
     name !== (sealMode ? 'spriteSheet' : 'sealSpriteSheet'),
   );
   const playerImage = sealMode ? 'sealSpriteSheet' : 'spriteSheet';
-  const firstFrameAssets: AssetName[] = ['map', 'road', 'bus', playerImage];
+  const firstFrameAssets: AssetName[] = ['map', 'road', 'bus', playerImage, 'ghostSpriteSheet', 'ghostWheldonSprite'];
   await Promise.all(firstFrameAssets.map((name) => loadImage(images[name], IMAGE_SOURCES[name])));
 
   const backgroundAssets = requestedAssets.filter((name) => !firstFrameAssets.includes(name));

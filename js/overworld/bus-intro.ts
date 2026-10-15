@@ -8,6 +8,7 @@ import {
 } from '../core/config.js';
 import { startRoadTraffic, updateRoadTraffic } from './road-traffic.js';
 import type { Player } from '../core/types.js';
+import { getPlayerBody } from '../core/player-body.js';
 
 const DRIVE_IN_END = 3000;
 const PLAYER_WALK_END = 6000;
@@ -19,7 +20,7 @@ const BUS_HEIGHT = 91;
 const OFFSCREEN_DISTANCE = 320;
 
 const searchParams = new URLSearchParams(window.location.search);
-const shouldPlay = !searchParams.has('door') && searchParams.get('niall') !== 'bus';
+const shouldPlay = getPlayerBody() !== 'ghost' && !searchParams.has('door') && searchParams.get('niall') !== 'bus';
 const skipButton = document.querySelector<HTMLButtonElement>('#bus-intro-skip');
 const controls = document.querySelector<HTMLElement>('.controls');
 const inventoryToggle = document.querySelector<HTMLElement>('#inventory-toggle');
@@ -91,6 +92,7 @@ function speedUpIntro(): void {
 
 export function setupBusIntro(): void {
   if (!active) {
+    startRoadTraffic();
     if (skipButton) skipButton.hidden = true;
     return;
   }

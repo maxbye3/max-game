@@ -1,4 +1,6 @@
 import { hasCaveColander } from './colander.js';
+import { getPlayerBody } from './player-body.js';
+import { isWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { createGameAudio } from './audio-mute.js';
 import { carryBuildingAmbienceInside } from './nightclub-audio.js';
 import { releaseAllInput } from './input.js';
@@ -97,6 +99,8 @@ export function updateDoors(playerX: number, playerY: number): void {
   const params = new URLSearchParams({ door: enteredDoorway.id });
   if (hasCaveColander()) params.set('colander', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
+  if (getPlayerBody() !== 'player') params.set('body', getPlayerBody());
+  if (isWheldonPlayerSpriteEnabled()) params.set('wheldon', '1');
   const destination = `internal/index.html?${params.toString()}`;
   window.setTimeout(() => window.location.assign(destination), 80);
 }

@@ -1,4 +1,5 @@
 import { requireElement } from '../core/dom.js';
+import { getPlayerBody } from '../core/player-body.js';
 import { createGameAudio } from '../core/audio-mute.js';
 import { ADAM_DIALOGUE_LINES } from '../generated/dialogues/adam-dialogue.js';
 import { ALICE_DIALOGUE_LINES } from '../generated/dialogues/alice-dialogue.js';
@@ -32,6 +33,7 @@ import { hasMikeAftermath } from '../core/world-state.js';
 import { getSongArtwork, getUnlockedSongs, unlockSong, type Song } from '../interiors/music-library.js';
 import { beginDialogueAudio, endDialogueAudio } from '../core/dialogue-audio.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
+import { prependPlayerReaction } from '../core/player-dialogue.js';
 import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
 import { releaseAllInput } from '../core/input.js';
 import { characterAsset } from '../core/character-assets.js';
@@ -384,7 +386,7 @@ export function isNpcDialogueOpen(): boolean {
   return activeNpc !== null;
 }
 
-function showQuestOverlay(imageSource: string, additionalClass = '', soundSource = 'map/audio/mission-accept.mp3'): void {
+function showQuestOverlay(imageSource: string, additionalClass = '', soundSource = 'audio/map/mission-accept.mp3'): void {
   const overlay = document.createElement('div');
   overlay.className = `quest-accepted-overlay ${additionalClass}`.trim();
   overlay.setAttribute('aria-hidden', 'true');
@@ -407,7 +409,7 @@ function showQuestAcceptedOverlay(): void {
 }
 
 function showQuestCompleteOverlay(): void {
-  showQuestOverlay('img/external/quest-complete.png', '', 'map/audio/mission_success.mp3');
+  showQuestOverlay('img/external/quest-complete.png', '', 'audio/map/mission_success.mp3');
 }
 
 function nextDialogueIndex(npc: NpcDefinition): number {
@@ -645,6 +647,7 @@ function openDialogue(npc: NpcDefinition): void {
   hideSignDialogue();
   oscarOptions.hidden = true;
   aliceOptions.hidden = true;
+  prependPlayerReaction(dialogueLine);
   beginDialogueAudio(npc.id === 'maddy' || npc.id === 'adam' ? undefined : npc.name);
   activeNpc = npc;
   if (npc.id === 'ed') void refreshLetterboxdReviews('data/letterboxd-reviews.json');
@@ -720,6 +723,7 @@ export function updateNpcInteractions(playerX: number, playerY: number): void {
   let nextNearbyNpc: NpcDefinition | null = null;
   let closestDistance = Infinity;
   for (const npc of NPCS) {
+    if (npc.id === 'alexS' && getPlayerBody() === 'alex-s') continue;
     if (npc.id === 'mike' && hasMikeAftermath()) continue;
     if (isOscarEaten(oscarCharacterId(npc.name))) continue;
     const position = npc.getPosition?.() ?? npc;

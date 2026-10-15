@@ -13,6 +13,7 @@ import { releaseAllInput } from '../../core/input.js';
 import { NIALL_DIALOGUE_LINES } from '../../generated/dialogues/niall-dialogue.js';
 import type { Direction } from '../../core/types.js';
 import { beginDialogueAudio, endDialogueAudio } from '../../core/dialogue-audio.js';
+import { prependPlayerReaction } from '../../core/player-dialogue.js';
 import { addGift, NIALL_ITEM } from '../../core/inventory-gifts.js';
 import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from '../../powers/ed/ed-power.js';
 import { isSamTargetRecoiling } from '../../powers/sam/sam-power.js';
@@ -74,9 +75,10 @@ let hasShownBusArrival = false;
 
 export const isNiallBattleTransitionActive = () => battleTransitionActive;
 export const isNiallAlertActive = () => encounterState === 'spotted';
-export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught' || busDialogueActive;
+export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught';
 
 function showDialogue(line: string): void {
+  if (dialogue.hidden) prependPlayerReaction(dialogueLine);
   setProfileImage(dialogueProfile, 'Niall');
   beginDialogueAudio('Niall');
   dialogueLine.textContent = line;
@@ -86,6 +88,12 @@ function showDialogue(line: string): void {
 function hideDialogue(): void {
   endDialogueAudio();
   dialogue.hidden = true;
+}
+
+function endBusDialogue(): void {
+  busDialogueActive = false;
+  busDialogueLines = [];
+  hideDialogue();
 }
 
 function startBusDialogue(arrival: boolean): void {
@@ -166,6 +174,7 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
   }
   if (questState === 'busStop') {
     const nearBusStop = Math.hypot(playerX - niallState.x, playerY - niallState.y) <= BUS_DIALOGUE_DISTANCE;
+    if (!nearBusStop && busDialogueActive) endBusDialogue();
     if (nearBusStop && !wasNearBusStop && !busDialogueActive && !hasShownBusArrival) startBusDialogue(true);
     wasNearBusStop = nearBusStop;
     return;
@@ -205,7 +214,6 @@ dialogueNext.addEventListener('click', () => {
   } else if (busDialogueActive && busDialogueLines.length > 0) {
     showDialogue(busDialogueLines.shift() ?? '...');
   } else if (busDialogueActive) {
-    busDialogueActive = false;
-    hideDialogue();
+    endBusDialogue();
   }
 });

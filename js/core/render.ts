@@ -30,6 +30,9 @@ import { isPlayerTripping } from '../powers/katy/katy-power.js';
 import { isNiallAlertActive, isNiallFollowing, NIALL, niallState } from '../characters/niall/niall.js';
 import { drawOverworldNpcs } from '../overworld/overworld-npcs-render.js';
 import { player } from './player.js';
+import { getPlayerBody } from './player-body.js';
+import { getGhostSpriteFrame, getGhostSpriteSheet } from './ghost-sprite.js';
+import { roadAccident } from '../overworld/road-accident.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from '../overworld/overworld-props-render.js';
 import { drawMaddyTeaPower, drawMaddyTeaWorldOverlay } from '../powers/maddy/maddy-tea-power.js';
@@ -61,13 +64,16 @@ function logPlayerPosition(): void {
 
 export function draw(time: number, worldTime = time): void {
   context.clearRect(0, 0, canvas.width, canvas.height);
-  if (canvas.dataset.playerVariant === undefined) canvas.dataset.playerVariant = SEAL_MODE ? 'seal' : 'default';
+  const body = getPlayerBody();
+  const ghostMode = body === 'ghost';
+  const ghostWheldonMode = ghostMode && isWheldonPlayerSpriteEnabled();
+  canvas.dataset.playerVariant = ghostWheldonMode ? 'ghost-wheldon' : ghostMode ? 'ghost' : body === 'player' ? (SEAL_MODE ? 'seal' : 'default') : body;
   if (LOG_PLAYER_POSITION) logPlayerPosition();
 
   // Rounded so the map is sampled on whole source pixels: a fractional source
   // rect snaps at a browser-defined threshold and makes the player jitter
   // against the tiles by a pixel on every step.
-  const cameraCenter = getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
+  const cameraCenter = roadAccident.cameraCenter() ?? getBusIntroCameraCenter() ?? getCaveTheftCameraCenter(player.x, player.y, time);
   const { x: joltX, y: joltY } = samCameraJolt(time);
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2 + joltX)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2 + joltY)));
@@ -75,7 +81,7 @@ export function draw(time: number, worldTime = time): void {
   const worldDepth = drawWorldBackground(worldTime, cameraX, cameraY, player.y);
   drawRoadTraffic(cameraX, cameraY);
   drawOscarTerrain(context, cameraX, cameraY, time);
-  drawReiTerrain(context, time);
+  drawReiTerrain(context, time, cameraX, cameraY);
   drawSamTerrain(context, cameraX, cameraY, time);
   drawTimPowerGround(context, cameraX, cameraY, time);
   drawHelenTerrain(context, time);
@@ -102,9 +108,9 @@ export function draw(time: number, worldTime = time): void {
   drawCaveThief(cameraX, cameraY);
   drawGeorgia(cameraX, cameraY);
   if (isNiallFollowing()) {
-    drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.frame);
+    drawNiallAt(cameraX, cameraY, player.x - 34, player.y + 12, player.direction, player.animationTime);
   } else {
-    drawNiallAt(cameraX, cameraY, niallState.x, niallState.y, niallState.direction, niallState.frame);
+    drawNiallAt(cameraX, cameraY, niallState.x, niallState.y, niallState.direction, niallState.animationTime);
   }
   if (isNiallAlertActive()) {
     context.drawImage(
@@ -119,17 +125,21 @@ export function draw(time: number, worldTime = time): void {
   drawMaddyTeaWorldOverlay(context, time);
   if (isGeorgiaPowerActive(time)) drawWorldForeground(cameraX, cameraY, worldDepth);
 
-  const wheldonMode = isWheldonPlayerSpriteEnabled();
-  const playerSpriteSheet = wheldonMode ? images.wheldonSprite : SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
-  const spriteFrame = wheldonMode
+  const wheldonMode = !ghostMode && (body === 'alex-s' || (body === 'player' && isWheldonPlayerSpriteEnabled()));
+  const playerSpriteSheet = ghostWheldonMode ? images.ghostWheldonSprite : ghostMode ? getGhostSpriteSheet(images.ghostSpriteSheet) : wheldonMode ? images.wheldonSprite : SEAL_MODE ? images.sealSpriteSheet : images.spriteSheet;
+  const spriteFrame = ghostWheldonMode
+    ? getWheldonPlayerSpriteFrame(player.direction, player.animationTime, true)
+    : ghostMode
+    ? getGhostSpriteFrame(player.direction, player.frame, SCALE)
+    : wheldonMode
     ? getWheldonPlayerSpriteFrame(player.direction, player.animationTime)
-    : getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, SCALE);
+    : getPlayerSpriteFrame(body === 'player' && SEAL_MODE, player.direction, player.frame, SCALE);
   const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
   const adamActive = adamPowerSecondsLeft() > 0;
   const adamLift = adamJumpOffset();
   const adamHeight = adamActive ? Math.round(height * 1.14) : height;
   const holeTransform = getHolePlayerTransform();
-  const playerVisible = isBusIntroPlayerVisible();
+  const playerVisible = isBusIntroPlayerVisible() && roadAccident.playerVisible;
   if (playerVisible && adamActive) drawAdamShadow(context, player.x - cameraX, player.y - cameraY);
   if (playerVisible && holeTransform) {
     context.save();
@@ -188,6 +198,8 @@ export function draw(time: number, worldTime = time): void {
     drawColander(context, Math.round(player.x - cameraX + 12), Math.round(player.y - cameraY - 24));
   }
   if (!isGeorgiaPowerActive(time)) drawWorldForeground(cameraX, cameraY, worldDepth);
+  drawRoadTraffic(cameraX, cameraY, true);
+  if (roadAccident.dialogue) drawSpeechBubble(context, roadAccident.dialogue, player.x - cameraX, player.y - cameraY - height - 24);
   drawSamWorldOverlay(context, time);
   drawSamVictimEffects(context, cameraX, cameraY, time);
   drawBusIntro(cameraX, cameraY);

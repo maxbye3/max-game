@@ -1,17 +1,17 @@
 const AMBIENCE_STATE_KEY = 'max-game:carried-ambience';
 
 const AMBIENCE_BY_DOOR: Readonly<Record<string, string>> = {
-  'northwest-portal': 'map/audio/siblings.mp3',
-  'garden-room': 'map/audio/zen-garden.mp3',
-  'diary-lab-center': 'map/audio/journal.mp3',
-  'diary-lab-right': 'map/audio/journal.mp3',
-  'music-shop': 'map/audio/nightclub.mp3',
-  gym: 'map/audio/gym.mp3',
-  'job-center': 'map/audio/jobCenter.mp3',
-  'artist-studio': 'map/audio/art-studio.mp3',
-  cinema: 'map/audio/cinema.mp3',
-  bookshop: 'map/audio/bookstore.mp3',
-  'snow-mansion': 'map/audio/snow-mansion.mp3',
+  'northwest-portal': 'audio/map/siblings.mp3',
+  'garden-room': 'audio/map/zen-garden.mp3',
+  'diary-lab-center': 'audio/journal/internal.mp3',
+  'diary-lab-right': 'audio/journal/internal.mp3',
+  'music-shop': 'audio/map/nightclub.mp3',
+  gym: 'audio/map/gym.mp3',
+  'job-center': 'audio/map/jobCenter.mp3',
+  'artist-studio': 'audio/map/art-studio.mp3',
+  cinema: 'audio/map/cinema.mp3',
+  bookshop: 'audio/map/bookstore.mp3',
+  'snow-mansion': 'audio/map/snow-mansion.mp3',
 };
 
 interface CarriedAmbience {

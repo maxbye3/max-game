@@ -32,6 +32,10 @@ export function setupInteriorAmbience(doorId: string | null): void {
     start();
   });
   window.addEventListener('max-game:power-audio-focus', start);
+  window.addEventListener('max-game:temporary-audio-focus', (event) => {
+    if ((event as CustomEvent<boolean>).detail) ambience.pause();
+    else start();
+  });
   document.addEventListener('visibilitychange', start);
   window.addEventListener('pagehide', () => {
     rememberAmbience(doorId, source, ambience.currentTime);

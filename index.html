@@ -4,15 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=3e106e7a6a9b" />
+    <link rel="stylesheet" href="style.css?v=5e93fc87ff18" />
   </head>
   <body>
     <main class="game-shell">
       <canvas id="game" width="480" height="480" aria-label="Overworld game map"></canvas>
+      <div id="road-accident-status" class="road-accident-status" role="status" hidden>
+        <p id="road-accident-line"></p>
+        <button id="possess-alex" type="button" hidden>Possess Alex S</button>
+      </div>
       <div id="door-loading" class="door-loading" role="status" aria-live="polite">
         <div class="door-loading-box">Loading<span class="door-loading-dots" aria-hidden="true"></span></div>
       </div>
-      <button id="tim-cutscene-next" class="tim-cutscene-next" type="button" hidden>Next &gt;</button>
       <button id="reset-all" class="reset-all" type="button" aria-label="Reset Niall, Tim, Mike and songs">↻ Reset</button>
       <div class="top-actions">
         <button id="music-toggle" class="music-toggle" type="button" aria-expanded="false" aria-controls="music-panel">
@@ -54,7 +57,13 @@
       <button id="bus-intro-skip" class="bus-intro-skip" type="button" hidden>⏩ Skip intro</button>
       <div class="movement-actions">
         <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
-        <button id="wheldon-test-toggle" class="jump-toggle wheldon-test-toggle" type="button" aria-label="Toggle Wheldon player sprite test" aria-pressed="false">Wheldon Off</button>
+        <button id="character-toggle" class="jump-toggle" type="button" popovertarget="character-menu" aria-expanded="false" aria-controls="character-menu">change character</button>
+        <div id="character-menu" class="character-menu" popover aria-label="Change character">
+          <button type="button" data-character="wheldon" aria-pressed="false">wheldon</button>
+          <button type="button" data-character="player" aria-pressed="false">player</button>
+          <button type="button" data-character="ghost-player" aria-pressed="false">ghost player</button>
+          <button type="button" data-character="ghost-wheldon" aria-pressed="false">ghost wheldon</button>
+        </div>
         <button id="controls-toggle" class="controls-toggle" type="button" aria-controls="movement-controls">Toggle Controls</button>
         <button id="thoughts-toggle" class="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts</button>
       </div>
@@ -131,6 +140,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=f1011c785681"></script>
+    <script src="dist/main-bundle.js?v=e2f108e6d635"></script>
   </body>
 </html>

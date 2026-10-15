@@ -1,15 +1,16 @@
 import { activateTimInputPower, timInputPowerReveal, timInputPowerSecondsLeft, TIM_INPUT_POWER_DURATION } from '../powers/tim/tim-input-power.js';
+import { getPlayerBody } from './player-body.js';
 import { activateReiPower, reiPowerSecondsLeft, REI_POWER_DURATION, REI_POWER_REVEALS, type ReiPowerKind } from '../powers/rei/rei-power.js';
-import { activateNoelPower, isNoelPowerActive, noelAssetClaim, noelPowerReveal, noelPowerSecondsLeft, updateNoelAssessment, NOEL_POWER_DURATION } from '../powers/noel/noel-power.js';
+import { activateNoelPower, isNoelPowerActive, noelAssetClaim, noelPowerReveal, noelPowerSecondsLeft, updateNoelAssessment } from '../powers/noel/noel-power.js';
 import { activateAlicePower, alicePowerReveal, alicePowerSecondsLeft, ALICE_POWER_DURATION } from '../powers/alice/alice-power.js';
 import { activateMikePower, mikePowerSecondsLeft, MIKE_POWER_REVEAL } from '../powers/mike/mike-power.js';
 import { activateLucyPower, isLucyCapEquipped, lucyPowerReveal, lucyPowerSecondsLeft, setLucyCapEquipped } from '../powers/lucy/lucy-power.js';
 import { activateKatiePower, katiePowerSecondsLeft, KATIE_POWER_DURATION, KATIE_POWER_REVEAL } from '../powers/katie/katie-power.js';
-import { activateJulianPower, julianPowerSecondsLeft, JULIAN_POWER_DURATION, julianPowerReveal } from '../powers/julian/julian-power.js';
+import { activateJulianPower, julianPowerSecondsLeft, julianPowerReveal } from '../powers/julian/julian-power.js';
 import { updateJulianPowerUi } from '../powers/julian/julian-power-ui.js';
 import { activateJuPower, juPowerSecondsLeft, JU_POWER_DURATION, JU_POWER_REVEAL } from '../powers/ju/ju-power.js';
 import { activateJoePower, joePowerSecondsLeft, JOE_POWER_DURATION, JOE_POWER_REVEAL } from '../powers/joe/joe-power.js';
-import { activateHelenPower, helenPowerSecondsLeft, HELEN_POWER_DURATION, HELEN_POWER_REVEAL } from '../powers/helen/helen-power.js';
+import { activateHelenPower, helenPowerSecondsLeft, HELEN_POWER_REVEAL } from '../powers/helen/helen-power.js';
 import { activateGeorgiaPower, georgiaPowerSecondsLeft, GEORGIA_POWER_DURATION, GEORGIA_POWER_REVEAL } from '../powers/georgia/georgia-power.js';
 import { activateDanPower, danPowerSecondsLeft, DAN_POWER_DURATION, DAN_POWER_REVEAL } from '../powers/dan/dan-power.js';
 import { activateChrisPower, chrisPowerSecondsLeft, CHRIS_POWER_DURATION, CHRIS_POWER_REVEAL } from '../powers/chris/chris-power.js';
@@ -40,15 +41,12 @@ import { characterAsset, characterAssetOrNull } from './character-assets.js';
 const ITEM_THEME_DURATION = 10_000;
 const KATY_THEME_SOURCE = characterAsset('katy', 'theme');
 const LUCY_THEME_SOURCE = characterAsset('lucy', 'theme');
-const JULIAN_THEME_SOURCE = characterAsset('julian', 'theme');
 const TIM_THEME_SOURCE = characterAsset('tim', 'theme');
 const MADDY_THEME_SOURCE = characterAsset('maddy', 'theme');
 const ED_THEME_SOURCE = characterAsset('ed', 'theme');
 const JU_THEME_SOURCE = characterAsset('ju', 'theme');
 const KATIE_THEME_SOURCE = characterAsset('katie', 'theme');
 const JOE_THEME_SOURCE = characterAsset('joe', 'theme');
-const HELEN_THEME_SOURCE = characterAsset('helen', 'theme');
-const NIALL_THEME_SOURCE = characterAsset('niall', 'theme');
 const SAM_THEME_SOURCE = characterAsset('sam', 'theme');
 const REI_THEME_SOURCE = characterAsset('rei', 'theme');
 const OSCAR_THEME_SOURCE = characterAsset('oscar', 'theme');
@@ -59,7 +57,6 @@ const BOCHRA_THEME_SOURCE = characterAsset('bochra', 'theme');
 const ANDY_THEME_SOURCE = characterAssetOrNull('andy', 'theme');
 const ALEX_S_THEME_SOURCE = characterAsset('alex-s', 'theme');
 const ALICE_THEME_SOURCE = characterAsset('alice', 'theme');
-const NOEL_THEME_SOURCE = characterAsset('noel', 'theme');
 
 const inventoryToggle = requireElement<HTMLButtonElement>('#inventory-toggle');
 const inventoryPanel = requireElement<HTMLElement>('#inventory-panel');
@@ -154,7 +151,7 @@ let noelPowerPendingReveal = false;
 let samPowerPendingReveal = false;
 let timPowerPendingReveal = false;
 let alexSPowerPendingReveal = false;
-const reiPendingReveals: Record<ReiPowerKind, boolean> = { slow: false, sparkle: false };
+const reiPendingReveals: Record<ReiPowerKind, boolean> = { gravity: false, sparkle: false };
 
 function renderGiftItems(): void {
   giftItems.replaceChildren();
@@ -269,7 +266,7 @@ function renderGiftItems(): void {
       } else if (item.id === 'julian-item') {
         activateJulianPower();
         window.dispatchEvent(new Event('max-game:julian-power-activated'));
-        playItemTheme(JULIAN_THEME_SOURCE, true, JULIAN_POWER_DURATION);
+
         julianPowerPendingReveal = true;
         announce("Julian's item activated.");
         setInventoryOpen(false);
@@ -285,7 +282,7 @@ function renderGiftItems(): void {
       } else if (item.id === 'helen-item') {
         activateHelenPower();
         window.dispatchEvent(new Event('max-game:helen-power-activated'));
-        playItemTheme(HELEN_THEME_SOURCE, true, HELEN_POWER_DURATION);
+
         helenPowerPendingReveal = true;
         powerupStatus.textContent = 'Helen power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
@@ -294,7 +291,7 @@ function renderGiftItems(): void {
       } else if (item.id === 'niall-item') {
         const charged = isEdGiftCharged(item);
         activateNiallSpeed(charged);
-        playItemTheme(NIALL_THEME_SOURCE, true, charged ? 20_000 : 10_000);
+
         announce("Niall's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'katy-item') {
@@ -306,7 +303,7 @@ function renderGiftItems(): void {
         if (powerupStatus.hidden) powerupStatus.hidden = false;
         announce("Katy's item activated.");
       } else if (item.id === 'rei-item' || item.id === 'rei-item-2') {
-        const kind: ReiPowerKind = item.id === 'rei-item' ? 'slow' : 'sparkle';
+        const kind: ReiPowerKind = item.id === 'rei-item' ? 'gravity' : 'sparkle';
         activateReiPower(kind);
         window.dispatchEvent(new Event('max-game:rei-power-activated'));
         stopKatyTheme();
@@ -324,7 +321,7 @@ function renderGiftItems(): void {
       } else if (item.id === 'noel-item') {
         if (!activateNoelPower()) return;
         window.dispatchEvent(new Event('max-game:noel-power-activated'));
-        playItemTheme(NOEL_THEME_SOURCE, true, NOEL_POWER_DURATION);
+
         noelPowerPendingReveal = true;
         announce("Noel's item activated.");
         setInventoryOpen(false);
@@ -333,7 +330,9 @@ function renderGiftItems(): void {
         window.dispatchEvent(new Event('max-game:mike-power-activated'));
         stopPowerMusic();
         mikePowerPendingReveal = true;
-        announce("Mike's item activated.");
+        powerupStatus.textContent = 'Happiness +36% 10.0s';
+        powerupStatus.hidden = false;
+        announce("Mike's cookie made you 36% happier for ten seconds. Enjoy the extra spring in your step!");
         setInventoryOpen(false);
       } else if (item.id === 'maddy-item') {
         activateMaddyTeaPower();
@@ -412,6 +411,7 @@ function renderGiftItems(): void {
 }
 
 function setInventoryOpen(isOpen: boolean): void {
+  if (isOpen && (getPlayerBody() === 'ghost' || document.querySelector<HTMLElement>('.game-shell')?.dataset.roadAccident === 'true')) return;
   const hadFocusInside = inventoryPanel.contains(document.activeElement);
   inventoryPanel.hidden = !isOpen;
   inventoryToggle.setAttribute('aria-expanded', String(isOpen));
@@ -473,7 +473,7 @@ export function updatePowerups(frameTime: number): void {
   const now = Math.max(frameTime, performance.now());
   updateAlexResurrectionUi();
   const alexSSecondsLeft = alexSPowerSecondsLeft();
-  const reiSlowSeconds = reiPowerSecondsLeft('slow', now);
+  const reiGravitySeconds = reiPowerSecondsLeft('gravity', now);
   const reiSparkleSeconds = reiPowerSecondsLeft('sparkle', now);
   const aliceSecondsLeft = alicePowerSecondsLeft(now);
   updateNoelAssessment(now);
@@ -596,7 +596,7 @@ export function updatePowerups(frameTime: number): void {
     renderGiftItems();
   }
 
-  for (const kind of ['slow', 'sparkle'] as const) {
+  for (const kind of ['gravity', 'sparkle'] as const) {
     if (reiPendingReveals[kind] && reiPowerSecondsLeft(kind, now) === 0) {
       expiredDescriptions.push(REI_POWER_REVEALS[kind]);
       reiPendingReveals[kind] = false;
@@ -619,8 +619,8 @@ export function updatePowerups(frameTime: number): void {
     const status = `Alex S resurrection ${alexSSecondsLeft.toFixed(1)}s`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
-  } else if (reiSlowSeconds > 0 || reiSparkleSeconds > 0) {
-    const status = [reiSlowSeconds > 0 ? `Rei 1 ${reiSlowSeconds.toFixed(1)}s` : '', reiSparkleSeconds > 0 ? `Rei 2 ${reiSparkleSeconds.toFixed(1)}s` : ''].filter(Boolean).join(' · ');
+  } else if (reiGravitySeconds > 0 || reiSparkleSeconds > 0) {
+    const status = [reiGravitySeconds > 0 ? `Rei 1 ${reiGravitySeconds.toFixed(1)}s` : '', reiSparkleSeconds > 0 ? `Rei 2 ${reiSparkleSeconds.toFixed(1)}s` : ''].filter(Boolean).join(' · ');
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (aliceSecondsLeft > 0) {
@@ -632,7 +632,7 @@ export function updatePowerups(frameTime: number): void {
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (mikeSecondsLeft > 0) {
-    const status = `Mike power ${mikeSecondsLeft.toFixed(1)}s`;
+    const status = `Happiness +36% ${mikeSecondsLeft.toFixed(1)}s`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (lucySecondsLeft > 0) {

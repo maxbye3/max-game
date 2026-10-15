@@ -36,16 +36,16 @@ function createAmbience(source: string): HTMLAudioElement {
 }
 
 const BUILDING_AMBIENCE: readonly BuildingAmbience[] = [
-  { x: 255, y: 443, audio: createAmbience('map/audio/nightclub.mp3') },
-  { x: 1039, y: 533, audio: createAmbience('map/audio/gym.mp3') },
-  { x: 1021, y: 792, audio: createAmbience('map/audio/jobCenter.mp3') },
-  { x: 490, y: 820, audio: createAmbience('map/audio/cinema.mp3') },
-  { x: ZEN_GARDEN_X + 108, y: ZEN_GARDEN_Y + 150, audio: createAmbience('map/audio/jungle.mp3') },
-  { x: ARTIST_STUDIO_X + 92, y: ARTIST_STUDIO_Y + 99, audio: createAmbience('map/audio/art-studio.mp3') },
-  { x: 235, y: 255, audio: createAmbience('map/audio/siblings.mp3') },
-  { x: DIARY_LAB_X + 112, y: DIARY_LAB_Y + 85, audio: createAmbience('map/audio/journal.mp3') },
-  { x: BOOKSHOP_X + 45, y: BOOKSHOP_Y + 56, audio: createAmbience('map/audio/bookstore.mp3') },
-  { x: SNOW_MANSION_X + 109, y: SNOW_MANSION_Y + 171, audio: createAmbience('map/audio/snow-mansion.mp3') },
+  { x: 255, y: 443, audio: createAmbience('audio/map/nightclub.mp3') },
+  { x: 1039, y: 533, audio: createAmbience('audio/map/gym.mp3') },
+  { x: 1021, y: 792, audio: createAmbience('audio/map/jobCenter.mp3') },
+  { x: 490, y: 820, audio: createAmbience('audio/map/cinema.mp3') },
+  { x: ZEN_GARDEN_X + 108, y: ZEN_GARDEN_Y + 150, audio: createAmbience('audio/map/jungle.mp3') },
+  { x: ARTIST_STUDIO_X + 92, y: ARTIST_STUDIO_Y + 99, audio: createAmbience('audio/map/art-studio.mp3') },
+  { x: 235, y: 255, audio: createAmbience('audio/map/siblings.mp3') },
+  { x: DIARY_LAB_X + 112, y: DIARY_LAB_Y + 85, audio: createAmbience('audio/map/journal.mp3') },
+  { x: BOOKSHOP_X + 45, y: BOOKSHOP_Y + 56, audio: createAmbience('audio/map/bookstore.mp3') },
+  { x: SNOW_MANSION_X + 109, y: SNOW_MANSION_Y + 171, audio: createAmbience('audio/map/snow-mansion.mp3') },
 ];
 
 function updateAmbience(ambience: BuildingAmbience, playerX: number, playerY: number): void {

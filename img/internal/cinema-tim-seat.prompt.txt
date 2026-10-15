@@ -1,0 +1,6 @@
+Generated with the built-in image_gen tool.
+
+Edit target is first image the entire pixel-art cinema map. Keep the map composition, positions, objects, other people, screen, seats, floor and all pixels as unchanged as possible. Replace ONLY the person seated in the CENTER seat of the FRONT row (closest to the movie screen), the person with long brown hair and white sleeves at original map coordinates x191..238 y301..350. Third reference shows exact original person/seat and rear-facing pose. Replace that person with Tim from second reference: short black hair, white and pale blue vertically striped shirt. Tim must have his BACK to the viewer, seated looking toward the movie screen at top of map, in the EXACT same pose, size and position as original person. No face visible. Chair stays unchanged. Match small detailed 16-bit pixel art of the map, not chunky enlarged reference style. Return full original map with same 2:3 aspect ratio, preferably exact 512x768 pixels. Only edit that one occupant.
+
+References: img/internal/cinema-popcorn-redrawn.png; character-assets/tim/map-sprite.png; user screenshot of original seated occupant.
+The renderer uses only the occupant region from the generated image.

@@ -1,0 +1,9 @@
+Generated with the built-in imagegen tool from Tim's map-sprite.png reference.
+
+Use case: identity-preserve.
+Asset type: production pixel-art game walking sprite sheet.
+Input image: Tim's current map sprite is the identity/style reference. Use THIS black-haired bearded man with the white and light blue/gray vertically striped long-sleeved button shirt, blue jeans and white sneakers. Preserve his recognizable head, beard, hair and outfit.
+Primary request: create his complete walking sprite sheet, exactly FOUR columns by FOUR rows, a uniform grid with no labels or dividers, all on genuinely transparent alpha background. Prefer 1024x1024 canvas; each equal cell 256x256, full character around 210px tall, center x=128 within each cell and planted-shoe baseline y=240 within each cell. No cropping, character wholly inside each cell, consistent size/center/baseline across frames.
+Rows top-to-bottom: facing DOWN toward camera; facing LEFT exact profile; facing RIGHT exact profile; facing UP away from camera.
+Columns left-to-right in EVERY row: 1 neutral standing/passing pose feet together under hips; 2 stride A with NEAR leg forward and far leg back; 3 passing/crossover pose with knees overlapping and feet close together, one heel lifted; 4 stride B near leg back and far leg forward, trailing knee bent and heel lifted behind, opposite to column2. Alternating arm swing opposite the leading leg. Strongly distinct leg silhouettes, clearly readable walk even when reduced to 46px tall. Side rows must not repeat the same split stride: columns1 and3 have overlapping feet, column2 leading foot extends, column4 leading foot planted and trailing heel lifted.
+Style: same chunky crisp pixel art as reference, dark clean outline, limited color shades, chibi proportions. No gradients, blur, ground, shadows, scenery, weapons, text or watermark. No changes to identity, clothing palette or character. Transparent background. Exactly 16 full-body Tim poses in 4x4 grid.

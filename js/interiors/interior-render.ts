@@ -32,19 +32,24 @@ import { drawAlexResurrection } from '../powers/alex-s/alex-s-power-render.js';
 import { drawAndyPlayer, drawAndyWorld } from '../powers/andy/andy-world-power.js';
 import { LucyController } from '../characters/lucy/lucy.js';
 import { getPlayerSpriteFrame } from '../core/player-sprite.js';
-import { ART_STUDIO_WALLS, CAVE_COLANDER, CAVE_WALLS, DOUGHNUT_SHOP_WALLS, JOSH, WHELDON } from './interior-scenes.js';
+import { getPlayerBody } from '../core/player-body.js';
+import { getGhostSpriteFrame, getGhostSpriteSheet } from '../core/ghost-sprite.js';
+import { getWheldonPlayerSpriteFrame, isWheldonPlayerSpriteEnabled } from '../core/player-sprite-test.js';
+import { ART_STUDIO_WALLS, CAVE_COLANDER, CAVE_WALLS, DOUGHNUT_SHOP_WALLS, JOSH, NOEL } from './interior-scenes.js';
 import type { Direction } from '../core/types.js';
 import type { InteriorScene } from './interior-scenes.js';
 import type { InteriorSceneryNpc } from './interior-scenery-npcs.js';
 
 interface InteriorRenderOptions {
   scene: InteriorScene;
-  player: { x: number; y: number; direction: Direction; frame: number };
+  player: { x: number; y: number; direction: Direction; frame: number; animationTime: number };
   sealMode: boolean;
   collision: InteriorCollision;
   interior: HTMLImageElement; collisionMask: HTMLImageElement; doorOverlay: HTMLImageElement;
-  spriteSheet: HTMLImageElement; wheldonSprite: HTMLImageElement; joshSprite: HTMLImageElement; siblingsSprite: HTMLImageElement;
+  spriteSheet: HTMLImageElement; ghostSpriteSheet: HTMLImageElement; noelSprite: HTMLImageElement; joshSprite: HTMLImageElement; siblingsSprite: HTMLImageElement; gardenPanda: HTMLImageElement;
   musicDjMachine: HTMLImageElement; gymGloves: HTMLImageElement;
+  timCinemaSeat: HTMLImageElement | null;
+  diaryRoomNpcs: readonly InteriorSceneryNpc[];
   bookshopNpcs: readonly InteriorSceneryNpc[]; musicHouseNpcs: readonly InteriorSceneryNpc[]; gymNpcs: readonly InteriorSceneryNpc[]; cinemaNpcs: readonly InteriorSceneryNpc[];
   caveSiblings: CaveSiblingsController | null;
   lucy: LucyController | null;
@@ -53,7 +58,7 @@ interface InteriorRenderOptions {
 }
 
 export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs: number, worldTimeMs?: number) => void {
-  const { scene, player, collision, interior, collisionMask, doorOverlay, spriteSheet, wheldonSprite, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, caveSiblings, lucy, interiorDoors } = options;
+  const { scene, player, collision, interior, collisionMask, doorOverlay, spriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, caveSiblings, lucy, interiorDoors } = options;
   const SEAL_MODE = options.sealMode;
   const WORLD_WIDTH = scene.width; const WORLD_HEIGHT = scene.height;
   const VIEW_SCALE = 1; const PLAYER_SCALE = 2;
@@ -89,8 +94,29 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
       viewportWidth * scaleX,
       viewportHeight * scaleY,
     );
+    if (timCinemaSeat) {
+      // Replace only the front-row occupant; retain the original cinema artwork.
+      const seatX = 188; const seatY = 298; const seatWidth = 52; const seatHeight = 54;
+      const sourceScale = timCinemaSeat.naturalWidth / WORLD_WIDTH;
+      context.drawImage(
+        timCinemaSeat,
+        seatX * sourceScale, seatY * sourceScale, seatWidth * sourceScale, seatHeight * sourceScale,
+        (seatX - cameraX) * scaleX, (seatY - cameraY) * scaleY, seatWidth * scaleX, seatHeight * scaleY,
+      );
+    }
+    if (scene.kind === 'plantRoom' && gardenPanda.complete && gardenPanda.naturalWidth > 0) {
+      // Sit the panda on the stool beside Lucy in the plant room.
+      const x = 385; const baselineY = 285; const width = 28; const height = 34;
+      context.drawImage(
+        gardenPanda,
+        Math.round((x - cameraX - width / 2) * scaleX),
+        Math.round((baselineY - cameraY - height) * scaleY),
+        width * scaleX,
+        height * scaleY,
+      );
+    }
     drawOscarTerrain(context, cameraX, cameraY, timeMs, scaleX, scaleY);
-    drawReiTerrain(context, timeMs);
+    drawReiTerrain(context, timeMs, cameraX, cameraY, scaleX, scaleY);
     drawSamTerrain(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawHelenTerrain(context, timeMs);
     drawJoeTerrain(context, timeMs);
@@ -147,13 +173,14 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
         ), timeMs);
       }
     }
-    if (isDiaryLabInterior && !isOscarEaten('wheldon')) {
-      withCharacterPowers(context, (WHELDON.x - cameraX) * scaleX, (WHELDON.y - cameraY) * scaleY, WHELDON.height * scaleY, 'wheldon', () => context.drawImage(
-        wheldonSprite,
-        Math.round((WHELDON.x - cameraX - WHELDON.width / 2) * scaleX),
-        Math.round((WHELDON.y - cameraY - WHELDON.height) * scaleY),
-        WHELDON.width * scaleX,
-        WHELDON.height * scaleY,
+    if (isDiaryLabInterior) drawSceneryNpcs(context, diaryRoomNpcs, cameraX, cameraY, scaleX, scaleY, timeMs);
+    if (scene.kind === 'mansion' && !isOscarEaten('noel')) {
+      withCharacterPowers(context, (NOEL.x - cameraX) * scaleX, (NOEL.y - cameraY) * scaleY, NOEL.height * scaleY, 'noel', () => context.drawImage(
+        noelSprite,
+        Math.round((NOEL.x - cameraX - NOEL.width / 2) * scaleX),
+        Math.round((NOEL.y - cameraY - NOEL.height) * scaleY),
+        NOEL.width * scaleX,
+        NOEL.height * scaleY,
       ), timeMs);
     }
     if (scene.kind === 'artStudio' && !isOscarEaten('josh')) {
@@ -241,14 +268,26 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
         Math.min(scaleX, scaleY),
       );
     }
-    const spriteFrame = getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, PLAYER_SCALE);
+    const wheldonPlayer = getPlayerBody() === 'alex-s' || (getPlayerBody() === 'player' && isWheldonPlayerSpriteEnabled());
+    const ghostMode = getPlayerBody() === 'ghost';
+    const ghostWheldonPlayer = ghostMode && isWheldonPlayerSpriteEnabled();
+    const alexFrame = getWheldonPlayerSpriteFrame(player.direction, player.animationTime, ghostWheldonPlayer);
+    canvas.dataset.playerVariant = ghostWheldonPlayer ? 'ghost-wheldon' : ghostMode ? 'ghost' : wheldonPlayer ? 'alex-s' : SEAL_MODE ? 'seal' : 'default';
+    const baseSpriteFrame = ghostMode && !ghostWheldonPlayer
+      ? getGhostSpriteFrame(player.direction, player.frame, PLAYER_SCALE)
+      : wheldonPlayer || ghostWheldonPlayer
+      ? { ...alexFrame, width: alexFrame.width * PLAYER_SCALE, height: alexFrame.height * PLAYER_SCALE }
+      : getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, PLAYER_SCALE);
+    const spriteFrame = wheldonPlayer || ghostWheldonPlayer
+      ? { ...baseSpriteFrame, width: Math.round(baseSpriteFrame.width * 0.75), height: Math.round(baseSpriteFrame.height * 0.75) }
+      : baseSpriteFrame;
     const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
     const adamActive = adamPowerSecondsLeft() > 0;
     const adamLift = adamJumpOffset();
     const adamHeight = adamActive ? Math.round(height * 1.14) : height;
     if (adamActive) drawAdamShadow(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY);
     withCharacterPowers(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, adamHeight * scaleY, 'player', () => context.drawImage(
-      spriteSheet,
+      ghostMode && !ghostWheldonPlayer ? getGhostSpriteSheet(options.ghostSpriteSheet) : spriteSheet,
       sourceX,
       sourceY,
       sourceWidth,

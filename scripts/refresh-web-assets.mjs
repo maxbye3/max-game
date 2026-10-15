@@ -1,4 +1,4 @@
-import { readFile, writeFile, stat } from 'node:fs/promises';
+import { readFile, writeFile, stat, unlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
 
@@ -13,12 +13,20 @@ for (const [kind, file, variable] of [
   for (const [source, asset] of Object.entries(manifest[kind])) {
     const bytes = await readFile(source).catch(() => null);
     const hash = bytes && createHash('sha256').update(bytes).digest('hex').slice(0, 12);
+    if (kind === 'themes' && hash !== asset.sourceHash) {
+      await unlink(asset.output).catch((error) => {
+        if (error.code !== 'ENOENT') throw error;
+      });
+      delete manifest.themes[source];
+      continue;
+    }
     if (hash === asset.sourceHash && (await stat(asset.output).catch(() => null))?.size) sources[source] = asset.output;
     else console.warn(`Using original asset ${source}; run npm run prepare:web-assets to prepare its updated copy.`);
   }
   const content = `// Generated from prepared assets. Stale copies fall back to the original source.\nexport const ${variable}: Readonly<Record<string, string>> = ${JSON.stringify(sources, null, 2)};\n`;
   if (content !== await readFile(file, 'utf8').catch(() => '')) await writeFile(file, content);
 }
+await writeFile('scripts/web-assets.manifest.json', JSON.stringify(manifest, null, 2) + '\n');
 let stylesheet = await readFile('style.css', 'utf8');
 for (const [source, asset] of Object.entries(manifest.fonts ?? {})) {
   const bytes = await readFile(source).catch(() => null);

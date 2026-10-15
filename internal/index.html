@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Diary & Laboratory</title>
-    <link rel="stylesheet" href="../style.css?v=3e106e7a6a9b" />
+    <link rel="stylesheet" href="../style.css?v=5e93fc87ff18" />
   </head>
   <body>
     <main class="game-shell">
@@ -82,12 +82,24 @@
         <div id="noel-dialogue-options" class="npc-dialogue-options" hidden>
           <button id="wheldon-yes" type="button">Yes</button>
           <button id="wheldon-no" type="button">No</button>
+          <button id="possess-room-alex" type="button" hidden>Possess Alex</button>
+        </div>
+        <div id="noel-game-options" class="npc-dialogue-options" hidden>
+          <button id="noel-game-yes" type="button">Yes</button>
+          <button id="noel-game-no" type="button">No</button>
+        </div>
+        <div id="alex-journal-options" class="npc-dialogue-options" hidden>
+          <button id="alex-journal-yes" type="button">Yes</button>
+          <button id="alex-journal-no" type="button">No</button>
         </div>
         <div id="josh-dialogue-options" class="npc-dialogue-options" hidden>
           <button id="josh-yes" type="button">Yes</button>
           <button id="josh-no" type="button">No</button>
         </div>
-        <a id="josh-art-class-link" class="josh-art-class-link" href="https://maxbye.co/art-class/" target="_blank" rel="noopener noreferrer" hidden>Join the next term ↗</a>
+        <div id="josh-signup-options" class="npc-dialogue-options" hidden>
+          <a id="josh-art-class-link" href="https://www.northlondongroup.co.uk/in-person-1" target="_blank" rel="noopener noreferrer">Join the next term</a>
+          <button id="josh-not-now" type="button">Not now</button>
+        </div>
         <div id="siblings-dialogue-options" class="npc-dialogue-options" hidden>
           <a id="siblings-view-website" href="https://siblingscomedy.com/" target="_blank" rel="noopener noreferrer">View website</a>
           <button id="siblings-decline" type="button">Neh. I'm good</button>
@@ -125,7 +137,8 @@
               <span>PLAYER</span>
             </div>
             <div class="josh-codec-portrait josh-codec-max">
-              <img src="../character-assets/player/profile.png" alt="Max">
+              <img class="codec-frame-one" src="../img/internal/arthouse-me-1.png" alt="Max">
+              <img class="codec-frame-two" src="../img/internal/arthouse-me-2.png" alt="" aria-hidden="true">
               <span>MAX</span>
             </div>
           </div>
@@ -220,6 +233,21 @@
         <figure><img id="plant-diary-lightbox-image" alt=""><figcaption id="plant-diary-lightbox-counter"></figcaption></figure>
         <button id="plant-diary-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next plant diary image">›</button>
       </dialog>
+      <section id="art-gallery-panel" class="internal-feature-panel workout-journal-panel" role="dialog" aria-modal="true" aria-labelledby="art-gallery-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="art-gallery-title">Max's art</h2>
+          <button id="art-gallery-close" class="internal-feature-close" type="button" aria-label="Close art gallery">×</button>
+        </header>
+        <p class="workout-gallery-help">Scroll through the art. Tap any image to view it full screen.</p>
+        <div id="art-gallery-thumbnails" class="workout-gallery" aria-label="Artwork thumbnails"></div>
+        <a class="reading-list-link" href="https://photos.app.goo.gl/RCMU5QjLyKneCRt27" target="_blank" rel="noopener noreferrer">Open the full art album ↗</a>
+      </section>
+      <dialog id="art-gallery-lightbox" class="workout-lightbox" aria-label="Full-screen artwork">
+        <button id="art-gallery-lightbox-close" class="workout-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
+        <button id="art-gallery-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous artwork">‹</button>
+        <figure><img id="art-gallery-lightbox-image" alt=""><figcaption id="art-gallery-lightbox-counter"></figcaption></figure>
+        <button id="art-gallery-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next artwork">›</button>
+      </dialog>
       <section id="diary-panel" class="internal-feature-panel" role="dialog" aria-modal="true" aria-labelledby="diary-title" hidden>
         <header class="internal-feature-header">
           <h2 id="diary-title">Max's diary</h2>
@@ -234,6 +262,21 @@
         <p id="diary-unlock-message" class="diary-unlock-message" role="status"></p>
         <a id="diary-link" class="diary-link" href="https://photos.app.goo.gl/RCJ28tWK77zQt1GZ7" target="_blank" rel="noopener noreferrer" hidden>Open the diary</a>
       </section>
+      <section id="journal-gallery-panel" class="internal-feature-panel workout-journal-panel" role="dialog" aria-modal="true" aria-labelledby="journal-gallery-title" hidden>
+        <header class="internal-feature-header">
+          <h2 id="journal-gallery-title">Max's journal</h2>
+          <button id="journal-gallery-close" class="internal-feature-close" type="button" aria-label="Close journal">×</button>
+        </header>
+        <p class="workout-gallery-help">Scroll through the journal. Tap any image to view it full screen.</p>
+        <div id="journal-gallery" class="workout-gallery" aria-label="Journal image thumbnails"></div>
+        <a class="reading-list-link" href="https://photos.app.goo.gl/RCJ28tWK77zQt1GZ7" target="_blank" rel="noopener noreferrer">Open the full journal album ↗</a>
+      </section>
+      <dialog id="journal-lightbox" class="workout-lightbox" aria-label="Full-screen journal image">
+        <button id="journal-lightbox-close" class="workout-lightbox-close" type="button" aria-label="Close full-screen image">×</button>
+        <button id="journal-lightbox-previous" class="workout-lightbox-nav previous" type="button" aria-label="Previous journal image">‹</button>
+        <figure><img id="journal-lightbox-image" alt=""><figcaption id="journal-lightbox-counter"></figcaption></figure>
+        <button id="journal-lightbox-next" class="workout-lightbox-nav next" type="button" aria-label="Next journal image">›</button>
+      </dialog>
       <section id="experiments-panel" class="internal-feature-panel" role="dialog" aria-modal="true" aria-labelledby="experiments-title" hidden>
         <header class="internal-feature-header">
           <h2 id="experiments-title">Experiments</h2>
@@ -260,6 +303,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=c964350bbdfe"></script>
+    <script src="../dist/internal-bundle.js?v=b905d4382b22"></script>
   </body>
 </html>

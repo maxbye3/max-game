@@ -45,7 +45,7 @@ import {
 import { isTimAtCinema, isTimAtMusicShop } from '../characters/tim/tim-location.js';
 
 export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio' | 'doughnutShop';
-export type InteractionKind = 'wheldon' | 'josh' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad';
+export type InteractionKind = 'noel' | 'wheldon' | 'josh' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad' | 'minnie' | 'buzz' | 'tigger' | 'socks';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -97,21 +97,22 @@ export interface InteriorScene {
 
 const DEFAULT_WIDTH = 512;
 const DEFAULT_HEIGHT = 768;
+export const NOEL = { x: DEFAULT_WIDTH / 2, y: DEFAULT_HEIGHT / 2 + 36, width: 52, height: 72 } as const;
 export const CAVE_WIDTH = 640;
 export const CAVE_HEIGHT = 320;
 
 export const WHELDON = {
   x: DEFAULT_WIDTH / 2,
   y: DEFAULT_HEIGHT / 2 + 36,
-  width: 52,
-  height: 72,
+  width: 40,
+  height: 90,
 } as const;
 
 export const JOSH = {
   x: 354,
   y: 466,
-  width: 48,
-  height: 72,
+  width: 96,
+  height: 96,
 } as const;
 
 export const CAVE_COLANDER = {
@@ -203,20 +204,20 @@ const BOOKSHOP_DOORS: readonly InteriorDoor[] = [{
 
 const ART_STUDIO_DOORS: readonly InteriorDoor[] = [{
   triggerX: 256, triggerY: 605, exitX: 256, exitY: 650,
-  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
-  x: 256, y: 605, width: 1, height: 1,
+  sourceX: 0, sourceY: 40, sourceWidth: 1024, sourceHeight: 1294,
+  x: 212, y: 569, width: 88, height: 103,
 }];
 
 const DOUGHNUT_SHOP_DOORS: readonly InteriorDoor[] = [{
   triggerX: 256, triggerY: 660, exitX: 256, exitY: 700,
-  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
-  x: 256, y: 660, width: 1, height: 1,
+  sourceX: 0, sourceY: 40, sourceWidth: 1024, sourceHeight: 1294,
+  x: 212, y: 569, width: 88, height: 103,
 }];
 
 const MANSION_DOORS: readonly InteriorDoor[] = [{
   triggerX: 256, triggerY: 620, exitX: 256, exitY: 650,
-  sourceX: 0, sourceY: 0, sourceWidth: 1, sourceHeight: 1,
-  x: 256, y: 620, width: 1, height: 1,
+  sourceX: 0, sourceY: 40, sourceWidth: 1024, sourceHeight: 1294,
+  x: 210, y: 580, width: 92, height: 101,
 }];
 
 const DIARY_COLLISION: CollisionGrid = {
@@ -301,6 +302,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       kind: 'doughnutShop', title: 'Doughnut Shop', ariaLabel: 'Doughnut Shop interior',
       width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
       backgroundSource: '../img/internal/doughnut.png',
+      doorOverlaySource: '../img/internal/doughnuts/door-open.png',
       doors: DOUGHNUT_SHOP_DOORS,
       interactions: [],
       playerStart: { x: 256, y: 650 },
@@ -376,6 +378,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       kind: 'artStudio', title: 'Art Gallery', ariaLabel: 'Art Gallery interior',
       width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
       backgroundSource: '../img/internal/art-studio.png',
+      doorOverlaySource: '../img/internal/art/door-open.png',
       doors: ART_STUDIO_DOORS,
       interactions: [
         { kind: 'josh', label: 'Talk to Josh', x: JOSH.x, y: JOSH.y, distance: 72 },
@@ -389,9 +392,10 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       kind: 'mansion', title: 'Snow Mansion', ariaLabel: 'Snow Mansion interior',
       width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 1,
       backgroundSource: '../img/internal/mansion.png',
+      doorOverlaySource: '../img/internal/doughnuts/door-open.png',
       collision: MANSION_COLLISION,
       doors: MANSION_DOORS,
-      interactions: [],
+      interactions: [{ kind: 'noel', label: 'Talk to Noel', x: NOEL.x, y: NOEL.y, distance: 62 }],
       playerStart: { x: 256, y: 575 },
     };
   }
@@ -405,9 +409,13 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
     collision: DIARY_COLLISION,
     doors: DIARY_LAB_DOORS,
     interactions: [
-      { kind: 'wheldon', label: 'Talk to Wheldon', x: WHELDON.x, y: WHELDON.y, distance: 62 },
       { kind: 'diary', label: 'See journal', x: 170, y: 466, distance: 54 },
       { kind: 'experiments', label: 'See experiments', x: 350, y: 285, distance: 54 },
+      { kind: 'wheldon', label: 'Talk to Wheldon', x: WHELDON.x, y: WHELDON.y, distance: 72 },
+      { kind: 'minnie', label: 'Talk to Minnie', x: 110, y: 520, distance: 58 },
+      { kind: 'buzz', label: 'Talk to Buzz', x: 315, y: 360, distance: 58 },
+      { kind: 'socks', label: 'Talk to Socks', x: 415, y: 360, distance: 82 },
+      { kind: 'tigger', label: 'Talk to Tigger', x: 410, y: 525, distance: 58 },
     ],
     playerStart: { x: enteredDoor === 'diary-lab-right' ? 359 : 153, y: 563 },
   };

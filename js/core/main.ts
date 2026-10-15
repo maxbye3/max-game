@@ -17,6 +17,7 @@ import { updateBochraWorld } from '../powers/bochra/bochra-power.js';
 import { startGameLoop } from './game-loop.js';
 import { loadAssets } from './assets.js';
 import { setupAudioMute } from './audio-mute.js';
+import { playDoughnutReturnVoice } from './alex-w-voice.js';
 import { setupBusIntro, updateBusIntro } from '../overworld/bus-intro.js';
 import {
   getCaveThief,
@@ -28,7 +29,7 @@ import { COLLISION_SHAPES } from './collision-data.js';
 import { canvas } from './dom.js';
 import { isDoorNavigationStarted, updateDoors } from './doors.js';
 import { updateGeorgia } from '../characters/georgia/georgia.js';
-import { setupGymTimCutscene, updateGymTimCutscene } from '../interiors/gym-tim-cutscene.js';
+import { updateGymTimCutscene } from '../interiors/gym-tim-cutscene.js';
 import { releaseAllInput, setupInput } from './input.js';
 import { isThoughtsOpen } from './thoughts.js';
 import { setupInventory, updatePowerups } from './inventory.js';
@@ -48,12 +49,15 @@ import { hideSignDialogue, updateSigns } from './signs.js';
 import { isAlexResurrectionUiBlocking } from '../powers/alex-s/alex-s-power-ui.js';
 import { maddyWorldDeltaTime } from '../powers/maddy/maddy-tea-power.js';
 import { requireElement } from './elements.js';
+import { isCharacterMenuOpen, setupCharacterMenu } from './character-menu.js';
 import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { georgiaState } from '../characters/georgia/georgia.js';
 import { isSamPowerActive, samTargetId, type SamPowerTarget, updateSamPower } from '../powers/sam/sam-power.js';
 import { isOscarEaten, isOscarPowerActive, updateOscarPower } from '../powers/oscar/oscar-power.js';
 import { andyWorldDeltaTime } from '../powers/andy/andy-power.js';
 import { updateAndyWorld } from '../powers/andy/andy-world-power.js';
+import { getPlayerBody, setPlayerBody } from './player-body.js';
+import { checkRoadAccident, roadAccident, setupRoadAccident, updateRoadAccident } from '../overworld/road-accident.js';
 
 let previousTime = 0;
 let worldAnimationTime = 0;
@@ -79,7 +83,7 @@ function currentSamTargets(): readonly SamPowerTarget[] {
   const niallX = isNiallFollowing() ? player.x - 34 : niallState.x;
   const niallY = isNiallFollowing() ? player.y + 12 : niallState.y;
   const targets: SamPowerTarget[] = [
-    ...STATIC_SAM_TARGETS,
+    ...STATIC_SAM_TARGETS.filter((target) => target.id !== 'alex-s' || getPlayerBody() !== 'alex-s'),
     { id: 'niall', x: niallX, y: niallY, height: 40 },
     { id: 'georgia', x: georgiaState.x, y: georgiaState.y, height: 46 },
   ];
@@ -98,8 +102,31 @@ function gameLoop(time: number): void {
     draw(time, worldAnimationTime);
     return;
   }
+  updateRoadAccident(deltaTime, player);
+  if (roadAccident.active) {
+    draw(time, worldAnimationTime);
+    return;
+  }
+  if (isCharacterMenuOpen()) {
+    draw(time, worldAnimationTime);
+    return;
+  }
   if (!isDanPowerActive(time) && !isKatiePowerActive(time)) updateBusIntro(deltaTime, player);
   updatePlayer(deltaTime, 1);
+  checkRoadAccident(player);
+  if (getPlayerBody() === 'ghost') updateDoors(player.x, player.y);
+  if (roadAccident.active) {
+    draw(time, worldAnimationTime);
+    return;
+  }
+  if (getPlayerBody() === 'ghost') {
+    if (!isAlexResurrectionUiBlocking()) {
+      updateNpcInteractions(player.x, player.y);
+      updateNiallInteraction(worldDeltaTime, player.x, player.y);
+    }
+    draw(time, worldAnimationTime);
+    return;
+  }
   updateTimInputWorld(time, player.x, player.y);
   if (!isAlicePowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isKatiePowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateHole(deltaTime, player);
   updateBuildingAmbience(player.x, player.y);
@@ -145,28 +172,24 @@ function gameLoop(time: number): void {
 
 setupInput();
 setupLucyPowerInput(canvas);
-const wheldonTestToggle = requireElement<HTMLButtonElement>('#wheldon-test-toggle');
-wheldonTestToggle.addEventListener('click', () => {
-  const enabled = wheldonTestToggle.getAttribute('aria-pressed') !== 'true';
-  setWheldonPlayerSpriteEnabled(enabled);
-  wheldonTestToggle.setAttribute('aria-pressed', String(enabled));
-  wheldonTestToggle.textContent = enabled ? 'Wheldon On' : 'Wheldon Off';
-});
+setupCharacterMenu();
 setupAudioMute();
 setupBusIntro();
 setupInventory();
 setupJump();
 setupMusicPlayer();
 setupNpcInteractions();
+setupRoadAccident(player);
 window.addEventListener('max-game:alex-s-dialogue', hideSignDialogue);
 setupCaveThief();
-setupGymTimCutscene();
 requireElement<HTMLButtonElement>('#reset-all').addEventListener('click', () => {
   releaseAllInput();
   resetNiallQuestState();
   resetTimRoute();
   resetMikeAftermath();
   resetMusicLibrary();
+  setPlayerBody('player');
+  setWheldonPlayerSpriteEnabled(false);
   const sealMode = new URLSearchParams(window.location.search).has('seal');
   window.location.assign(sealMode ? 'index.html?seal=1' : 'index.html');
 });
@@ -176,6 +199,7 @@ loadAssets(isCaveThiefPursuitActive())
     void loadMapCharacters();
     releaseAllInput();
     loadingOverlay.hidden = true;
+    playDoughnutReturnVoice();
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES.length);
     startGameLoop(gameLoop, () => { previousTime = 0; });
   })

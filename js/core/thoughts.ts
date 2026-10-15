@@ -1,6 +1,8 @@
 import { announceWorldInteraction } from './world-interactions.js';
 
-const SUBMISSION_URL = 'https://formsubmit.co/ajax/botherandherobye@gmail.com';
+const RECIPIENT = 'botherandherobye@gmail.com';
+const SUBJECT = "New idea for Max's Overworld";
+const SUBMISSION_URL = `https://formsubmit.co/ajax/${RECIPIENT}`;
 let thoughtsDialog: HTMLDialogElement | null = null;
 export const isThoughtsOpen = (): boolean => thoughtsDialog?.open ?? false;
 
@@ -30,6 +32,7 @@ export function setupThoughts(releaseInput: () => void): void {
       </div>
       <button class="thoughts-send" type="submit">Send idea</button>
       <p class="thoughts-status" role="status" aria-live="polite"></p>
+      <a class="thoughts-email" hidden>Email idea instead</a>
     </form>`;
   document.body.append(dialog);
   thoughtsDialog = dialog;
@@ -39,7 +42,14 @@ export function setupThoughts(releaseInput: () => void): void {
   const idea = dialog.querySelector<HTMLTextAreaElement>('#thoughts-idea')!;
   const send = dialog.querySelector<HTMLButtonElement>('.thoughts-send')!;
   const status = dialog.querySelector<HTMLElement>('.thoughts-status')!;
+  const emailInstead = dialog.querySelector<HTMLAnchorElement>('.thoughts-email')!;
   let submitting = false;
+
+  const updateEmailLink = (): void => {
+    const body = `Name: ${name.value}\nEmail: ${email.value}\n\n${idea.value}`;
+    emailInstead.href = `mailto:${RECIPIENT}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(body)}`;
+  };
+  form.addEventListener('input', updateEmailLink);
 
   toggle.addEventListener('click', () => {
     announceWorldInteraction();
@@ -68,6 +78,7 @@ export function setupThoughts(releaseInput: () => void): void {
     send.disabled = true;
     send.textContent = 'Sending…';
     status.textContent = '';
+    emailInstead.hidden = true;
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 20000);
     const fields = new FormData(form);
@@ -77,16 +88,32 @@ export function setupThoughts(releaseInput: () => void): void {
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           name: fields.get('name'), email: fields.get('email'), idea: fields.get('idea'),
-          _honey: fields.get('_honey'), _subject: "New idea for Max's Overworld", _template: 'table',
+          _honey: fields.get('_honey'), _subject: SUBJECT, _template: 'table',
+          _url: window.location.href,
         }),
         signal: controller.signal,
       });
-      const result = await response.json() as { success?: boolean | string };
-      if (!response.ok || (result.success !== true && result.success !== 'true')) throw new Error('Submission was not accepted');
+      const result = await response.json() as { success?: boolean | string; message?: string };
+      // Activation responses can be HTTP 200 without accepting an idea for delivery.
+      if (typeof result.message === 'string' && /activat|confirm.{0,40}email/i.test(result.message)) {
+        status.textContent = "Idea delivery isn't ready yet: the game owner needs to activate the form by email. Your idea is still here — you can email it instead.";
+        updateEmailLink();
+        emailInstead.hidden = false;
+        return;
+      }
+      if (!response.ok || (result.success !== true && result.success !== 'true')) {
+        const detail = typeof result.message === 'string' ? result.message.trim().slice(0, 300) : '';
+        status.textContent = `Couldn't confirm your submission.${detail ? ` ${detail}` : ''} Your idea is still here — try again or email it instead.`;
+        updateEmailLink();
+        emailInstead.hidden = false;
+        return;
+      }
       form.reset();
       status.textContent = 'Thanks! Your idea has been submitted.';
     } catch {
-      status.textContent = "Couldn't confirm your submission. Your idea is still here — please try again.";
+      status.textContent = "Couldn't confirm your submission. Your idea is still here — try again or email it instead.";
+      updateEmailLink();
+      emailInstead.hidden = false;
     } finally {
       window.clearTimeout(timeout);
       submitting = false;

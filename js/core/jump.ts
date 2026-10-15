@@ -7,6 +7,8 @@ import { isMikePowerActive, MIKE_POWER_DURATION } from '../powers/mike/mike-powe
 import { isLucyPowerActive, LUCY_POWER_DURATION } from '../powers/lucy/lucy-power.js';
 import { isKatiePowerActive, KATIE_POWER_DURATION } from '../powers/katie/katie-power.js';
 import { hasCaveColander } from './colander.js';
+import { getPlayerBody } from './player-body.js';
+import { isWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { releaseAllInput } from './input.js';
 
 interface JumpDestination {
@@ -19,6 +21,7 @@ const JUMP_DESTINATIONS: readonly JumpDestination[] = [
   { id: 'diary-lab-center', label: 'Diary Lab' },
   { id: 'music-shop', label: 'Music House' },
   { id: 'gym', label: 'Gym' },
+  { id: 'artist-studio', label: 'Art Studio' },
   { id: 'cinema', label: 'Cinema' },
   { id: 'bookshop', label: 'Bookshop' },
   { id: 'snow-mansion', label: 'Haunted House' },
@@ -64,6 +67,8 @@ function jumpTo(destinationId: string): void {
   const params = new URLSearchParams({ door: destinationId });
   if (hasCaveColander()) params.set('colander', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
+  if (getPlayerBody() !== 'player') params.set('body', getPlayerBody());
+  if (isWheldonPlayerSpriteEnabled()) params.set('wheldon', '1');
   window.location.assign(`${internalPageHref()}?${params.toString()}`);
 }
 

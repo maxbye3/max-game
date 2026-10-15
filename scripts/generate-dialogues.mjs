@@ -26,7 +26,7 @@ const dialogues = [
   { name: 'JOE', source: '../character-assets/joe/dialogue.txt', output: '../js/generated/dialogues/joe-dialogue.ts' },
   { name: 'ANDY', source: '../character-assets/andy/dialogue.txt', output: '../js/generated/dialogues/andy-dialogue.ts' },
   { name: 'LUCY', source: '../character-assets/lucy/dialogue.txt', output: '../js/generated/dialogues/lucy-dialogue.ts' },
-  { name: 'ALEX_S', source: '../character-assets/alex-s/dialogue.txt', output: '../js/generated/dialogues/alex-s-dialogue.ts' },
+  { name: 'ALEX_S', source: '../character-assets/wheldon/alex-s-dialogue.txt', output: '../js/generated/dialogues/alex-s-dialogue.ts' },
   { name: 'JULIAN', source: '../character-assets/julian/dialogue.txt', output: '../js/generated/dialogues/julian-dialogue.ts' },
   { name: 'KATY', source: '../character-assets/katy/dialogue.txt', output: '../js/generated/dialogues/katy-dialogue.ts' },
   { name: 'GEORGIA', source: '../character-assets/georgia/dialogue.txt', output: '../js/generated/dialogues/georgia-dialogue.ts' },

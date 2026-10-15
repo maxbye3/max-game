@@ -46,7 +46,7 @@ export class DiaryLabFeatures {
     document.querySelector<HTMLButtonElement>('#noel-read-diary')?.addEventListener('click', () => onOpen('diary'));
     document.querySelector<HTMLButtonElement>('#noel-view-experiments')?.addEventListener('click', () => onOpen('experiments'));
     this.unlockForm.addEventListener('submit', (event) => this.unlockDiary(event));
-    document.querySelectorAll<HTMLElement>('.internal-feature-close').forEach((button) => {
+    document.querySelectorAll<HTMLElement>('#diary-panel .internal-feature-close, #experiments-panel .internal-feature-close').forEach((button) => {
       button.addEventListener('click', onClose);
     });
     document.querySelectorAll<HTMLElement>('[data-experiment-src]').forEach((button) => {

@@ -3,6 +3,10 @@ import {
   BILLBOARD_Y,
   FRAME_HEIGHT,
   FRAME_WIDTH,
+  GRAVEYARD_HEIGHT,
+  GRAVEYARD_WIDTH,
+  GRAVEYARD_X,
+  GRAVEYARD_Y,
   MUSIC_SHOP_SIGN_HEIGHT,
   MUSIC_SHOP_SIGN_WIDTH,
   MUSIC_SHOP_SIGN_X,
@@ -41,6 +45,16 @@ const SIGN_MESSAGES = [
 
 // World-space bounds for every fully visible, readable sign in the composed map.
 export const SIGNS: readonly Sign[] = [
+  {
+    id: 'grave',
+    title: 'Grave',
+    message: 'hmmm this grave seems to be for me?!',
+    x: GRAVEYARD_X,
+    y: GRAVEYARD_Y,
+    width: GRAVEYARD_WIDTH,
+    height: GRAVEYARD_HEIGHT,
+    signed: false,
+  },
   {
     id: 'north-directory',
     title: 'Feed me your thoughts',
@@ -144,7 +158,7 @@ function showSign(sign: Sign): void {
   dialogueTitle.textContent = sign.title;
   dialogueText.textContent = sign.message;
   const isBusStop = sign.id === 'bus-stop';
-  const hasSignature = sign.id !== 'bus-stop' && sign.id !== 'job-center-noticeboard';
+  const hasSignature = sign.signed === true;
   dialogueSignature.hidden = !isBusStop && !hasSignature;
   signatureImage.hidden = isBusStop;
   busImage.hidden = !isBusStop;

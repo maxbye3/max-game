@@ -32,10 +32,10 @@ export const GATE_WIDTH = 108;
 export const GATE_HEIGHT = 60;
 export const GATE_PLAYER_DEPTH_Y = 1176.2;
 
-export const GRAVEYARD_X = 785;
-export const GRAVEYARD_Y = 437;
-export const GRAVEYARD_WIDTH = 108;
-export const GRAVEYARD_HEIGHT = 113;
+export const GRAVEYARD_X = 818.75;
+export const GRAVEYARD_Y = 472.3125;
+export const GRAVEYARD_WIDTH = 40.5;
+export const GRAVEYARD_HEIGHT = 42.375;
 
 export const BUS_INTRO_STOP_X = 692;
 export const BUS_INTRO_BUS_BASELINE_Y = ROAD_Y + 130;

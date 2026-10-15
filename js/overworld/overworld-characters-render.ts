@@ -10,6 +10,7 @@ import { hasMikeAftermath } from '../core/world-state.js';
 import { getRoadTrafficCars, ROAD_CAR_CENTER_Y, ROAD_CAR_WIDTH } from './road-traffic.js';
 import type { Direction } from '../core/types.js';
 const NIALL_SPRITE_COLUMNS = 4;
+const NIALL_WALK_FPS = 9;
 const NIALL_SPRITE_FRAME_HEIGHT = 283;
 // The submitted sheet has transparent padding between rows, but its rows are
 // packed vertically rather than starting at equal 283px intervals. Keep the
@@ -88,10 +89,11 @@ export function drawNiallAt(
   x: number,
   y: number,
   direction: Direction,
-  frame: number,
+  animationTime: number,
 ): void {
   const offset = samVictimOffset('niall');
-  const column = frame % NIALL_SPRITE_COLUMNS;
+  // Following uses the player's movement clock, not its nine-frame sheet.
+  const column = Math.floor(animationTime * NIALL_WALK_FPS) % NIALL_SPRITE_COLUMNS;
   const sourceX = Math.floor((column * images.niallSprite.width) / NIALL_SPRITE_COLUMNS);
   const nextSourceX = Math.floor(((column + 1) * images.niallSprite.width) / NIALL_SPRITE_COLUMNS);
   const sourceWidth = nextSourceX - sourceX;
@@ -102,8 +104,7 @@ export function drawNiallAt(
   );
 
   context.save();
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
+  context.imageSmoothingEnabled = false;
   withCharacterPowers(context, x - cameraX, y - cameraY, NIALL.height, 'niall', () => context.drawImage(
     images.niallSprite,
     sourceX,
@@ -160,13 +161,14 @@ export function drawBusIntro(cameraX: number, cameraY: number): void {
   context.restore();
 }
 
-export function drawRoadTraffic(cameraX: number, cameraY: number): void {
+export function drawRoadTraffic(cameraX: number, cameraY: number, stopped = false): void {
   const cars = getRoadTrafficCars();
   if (cars.length === 0) return;
 
   context.save();
   context.imageSmoothingEnabled = false;
   for (const car of cars) {
+    if (car.stopped !== stopped) continue;
     const image = ROAD_CAR_IMAGES[car.spriteIndex];
     if (!image || !isImageReady(image)) continue;
     const height = ROAD_CAR_WIDTH * (image.naturalHeight / image.naturalWidth);

@@ -44,6 +44,7 @@ export function withMikeJoy(context: CanvasRenderingContext2D, x: number, y: num
   drawSprite();
   if (id === 'player') {
     context.globalAlpha *= mikeVisualStrength(now);
+    smile(context, x, y - height - 12, 16);
     cookie(context, x + height * 0.3, y - height * 0.5, height * 0.32);
     for (let crumb = 0; crumb < 4; crumb++) {
       const life = (mikePowerElapsed(now) / 800 + crumb / 4) % 1;
@@ -141,8 +142,10 @@ export function drawMikeWorld(context: CanvasRenderingContext2D, cameraX: number
     }
   }
   context.globalAlpha = strength; context.fillStyle = '#294d37'; context.font = 'bold 11px monospace'; context.textAlign = 'center';
-  const labelY = Math.min(height - 16, y + 24);
-  context.fillStyle = '#fff6cc'; context.fillRect(x - 48, labelY - 13, 96, 19);
-  context.fillStyle = '#315a36'; context.fillText(`JOY ${Math.round(mikeHappinessMultiplier(now) * 100)}%`, x, labelY);
+  const labelX = Math.max(60, Math.min(width - 60, x));
+  const labelY = Math.max(16, Math.min(height - 16, y + 24));
+  const happinessBoost = Math.round((mikeHappinessMultiplier(now) - 1) * 100);
+  context.fillStyle = '#fff6cc'; context.fillRect(labelX - 56, labelY - 13, 112, 19);
+  context.fillStyle = '#315a36'; context.fillText(`HAPPY +${happinessBoost}%`, labelX, labelY);
   context.restore();
 }

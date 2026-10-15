@@ -1,5 +1,7 @@
 import type { InteriorScene } from './interior-scenes.js';
 import { createGameAudio } from '../core/audio-mute.js';
+import { getPlayerBody } from '../core/player-body.js';
+import { isWheldonPlayerSpriteEnabled } from '../core/player-sprite-test.js';
 
 const OPEN_DISTANCE = 53;
 const EXIT_DISTANCE = 18;
@@ -95,11 +97,13 @@ export class InteriorDoorsController {
     );
   }
 
-  private returnUrl(): string {
+  returnUrl(): string {
     const params = new URLSearchParams();
     if (this.options.enteredDoor) params.set('door', this.options.enteredDoor);
     if (this.options.hasCaveColander()) params.set('colander', '1');
     if (this.options.sealMode) params.set('seal', '1');
+    if (getPlayerBody() !== 'player') params.set('body', getPlayerBody());
+    if (isWheldonPlayerSpriteEnabled()) params.set('wheldon', '1');
     return `../index.html${params.size > 0 ? `?${params.toString()}` : ''}`;
   }
 }

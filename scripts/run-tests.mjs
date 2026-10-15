@@ -137,6 +137,24 @@ try {
       removeItem: (key) => values.delete(key),
     },
   };
+  const alexDoughnut = await loadModule('alex-w-state', 'js/core/alex-w-state.ts');
+  assert.equal(alexDoughnut.hasAlexEatenDoughnut(), false);
+  assert.equal(values.get('max-game:alex-w:eatenDoughnut'), 'false');
+  alexDoughnut.setAlexEatenDoughnut(true);
+  const savedAlexDoughnut = await loadModule('alex-w-state-reload', 'js/core/alex-w-state.ts');
+  assert.equal(savedAlexDoughnut.hasAlexEatenDoughnut(), true);
+  alexDoughnut.setAlexEatenDoughnut(false);
+  const alexPossessionBody = await loadModule('alex-possession-body', 'js/core/player-body.ts');
+  alexPossessionBody.setPlayerBody('player');
+  const possessedWheldonSprite = await loadModule('possessed-wheldon-sprite', 'js/core/player-sprite-test.ts');
+  possessedWheldonSprite.setWheldonPlayerSpriteEnabled(true);
+  const savedBody = await loadModule('player-body-reload', 'js/core/player-body.ts');
+  assert.equal(savedBody.getPlayerBody(), 'player');
+  const restoredWheldonSprite = await loadModule('restored-wheldon-sprite', 'js/core/player-sprite-test.ts');
+  assert.equal(restoredWheldonSprite.isWheldonPlayerSpriteEnabled(), true);
+  possessedWheldonSprite.setWheldonPlayerSpriteEnabled(false);
+  alexPossessionBody.setPlayerBody('player');
+
   const worldState = await loadModule('world-state', 'js/core/world-state.ts');
   assert.equal(worldState.getNiallQuestState(), 'hostile');
   values.set('max-game:niall-fight-complete', 'true');
@@ -197,20 +215,29 @@ try {
   assert.equal(sprites.getPlayerSpriteFrame(true, 'left', 0, 2).sourceY, 486);
 
   const wheldon = await loadModule('wheldon-sprite', 'js/core/player-sprite-test.ts');
-  const wheldonFrame = (direction, tick) => wheldon.getWheldonPlayerSpriteFrame(direction, (tick + 0.01) / 8);
-  for (const direction of ['down', 'left', 'right', 'up']) {
-    const idle = wheldon.getWheldonPlayerSpriteFrame(direction, 0);
-    assert.deepEqual(wheldonFrame(direction, 0), idle, 'walking starts from the idle pose');
-    assert.deepEqual(wheldonFrame(direction, 2), idle, 'opposite steps pass through the neutral pose');
-    assert.notDeepEqual(wheldonFrame(direction, 1), wheldonFrame(direction, 3), 'steps alternate');
-    for (let tick = 0; tick < 24; tick += 1) {
-      assert.deepEqual(wheldonFrame(direction, tick), wheldonFrame(direction, tick % 4), 'Wheldon keeps a steady cycle across default frame wraps');
+  const wheldonFrame = (direction, tick, ghost = false) => wheldon.getWheldonPlayerSpriteFrame(direction, (tick + 0.01) / 8, ghost);
+  for (const ghost of [false, true]) {
+    for (const direction of ['down', 'left', 'right', 'up']) {
+      const idle = wheldon.getWheldonPlayerSpriteFrame(direction, 0, ghost);
+      assert.deepEqual(wheldonFrame(direction, 0, ghost), idle, 'walking starts from the idle pose');
+      assert.deepEqual(wheldonFrame(direction, 2, ghost), idle, 'opposite steps pass through the neutral pose');
+      assert.notDeepEqual(wheldonFrame(direction, 1, ghost), wheldonFrame(direction, 3, ghost), 'steps alternate');
+      for (let tick = 0; tick < 24; tick += 1) {
+        assert.deepEqual(wheldonFrame(direction, tick, ghost), wheldonFrame(direction, tick % 4, ghost), 'Wheldon keeps a steady cycle across default frame wraps');
+      }
+    }
+    for (const [diagonal, cardinal] of [['upLeft', 'left'], ['downLeft', 'left'], ['upRight', 'right'], ['downRight', 'right']]) {
+      assert.deepEqual(wheldonFrame(diagonal, 3, ghost), wheldonFrame(cardinal, 3, ghost));
     }
   }
   assert.equal(wheldonFrame('down', 1).sourceY + wheldonFrame('down', 1).sourceHeight, 372, 'front shoes are not clipped at the old grid boundary');
   assert.equal(wheldonFrame('up', 3).sourceX, 707, 'rightmost pose is centered within its own crop');
-  for (const [diagonal, cardinal] of [['upLeft', 'left'], ['downLeft', 'left'], ['upRight', 'right'], ['downRight', 'right']]) {
-    assert.deepEqual(wheldonFrame(diagonal, 3), wheldonFrame(cardinal, 3));
+  for (const [direction, baseline] of [['down', 368], ['left', 678], ['right', 1000], ['up', 1348]]) {
+    const idle = wheldon.getWheldonPlayerSpriteFrame(direction, 0, true);
+    assert.equal(idle.sourceY + idle.sourceHeight, baseline, 'ghost crops use their own measured tail baseline');
+    assert.equal(idle.width, 30);
+    assert.equal(idle.height, 46);
+    assert.notDeepEqual(idle, wheldon.getWheldonPlayerSpriteFrame(direction, 0), 'ghost Wheldon uses separate artwork coordinates');
   }
 
   const katyPower = await loadModule('katy-power', 'js/powers/katy/katy-power.ts');
@@ -363,39 +390,48 @@ try {
   const reiPower = await loadModule('rei-power', 'js/powers/rei/rei-power.ts');
   assert.equal(reiPower.reiMovementMultiplier(500), 1);
   assert.equal(reiPower.reiWorldDeltaTime(0.05, 500), 0.05);
-  reiPower.activateReiPower('slow', 1000);
-  assert.equal(reiPower.reiPowerSecondsLeft('slow', 1000), 10);
-  assert.equal(reiPower.isReiEffectActive('slow', 999), false);
-  assert.equal(reiPower.reiMovementMultiplier(1000), 0.5);
-  assert.ok(Math.abs(reiPower.reiWorldDeltaTime(0.05, 1025) - 0.0375) < 1e-9);
-  assert.equal(reiPower.reiWorldDeltaTime(0.05, 5000), 0.025);
-  assert.ok(Math.abs(reiPower.reiWorldDeltaTime(0.05, 11025) - 0.0375) < 1e-9);
+  reiPower.activateReiPower('gravity', 1000);
+  assert.equal(reiPower.reiPowerSecondsLeft('gravity', 1000), 10);
+  assert.equal(reiPower.isReiEffectActive('gravity', 999), false);
+  assert.equal(reiPower.reiMovementMultiplier(1000), 1);
+  assert.equal(reiPower.reiWorldDeltaTime(0.05, 1025), 0.05);
+  assert.equal(reiPower.reiWorldDeltaTime(0.05, 5000), 0.05);
+  assert.equal(reiPower.reiWorldDeltaTime(0.05, 11025), 0.05);
   assert.equal(reiPower.reiWorldDeltaTime(0.05, 11050), 0.05);
   const reiTargets = [{ id: 'friend', x: 150, y: 100, height: 40 }, { id: 'far', x: 2000, y: 100, height: 40 }];
   reiPower.updateReiWorld(1000, 100, 100, reiTargets);
-  assert.equal(reiPower.isReiGuest('slow', 'friend'), false);
+  assert.equal(reiPower.isReiGuest('gravity', 'friend'), false);
   reiPower.updateReiWorld(1500, 120, 100, reiTargets);
-  assert.equal(reiPower.isReiGuest('slow', 'friend'), true);
-  assert.equal(reiPower.isReiGuest('slow', 'far'), false);
-  assert.deepEqual(reiPower.getReiOrigin('slow'), { x: 100, y: 100 });
-  assert.ok(reiPower.getReiTrails('slow').length > 1);
+  assert.equal(reiPower.isReiGuest('gravity', 'friend'), true);
+  assert.equal(reiPower.isReiGuest('gravity', 'far'), false);
+  assert.deepEqual(reiPower.getReiOrigin('gravity'), { x: 100, y: 100 });
+  assert.ok(reiPower.getReiTrails('gravity').length > 1);
+  const pulled = reiPower.reiGravityOffset(220, 100, 2000);
+  assert.ok(pulled.x < 0 && pulled.x > -100, 'nearby items are pulled toward the player without crossing the centre');
+  assert.equal(pulled.y, 0);
+  assert.deepEqual(reiPower.reiGravityOffset(120, 100, 2000), { x: 0, y: 0 }, 'the field centre stays stable');
+  assert.deepEqual(reiPower.reiGravityOffset(3000, 100, 2000), { x: 0, y: 0 }, 'distant scenery stays unchanged');
+  reiPower.updateReiWorld(2000, 320, 100, reiTargets);
+  assert.ok(reiPower.reiGravityOffset(220, 100, 2000).x > 0, 'gravity follows the player across the map');
+  assert.deepEqual(reiTargets[0], { id: 'friend', x: 150, y: 100, height: 40 }, 'visual gravity preserves safe NPC positions');
   reiPower.activateReiPower('sparkle', 4000);
-  assert.equal(reiPower.reiPowerSecondsLeft('slow', 4000), 7, 'the second item leaves the first timer intact');
+  assert.equal(reiPower.reiPowerSecondsLeft('gravity', 4000), 7, 'the second item leaves the first timer intact');
   assert.equal(reiPower.reiPowerSecondsLeft('sparkle', 4000), 10);
   reiPower.updateReiWorld(4000, 120, 100, reiTargets);
   reiPower.updateReiWorld(4500, 140, 100, [{ id: 'friend', x: 160, y: 100, height: 40 }]);
   assert.equal(reiPower.isReiGuest('sparkle', 'friend'), true);
-  assert.equal(reiPower.getReiGuests('slow')[0].x, 160, 'real moving NPC coordinates are refreshed');
-  assert.ok(reiPower.getReiTrails('slow').every((point) => 4500 - point.at < 3000));
+  assert.equal(reiPower.getReiGuests('gravity')[0].x, 160, 'real moving NPC coordinates are refreshed');
+  assert.ok(reiPower.getReiTrails('gravity').every((point) => 4500 - point.at < 3000));
   reiPower.updateReiWorld(4600, 150, 100, []);
-  assert.equal(reiPower.getReiGuests('slow').length, 0, 'removed NPCs leave both effects');
+  assert.equal(reiPower.getReiGuests('gravity').length, 0, 'removed NPCs leave both effects');
   assert.equal(reiPower.getReiGuests('sparkle').length, 0);
   reiPower.updateReiWorld(11000, 160, 100, reiTargets);
-  assert.equal(reiPower.isReiEffectActive('slow', 11000), false);
+  assert.equal(reiPower.isReiEffectActive('gravity', 11000), false);
+  assert.deepEqual(reiPower.reiGravityOffset(220, 100, 11000), { x: 0, y: 0 }, 'expired gravity releases scenery');
   assert.equal(reiPower.reiMovementMultiplier(11000), 1, 'sparkle does not slow movement');
   assert.equal(reiPower.isReiEffectActive('sparkle', 11000), true);
-  assert.equal(reiPower.getReiTrails('slow').length, 0);
-  assert.equal(reiPower.getReiGuests('slow').length, 0);
+  assert.equal(reiPower.getReiTrails('gravity').length, 0);
+  assert.equal(reiPower.getReiGuests('gravity').length, 0);
   assert.ok(reiPower.getReiTrails('sparkle').length > 0, 'expiring the first effect preserves the second');
   reiPower.updateReiWorld(14000, 160, 100, reiTargets);
   assert.equal(reiPower.isReiPowerActive(14000), false);
@@ -405,7 +441,7 @@ try {
   assert.equal(reiPower.reiMovementMultiplier(15000), 1);
   assert.equal(reiPower.reiWorldDeltaTime(0.05, 15025), 0.05);
   assert.equal(reiPower.getReiTrails('sparkle').length, 0, 'reactivation starts clean');
-  console.log('Rei powers: exact ten-second timers, half-speed movement/world, independent overlap, real NPC propagation, trails and cleanup passed');
+  console.log('Rei powers: exact ten-second timers, moving gravity field, inward pull, normal movement/world speed, independent overlap, real NPC propagation, trails and cleanup passed');
 
   const andyPower = await loadModule('andy-power', 'js/powers/andy/andy-power.ts');
   andyPower.activateAndyPower(1000);
@@ -924,6 +960,89 @@ try {
   window.clearTimeout = () => {};
   Audio.prototype.removeAttribute = () => {};
   Audio.prototype.load = () => {};
+  const ghostSprite = await loadModule('ghost-sprite', 'js/core/ghost-sprite.ts');
+  const ghostSource = await loadModule('ghost-source', 'js/generated/core/ghost-sprite.generated.ts');
+  assert.ok(ghostSource.GHOST_SPRITE_SOURCE.startsWith('data:image/png;base64,'), 'inline ghost images allow canvas pixel reads under file://');
+  assert.deepEqual(Buffer.from(ghostSource.GHOST_SPRITE_SOURCE.split(',')[1], 'base64'), await readFile('character-assets/player/ghost_sprite.png'), 'the inline ghost contains the original artwork');
+  const assetsSource = await readFile('js/core/assets.ts', 'utf8');
+  assert.match(assetsSource, /ghostSpriteSheet: GHOST_SPRITE_SOURCE/, 'the game loads the origin-clean inline ghost');
+  assert.equal(ghostSprite.getGhostSpriteFrame('left', 8, 1).sourceX, 181, 'late frames use ghost spacing rather than the normal 23px grid');
+  assert.equal(ghostSprite.getGhostSpriteFrame('up', 4, 1).sourceY, 139, 'back-facing poses use their measured row');
+  assert.equal(ghostSprite.getGhostSpriteFrame('downLeft', 2, 1).sourceY, 245, 'diagonal poses use their own row');
+  for (const direction of ['down', 'downRight', 'right', 'upRight', 'up', 'upLeft', 'left', 'downLeft']) {
+    for (let frame = 0; frame < 9; frame++) {
+      const crop = ghostSprite.getGhostSpriteFrame(direction, frame, 1);
+      assert.ok(crop.sourceX >= 0 && crop.sourceX + crop.sourceWidth <= 209);
+      assert.ok(crop.sourceY >= 0 && crop.sourceY + crop.sourceHeight <= 326);
+      assert.equal(crop.width, crop.sourceWidth, 'ghost poses retain their pixel proportions');
+      assert.equal(crop.height, crop.sourceHeight);
+      assert.equal(crop.baselineOffset, -2, 'all ghost tails share the same ground anchor');
+    }
+  }
+  const ghostPixels = new Uint8ClampedArray(5 * 5 * 4).fill(255);
+  for (let y = 1; y < 4; y++) for (let x = 1; x < 4; x++) {
+    if (x === 2 && y === 2) continue;
+    for (let channel = 0; channel < 3; channel++) ghostPixels[(y * 5 + x) * 4 + channel] = 100;
+  }
+  const createElementBeforeGhost = document.createElement;
+  let transparentGhostPixels;
+  document.createElement = () => ({ getContext: () => ({
+    drawImage() {},
+    getImageData: () => ({ data: ghostPixels }),
+    putImageData: (pixels) => { transparentGhostPixels = pixels.data; },
+  }) });
+  try {
+    ghostSprite.getGhostSpriteSheet({ complete: true, naturalWidth: 5, naturalHeight: 5 });
+    assert.equal(transparentGhostPixels[3], 0, 'the ghost background becomes transparent');
+    assert.equal(transparentGhostPixels[(2 * 5 + 2) * 4 + 3], 255, 'enclosed white sprite highlights stay opaque');
+    assert.equal(transparentGhostPixels[(1 * 5 + 1) * 4 + 3], 255, 'colored sprite pixels stay intact');
+  } finally { document.createElement = createElementBeforeGhost; }
+
+  const accidentScene = await loadModule('road-accident-scene', 'js/overworld/road-accident-scene.ts');
+  const scene = new accidentScene.RoadAccidentScene();
+  const hitPlayer = { x: 700, y: 1315, direction: 'left', frame: 4, animationTime: 1 };
+  let reveals = 0;
+  scene.begin(hitPlayer);
+  assert.equal(scene.dialogue, 'Oh no!');
+  assert.deepEqual(scene.cameraCenter(), { x: 700, y: 1315 });
+  scene.update(1.6, hitPlayer, () => reveals++);
+  assert.equal(scene.playerVisible, false, 'the body disappears before the camera pans');
+  scene.update(1.2, hitPlayer, () => reveals++);
+  assert.ok(scene.cameraCenter().y < 1315 && scene.cameraCenter().y > accidentScene.GHOST_SPAWN.y);
+  assert.equal(reveals, 0, 'the ghost waits until the camera reaches the grave');
+  scene.update(1.21, hitPlayer, () => reveals++);
+  assert.equal(reveals, 1);
+  assert.equal(hitPlayer.x, accidentScene.GHOST_SPAWN.x);
+  assert.equal(hitPlayer.y, accidentScene.GHOST_SPAWN.y);
+  assert.equal(scene.playerVisible, true);
+  scene.update(1, hitPlayer, () => reveals++);
+  assert.equal(scene.active, false);
+  assert.equal(scene.cameraCenter(), null);
+  assert.equal(reveals, 1, 'a single accident only spawns one ghost');
+
+  const trafficHits = await loadModule('road-traffic-hits', 'js/overworld/road-traffic.ts');
+  trafficHits.startRoadTraffic();
+  trafficHits.updateRoadTraffic(30);
+  const enteringCar = trafficHits.getRoadTrafficCars()[0];
+  trafficHits.updateRoadTraffic(0.5);
+  assert.equal(trafficHits.stopRoadCarOnPlayer(enteringCar.x - 50, trafficHits.ROAD_CAR_CENTER_Y - 60), false, 'the sidewalk is safe');
+  assert.equal(trafficHits.stopRoadCarOnPlayer(enteringCar.x - 50, trafficHits.ROAD_CAR_CENTER_Y), true, 'a swept car hits a player between frames');
+  const stoppedCar = trafficHits.getRoadTrafficCars()[0];
+  assert.equal(stoppedCar.x + trafficHits.ROAD_CAR_WIDTH / 2, enteringCar.x - 50, 'the car stops centered over the player');
+  trafficHits.updateRoadTraffic(1);
+  assert.equal(trafficHits.getRoadTrafficCars()[0].x, stoppedCar.x, 'the accident car stays stopped');
+  assert.equal(trafficHits.stopRoadCarOnPlayer(enteringCar.x - 50, trafficHits.ROAD_CAR_CENTER_Y), false, 'a stopped car cannot retrigger the accident');
+
+  const playerBody = await loadModule('player-body', 'js/core/player-body.ts');
+  playerBody.setPlayerBody('ghost');
+  const restoredBody = await loadModule('player-body-restored', 'js/core/player-body.ts');
+  assert.equal(restoredBody.getPlayerBody(), 'ghost');
+  playerBody.setPlayerBody('alex-s');
+  const possessedBody = await loadModule('player-body-possessed', 'js/core/player-body.ts');
+  assert.equal(possessedBody.getPlayerBody(), 'alex-s', 'possession survives navigation');
+  playerBody.setPlayerBody('player');
+  console.log('Car accident: swept impact, stopped car, grave camera pan, ghost spawn and persistent possession passed');
+
   const busIntroTraffic = await loadModule('bus-intro-traffic', 'js/overworld/bus-intro.ts');
   const originalRandom = Math.random;
   try {
@@ -954,22 +1073,65 @@ try {
   } finally {
     Math.random = originalRandom;
   }
+  const originalLocationSearch = window.location.search;
+  for (const search of ['?door=journal', '?niall=bus']) {
+    window.location.search = search;
+    const returningTraffic = await loadModule(
+      `returning-traffic-${search.includes('door') ? 'door' : 'niall'}`,
+      'js/overworld/bus-intro.ts',
+    );
+    returningTraffic.setupBusIntro();
+    assert.equal(returningTraffic.isBusIntroActive(), false, `${search} skips the arrival intro`);
+    const returningPlayer = { x: 100, y: 200, direction: 'down', frame: 0, animationTime: 0 };
+    returningTraffic.updateBusIntro(29.95, returningPlayer);
+    assert.deepEqual(returningTraffic.getRoadTrafficCars(), [], 'return traffic keeps the first-car delay');
+    returningTraffic.setupBusIntro();
+    returningTraffic.updateBusIntro(0.05, returningPlayer);
+    assert.equal(returningTraffic.getRoadTrafficCars().length, 1, `${search} starts traffic even without the intro`);
+    const carX = returningTraffic.getRoadTrafficCars()[0].x;
+    returningTraffic.updateBusIntro(1, returningPlayer);
+    assert.equal(returningTraffic.getRoadTrafficCars()[0].x, carX - 220, 'return traffic continues moving');
+    assert.equal(returningPlayer.x, 100);
+    assert.equal(returningPlayer.y, 200);
+  }
+  window.location.search = originalLocationSearch;
+  console.log('Road traffic: building and Niall returns spawn moving cars without replaying the intro');
   values.set('max-game:niall-quest-state', 'following');
   const niall = await loadModule('niall-bus-dialogue', 'js/characters/niall/niall.ts');
   niall.updateNiallInteraction(0, niall.NIALL_BUS_STOP.triggerX, niall.NIALL_BUS_STOP.triggerY);
   const niallNext = () => element('#niall-dialogue-next').listeners.get('click')();
   assert.equal(element('#niall-dialogue-line').textContent, 'Niall is rolling a cigarette');
+  assert.equal(niall.isNiallEncounterBlockingPlayer(), false, 'bus-stop dialogue lets the player walk away');
   niallNext();
   assert.equal(element('#niall-dialogue-line').textContent, 'Kept you waiting huh?');
+  assert.equal(niall.isNiallEncounterBlockingPlayer(), false, 'the second arrival line also permits movement');
   niallNext();
   assert.equal(element('#niall-dialogue').hidden, true, 'the bus-stop conversation ends after Niall’s two arrival lines');
   assert.notEqual(element('#niall-dialogue-line').textContent, "My pizza's are technically imperfect but free", 'Niall keeps the fight line out of bus-stop dialogue');
-  assert.equal(niall.isNiallEncounterBlockingPlayer(), true, 'Niall keeps the player in the bus-stop conversation until the final line advances');
   niallNext();
   assert.equal(element('#niall-dialogue').hidden, true);
   assert.equal(niall.isNiallEncounterBlockingPlayer(), false);
+  for (const advance of [false, true]) {
+    values.set('max-game:niall-quest-state', 'busStop');
+    const walkingNiall = await loadModule(`niall-walk-away-${advance}`, 'js/characters/niall/niall.ts');
+    walkingNiall.updateNiallInteraction(0, walkingNiall.NIALL_BUS_STOP.triggerX, walkingNiall.NIALL_BUS_STOP.triggerY);
+    assert.equal(element('#niall-dialogue').hidden, false);
+    if (advance) niallNext();
+    assert.equal(walkingNiall.isNiallEncounterBlockingPlayer(), false);
+    walkingNiall.updateNiallInteraction(0, walkingNiall.niallState.x - 65, walkingNiall.niallState.y);
+    assert.equal(element('#niall-dialogue').hidden, true, 'walking out of range dismisses either arrival line');
+    niallNext();
+    assert.equal(element('#niall-dialogue').hidden, true, 'leaving clears queued dialogue');
+    walkingNiall.updateNiallInteraction(0, walkingNiall.NIALL_BUS_STOP.triggerX, walkingNiall.NIALL_BUS_STOP.triggerY);
+    assert.equal(element('#niall-dialogue').hidden, true, 'returning does not immediately reopen the dismissed conversation');
+    assert.equal(values.get('max-game:niall-quest-state'), 'busStop', 'walking away preserves quest progress');
+  }
+  values.set('max-game:niall-quest-state', 'hostile');
+  const hostileNiall = await loadModule('niall-hostile-dialogue', 'js/characters/niall/niall.ts');
+  hostileNiall.updateNiallInteraction(0, hostileNiall.NIALL.x, hostileNiall.NIALL.y + 60);
+  assert.equal(hostileNiall.isNiallEncounterBlockingPlayer(), true, 'the fight alert still pauses movement');
   values.clear();
-  console.log('Niall bus stop: arrival, wait and pizza lines play in sequence');
+  console.log('Niall bus stop: both arrival lines allow movement, walking away dismisses them, quest progress and fight alerts are preserved');
   let resolveFixture;
   globalThis.fetch = () => new Promise((resolve) => { resolveFixture = resolve; });
   values.clear();
@@ -1030,7 +1192,7 @@ try {
   const approachAlex = () => npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
   leave(); approachAlex();
   assert.equal(values.has('max-game:inventory-gifts'), false);
-  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/alex-s/profile.png');
+  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/wheldon/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
@@ -1065,7 +1227,7 @@ try {
   assert.equal(profiles.profileImageSource('adam'), null);
   assert.equal(profiles.profileImageSource('Bochra'), null, 'a missing root portrait is intentional');
   assert.equal(profiles.profileImageSource('ed'), 'character-assets/ed/profile.png');
-  assert.equal(profiles.profileImageSource('Alex S'), 'character-assets/alex-s/profile.png');
+  assert.equal(profiles.profileImageSource('Alex S'), 'character-assets/wheldon/profile.png');
   assert.equal(profiles.profileImageSource('Helen'), 'character-assets/helen/profile.png');
   assert.equal(profiles.profileImageSource('marina d'), 'character-assets/marina-d/profile.png');
   for (const source of Object.values((await loadModule('profile-sources', 'js/generated/core/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {

@@ -1,6 +1,7 @@
 import { characterAsset } from '../core/character-assets.js';
 
 export interface BookshopNpc {
+  readonly id: string;
   readonly source: string;
   readonly x: number;
   readonly y: number;
@@ -12,13 +13,7 @@ export interface BookshopNpc {
 // the reading rug so they feel present without blocking shelves or the exit.
 export const BOOKSHOP_NPCS: readonly BookshopNpc[] = [
   {
-    source: `../${characterAsset('alex-w', 'mapSprite')}`,
-    x: 160,
-    y: 500,
-    width: 56,
-    height: 82,
-  },
-  {
+    id: 'helen',
     source: `../${characterAsset('helen', 'mapSprite')}`,
     x: 350,
     y: 505,

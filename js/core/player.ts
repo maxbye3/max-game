@@ -40,6 +40,8 @@ import { andyMovementMultiplier } from '../powers/andy/andy-power.js';
 import { isNiallBattleTransitionActive, isNiallEncounterBlockingPlayer, NIALL } from '../characters/niall/niall.js';
 import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
+import { getPlayerBody } from './player-body.js';
+import { GHOST_SPAWN } from '../overworld/road-accident-scene.js';
 
 const clampX = (x: number) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
 const clampY = (y: number) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
@@ -68,6 +70,7 @@ export const player: Player = {
   frame: 0,
   animationTime: 0,
 };
+if (getPlayerBody() === 'ghost') Object.assign(player, GHOST_SPAWN, { direction: 'down' });
 
 export const directionRows: Record<Direction, number> = {
   down: 0,
@@ -81,16 +84,19 @@ export const directionRows: Record<Direction, number> = {
 };
 
 function movePlayerWithCollisions(movementX: number, movementY: number): void {
+  const isGhost = getPlayerBody() === 'ghost';
   const steps = Math.max(1, Math.ceil(Math.max(Math.abs(movementX), Math.abs(movementY)) / 4));
   const stepX = movementX / steps;
   const stepY = movementY / steps;
 
   for (let step = 0; step < steps; step += 1) {
     const nextX = clampX(player.x + stepX);
-    if (!bumpSignAt(nextX, player.y) && (!playerCollidesAt(nextX, player.y) || isOscarTerrainEaten(nextX, player.y))) player.x = nextX;
+    const canMoveX = isGhost || (!bumpSignAt(nextX, player.y) && (!playerCollidesAt(nextX, player.y) || isOscarTerrainEaten(nextX, player.y)));
+    if (canMoveX) player.x = nextX;
 
     const nextY = clampY(player.y + stepY);
-    if (!bumpSignAt(player.x, nextY) && (!playerCollidesAt(player.x, nextY) || isOscarTerrainEaten(player.x, nextY))) player.y = nextY;
+    const canMoveY = isGhost || (!bumpSignAt(player.x, nextY) && (!playerCollidesAt(player.x, nextY) || isOscarTerrainEaten(player.x, nextY)));
+    if (canMoveY) player.y = nextY;
   }
 }
 

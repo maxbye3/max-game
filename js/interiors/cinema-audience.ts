@@ -1,7 +1,8 @@
+import { isTimAtCinema } from '../characters/tim/tim-location.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 
 interface CinemaAudienceView {
-  readonly openDialogue: (line: string, index: number, total: number) => void;
+  readonly openDialogue: (line: string, index: number, total: number, speaker: 'Tim' | 'cinema audience') => void;
   readonly closeDialogue: () => void;
 }
 
@@ -49,8 +50,12 @@ export class CinemaAudienceController {
     this.nearbyAudienceIndex = nextAudienceIndex;
     if (previousAudienceIndex !== null && dialogueOpen) this.view.closeDialogue();
     if (nextAudienceIndex !== null) {
+      if (nextAudienceIndex === 1 && isTimAtCinema()) {
+        this.view.openDialogue("can you not bother me right now? If your looking to help alex go south", 0, 1, 'Tim');
+        return;
+      }
       const { line, index } = this.nextDialogueLine();
-      this.view.openDialogue(line, index, DIALOGUE_LINES.length);
+      this.view.openDialogue(line, index, DIALOGUE_LINES.length, 'cinema audience');
     }
   }
 
