@@ -5,7 +5,7 @@ import { withOscarAppetite } from '../oscar/oscar-power-render.js';
 import { withNoelContract } from '../noel/noel-power-render.js';
 import { withAliceKit } from '../alice/alice-power-render.js';
 import { withMikeJoy } from '../mike/mike-power-render.js';
-import { withLucyPicnic } from '../lucy/lucy-power-render.js';
+import { withLucyMayo } from '../lucy/lucy-power-render.js';
 import { withKatieBreak } from '../katie/katie-power-render.js';
 import { withJulianSummoning } from '../julian/julian-power-render.js';
 import { withJuVibes } from '../ju/ju-power-render.js';
@@ -48,7 +48,7 @@ const powers: readonly { active: (now: number) => boolean; wrap: PowerWrapper }[
   { active: isJoePowerActive, wrap: (context, x, y, _height, id, draw, now) => withJoeHeat(context, x, y, id, draw, now) },
   { active: isJuPowerActive, wrap: (context, x, y, height, id, draw, now) => withJuVibes(context, x, y, height, id, draw, now) },
   { active: isJulianPowerActive, wrap: (context, x, y, height, id, draw, now) => withJulianSummoning(context, x, y, height, id, draw, now) },
-  { active: (now) => isLucyPowerActive(now) || isLucyCapEquipped(), wrap: (context, x, y, height, id, draw, now) => withLucyPicnic(context, x, y, height, id, draw, now) },
+  { active: (now) => isLucyPowerActive(now) || isLucyCapEquipped(), wrap: (context, x, y, height, id, draw, now) => withLucyMayo(context, x, y, height, id, draw, now) },
   { active: isMikePowerActive, wrap: (context, x, y, height, id, draw, now) => withMikeJoy(context, x, y, height, id, draw, now) },
   { active: isNoelPowerActive, wrap: (context, x, y, height, id, draw, now) => withNoelContract(context, x, y, height, id, draw, now) },
   { active: isKatiePowerActive, wrap: (context, x, y, height, id, draw, now) => withKatieBreak(context, x, y, height, id, draw, now) },

@@ -3,7 +3,7 @@ import { activateReiPower, reiPowerSecondsLeft, REI_POWER_DURATION, REI_POWER_RE
 import { activateNoelPower, isNoelPowerActive, noelAssetClaim, noelPowerReveal, noelPowerSecondsLeft, updateNoelAssessment, NOEL_POWER_DURATION } from '../powers/noel/noel-power.js';
 import { activateAlicePower, alicePowerReveal, alicePowerSecondsLeft, ALICE_POWER_DURATION } from '../powers/alice/alice-power.js';
 import { activateMikePower, mikePowerSecondsLeft, MIKE_POWER_REVEAL } from '../powers/mike/mike-power.js';
-import { activateLucyPower, isLucyCapEquipped, lucyHasEarnedCap, lucyPowerReveal, lucyPowerSecondsLeft, setLucyCapEquipped, LUCY_POWER_DURATION } from '../powers/lucy/lucy-power.js';
+import { activateLucyPower, isLucyCapEquipped, lucyPowerReveal, lucyPowerSecondsLeft, setLucyCapEquipped } from '../powers/lucy/lucy-power.js';
 import { activateKatiePower, katiePowerSecondsLeft, KATIE_POWER_DURATION, KATIE_POWER_REVEAL } from '../powers/katie/katie-power.js';
 import { activateJulianPower, julianPowerSecondsLeft, JULIAN_POWER_DURATION, julianPowerReveal } from '../powers/julian/julian-power.js';
 import { updateJulianPowerUi } from '../powers/julian/julian-power-ui.js';
@@ -16,7 +16,7 @@ import { activateChrisPower, chrisPowerSecondsLeft, CHRIS_POWER_DURATION, CHRIS_
 import { createGameAudio, focusPowerAudio, releaseGameAudio } from './audio-mute.js';
 import { POWER_THEME_SOURCES } from '../generated/core/power-themes.generated.js';
 import { requireElement } from './dom.js';
-import { addGift, hasGift, LUCY_SOLAR_CAP, getCollectedGifts, removeAllCollectedGifts, removeGift } from './inventory-gifts.js';
+import { hasGift, LUCY_SOLAR_CAP, getCollectedGifts, removeAllCollectedGifts, removeGift } from './inventory-gifts.js';
 import {
   activateKatyPower,
   katyPowerSecondsLeft,
@@ -381,9 +381,9 @@ function renderGiftItems(): void {
       } else if (item.id === 'lucy-item') {
         activateLucyPower();
         window.dispatchEvent(new Event('max-game:lucy-power-activated'));
-        playItemTheme(LUCY_THEME_SOURCE, true, LUCY_POWER_DURATION);
+        playItemTheme(LUCY_THEME_SOURCE, true);
         lucyPowerPendingReveal = true;
-        announce("Lucy's item activated.");
+        announce("Mayo god activated! Hold click or touch and drag on the game to squirt mayonnaise.");
         setInventoryOpen(false);
       } else {
         announce(`${item.name}: ${item.description}`);
@@ -579,7 +579,6 @@ export function updatePowerups(frameTime: number): void {
 
   if (lucyPowerPendingReveal && lucySecondsLeft === 0) {
     expiredDescriptions.push(lucyPowerReveal());
-    if (lucyHasEarnedCap()) addGift(LUCY_SOLAR_CAP);
     lucyPowerPendingReveal = false;
   }
 
@@ -637,7 +636,7 @@ export function updatePowerups(frameTime: number): void {
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (lucySecondsLeft > 0) {
-    const status = `Lucy power ${lucySecondsLeft.toFixed(1)}s`;
+    const status = `Mayo god ${lucySecondsLeft.toFixed(1)}s · Hold to spray`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (katieSecondsLeft > 0) {

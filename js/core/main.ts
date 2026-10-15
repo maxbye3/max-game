@@ -1,3 +1,4 @@
+import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isTimInputPowerActive, updateTimInputWorld } from '../powers/tim/tim-input-power.js';
 import { isReiPowerActive, reiWorldDeltaTime, updateReiWorld } from '../powers/rei/rei-power.js';
 import { isNoelPowerActive, updateNoelWorld } from '../powers/noel/noel-power.js';
@@ -143,6 +144,7 @@ function gameLoop(time: number): void {
 }
 
 setupInput();
+setupLucyPowerInput(canvas);
 const wheldonTestToggle = requireElement<HTMLButtonElement>('#wheldon-test-toggle');
 wheldonTestToggle.addEventListener('click', () => {
   const enabled = wheldonTestToggle.getAttribute('aria-pressed') !== 'true';

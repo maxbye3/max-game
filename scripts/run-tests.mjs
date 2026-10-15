@@ -706,63 +706,57 @@ try {
   assert.equal(katiePower.katiePowerSecondsLeft(12000), 10);
   console.log('Katie power: ten-second duration, smoke propagation, delayed frames, NPC reactions, world time and cleanup passed');
 
-  values.set('max-game:player-health', '50');
   const lucyPower = await loadModule('lucy-power', 'js/powers/lucy/lucy-power.ts');
   const lucyTargets = [
-    { id: 'love', x: 110, y: 100, height: 50 },
-    { id: 'puzzled', x: 120, y: 100, height: 50 },
-    { id: 'splash', x: 130, y: 100, height: 50 },
+    { id: 'aimed', x: 220, y: 100, height: 40 },
+    { id: 'missed', x: 220, y: 190, height: 40 },
+    { id: 'out-of-range', x: 900, y: 100, height: 40 },
+    { id: 'behind', x: 40, y: 100, height: 40 },
   ];
-  const lucyRolls = [0.49, 0.5, 0.75];
-  lucyPower.activateLucyPower(1000, () => lucyRolls.shift() ?? 0.99);
+  lucyPower.activateLucyPower(1000);
   assert.equal(lucyPower.isLucyPowerActive(999), false);
-  assert.equal(lucyPower.lucyPowerSecondsLeft(1000), 10);
-  lucyPower.updateLucyWorld(1000, 100, 100, lucyTargets);
-  assert.equal(lucyPower.getLucyGuests().length, 0, 'the wave has to reach actual characters');
-  lucyPower.updateLucyWorld(2000, 100, 100, lucyTargets);
-  assert.deepEqual(lucyPower.getLucyGuests().map((guest) => guest.reaction), ['delighted', 'puzzled', 'splattered']);
-  assert.equal(lucyPower.lucyMovementMultiplier(2000), 0.5, 'burst sachets temporarily slow the player');
-  assert.equal(lucyPower.lucyMovementMultiplier(3000), 1.5);
-  assert.equal(lucyPower.lucyCleaningBalance(), 12, 'a real charge survives the spectacle');
-  assert.equal(lucyPower.lucyHasEarnedCap(), true);
-  lucyPower.updateLucyWorld(2100, 100, 100, []);
-  lucyPower.updateLucyWorld(2200, 100, 100, lucyTargets);
-  assert.equal(lucyPower.lucyCleaningBalance(), 12, 'a temporarily removed character cannot bill twice');
-  lucyPower.updateLucyRecovery(2000, true);
-  assert.equal(Number(values.get('max-game:player-health')), 54, 'food healing is boosted and the earned cap adds sunlight recovery');
-  lucyPower.updateLucyRecovery(2000, true);
-  assert.equal(Number(values.get('max-game:player-health')), 54, 'duplicate frame updates do not double-heal');
-  const cake = lucyPower.getLucyPlates().find((plate) => !plate.savoury);
-  lucyPower.updateLucyWorld(4000, cake.x, cake.y, []);
-  assert.equal(lucyPower.lucyMovementMultiplier(4000), 0.5, 'inappropriate food halves movement rather than boosting it');
-  lucyPower.updateLucyRecovery(4000, false);
-  assert.equal(Number(values.get('max-game:player-health')), 56, 'inappropriate food halves nourishment and indoor caps cannot charge');
-  lucyPower.updateLucyRecovery(12000, false);
-  assert.equal(Number(values.get('max-game:player-health')), 63, 'late frames credit only the remaining seven active seconds');
-  assert.equal(lucyPower.lucyMovementMultiplier(11000), 1);
-  assert.deepEqual(lucyPower.lucyCharacterPose('love', 11000), { x: 0, y: 0, lean: 0, scale: 1 });
-  lucyPower.updateLucyWorld(11000, 100, 100, lucyTargets);
-  assert.equal(lucyPower.getLucyPlates().length, 0);
+  assert.equal(lucyPower.lucyPowerSecondsLeft(1000), 20);
+  lucyPower.updateLucyWorld(1000, 100, 100, lucyTargets, 40);
+  assert.equal(lucyPower.getLucyGuests().length, 0, 'characters are hit by aimed jets, not an automatic wave');
+  lucyPower.setLucyAim(1000, 80, true);
+  lucyPower.updateLucyWorld(1100, 100, 100, lucyTargets, 40);
+  assert.deepEqual(lucyPower.getLucyGuests().map((guest) => guest.id), ['aimed']);
+  const firstLucyJet = lucyPower.getLucyJets()[0];
+  assert.ok(Math.abs(Math.hypot(firstLucyJet.endX - firstLucyJet.x, firstLucyJet.endY - firstLucyJet.y) - 650) < 0.001, 'mayo jets have a finite world-space range');
+  assert.deepEqual(lucyPower.getLucyHitStats(), { hits: 1, characters: 1 });
+  lucyPower.updateLucyWorld(1100, 100, 100, lucyTargets, 40);
+  assert.equal(lucyPower.getLucyJets().length, 1, 'duplicate frames do not emit twice');
+  lucyPower.updateLucyWorld(1200, 100, 100, lucyTargets, 40);
+  assert.equal(lucyPower.getLucyHitStats().hits, 1, 'holding a jet cannot count the same splatter every frame');
+  lucyPower.setLucyAim(220, 170, true);
+  lucyPower.updateLucyWorld(1500, 100, 100, lucyTargets, 40);
+  assert.ok(lucyPower.getLucyGuest('missed'), 'changing aim hits a different character');
+  assert.deepEqual(lucyPower.getLucyHitStats(), { hits: 2, characters: 2 });
+  lucyPower.stopLucyFiring();
+  lucyPower.updateLucyWorld(1800, 100, 100, lucyTargets, 40);
+  assert.equal(lucyPower.getLucyJets().length, 0, 'releasing the pointer stops the stream');
+  lucyPower.updateLucyWorld(3600, 100, 100, lucyTargets, 40);
+  assert.equal(lucyPower.getLucyGuests().length, 0, 'splatter reactions expire');
+  lucyPower.setLucyAim(300, 80, true);
+  lucyPower.updateLucyWorld(20000, 100, 100, [{ ...lucyTargets[0], x: 300 }], 40);
+  assert.equal(lucyPower.getLucyGuest('aimed').x, 300, 'jets track a moving character at their current position');
+  assert.equal(lucyPower.getLucyJets().length, 1, 'a delayed frame does not create a projectile backlog');
+  lucyPower.updateLucyWorld(21000, 100, 100, lucyTargets, 40);
+  assert.equal(lucyPower.isLucyPowerActive(21000), false);
+  assert.equal(lucyPower.getLucyJets().length, 0);
   assert.equal(lucyPower.getLucyGuests().length, 0);
-  assert.equal(lucyPower.getLucyTrails().length, 0);
-  assert.match(lucyPower.lucyPowerReveal(), /1 delighted, 1 puzzled, 1 splattered/);
+  assert.equal(lucyPower.getLucyAim().firing, false);
+  assert.equal(lucyPower.lucyMovementMultiplier(), 1);
+  assert.deepEqual(lucyPower.lucyCharacterPose('aimed', 21000), { x: 0, y: 0, lean: 0, scale: 1 });
+  assert.match(lucyPower.lucyPowerReveal(), /mayo god.*twenty seconds/);
+  assert.match(lucyPower.lucyPowerReveal(), /2 characters with 3 hits/);
+  lucyPower.activateLucyPower(22000);
+  assert.deepEqual(lucyPower.getLucyHitStats(), { hits: 0, characters: 0 });
+  assert.equal(lucyPower.getLucyAim().firing, false, 'reactivation waits for a new deliberate shot');
   lucyPower.setLucyCapEquipped(true);
-  lucyPower.updateLucyRecovery(13000, false);
-  assert.equal(Number(values.get('max-game:player-health')), 63);
-  lucyPower.updateLucyRecovery(13250, true);
-  assert.equal(Number(values.get('max-game:player-health')), 63.25, 'a worn permanent reward charges outdoors after the picnic ends');
+  assert.equal(lucyPower.isLucyCapEquipped(), true, 'previously collected solar caps remain wearable');
   lucyPower.setLucyCapEquipped(false);
-  lucyPower.updateLucyRecovery(13500, true);
-  assert.equal(Number(values.get('max-game:player-health')), 63.25);
-  lucyPower.resetLucyRewards();
-  assert.equal(lucyPower.lucyCleaningBalance(), 0);
-  lucyPower.activateLucyPower(14000, () => 0.74);
-  assert.equal(lucyPower.lucyHasEarnedCap(), false);
-  lucyPower.updateLucyWorld(14000, 100, 100, []);
-  lucyPower.updateLucyWorld(15000, 100, 100, [lucyTargets[0]]);
-  assert.equal(lucyPower.getLucyGuests()[0].reaction, 'puzzled', 'the upper edge of the middle 25% remains puzzled');
-
-  console.log('Lucy power: gift odds, food effects, recovery, charges, cap, reactivation and ten-second cleanup passed');
+  console.log('Lucy power: aimed jets, misses, range, moving targets, repeat hits, release, expiry and reactivation passed');
 
   const mikePower = await loadModule('mike-power', 'js/powers/mike/mike-power.ts');
   const mikeTargets = [{ id: 'near', x: 220, y: 100, height: 52 }, { id: 'far', x: 2000, y: 100, height: 52 }];

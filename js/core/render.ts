@@ -1,3 +1,5 @@
+import { DOORWAYS } from './doors.js';
+import { updateLucyPointerView } from '../powers/lucy/lucy-power-input.js';
 import { drawTimPower, drawTimPowerGround, drawTimWorld } from '../powers/tim/tim-power-render.js';
 import { drawReiTerrain, drawReiGround, drawReiWorld } from '../powers/rei/rei-power-render.js';
 import { drawNoelTerrain, drawNoelGround, drawNoelWorld } from '../powers/noel/noel-power-render.js';
@@ -69,6 +71,7 @@ export function draw(time: number, worldTime = time): void {
   const { x: joltX, y: joltY } = samCameraJolt(time);
   const cameraX = Math.round(Math.max(0, Math.min(WORLD_WIDTH - canvas.width, cameraCenter.x - canvas.width / 2 + joltX)));
   const cameraY = Math.round(Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, cameraCenter.y - canvas.height / 2 + joltY)));
+  updateLucyPointerView(cameraX, cameraY);
   const worldDepth = drawWorldBackground(worldTime, cameraX, cameraY, player.y);
   drawRoadTraffic(cameraX, cameraY);
   drawOscarTerrain(context, cameraX, cameraY, time);
@@ -84,7 +87,7 @@ export function draw(time: number, worldTime = time): void {
   drawNoelGround(context, cameraX, cameraY, time);
   drawMikeTerrain(context, time);
   drawMikeGround(context, cameraX, cameraY, time);
-  drawLucyGround(context, cameraX, cameraY, time);
+  drawLucyGround(context, cameraX, cameraY, time, 1, 1, DOORWAYS);
   drawKatieGround(context, cameraX, cameraY, time);
   drawJulianGround(context, cameraX, cameraY, time);
   drawJuGround(context, cameraX, cameraY, time);
@@ -201,7 +204,7 @@ export function draw(time: number, worldTime = time): void {
   drawReiWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   drawNoelWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   drawMikeWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
-  drawLucyWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
+  drawLucyWorld(context, cameraX, cameraY, time);
   drawKatieWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   if (playerVisible) {
     drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, time);

@@ -1,3 +1,5 @@
+import { getPlayerSpriteFrame } from '../core/player-sprite.js';
+import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isTimInputPowerActive, timInputVector, updateTimInputWorld } from '../powers/tim/tim-input-power.js';
 import { isSamPowerActive, samMovementMultiplier, updateSamPower } from '../powers/sam/sam-power.js';
 import { isReiPowerActive, reiWorldDeltaTime, updateReiWorld, reiMovementMultiplier } from '../powers/rei/rei-power.js';
@@ -502,6 +504,7 @@ function bindControls(): void {
   });
   diaryLabFeatures.bind(openFeature, closeNoelDialogue);
   input.setup();
+  setupLucyPowerInput(canvas);
 }
 function updatePlayer(deltaTime: number): void {
   if (isAlexResurrectionUiBlocking()) { input.releaseAll(); player.animationTime = 0; player.frame = 0; return; }
@@ -618,7 +621,7 @@ function gameLoop(time: number): void {
   updateReiWorld(time, player.x, player.y, visibleKatieTargets);
   updateNoelWorld(time, player.x, player.y, visibleKatieTargets);
   updateMikeWorld(time, player.x, player.y, visibleKatieTargets);
-  updateLucyWorld(time, player.x, player.y, visibleKatieTargets);
+  updateLucyWorld(time, player.x, player.y, visibleKatieTargets, getPlayerSpriteFrame(SEAL_MODE, player.direction, player.frame, 2).height);
   updateKatieWorld(time, player.x, player.y, visibleKatieTargets);
   updateJulianWorld(time, player.x, player.y, visibleOscarTargets);
   updateOscarPower(time, player.x, player.y, OSCAR_INTERIOR_TARGETS, player.direction);

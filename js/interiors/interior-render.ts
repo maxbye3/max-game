@@ -1,3 +1,4 @@
+import { updateLucyPointerView } from '../powers/lucy/lucy-power-input.js';
 import { drawTimPower, drawTimPowerGround, drawTimWorld } from '../powers/tim/tim-power-render.js';
 import { drawSamPower, drawSamVictimEffects, drawSamWorldOverlay, drawSamTerrain, drawSamGround } from '../powers/sam/sam-power-render.js';
 import { drawReiTerrain, drawReiGround, drawReiWorld } from '../powers/rei/rei-power-render.js';
@@ -71,6 +72,7 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     // than the canvas (the cave) shows in full with no letterboxed black bars.
     const scaleX = canvas.width / viewportWidth;
     const scaleY = canvas.height / viewportHeight;
+    updateLucyPointerView(cameraX, cameraY, scaleX, scaleY);
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = '#0b0d0d';
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -99,7 +101,7 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     drawNoelGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawMikeTerrain(context, timeMs);
     drawMikeGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
-    drawLucyGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
+    drawLucyGround(context, cameraX, cameraY, timeMs, scaleX, scaleY, scene.doors);
     drawKatieGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawJulianGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawJuGround(context, cameraX, cameraY, timeMs, scaleX, scaleY);
@@ -289,7 +291,7 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     drawSamWorldOverlay(context, timeMs);
     drawNoelWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
     drawMikeWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
-    drawLucyWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight, false);
+    drawLucyWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawKatieWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
     context.save();
     context.scale(scaleX, scaleY);
