@@ -3,12 +3,11 @@ import { createGameAudio } from '../core/audio-mute.js';
 import { addGift, ANDY_ITEM, hasGift, PORTABLE_WALKMAN } from '../core/inventory-gifts.js';
 import { getSongArtwork, getUnlockedSongs, unlockSong } from './music-library.js';
 import { resolveSiteAsset } from '../core/site-assets.js';
-import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 
 const SPOTIFY_URL = 'https://open.spotify.com/artist/2YrF5w9qKkRINFpWCOtl6o';
 
 const ANDY_SONG = 'Too much duolingo';
-type AndyDialogueStage = 'none' | 'askMusic' | 'giveItem' | 'giveWalkman' | 'giveSong';
+type AndyDialogueStage = 'none' | 'startDialogue' | 'giveItem' | 'giveWalkman' | 'giveSong' | 'dialogue';
 
 export class MusicHouseDialogueController {
   private andyStage: AndyDialogueStage = 'none';
@@ -27,32 +26,26 @@ export class MusicHouseDialogueController {
   }
 
   start(kind: 'andy' | 'aliya'): void {
-    this.andyStage = kind === 'andy' ? 'askMusic' : 'none';
-    if (kind === 'andy') {
-      this.andyDialogueIndex = nextDialogueVisitIndex('andy', ANDY_DIALOGUE_LINES.length);
-      this.line.textContent = ANDY_DIALOGUE_LINES[this.andyDialogueIndex] ?? '';
-      this.progress.textContent = `${this.andyDialogueIndex + 1}/${ANDY_DIALOGUE_LINES.length}`;
-      this.progress.hidden = false;
-    } else {
-      this.line.textContent = "When is Andy done? It's my turn to DJ.";
-      this.progress.hidden = true;
-    }
+    this.andyStage = kind === 'andy' ? 'giveItem' : 'none';
+    this.andyDialogueIndex = 0;
+    this.line.textContent = kind === 'andy'
+      ? "Would you like to hear Max's music?"
+      : "When is Andy done? It's my turn to DJ.";
+    this.progress.hidden = true;
     this.confirmation.hidden = true;
-    this.nextButton.hidden = kind !== 'andy';
-    if (this.options) this.options.hidden = true;
+    this.nextButton.hidden = true;
+    if (this.options) this.options.hidden = kind !== 'andy';
   }
 
   next(): void {
-    if (this.andyStage === 'askMusic') {
-      this.andyStage = 'giveItem';
-      this.line.textContent = "Would you like to hear Max's music?";
-      this.progress.hidden = true;
-      this.nextButton.hidden = true;
-      if (this.options) this.options.hidden = false;
+    if (this.andyStage === 'dialogue') {
+      this.andyDialogueIndex += 1;
+      this.showAndyDialogue();
       return;
     }
     if (this.andyStage === 'giveWalkman') this.giveWalkman();
     else if (this.andyStage === 'giveSong') this.giveSong();
+    else if (this.andyStage === 'startDialogue') this.showAndyDialogue();
   }
 
   stop(): void {
@@ -99,7 +92,7 @@ export class MusicHouseDialogueController {
         this.andyStage = 'giveSong';
         this.giveSong();
       } else {
-        this.closeDialogue();
+        this.showAndyDialogue();
       }
       return;
     }
@@ -117,13 +110,13 @@ export class MusicHouseDialogueController {
   private prepareNextReward(): void {
     this.andyStage = !hasGift(PORTABLE_WALKMAN)
       ? 'giveWalkman'
-      : !getUnlockedSongs().includes(ANDY_SONG) ? 'giveSong' : 'none';
-    this.nextButton.hidden = this.andyStage === 'none';
+      : !getUnlockedSongs().includes(ANDY_SONG) ? 'giveSong' : 'startDialogue';
+    this.nextButton.hidden = false;
   }
 
   private giveSong(): void {
     if (this.andyStage !== 'giveSong') return;
-    this.andyStage = 'none';
+    this.andyStage = 'startDialogue';
     this.line.textContent = 'Here’s a song for you, too.';
     this.progress.hidden = true;
     this.confirmation.hidden = true;
@@ -144,7 +137,22 @@ export class MusicHouseDialogueController {
         void createGameAudio(resolveSiteAsset('audio/music-accepted.mp3')).play().catch(() => {});
       }
     }
-    this.nextButton.hidden = true;
+    this.nextButton.hidden = false;
     if (this.options) this.options.hidden = true;
   }
+
+  private showAndyDialogue(): void {
+    if (this.andyDialogueIndex >= ANDY_DIALOGUE_LINES.length) {
+      this.closeDialogue();
+      return;
+    }
+    this.andyStage = 'dialogue';
+    this.line.textContent = ANDY_DIALOGUE_LINES[this.andyDialogueIndex] ?? '';
+    this.progress.textContent = `${this.andyDialogueIndex + 1}/${ANDY_DIALOGUE_LINES.length}`;
+    this.progress.hidden = false;
+    this.confirmation.hidden = true;
+    this.nextButton.hidden = this.andyDialogueIndex === ANDY_DIALOGUE_LINES.length - 1;
+    if (this.options) this.options.hidden = true;
+  }
+
 }

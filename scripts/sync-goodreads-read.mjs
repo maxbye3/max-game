@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const FEED_URL = 'https://www.goodreads.com/review/list_rss/198385610?shelf=read';
 const OUTPUT_URL = new URL('../data/goodreads-read.json', import.meta.url);
@@ -14,9 +14,10 @@ function field(item, name) {
   return match ? clean(match[1]) : '';
 }
 
-const response = await fetch(FEED_URL, { headers: { 'user-agent': 'max-game-goodreads-sync/1.0' } });
+const response = await fetch(FEED_URL, { cache: 'no-store', signal: AbortSignal.timeout(30_000), headers: { 'user-agent': 'max-game-goodreads-sync/1.0' } });
 if (!response.ok) throw new Error(`Goodreads RSS request failed: ${response.status}`);
 const rss = await response.text();
+if (!/<rss[\s>]/i.test(rss) || !/<channel[\s>]/i.test(rss)) throw new Error('Goodreads returned invalid RSS');
 const reviews = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 30).map((match) => {
   const item = match[1];
   return {
@@ -25,6 +26,8 @@ const reviews = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 30).map(
     rating: Number(field(item, 'user_rating')) || 0, review: field(item, 'user_review'), url: field(item, 'link'),
   };
 }).filter((review) => review.title && review.url);
+if (/<item[\s>]/i.test(rss) && !reviews.length) throw new Error('Goodreads returned no usable reviews');
 await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-await writeFile(OUTPUT_URL, `${JSON.stringify({ updatedAt: new Date().toISOString(), reviews }, null, 2)}\n`);
+const previous = await readFile(OUTPUT_URL, 'utf8').then(JSON.parse).catch(() => null);
+if (JSON.stringify(previous?.reviews) !== JSON.stringify(reviews)) await writeFile(OUTPUT_URL, `${JSON.stringify({ updatedAt: new Date().toISOString(), reviews }, null, 2)}\n`);
 console.log(`Saved ${reviews.length} Goodreads reviews.`);

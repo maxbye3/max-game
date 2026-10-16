@@ -24,9 +24,6 @@ export function drawTattooGame(context: CanvasRenderingContext2D, game: TattooGa
   context.fillStyle = '#f1c393'; context.fillRect(367, 171, 35, 64);
   context.fillStyle = '#b77c58';
   for (let y = 185; y < 230; y += 13) context.fillRect(385, y, 14, 3);
-  context.font = '10px monospace'; context.fillStyle = '#c9f5a8';
-  context.fillText('CLIENT: FIRST TATTOO', 18, 25);
-  context.fillText('HALSTEAD / TRIBAL', 174, 123);
   context.save();
   context.strokeStyle = '#ae8599'; context.lineWidth = 4; context.lineJoin = 'miter';
   for (const path of TATTOO_STENCIL) {

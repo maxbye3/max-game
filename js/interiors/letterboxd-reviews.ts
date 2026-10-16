@@ -1,5 +1,5 @@
 import { reviews as savedReviews } from '../../data/letterboxd-reviews.json';
-import { fetchLatestLetterboxdReviews, readCachedLetterboxdReviews, type LetterboxdReview } from '../core/letterboxd-reviews.js';
+import { cacheLetterboxdReviews, fetchLatestLetterboxdReviews, readCachedLetterboxdReviews, type LetterboxdReview } from '../core/letterboxd-reviews.js';
 import { ReviewGalleryController, type ReviewGalleryItem } from './review-gallery.js';
 
 const toGalleryItem = (review: LetterboxdReview): ReviewGalleryItem => ({
@@ -43,6 +43,7 @@ export class LetterboxdReviewsController {
       initialReviews(),
       async (signal) => {
         const reviews = await fetchLatestLetterboxdReviews(`../data/letterboxd-reviews.json`, signal);
+        if (reviews && !signal.aborted) cacheLetterboxdReviews(reviews);
         return reviews?.map(toGalleryItem) ?? null;
       },
     );
@@ -53,7 +54,7 @@ export class LetterboxdReviewsController {
   }
 
   open(): void {
-    this.gallery.open(initialReviews());
+    this.gallery.open();
   }
 
   hide(): void {

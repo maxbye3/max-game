@@ -40,6 +40,7 @@ import { openAlexResurrectionChoice, openAlexToastDialogue, updateAlexResurrecti
 import { characterAsset, characterAssetOrNull } from './character-assets.js';
 
 const ITEM_THEME_DURATION = 10_000;
+const ADAM_THEME_SOURCE = characterAsset('adam', 'theme');
 const KATY_THEME_SOURCE = characterAsset('katy', 'theme');
 const LUCY_THEME_SOURCE = characterAsset('lucy', 'theme');
 const TIM_THEME_SOURCE = characterAsset('tim', 'theme');
@@ -348,7 +349,7 @@ function renderGiftItems(): void {
         announce("Ed's tattoo challenge: ink HALSTEAD in ten seconds.");
       } else if (item.id === 'adam-item') {
         activateAdamPower();
-        stopPowerMusic();
+        playItemTheme(ADAM_THEME_SOURCE);
         adamPowerPendingReveal = true;
         powerupStatus.textContent = 'Adam power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;

@@ -1,4 +1,4 @@
-export const TATTOO_DURATION = 10_000;
+export const TATTOO_DURATION = 12_000;
 export const TATTOO_WIDTH = 420;
 export const TATTOO_HEIGHT = 320;
 export interface TattooPoint { readonly x: number; readonly y: number }

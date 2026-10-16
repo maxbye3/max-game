@@ -4,13 +4,13 @@ import { readPng, writePng } from './png.mjs';
 
 const OUTPUTS = [
   {
-    source: 'character-assets/alex-w/avatar.png',
+    source: 'char/alex-w/avatar.png',
     target: 'img/generated/characters/alex-w-map-sprite.png',
     height: 82,
     threshold: 48,
   },
   {
-    source: 'character-assets/helen/avatar.png',
+    source: 'char/helen/avatar.png',
     target: 'img/generated/characters/helen-map-sprite.png',
     height: 84,
     threshold: 48,

@@ -20,17 +20,17 @@ try {
   tattoo.draw(TATTOO_STENCIL[0][0], 0);
   assert.equal(tattoo.strokes.length, 0, 'the needle is inactive before Start');
   tattoo.start(1000);
-  assert.equal(tattoo.secondsLeft(1000), 10);
+  assert.equal(tattoo.secondsLeft(1000), 12);
   for (const path of TATTOO_STENCIL) {
     for (const point of path) tattoo.draw(point, 2000);
     tattoo.lift();
   }
   assert.deepEqual(tattoo.result(), { score: 100, coverage: 100, accuracy: 100 }, 'tracing the Halstead lettering and tribal strokes earns full marks');
-  tattoo.update(10999);
+  tattoo.update(12999);
   assert.equal(tattoo.phase, 'drawing');
   const completedStrokes = tattoo.strokes.length;
-  tattoo.draw({ x: 120, y: 260 }, 11000);
-  assert.equal(tattoo.phase, 'finished', 'the needle stops at exactly ten seconds');
+  tattoo.draw({ x: 120, y: 260 }, 13000);
+  assert.equal(tattoo.phase, 'finished', 'the needle stops at exactly twelve seconds');
   assert.equal(tattoo.strokes.length, completedStrokes, 'ink after the deadline cannot change the tattoo');
   tattoo.start(20000);
   assert.deepEqual(tattoo.result(), { score: 0, coverage: 0, accuracy: 0 }, 'retry clears the previous tattoo');
@@ -979,12 +979,17 @@ try {
     return elements.get(selector);
   }
   globalThis.document = {
+    addEventListener() {},
+    removeEventListener() {},
     baseURI: 'http://localhost/',
     querySelectorAll: () => [],
     querySelector: (selector) => selector.startsWith('script') ? null : element(selector),
     createElement: (tag) => element(`${tag}-${Math.random()}`),
   };
   window.location = { href: 'http://localhost/' };
+  window.setInterval = () => 1;
+  window.clearInterval = () => {};
+  window.removeEventListener = () => {};
   window.dispatchEvent = () => {};
   window.addEventListener = () => {};
   const scheduledCallbacks = [];
@@ -995,7 +1000,7 @@ try {
   const ghostSprite = await loadModule('ghost-sprite', 'js/core/ghost-sprite.ts');
   const ghostSource = await loadModule('ghost-source', 'js/generated/core/ghost-sprite.generated.ts');
   assert.ok(ghostSource.GHOST_SPRITE_SOURCE.startsWith('data:image/png;base64,'), 'inline ghost images allow canvas pixel reads under file://');
-  assert.deepEqual(Buffer.from(ghostSource.GHOST_SPRITE_SOURCE.split(',')[1], 'base64'), await readFile('character-assets/player/ghost_sprite.png'), 'the inline ghost contains the original artwork');
+  assert.deepEqual(Buffer.from(ghostSource.GHOST_SPRITE_SOURCE.split(',')[1], 'base64'), await readFile('char/player/ghost_sprite.png'), 'the inline ghost contains the original artwork');
   const assetsSource = await readFile('js/core/assets.ts', 'utf8');
   assert.match(assetsSource, /ghostSpriteSheet: GHOST_SPRITE_SOURCE/, 'the game loads the origin-clean inline ghost');
   assert.equal(ghostSprite.getGhostSpriteFrame('left', 8, 1).sourceX, 181, 'late frames use ghost spacing rather than the normal 23px grid');
@@ -1248,7 +1253,7 @@ try {
   // Approach from Ed's east side so Adam's nearby interaction does not win.
   const approachEd = () => npcs.updateNpcInteractions(npcs.ED.x + 30, npcs.ED.y);
   approachEd();
-  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/ed/profile.png');
+  assert.equal(element('#npc-dialogue-profile').src, 'char/ed/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   assert.match(element('#npc-dialogue-line').textContent, /Halstead Court/);
   next();
@@ -1298,7 +1303,7 @@ try {
   const approachAlex = () => npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
   leave(); approachAlex();
   assert.equal(values.has('max-game:inventory-gifts'), false);
-  assert.equal(element('#npc-dialogue-profile').src, 'character-assets/wheldon/profile.png');
+  assert.equal(element('#npc-dialogue-profile').src, 'char/wheldon/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
@@ -1332,12 +1337,12 @@ try {
   const profiles = await loadModule('profile-images', 'js/core/profile-images.ts');
   assert.equal(profiles.profileImageSource('adam'), null);
   assert.equal(profiles.profileImageSource('Bochra'), null, 'a missing root portrait is intentional');
-  assert.equal(profiles.profileImageSource('ed'), 'character-assets/ed/profile.png');
-  assert.equal(profiles.profileImageSource('Alex S'), 'character-assets/wheldon/profile.png');
-  assert.equal(profiles.profileImageSource('Helen'), 'character-assets/helen/profile.png');
-  assert.equal(profiles.profileImageSource('marina d'), 'character-assets/marina-d/profile.png');
+  assert.equal(profiles.profileImageSource('ed'), 'char/ed/profile.png');
+  assert.equal(profiles.profileImageSource('Alex S'), 'char/wheldon/profile.png');
+  assert.equal(profiles.profileImageSource('Helen'), 'char/helen/profile.png');
+  assert.equal(profiles.profileImageSource('marina d'), 'char/marina-d/profile.png');
   for (const source of Object.values((await loadModule('profile-sources', 'js/generated/core/profile-images.generated.ts')).PROFILE_IMAGE_SOURCES)) {
-    assert.match(source, /^character-assets\/[^/]+\/profile\.(?:png|jpe?g)$/i);
+    assert.match(source, /^char\/[^/]+\/profile\.(?:png|jpe?g)$/i);
   }
   next();
   assert.match(element('#npc-dialogue-line').textContent, /2006 Champions League final/);
@@ -1358,9 +1363,11 @@ try {
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['adam-item']);
   assert.equal(values.has('max-game:unlocked-songs'), false);
 
-  // Andy gives his item, Walkman, then song; each reward checks its own ownership.
+  // Andy gives unclaimed rewards, then plays every line after either music choice.
   const { MusicHouseDialogueController } = await loadModule('music-house-dialogue', 'js/interiors/music-house-dialogue.ts');
-  window.open = () => {};
+  const andyLines = (await loadModule('andy-dialogue-flow', 'js/generated/dialogues/andy-dialogue.ts')).ANDY_DIALOGUE_LINES;
+  let spotifyOpens = 0;
+  window.open = () => { spotifyOpens += 1; };
   for (const accept of [false, true]) {
     for (let owned = 0; owned < 8; owned += 1) {
       values.clear();
@@ -1377,13 +1384,16 @@ try {
         element('#andy-confirmation'), () => { closed = true; controller.stop(); },
       );
       controller.start('andy');
-      controller.next();
+      assert.equal(element('#andy-line').textContent, "Would you like to hear Max's music?");
+      assert.equal(element('#andy-next').hidden, true);
       assert.equal(element('#music-dialogue-options').hidden, false);
+      const opensBefore = spotifyOpens;
       element(accept ? '#music-yes' : '#music-no').listeners.get('click')();
+      assert.equal(spotifyOpens - opensBefore, accept ? 1 : 0);
       const missing = [1, 2, 4].filter((flag) => !(owned & flag));
       for (let step = 0; step < missing.length; step += 1) {
         if (step > 0) controller.next();
-        assert.equal(element('#andy-next').hidden, step === missing.length - 1);
+        assert.equal(element('#andy-next').hidden, false);
         if (missing[step] === 1) assert.match(element('#andy-confirmation').textContent, /Andy's item was added/);
         if (missing[step] === 2) assert.match(element('#andy-confirmation').textContent, /portable walkman was added/);
         if (missing[step] === 4) assert.match(element('#andy-confirmation').textContent, /Too much duolingo was added to your music playlist/);
@@ -1391,7 +1401,17 @@ try {
           assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa']);
         }
       }
-      assert.equal(closed, owned === 7);
+      assert.equal(closed, false);
+      if (missing.length) controller.next();
+      for (let lineIndex = 0; lineIndex < andyLines.length; lineIndex += 1) {
+        assert.equal(element('#andy-line').textContent, andyLines[lineIndex]);
+        assert.equal(element('#andy-progress').textContent, `${lineIndex + 1}/${andyLines.length}`);
+        assert.equal(element('#andy-progress').hidden, false);
+        assert.equal(element('#andy-confirmation').hidden, true);
+        assert.equal(element('#music-dialogue-options').hidden, true);
+        assert.equal(element('#andy-next').hidden, lineIndex === andyLines.length - 1);
+        if (lineIndex < andyLines.length - 1) controller.next();
+      }
       assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')).sort(), ['andy-item', 'portable-walkman']);
       assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa', 'Too much duolingo']);
       controller.next();
@@ -1525,7 +1545,7 @@ try {
   let fileRequests = 0;
   globalThis.fetch = async () => { fileRequests += 1; throw new Error('Local file fetch blocked'); };
   reading.open();
-  assert.equal(gallery.children.length, savedShelf.length);
+  assert.equal(gallery.children.length, 1, 'Keep the most recently loaded shelf when offline');
   assert.equal(fileRequests, 0);
   reading.hide();
 
@@ -1534,7 +1554,7 @@ try {
     leave(); npcs.updateNpcInteractions(npc.x, npc.y);
     assert.equal(element('#npc-dialogue-line').textContent, `Hi there I'm ${npc.name}. This is my first line.`);
     assert.equal(element('#npc-dialogue-profile').hidden, false);
-    assert.match(element('#npc-dialogue-profile').src, new RegExp(`^character-assets/${npc.id}/profile\\.(png|jpg|jpeg)$`));
+    assert.match(element('#npc-dialogue-profile').src, new RegExp(`^char/${npc.id}/profile\\.(png|jpg|jpeg)$`));
     next();
     assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
     assert.equal(element('#npc-dialogue-next').hidden, false, 'Chris continues his lines after the item reward');

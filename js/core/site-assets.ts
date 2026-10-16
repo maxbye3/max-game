@@ -1,5 +1,5 @@
 /**
- * Resolves a root-relative asset path (e.g. 'character-assets/lucy/item.png') against the
+ * Resolves a root-relative asset path (e.g. 'char/lucy/item.png') against the
  * site root rather than the current page's own directory, so the same path
  * works whether it is loaded from the top-level index.html or a page nested
  * under a subdirectory like internal/index.html.

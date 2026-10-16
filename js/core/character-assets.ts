@@ -1,6 +1,6 @@
-import manifest from '../../character-assets/manifest.json';
+import manifest from '../../char/manifest.json';
 
-const ROOT = 'character-assets/';
+const ROOT = 'char/';
 
 export type CharacterId = keyof typeof manifest.characters;
 export type CharacterAssetKey = string;

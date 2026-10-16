@@ -13,11 +13,11 @@ const hash = (bytes) => createHash('sha256').update(bytes).digest('hex').slice(0
 await mkdir('img/web', { recursive: true });
 await mkdir('audio/powers', { recursive: true });
 const existingManifest = JSON.parse(await readFile('scripts/web-assets.manifest.json', 'utf8'));
-const characterManifest = JSON.parse(await readFile('character-assets/manifest.json', 'utf8'));
+const characterManifest = JSON.parse(await readFile('char/manifest.json', 'utf8'));
 const images = {};
 const manifest = { images: {}, themes: {}, fonts: existingManifest.fonts ?? {} };
 const prepared = new Set();
-const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'character-assets/katie/map-sprite.png': '208x208!' };
+const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'char/katie/map-sprite.png': '208x208!' };
 for (const path of Object.keys(existingManifest.images ?? {})) {
   if (prepared.has(path) || path.includes('collision')) continue;
   prepared.add(path);
@@ -47,7 +47,7 @@ async function prepareTheme(name, path, duration) {
   manifest.themes[path] = { sourceHash: hash(bytes), output };
 }
 for (const [id, character] of Object.entries(characterManifest.characters)) {
-  const path = character.files.theme && `character-assets/${character.directory}/${character.files.theme}`;
+  const path = character.files.theme && `char/${character.directory}/${character.files.theme}`;
   if (path && await stat(path).catch(() => null)) {
     await prepareTheme(id, path, id === 'sam' ? 13 : id === 'niall' ? 20 : 10);
   }

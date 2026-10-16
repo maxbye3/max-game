@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const FEED_URL = 'https://letterboxd.com/maxbye/rss/';
 const OUTPUT_URL = new URL('../data/letterboxd-reviews.json', import.meta.url);
@@ -25,9 +25,10 @@ function reviewText(description) {
     .trim();
 }
 
-const response = await fetch(FEED_URL, { headers: { 'user-agent': 'max-game-letterboxd-sync/1.0' } });
+const response = await fetch(FEED_URL, { cache: 'no-store', signal: AbortSignal.timeout(30_000), headers: { 'user-agent': 'max-game-letterboxd-sync/1.0' } });
 if (!response.ok) throw new Error(`Letterboxd RSS request failed: ${response.status}`);
 const rss = await response.text();
+if (!/<rss[\s>]/i.test(rss) || !/<channel[\s>]/i.test(rss)) throw new Error('Letterboxd returned invalid RSS');
 const reviews = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 30).map((match) => {
   const item = match[1];
   const description = field(item, 'description');
@@ -42,6 +43,8 @@ const reviews = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 30).map(
   };
 }).filter((review) => review.title && review.url && review.poster);
 
+if (/<item[\s>]/i.test(rss) && !reviews.length) throw new Error('Letterboxd returned no usable reviews');
 await mkdir(new URL('../data/', import.meta.url), { recursive: true });
-await writeFile(OUTPUT_URL, `${JSON.stringify({ updatedAt: new Date().toISOString(), reviews }, null, 2)}\n`);
+const previous = await readFile(OUTPUT_URL, 'utf8').then(JSON.parse).catch(() => null);
+if (JSON.stringify(previous?.reviews) !== JSON.stringify(reviews)) await writeFile(OUTPUT_URL, `${JSON.stringify({ updatedAt: new Date().toISOString(), reviews }, null, 2)}\n`);
 console.log(`Saved ${reviews.length} Letterboxd reviews.`);

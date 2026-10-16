@@ -11,11 +11,11 @@
     }
   },
   "characters": {
-    "adam": { "displayName": "Adam", "directory": "adam", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png" } },
+    "adam": { "displayName": "Adam", "directory": "adam", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "theme": "theme.mp3" } },
     "alex-s": { "displayName": "Alex S", "directory": "wheldon", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "alex-s-dialogue.txt", "item": "item.png", "profile": "profile.png", "theme": "theme.mp3", "wheldonSprite": "alex-sprite.png", "ghostWheldonSprite": "alex-ghost-sprite.png" } },
     "alex-w": { "displayName": "Alex W", "directory": "alex-w", "files": { "avatar": "avatar.png", "mapSprite": "map-sprite.png" } },
     "alice": { "displayName": "Alice", "directory": "alice", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
-    "andy": { "displayName": "Andy", "directory": "andy", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "Item.png", "mapSprite": "map-sprite.png", "overworldSprite": "overworld-sprite.png" } },
+    "andy": { "displayName": "Andy", "directory": "andy", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "Item.png", "mapSprite": "map-sprite.png", "overworldSprite": "overworld-sprite.png", "theme": "theme.mp3" } },
     "aliya": { "displayName": "Aliya", "directory": "aliya", "files": { "avatar": "avatar.png", "mapSprite": "map-sprite.png", "overworldSprite": "overworld-sprite.png" } },
     "bochra": { "displayName": "Bochra", "directory": "bochra", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "theme": "theme.mp3" } },
     "chris": { "displayName": "Chris", "directory": "chris", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },

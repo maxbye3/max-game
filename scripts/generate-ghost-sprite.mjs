@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 // An inline image keeps canvas pixel reads origin-clean when index.html is
 // opened through file://, where separate image files have opaque origins.
-const image = await readFile(new URL('../character-assets/player/ghost_sprite.png', import.meta.url));
+const image = await readFile(new URL('../char/player/ghost_sprite.png', import.meta.url));
 const outputDirectory = new URL('../js/generated/core/', import.meta.url);
 await mkdir(outputDirectory, { recursive: true });
 await writeFile(new URL('ghost-sprite.generated.ts', outputDirectory),

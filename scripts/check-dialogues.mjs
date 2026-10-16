@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
-const characterManifest = JSON.parse(await readFile(new URL('character-assets/manifest.json', root), 'utf8'));
+const characterManifest = JSON.parse(await readFile(new URL('char/manifest.json', root), 'utf8'));
 const sources = new Set();
 
 for (const name of await readdir(new URL('js/', root), { recursive: true })) {
@@ -10,7 +10,11 @@ for (const name of await readdir(new URL('js/', root), { recursive: true })) {
   const generated = await readFile(new URL(`js/${name}`, root), 'utf8');
   const source = /^\/\/ Generated from (.+)\. Run npm run generate:dialogues after editing it\./.exec(generated)?.[1];
   if (!source) continue;
-  assert.match(source, /^character-assets\/[^/]+\/dialogue\.txt$/, `${name} must use the character's root dialogue file`);
+  if (name === 'generated/dialogues/alex-s-dialogue.ts') {
+    assert.equal(source, 'char/wheldon/alex-s-dialogue.txt');
+  } else {
+    assert.match(source, /^char\/[^/]+\/dialogue\.txt$/, `${name} must use the character's root dialogue file`);
+  }
   const text = await readFile(new URL(source, root), 'utf8');
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const array = /export const \w+_DIALOGUE_LINES = (\[[\s\S]*\]) as const;/.exec(generated)?.[1];
@@ -20,7 +24,7 @@ for (const name of await readdir(new URL('js/', root), { recursive: true })) {
 }
 
 for (const character of Object.values(characterManifest.characters)) {
-  const source = `character-assets/${character.directory}/dialogue.txt`;
+  const source = `char/${character.directory}/dialogue.txt`;
   let text;
   try {
     text = await readFile(new URL(source, root), 'utf8');

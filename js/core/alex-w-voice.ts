@@ -55,5 +55,5 @@ export function playDoughnutReturnVoice(): void {
   // Consume the arrival cue so refreshing the map does not repeat the line.
   url.searchParams.delete('doughnut');
   window.history.replaceState(null, '', url);
-  playAlexVoice('character-assets/alex-w/sounds/dognuts-eaten.m4a');
+  playAlexVoice('char/alex-w/sounds/dognuts-eaten.m4a');
 }

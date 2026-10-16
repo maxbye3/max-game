@@ -76,6 +76,7 @@ import { webImageSource } from '../core/web-images.js';
 import { WHELDON_DIALOGUE_LINES } from '../generated/dialogues/wheldon-dialogue.js';
 import { DadDialogueController } from '../characters/dad/dad-dialogue-controller.js';
 import { createInteriorRenderer } from './interior-render.js';
+import { CharityDialogueController, isCharityNpc } from './charity-dialogue.js';
 const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal'); const doorLoading = requireElement<HTMLElement>('#door-loading');
 const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt');
 const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
@@ -97,7 +98,7 @@ const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-clos
 const wheldonNoButton = requireElement<HTMLButtonElement>('#wheldon-no');
 const wheldonYesButton = requireElement<HTMLButtonElement>('#wheldon-yes');
 const possessAlexButton = requireElement<HTMLButtonElement>('#possess-room-alex');
-const wheldonHungryAudio = createGameAudio('../character-assets/alex-w/sounds/hungry.m4a');
+const wheldonHungryAudio = createGameAudio('../char/alex-w/sounds/hungry.m4a');
 const FRAME_COUNT = SEAL_MODE ? 8 : 9;
 const SPEED = 145;
 const enteredDoor = searchParams.get('door');
@@ -134,6 +135,11 @@ const gymNpcs = GYM_NPCS.map((npc) => ({ ...npc, image: new Image() }));
 const timCinemaSeat = isCinemaInterior && isTimAtCinema() ? new Image() : null;
 const cinemaNpcs = isCinemaInterior ? [{ id: 'dad', source: `../${characterAsset('dad', 'avatar')}`, x: 398, y: 462, width: 48, height: 72, image: new Image() }] : [];
 interior.src = webImageSource(scene.backgroundSource);
+const interiorFrames = scene.backgroundAnimation?.sources.map((source) => {
+  const image = new Image();
+  image.src = webImageSource(source);
+  return image;
+}) ?? [];
 if (SHOW_COLLISION_SHAPES && scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
 if (scene.doorOverlaySource) doorOverlay.src = webImageSource(scene.doorOverlaySource);
 const playerSpriteSource = ghostWheldonPlayer ? characterAsset('alex-s', 'ghostWheldonSprite') : wheldonPlayer ? characterAsset('alex-s', 'wheldonSprite') : SEAL_MODE ? `${playerAsset('sealSpriteSheet')}?v=20260831-transparent` : playerAsset('spriteSheet');
@@ -188,6 +194,10 @@ const katieSceneryTargets = (isDiaryLabInterior ? diaryRoomNpcs : isGymInterior 
 const KATIE_INTERIOR_TARGETS = [...katieSceneryTargets, ...OSCAR_INTERIOR_TARGETS.filter((target) => !katieSceneryTargets.some((npc) => npc.id === target.id))]
   .map((target) => ({ ...target, height: target.id === 'noel' ? NOEL.height : target.id === 'wheldon' ? WHELDON.height : target.id === 'josh' ? JOSH.height : target.id === 'siblings' ? CAVE_SIBLINGS.height : target.id === 'lucy' ? 75 : target.height }));
 const input = new DirectionInputController({ canHold: () => doorLoading.hidden && !doughnutShop?.eating && !isAlexResurrectionUiBlocking() });
+const charityDialogue = new CharityDialogueController({
+  dialogue: noelDialogue, speaker: noelSpeaker, line: noelDialogueLine,
+  profile: noelDialogueProfile, progress: noelDialogueProgress, next: noelDialogueNext,
+}, () => { openNoelDialogue(false); interactionPrompt.hidden = true; }, closeNoelDialogue);
 const dadDialogue = new DadDialogueController(
   () => { input.releaseAll(); openNoelDialogue(); },
   () => openFeature('movies'),
@@ -376,6 +386,7 @@ function chooseNoelGame(accept: boolean): void {
   showNextNoelReward();
 }
 function closeNoelDialogue(): void {
+  charityDialogue.stop();
   endDialogueAudio(); caveSiblings?.closeDialogue();
   joshDialogue.stop();
   noelDialogueOpen = false;
@@ -596,6 +607,7 @@ function startDadDialogue(): void {
   dadDialogue.start(); interactionPrompt.hidden = true;
 }
 function activateNearbyInteraction(): void {
+  if (isCharityNpc(nearbyInteraction)) { if (!noelDialogueOpen) charityDialogue.start(nearbyInteraction); return; }
   if (nearbyInteraction === 'noel') startNoelDialogue();
   else if (nearbyInteraction === 'wheldon') startWheldonDialogue();
   else if (nearbyInteraction === 'josh') startJoshDialogue();
@@ -643,6 +655,7 @@ function bindControls(): void {
   });
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
   noelDialogueNext.addEventListener('click', () => {
+    if (isCharityNpc(nearbyInteraction)) { charityDialogue.next(); return; }
     if (nearbyInteraction === 'lucy') lucy?.next();
     else if (nearbyInteraction === 'helen') {
       if (helenDialogueLineIndex < HELEN_DIALOGUE_LINES.length - 1) { helenDialogueLineIndex += 1; showHelenDialogue(); }
@@ -782,6 +795,8 @@ function updateNearbyInteraction(): void {
   const previousInteraction = nearbyInteraction;
   nearbyInteraction = nextInteraction;
   if (noelDialogueOpen && nextInteraction) closeNoelDialogue();
+  if (isCharityNpc(previousInteraction) && !nextInteraction && noelDialogueOpen) closeNoelDialogue();
+  if (isCharityNpc(nextInteraction)) { charityDialogue.start(nextInteraction); return; }
   if (previousInteraction === 'siblings' && nextInteraction !== 'siblings') {
     caveSiblings?.leaveRange();
   }
@@ -814,7 +829,7 @@ function updateNearbyInteraction(): void {
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
 const draw = createInteriorRenderer({
-  scene, player, sealMode: SEAL_MODE, collision, interior, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda,
+  scene, player, sealMode: SEAL_MODE, collision, interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda,
   diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat,
   caveSiblings, lucy, interiorDoors, getCaveColanderHeld: () => caveColanderHeld,
 });
@@ -876,6 +891,7 @@ document.querySelector('.interior-exit')?.addEventListener('click', (event) => {
 setupJump();
 const requiredImages = [
   interior,
+  ...interiorFrames,
   spriteSheet,
   ghostSpriteSheet,
   ...(SHOW_COLLISION_SHAPES && scene.collisionMaskSource ? [collisionMask] : []),

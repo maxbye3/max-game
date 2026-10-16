@@ -23,11 +23,13 @@
     "sync:letterboxd": "node scripts/sync-letterboxd-reviews.mjs",
     "watch": "npm run generate:source && npm run clean:dist && esbuild js/core/main.ts js/interiors/internal.ts js/characters/niall/niall-fight.ts js/core/transform.ts --bundle --outdir=dist --entry-names=[name]-bundle --format=iife --watch",
     "pretest": "npm run generate:typescript",
-    "test": "node scripts/run-tests.mjs && node scripts/check-web-performance.mjs",
+    "test": "node scripts/test-content-refresh.mjs && node scripts/run-tests.mjs && node scripts/check-web-performance.mjs",
     "pretypecheck": "npm run generate:typescript",
     "typecheck": "tsc --noEmit",
     "prebundle": "npm run generate:source",
-    "check:dialogues": "node scripts/check-dialogues.mjs"
+    "check:dialogues": "node scripts/check-dialogues.mjs",
+    "sync:photos": "node scripts/sync-google-photos.mjs",
+    "sync:content": "node scripts/sync-content.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

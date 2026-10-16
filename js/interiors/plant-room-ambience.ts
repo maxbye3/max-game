@@ -3,26 +3,34 @@ import { createGameAudio, hasPowerAudioFocus } from '../core/audio-mute.js';
 import { ambienceSourceForDoor, carriedAmbienceFor, rememberAmbience } from '../core/ambient-theme.js';
 
 export function setupInteriorAmbience(doorId: string | null): void {
-  const source = ambienceSourceForDoor(doorId);
+  const source = doorId === 'music-shop' ? 'audio/music-house/theme.mp3' : ambienceSourceForDoor(doorId);
   if (!source || !doorId) return;
 
   const carried = carriedAmbienceFor(doorId);
   const ambience = createGameAudio(`../${source}`);
-  ambience.loop = true;
-  ambience.preload = 'none';
+  const tracks = doorId === 'job-center'
+    ? [ambience, createGameAudio('../audio/charity/theme.mp3')]
+    : [ambience];
+  for (const track of tracks) {
+    track.loop = true;
+    track.preload = 'none';
+  }
   if (carried?.source === source) ambience.currentTime = carried.currentTime;
 
   const setVolume = (): void => {
-    ambience.volume = hasDialogueAudioFocus() ? 0.5 : 1;
+    for (const track of tracks) track.volume = hasDialogueAudioFocus() ? 0.5 : 1;
   };
 
+  const pause = (): void => { tracks.forEach((track) => track.pause()); };
   const start = (): void => {
-    if (hasPowerAudioFocus() || document.hidden) { ambience.pause(); return; }
+    if (hasPowerAudioFocus() || document.hidden || (doorId === 'music-shop' && hasDialogueAudioFocus('Andy'))) { pause(); return; }
     setVolume();
-    if (!ambience.paused) return;
-    void ambience.play().catch(() => {
-      // A browser may require the first movement or tap before it can begin.
-    });
+    for (const track of tracks) {
+      if (!track.paused) continue;
+      void track.play().catch(() => {
+        // A browser may require the first movement or tap before it can begin.
+      });
+    }
   };
 
   window.addEventListener('keydown', start);
@@ -33,13 +41,13 @@ export function setupInteriorAmbience(doorId: string | null): void {
   });
   window.addEventListener('max-game:power-audio-focus', start);
   window.addEventListener('max-game:temporary-audio-focus', (event) => {
-    if ((event as CustomEvent<boolean>).detail) ambience.pause();
+    if ((event as CustomEvent<boolean>).detail) pause();
     else start();
   });
   document.addEventListener('visibilitychange', start);
   window.addEventListener('pagehide', () => {
     rememberAmbience(doorId, source, ambience.currentTime);
-    ambience.pause();
+    pause();
   }, { once: true });
   start();
 }

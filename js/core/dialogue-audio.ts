@@ -10,6 +10,7 @@ theme.preload = 'none';
 theme.volume = 0.75;
 
 let dialogueHasAudioFocus = false;
+let dialogueSpeaker: string | null = null;
 let themeStopTimer: number | null = null;
 let dialogueAudioSession = 0;
 
@@ -34,6 +35,7 @@ export function beginDialogueAudio(name?: string, prefix = ''): void {
   const session = dialogueAudioSession;
   cancelThemeStop();
   dialogueHasAudioFocus = true;
+  dialogueSpeaker = name?.trim().toLowerCase() ?? null;
   const source = name && !hasPowerAudioFocus() ? themeSourceFor(name) : null;
   if (!source) {
     theme.pause();
@@ -68,13 +70,14 @@ export function endDialogueAudio(): void {
   dialogueAudioSession += 1;
   cancelThemeStop();
   dialogueHasAudioFocus = false;
+  dialogueSpeaker = null;
   theme.pause();
   theme.currentTime = 0;
   notifyAudioFocusChanged();
 }
 
-export function hasDialogueAudioFocus(): boolean {
-  return dialogueHasAudioFocus;
+export function hasDialogueAudioFocus(name?: string): boolean {
+  return dialogueHasAudioFocus && (name === undefined || dialogueSpeaker === name.trim().toLowerCase());
 }
 
 export function bindPowerDialogueDismissal(closeDialogue: () => void): void {

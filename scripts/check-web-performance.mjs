@@ -50,10 +50,10 @@ try {
   assert.equal(listeners.size, 0);
 
   const { POWER_THEME_SOURCES } = await moduleFor('power-themes.generated');
-  const characterManifest = JSON.parse(await readFile('character-assets/manifest.json', 'utf8'));
+  const characterManifest = JSON.parse(await readFile('char/manifest.json', 'utf8'));
   for (const character of Object.values(characterManifest.characters)) {
     if (!character.files.theme) continue;
-    const source = `character-assets/${character.directory}/${character.files.theme}`;
+    const source = `char/${character.directory}/${character.files.theme}`;
     assert.ok((await stat(source)).size > 0, `missing power soundtrack: ${source}`);
     if (POWER_THEME_SOURCES[source]) assert.ok((await stat(POWER_THEME_SOURCES[source])).size < 300_000, 'prepared power music stays bounded');
   }
@@ -65,7 +65,7 @@ try {
   }
   const { webImageSource } = await moduleFor('web-images');
   assert.equal(webImageSource('../img/external/overworld.png?v=old'), `../${imageSource('img/external/overworld.png')}`);
-  assert.equal(webImageSource('../character-assets/bochra/profile.jpg'), '../character-assets/bochra/profile.jpg');
+  assert.equal(webImageSource('../char/bochra/profile.jpg'), '../char/bochra/profile.jpg');
 
   const stylesheet = await readFile('style.css', 'utf8');
   for (const [, font] of stylesheet.matchAll(/url\("(fonts\/[^"]+\.woff2)"\)/g)) {
@@ -87,20 +87,20 @@ try {
   };
   const { loadAssets } = await moduleFor('assets');
   await loadAssets();
-  assert.ok(!sources.includes(imageSource('character-assets/siblings/girls-sprite.png')));
+  assert.ok(!sources.includes(imageSource('char/siblings/girls-sprite.png')));
   assert.ok(!sources.includes(imageSource('img/external/mike-aftermath.png')));
-  assert.ok(!sources.includes(imageSource('character-assets/player/seal-game.png')));
+  assert.ok(!sources.includes(imageSource('char/player/seal-game.png')));
   assert.ok(sources.includes(imageSource('img/external/billboard-unfinished.png')));
   Image.stallDecode = true;
   await loadAssets();
   Image.stallDecode = false;
   sources.length = 0; storage.set('max-game:mike-aftermath', 'true'); window.location.search = '?seal=1';
   await loadAssets(true);
-  assert.ok(sources.includes(imageSource('character-assets/siblings/girls-sprite.png')));
+  assert.ok(sources.includes(imageSource('char/siblings/girls-sprite.png')));
   assert.ok(sources.includes(imageSource('img/external/mike-aftermath.png')));
-  assert.ok(sources.includes(imageSource('character-assets/player/seal-game.png')));
-  assert.ok(!sources.includes(imageSource('character-assets/mike/overworld-avatar.png')));
-  assert.ok(sources.includes(imageSource('character-assets/rei/overworld-avatar.png')), 'Rei remains visible after the quest');
+  assert.ok(sources.includes(imageSource('char/player/seal-game.png')));
+  assert.ok(!sources.includes(imageSource('char/mike/overworld-avatar.png')));
+  assert.ok(sources.includes(imageSource('char/rei/overworld-avatar.png')), 'Rei remains visible after the quest');
   // The permanent solar cap must still render after temporary powers expire.
   window.localStorage.setItem = (key, value) => storage.set(key, value);
   const characterFile = join(directory, 'character-render.mjs');

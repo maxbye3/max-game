@@ -21,6 +21,7 @@ const JUMP_DESTINATIONS: readonly JumpDestination[] = [
   { id: 'diary-lab-center', label: 'Diary Lab' },
   { id: 'music-shop', label: 'Music House' },
   { id: 'gym', label: 'Gym' },
+  { id: 'job-center', label: 'Charity' },
   { id: 'artist-studio', label: 'Art Studio' },
   { id: 'cinema', label: 'Cinema' },
   { id: 'bookshop', label: 'Bookshop' },

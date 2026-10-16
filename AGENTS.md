@@ -8,7 +8,7 @@
 - The external overworld entry point is `js/main.ts`.
 - The diary lab interior entry point is `js/internal.ts`.
 - Game constants and map/building coordinates are in `js/config.ts`.
-- Original image, audio, font, and character assets live under `img/`, `audio/`, `fonts/`, and `character-assets/`.
+- Original image, audio, font, and character assets live under `img/`, `audio/`, `fonts/`, and `char/`.
 - Generated TypeScript lives under `js/generated/`; optimized images under `img/web/`; generated character/battle art under `img/generated/` and `img/battle/`; generated audio under `audio/powers/`; and browser bundles under `dist/`. These are build outputs and should be recreated by the npm scripts rather than hand-edited.
 
 ## Commands
@@ -29,9 +29,9 @@
 
 ## Character dialogue portraits
 
-- Only use a portrait file directly in `character-assets/<character>/`: `profile.png`, `profile.jpg`, or `profile.jpeg`.
+- Only use a portrait file directly in `char/<character>/`: `profile.png`, `profile.jpg`, or `profile.jpeg`.
 - If that folder has no profile file, show no portrait. Absence is intentional, not a missing asset to fill in.
-- Never fall back to `/player`, `/example`, `character-assets/real`, avatars, item art, or another character's picture.
+- Never fall back to `/player`, `/example`, `char/real`, avatars, item art, or another character's picture.
 - Apply this rule to every character, not character-specific exceptions. Keep `scripts/generate-profiles.mjs` and its generated mapping consistent with it.
 - When wiring up a character, check their root folder and test both portrait-present and portrait-absent behavior.
 

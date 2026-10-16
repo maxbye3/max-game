@@ -1,4 +1,5 @@
-import { requireElement } from '../core/dom.js';
+import { requireElement } from '../core/elements.js';
+import { ContentRefresh } from '../core/content-refresh.js';
 
 export interface ReviewGalleryItem {
   readonly title: string;
@@ -41,16 +42,24 @@ export class ReviewGalleryController {
   private readonly review: HTMLElement;
   private readonly link: HTMLAnchorElement;
   private readonly counter: HTMLElement;
-  private reviews: readonly ReviewGalleryItem[] = [];
+  private reviews: readonly ReviewGalleryItem[];
   private currentIndex = 0;
-  private request: AbortController | null = null;
+  private readonly refresh: ContentRefresh;
+  private pending: readonly ReviewGalleryItem[] | null = null;
 
   constructor(
     private readonly config: ReviewGalleryConfig,
     private readonly onClose: () => void,
-    private readonly initialReviews: readonly ReviewGalleryItem[],
-    private readonly loadLatest: (signal: AbortSignal) => Promise<readonly ReviewGalleryItem[] | null>,
+    initialReviews: readonly ReviewGalleryItem[],
+    loadLatest: (signal: AbortSignal) => Promise<readonly ReviewGalleryItem[] | null>,
   ) {
+    this.reviews = initialReviews;
+    this.refresh = new ContentRefresh(async (signal) => {
+      const latest = await loadLatest(signal);
+      if (!latest || signal.aborted || !this.isOpen()) return;
+      if (this.lightbox.open) this.pending = latest;
+      else this.showReviews(latest);
+    });
     this.panel = requireElement<HTMLElement>(`#${config.panelId}`);
     this.status = requireElement<HTMLElement>(`#${config.statusId}`);
     this.list = requireElement<HTMLElement>(`#${config.listId}`);
@@ -93,35 +102,29 @@ export class ReviewGalleryController {
     return !this.panel.hidden;
   }
 
-  open(reviews = this.initialReviews): void {
+  open(reviews = this.reviews): void {
     this.panel.hidden = false;
     this.closeButton.focus();
-    void this.loadLatestReviews(reviews);
+    this.showReviews(reviews);
+    this.refresh.start();
   }
 
   hide(): void {
-    this.request?.abort();
+    this.refresh.stop();
     this.panel.hidden = true;
     if (this.lightbox.open) this.lightbox.close();
-  }
-
-  private async loadLatestReviews(reviews: readonly ReviewGalleryItem[]): Promise<void> {
-    this.request?.abort();
-    const request = new AbortController();
-    this.request = request;
-    this.showReviews(reviews);
-    const latest = await this.loadLatest(request.signal);
-    if (!latest || request.signal.aborted || !this.isOpen() || this.lightbox.open) return;
-    this.showReviews(latest);
+    this.applyPending();
   }
 
   private showReviews(reviews: readonly ReviewGalleryItem[]): void {
+    if (JSON.stringify(reviews) === JSON.stringify(this.reviews) && this.list.children.length) return;
+    const scrollTop = this.list.scrollTop;
     const thumbnails = reviews.map((review, index) => this.createThumbnail(review, index));
     this.reviews = reviews;
     this.list.replaceChildren(...thumbnails);
     this.status.textContent = `No ${this.config.itemNoun} to show yet. Try the full ${this.config.itemNoun} profile below.`;
     this.status.hidden = reviews.length > 0;
-    this.list.scrollTop = 0;
+    this.list.scrollTop = scrollTop;
   }
 
   private createThumbnail(review: ReviewGalleryItem, index: number): HTMLButtonElement {
@@ -160,8 +163,15 @@ export class ReviewGalleryController {
     this.lightbox.scrollTop = 0;
   }
 
+  private applyPending(): void {
+    if (this.pending === null) return;
+    this.showReviews(this.pending);
+    this.pending = null;
+  }
+
   private closeLightbox(): void {
     this.lightbox.close();
+    this.applyPending();
     this.list.querySelectorAll<HTMLButtonElement>('button')[this.currentIndex]?.focus();
   }
 

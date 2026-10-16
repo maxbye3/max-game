@@ -10,7 +10,7 @@ function star(context: CanvasRenderingContext2D, x: number, y: number, size: num
   if (size > 3) { context.fillRect(x - 2, y - 2, 4, 4); context.fillStyle = '#fffef1'; context.fillRect(x - 1, y - 1, 2, 2); }
 }
 function itemImage(): HTMLImageElement {
-  palette ??= new Image(); if (!palette.src) palette.src = resolveSiteAsset('character-assets/rei/item-2.png'); return palette;
+  palette ??= new Image(); if (!palette.src) palette.src = resolveSiteAsset('char/rei/item-2.png'); return palette;
 }
 
 export function withReiPower(context: CanvasRenderingContext2D, x: number, y: number, height: number, id: string, draw: () => void, now: number): void {

@@ -43,9 +43,10 @@ import {
   MANSION_COLLISION_ROWS,
 } from '../generated/interiors/mansion-collision-mask.js';
 import { isTimAtCinema, isTimAtMusicShop } from '../characters/tim/tim-location.js';
+import type { CharityNpc } from './charity-dialogue.js';
 
-export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio' | 'doughnutShop';
-export type InteractionKind = 'noel' | 'wheldon' | 'josh' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad' | 'minnie' | 'buzz' | 'tigger' | 'socks';
+export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio' | 'doughnutShop' | 'charity';
+export type InteractionKind = CharityNpc | 'noel' | 'wheldon' | 'josh' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad' | 'minnie' | 'buzz' | 'tigger' | 'socks';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -87,6 +88,7 @@ export interface InteriorScene {
   readonly height: number;
   readonly sourceScale: number;
   readonly backgroundSource: string;
+  readonly backgroundAnimation?: { readonly sources: readonly string[]; readonly frameDurationMs: number };
   readonly collisionMaskSource?: string;
   readonly doorOverlaySource?: string;
   readonly collision?: CollisionGrid;
@@ -147,6 +149,20 @@ export const DOUGHNUT_SHOP_WALLS = [
   [0, 674, 212, 94], [300, 674, 212, 94],
   [163, 350, 186, 124],
 ] as const;
+
+export const CHARITY_WALLS = [
+  [0, 0, 512, 265],
+  [0, 265, 28, 370], [480, 265, 32, 370],
+  [28, 265, 161, 150], [395, 265, 85, 235],
+  [28, 530, 60, 105], [424, 530, 56, 105],
+  [0, 635, 512, 133],
+] as const;
+
+const CHARITY_DOORS: readonly InteriorDoor[] = [{
+  triggerX: 256, triggerY: 630, openDistance: 85, exitX: 256, exitY: 685,
+  sourceX: 0, sourceY: 40, sourceWidth: 1024, sourceHeight: 1294,
+  x: 205, y: 602, width: 102, height: 126,
+}];
 
 const DIARY_LAB_DOORS: readonly InteriorDoor[] = [
   {
@@ -209,7 +225,7 @@ const ART_STUDIO_DOORS: readonly InteriorDoor[] = [{
 }];
 
 const DOUGHNUT_SHOP_DOORS: readonly InteriorDoor[] = [{
-  triggerX: 256, triggerY: 660, exitX: 256, exitY: 700,
+  triggerX: 256, triggerY: 660, openDistance: 90, exitX: 256, exitY: 700,
   sourceX: 0, sourceY: 40, sourceWidth: 1024, sourceHeight: 1294,
   x: 212, y: 569, width: 88, height: 103,
 }];
@@ -264,6 +280,26 @@ const MANSION_COLLISION: CollisionGrid = {
 };
 
 export function getInteriorScene(enteredDoor: string | null): InteriorScene {
+  if (enteredDoor === 'job-center') {
+    return {
+      kind: 'charity', title: 'Charity', ariaLabel: 'Charity interior',
+      width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, sourceScale: 2,
+      backgroundSource: '../img/internal/charity/bg-1.png',
+      doorOverlaySource: '../img/internal/doughnuts/door-open.png',
+      backgroundAnimation: {
+        sources: [1, 2, 3].map((frame) => `../img/internal/charity/bg-${frame}.png`),
+        frameDurationMs: 200,
+      },
+      doors: CHARITY_DOORS,
+      interactions: [
+        { kind: 'charity-cook', label: 'Talk to the man cooking', x: 420, y: 425, distance: 86 },
+        { kind: 'charity-computer', label: 'Talk to the man on the computer', x: 125, y: 355, distance: 86 },
+        { kind: 'charity-teacher', label: 'Talk to the woman behind the counter', x: 256, y: 260, distance: 70 },
+      ],
+      playerStart: { x: 256, y: 600 },
+    };
+  }
+
   if (enteredDoor === CAVE_DOOR_ID || enteredDoor === 'cave') {
     return {
       kind: 'cave', title: 'Cave', ariaLabel: 'Cave interior',

@@ -1,5 +1,5 @@
 const ARSENAL_TEAM_ID = '133604';
-const NEXT_EVENT_URL = `https://www.thesportsdb.com/api/v1/json/3/eventsnext.php?id=${ARSENAL_TEAM_ID}`;
+const NEXT_EVENT_URL = `https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=${ARSENAL_TEAM_ID}`;
 const CACHE_DURATION_MS = 5 * 60 * 1000;
 
 interface SportsDbEvent {

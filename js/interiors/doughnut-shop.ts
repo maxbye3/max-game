@@ -10,7 +10,7 @@ export class DoughnutShopController {
   constructor(private readonly returnUrl: () => string, private readonly releaseInput: () => void) {}
 
   enter(): void {
-    this.stopEntranceVoice = playAlexVoice('../character-assets/alex-w/sounds/entering-doghnut-house.m4a', () => {
+    this.stopEntranceVoice = playAlexVoice('../char/alex-w/sounds/entering-doghnut-house.m4a', () => {
       this.entranceFinished = true;
     });
   }
@@ -31,7 +31,7 @@ export class DoughnutShopController {
     document.body.append(blackout);
     const shell = document.querySelector<HTMLElement>('.game-shell');
     if (shell) shell.inert = true;
-    playAlexVoice('../character-assets/alex-w/sounds/yumyum.m4a', () => {
+    playAlexVoice('../char/alex-w/sounds/yumyum.m4a', () => {
       setAlexEatenDoughnut(true);
       const url = new URL(this.returnUrl(), window.location.href);
       url.searchParams.set('doughnut', 'eaten');

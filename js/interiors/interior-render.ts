@@ -45,6 +45,7 @@ interface InteriorRenderOptions {
   sealMode: boolean;
   collision: InteriorCollision;
   interior: HTMLImageElement; collisionMask: HTMLImageElement; doorOverlay: HTMLImageElement;
+  interiorFrames: readonly HTMLImageElement[];
   spriteSheet: HTMLImageElement; ghostSpriteSheet: HTMLImageElement; noelSprite: HTMLImageElement; joshSprite: HTMLImageElement; siblingsSprite: HTMLImageElement; gardenPanda: HTMLImageElement;
   musicDjMachine: HTMLImageElement; gymGloves: HTMLImageElement;
   timCinemaSeat: HTMLImageElement | null;
@@ -82,8 +83,11 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.save();
     const interiorSourceScale = scene.sourceScale;
+    const background = scene.backgroundAnimation && options.interiorFrames.length > 0
+      ? options.interiorFrames[Math.floor(timeMs / scene.backgroundAnimation.frameDurationMs) % options.interiorFrames.length]!
+      : interior;
     context.drawImage(
-      interior,
+      background,
       cameraX * interiorSourceScale,
       cameraY * interiorSourceScale,
       viewportWidth * interiorSourceScale,

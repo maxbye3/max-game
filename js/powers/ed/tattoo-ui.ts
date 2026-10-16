@@ -1,4 +1,4 @@
-import { TattooGame, TATTOO_HEIGHT, TATTOO_WIDTH, type TattooPoint } from './tattoo-game.js';
+import { TattooGame, TATTOO_DURATION, TATTOO_HEIGHT, TATTOO_WIDTH, type TattooPoint } from './tattoo-game.js';
 import { drawTattooGame } from './tattoo-render.js';
 import { announceWorldInteraction } from '../../core/world-interactions.js';
 
@@ -15,13 +15,13 @@ export function openEdTattooGame(onStart: () => void, onClose: () => void): void
   windowElement.className = 'tattoo-dialog';
   windowElement.setAttribute('aria-labelledby', 'tattoo-title');
   windowElement.innerHTML = `
-    <header class="tattoo-header"><div><p>ED'S TATTOO PARLOUR</p><h2 id="tattoo-title">Ten seconds. One tattoo.</h2></div><button class="tattoo-close" type="button" aria-label="Close tattoo game">×</button></header>
-    <p class="tattoo-instructions">Ink HALSTEAD and its gloriously tacky tribal spikes. Hold and drag the gun over the pale stencil on your client's arm.</p>
-    <div class="tattoo-hud"><span>NEEDLE TIME <strong class="tattoo-timer">10.0s</strong></span><span>DESIGN <strong>HALSTEAD / tribal</strong></span></div>
-    <progress class="tattoo-time" value="10" max="10" aria-label="Seconds remaining"></progress>
+    <header class="tattoo-header"><div><p>ED'S TATTOO PARLOUR</p><h2 id="tattoo-title">Objective</h2></div><button class="tattoo-close" type="button" aria-label="Close tattoo game">×</button></header>
+    <p class="tattoo-instructions">Hold and drag the gun over the pale stencil on your client's arm.</p>
+    <div class="tattoo-hud"><span>NEEDLE TIME <strong class="tattoo-timer">${(TATTOO_DURATION / 1000).toFixed(1)}s</strong></span><span>DESIGN <strong>HALSTEAD / FOUR CULTURES</strong></span></div>
+    <progress class="tattoo-time" value="${TATTOO_DURATION / 1000}" max="${TATTOO_DURATION / 1000}" aria-label="Seconds remaining"></progress>
     <canvas class="tattoo-canvas" width="420" height="320" aria-label="Client's arm with HALSTEAD lettering and a spiky tribal stencil. Hold and drag to tattoo it."></canvas>
     <p class="tattoo-result" role="status" aria-live="polite">Your client is ready. The clock starts when you press Start.</p>
-    <button class="tattoo-start" type="button">Start tattoo · 10 seconds</button>`;
+    <button class="tattoo-start" type="button">Start tattoo · ${TATTOO_DURATION / 1000} seconds</button>`;
   document.body.append(windowElement);
   const canvas = windowElement.querySelector<HTMLCanvasElement>('canvas')!;
   const context = canvas.getContext('2d')!;
