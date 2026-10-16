@@ -14,8 +14,6 @@ import { NIALL_DIALOGUE_LINES } from '../../generated/dialogues/niall-dialogue.j
 import type { Direction } from '../../core/types.js';
 import { beginDialogueAudio, endDialogueAudio } from '../../core/dialogue-audio.js';
 import { prependPlayerReaction } from '../../core/player-dialogue.js';
-import { addGift, NIALL_ITEM } from '../../core/inventory-gifts.js';
-import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from '../../powers/ed/ed-power.js';
 import { isSamTargetRecoiling } from '../../powers/sam/sam-power.js';
 import { setProfileImage } from '../../core/profile-images.js';
 
@@ -101,11 +99,6 @@ function startBusDialogue(arrival: boolean): void {
   busDialogueActive = true;
   busDialogueLines = arrival ? ['Niall is rolling a cigarette', 'Kept you waiting huh?'] : [];
   showDialogue(busDialogueLines.shift() ?? '...');
-  if (edPowerSecondsLeft() > 0) {
-    showHalsteadTattoo('Niall');
-    addGift(NIALL_ITEM);
-    chargeEdGift(NIALL_ITEM);
-  }
 }
 
 function startFight(): void {

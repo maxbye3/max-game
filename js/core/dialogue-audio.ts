@@ -78,7 +78,7 @@ export function hasDialogueAudioFocus(): boolean {
 }
 
 export function bindPowerDialogueDismissal(closeDialogue: () => void): void {
-  for (const name of ['alice', 'chris', 'dan', 'georgia', 'helen', 'joe', 'ju', 'julian', 'katie', 'lucy', 'oscar', 'tim', 'sam', 'rei', 'noel', 'mike']) {
+  for (const name of ['ed', 'alice', 'chris', 'dan', 'georgia', 'helen', 'joe', 'ju', 'julian', 'katie', 'lucy', 'oscar', 'tim', 'sam', 'rei', 'noel', 'mike']) {
     window.addEventListener(`max-game:${name}-power-activated`, closeDialogue);
   }
 }

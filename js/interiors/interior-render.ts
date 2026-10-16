@@ -24,7 +24,6 @@ import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { drawSceneryNpcs } from './interior-scenery-npcs.js';
 import { drawMaddyTeaPower, drawMaddyTeaWorldOverlay } from '../powers/maddy/maddy-tea-power.js';
-import { drawEdPower } from '../powers/ed/ed-power.js';
 import { adamJumpOffset, adamPowerSecondsLeft, drawAdamPower, drawAdamShadow } from '../powers/adam/adam-power.js';
 import { drawOscarPower, drawOscarWorldBites, drawOscarTerrain, drawOscarWorld } from '../powers/oscar/oscar-power-render.js';
 import { isOscarEaten } from '../powers/oscar/oscar-power.js';
@@ -335,7 +334,6 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     context.save();
     context.scale(scaleX, scaleY);
     drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, timeMs);
-    drawEdPower(context, player.x - cameraX, player.y - cameraY);
     drawAdamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, SEAL_MODE);
     drawSamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, timeMs);
     drawTimPower(context, player.x - cameraX, player.y - cameraY, timeMs, adamHeight);

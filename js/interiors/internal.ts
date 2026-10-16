@@ -1,3 +1,5 @@
+import { isAlexPlayer } from '../core/player-character.js';
+import { getTimCinemaDialogue } from '../characters/tim/tim-cinema-dialogue.js';
 import { getPlayerSpriteFrame } from '../core/player-sprite.js';
 import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isTimInputPowerActive, timInputVector, updateTimInputWorld } from '../powers/tim/tim-input-power.js';
@@ -43,7 +45,7 @@ import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { setupInventory, updatePowerups } from '../core/inventory.js';
 import { maddyWorldDeltaTime } from '../powers/maddy/maddy-tea-power.js';
-import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from '../powers/ed/ed-power.js';
+import { isEdTattooOpen } from '../powers/ed/tattoo-ui.js';
 import { niallSpeedMultiplier } from '../powers/niall/niall-speed-power.js';
 import { adamAirStrideMultiplier } from '../powers/adam/adam-power.js';
 import { isOscarEaten, isOscarPowerActive, isOscarTerrainEaten, oscarMovementMultiplier, updateOscarPower, settleOscarDigestion } from '../powers/oscar/oscar-power.js';
@@ -261,8 +263,10 @@ const cinemaAudience = isCinemaInterior
       noelDialogueLine.textContent = line;
       if (speaker === 'Tim') {
         const south = document.createElement('mark');
-        south.textContent = 'south';
-        noelDialogueLine.replaceChildren(line.slice(0, -south.textContent.length), south);
+        south.textContent = getTimCinemaDialogue()?.highlight ?? 'south';
+        south.className = 'dialogue-highlight';
+        const start = line.indexOf(south.textContent);
+        noelDialogueLine.replaceChildren(line.slice(0, start), south, line.slice(start + south.textContent.length));
       }
       noelDialogueProgress.textContent = `${index + 1}/${total}`;
       noelDialogueProgress.hidden = speaker === 'Tim';
@@ -406,7 +410,7 @@ function closeNoelDialogue(): void {
   interactionPrompt.hidden = nearbyInteraction === null || isCharacterInteraction(nearbyInteraction);
 }
 function startAlexJournalOffer(): void {
-  if (getPlayerBody() !== 'player' || !isWheldonPlayerSpriteEnabled() || !hasAlexEatenDoughnut()) return;
+  if (!isAlexPlayer() || !hasAlexEatenDoughnut()) return;
   openNoelDialogue();
   noelSpeaker.textContent = 'Alex';
   noelDialogueProfile.hidden = true;
@@ -422,6 +426,7 @@ function startAlexJournalOffer(): void {
   requireElement<HTMLButtonElement>('#alex-journal-yes').focus();
 }
 function openAlexJournal(): void {
+  if (!isAlexPlayer()) return;
   alexJournalOptions.hidden = true;
   noelDialogue.hidden = true;
   journalGallery.open();
@@ -524,7 +529,7 @@ function showHelenReadingOffer(): void {
     noelGiftConfirmation.hidden = false;
   }
 }
-function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); openNoelDialogue(); beginDialogueAudio('Helen', '../'); helenDialogueLineIndex = nextDialogueVisitIndex('helen', HELEN_DIALOGUE_LINES.length); helenReadingOfferPending = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; helenReadingOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; if (edPowerSecondsLeft() > 0) { showHalsteadTattoo('Helen'); addGift(HELEN_ITEM); chargeEdGift(HELEN_ITEM); } }
+function startHelenDialogue(): void { if (nearbyInteraction !== 'helen' || noelDialogueOpen) return; input.releaseAll(); openNoelDialogue(); beginDialogueAudio('Helen', '../'); helenDialogueLineIndex = nextDialogueVisitIndex('helen', HELEN_DIALOGUE_LINES.length); helenReadingOfferPending = true; noelSpeaker.textContent = 'Helen'; setProfileImage(noelDialogueProfile, 'Helen', '../'); showHelenDialogue(); noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; helenReadingOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true; }
 function openFeature(kind: 'diary' | 'experiments' | 'reading' | 'movies'): void {
   input.releaseAll(); endDialogueAudio();
   openNoelDialogue(false);
@@ -585,7 +590,7 @@ function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
 }
 function startGymNpcDialogue(kind: 'julian' | 'tim'): void {
   if (nearbyInteraction !== kind || noelDialogueOpen) return; input.releaseAll(); openNoelDialogue();
-  beginDialogueAudio(kind === 'julian' ? 'Julian' : 'Tim', '../'); const npc = gymNpcDialogue.start(kind); noelSpeaker.textContent = npc.name; noelDialogueProfile.src = npc.profileSource ?? ''; noelDialogueProfile.alt = npc.profileSource ? `${npc.name} profile` : ''; noelDialogueProfile.hidden = !npc.profileSource;
+  beginDialogueAudio(kind === 'julian' ? 'Julian' : 'Tim', '../'); const npc = gymNpcDialogue.start(kind, isCinemaInterior); noelSpeaker.textContent = npc.name; noelDialogueProfile.src = npc.profileSource ?? ''; noelDialogueProfile.alt = npc.profileSource ? `${npc.name} profile` : ''; noelDialogueProfile.hidden = !npc.profileSource;
   noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true;
 }
 function startDadDialogue(): void {
@@ -753,14 +758,16 @@ function updateNearbyInteraction(): void {
   if (isCinemaInterior) {
     const previousInteraction = nearbyInteraction;
     const target = INTERACTION_TARGETS
+      .filter((interaction) => !isOscarEaten(interaction.kind))
       .map((interaction) => ({ ...interaction, playerDistance: Math.hypot(player.x - interaction.x, player.y - interaction.y) }))
       .filter((interaction) => interaction.playerDistance <= interaction.distance)
       .sort((first, second) => first.playerDistance - second.playerDistance)[0];
     nearbyInteraction = target?.kind ?? null;
+    if (nearbyInteraction !== previousInteraction && noelDialogueOpen) closeNoelDialogue();
     if (nearbyInteraction === 'dad' && previousInteraction !== 'dad') startDadDialogue();
     if (target) interactionPrompt.textContent = target.label;
     interactionPrompt.hidden = true;
-    cinemaAudience?.update(player.x, player.y, noelDialogueOpen);
+    cinemaAudience?.update(player.x, player.y, noelDialogueOpen, target !== undefined);
     return;
   }
   const target = INTERACTION_TARGETS
@@ -821,7 +828,7 @@ function gameLoop(time: number): void {
   previousTime = time;
   if (doughnutShop?.eating) return;
   updatePowerups(time);
-  if (isThoughtsOpen()) { draw(time, worldAnimationTime); return; }
+  if (isThoughtsOpen() || isEdTattooOpen()) { draw(time, worldAnimationTime); return; }
   if (!isKatiePowerActive(time)) settleGeorgiaFlight(player, flightLandingBlocked, FLIGHT_BOUNDS, time);
   let visibleKatieTargets = KATIE_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
   let visibleOscarTargets = OSCAR_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));

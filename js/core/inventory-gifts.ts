@@ -127,7 +127,7 @@ export const ED_ITEM: GiftItem = {
   id: 'ed-item',
   name: "Ed's item",
   imageSource: characterAsset('ed', 'item'),
-  description: 'This power has no time limit. When the protagonist speaks to Helen or Niall or Tim or Max the items they give you are doubled in effectiveness (if possible) and last twice as long. Also, they show you their Halstead tattoos as part of the interaction.',
+  description: "Opens Ed's tattoo parlour. You have ten seconds to ink a gloriously tacky HALSTEAD tribal tattoo onto your client's arm.",
 };
 
 export const ADAM_ITEM: GiftItem = {

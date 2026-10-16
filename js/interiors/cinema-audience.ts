@@ -1,3 +1,4 @@
+import { getTimCinemaDialogue } from '../characters/tim/tim-cinema-dialogue.js';
 import { isTimAtCinema } from '../characters/tim/tim-location.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 
@@ -39,7 +40,11 @@ export class CinemaAudienceController {
 
   constructor(private readonly view: CinemaAudienceView) {}
 
-  update(playerX: number, playerY: number, dialogueOpen: boolean): void {
+  update(playerX: number, playerY: number, dialogueOpen: boolean, characterNearby = false): void {
+    if (characterNearby) {
+      this.nearbyAudienceIndex = null;
+      return;
+    }
     const nextAudienceIndex = AUDIENCE
       .map((member, index) => ({ index, distance: Math.hypot(playerX - member.x, playerY - member.y) }))
       .filter(({ distance }) => distance <= INTERACTION_DISTANCE)
@@ -51,7 +56,8 @@ export class CinemaAudienceController {
     if (previousAudienceIndex !== null && dialogueOpen) this.view.closeDialogue();
     if (nextAudienceIndex !== null) {
       if (nextAudienceIndex === 1 && isTimAtCinema()) {
-        this.view.openDialogue("can you not bother me right now? If your looking to help alex go south", 0, 1, 'Tim');
+        const hint = getTimCinemaDialogue();
+        this.view.openDialogue(hint ? hint.opening + hint.highlight + hint.ending : "can you not bother me right now? If your looking to help alex go south", 0, 1, 'Tim');
         return;
       }
       const { line, index } = this.nextDialogueLine();

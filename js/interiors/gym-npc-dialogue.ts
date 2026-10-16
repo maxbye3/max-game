@@ -3,8 +3,9 @@ import { TIM_DIALOGUE_LINES } from '../generated/dialogues/tim-dialogue.js';
 import { addGift, hasGift, JULIAN_ITEM, nextGiftLine, TIM_ITEM, type GiftItem } from '../core/inventory-gifts.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 import { WorkoutGalleryController } from './workout-gallery.js';
-import { chargeEdGift, edPowerSecondsLeft, showHalsteadTattoo } from '../powers/ed/ed-power.js';
 import { characterAsset } from '../core/character-assets.js';
+import { getTimCinemaDialogue, type TimCinemaDialogue } from '../characters/tim/tim-cinema-dialogue.js';
+import { isAlexPlayer } from '../core/player-character.js';
 
 export type GymNpcId = 'julian' | 'tim';
 
@@ -32,6 +33,7 @@ export class GymNpcDialogueController {
   private lineIndex = 0;
   private pendingGiftLine: string | null = null;
   private journalOfferPending = false;
+  private cinemaDialogue: TimCinemaDialogue | null = null;
   private readonly journalOptions = document.querySelector<HTMLElement>('#tim-workout-journal-options');
   private readonly dialogue = document.querySelector<HTMLElement>('#noel-dialogue');
   private readonly workoutGallery: WorkoutGalleryController;
@@ -50,25 +52,22 @@ export class GymNpcDialogueController {
     document.querySelector<HTMLButtonElement>('#tim-workout-journal-neh')?.addEventListener('click', () => this.giveGift());
   }
 
-  start(id: GymNpcId): GymNpcChat {
+  start(id: GymNpcId, atCinema = false): GymNpcChat {
     const npc = GYM_NPC_CHATS[id];
     this.active = npc;
-    this.lineIndex = nextDialogueVisitIndex(npc.id, npc.dialogueLines.length);
-    this.pendingGiftLine = hasGift(npc.item) ? null : nextGiftLine();
-    this.journalOfferPending = id === 'julian' && this.pendingGiftLine !== null;
+    this.cinemaDialogue = id === 'tim' && atCinema ? getTimCinemaDialogue() : null;
+    this.lineIndex = this.cinemaDialogue ? 0 : nextDialogueVisitIndex(npc.id, npc.dialogueLines.length);
+    this.pendingGiftLine = this.cinemaDialogue || hasGift(npc.item) ? null : nextGiftLine();
+    this.journalOfferPending = id === 'julian' && isAlexPlayer() && this.pendingGiftLine !== null;
     if (this.journalOptions) this.journalOptions.hidden = true;
     this.workoutGallery.hide();
     this.confirmation.hidden = true;
     this.showLine();
-    if (id === 'tim' && edPowerSecondsLeft() > 0) {
-      showHalsteadTattoo('Tim');
-      if (hasGift(TIM_ITEM)) chargeEdGift(TIM_ITEM);
-    }
     return npc;
   }
 
   next(): void {
-    if (!this.active) return;
+    if (!this.active || this.cinemaDialogue) return;
     if (this.journalOfferPending) {
       this.journalOfferPending = false;
       this.line.textContent = "hey wanna see Max's work out journal";
@@ -88,6 +87,7 @@ export class GymNpcDialogueController {
 
   stop(): void {
     this.active = null;
+    this.cinemaDialogue = null;
     this.pendingGiftLine = null;
     this.journalOfferPending = false;
     if (this.journalOptions) this.journalOptions.hidden = true;
@@ -99,6 +99,15 @@ export class GymNpcDialogueController {
   private showLine(): void {
     if (!this.active) return;
     this.confirmation.hidden = true;
+    if (this.cinemaDialogue) {
+      const highlight = document.createElement('mark');
+      highlight.className = 'dialogue-highlight';
+      highlight.textContent = this.cinemaDialogue.highlight;
+      this.line.replaceChildren(this.cinemaDialogue.opening, highlight, this.cinemaDialogue.ending);
+      this.progress.hidden = true;
+      this.nextButton.hidden = true;
+      return;
+    }
     this.line.textContent = this.active.dialogueLines[this.lineIndex] ?? '';
     this.progress.textContent = `${this.lineIndex + 1}/${this.active.dialogueLines.length}`;
     this.progress.hidden = this.active.dialogueLines.length === 0;
@@ -106,6 +115,7 @@ export class GymNpcDialogueController {
   }
 
   private showJournal(): void {
+    if (this.active?.id !== 'julian' || this.journalOptions?.hidden !== false || !isAlexPlayer()) return;
     if (this.journalOptions) this.journalOptions.hidden = true;
     if (this.dialogue) this.dialogue.hidden = true;
     this.workoutGallery.open();
@@ -117,7 +127,6 @@ export class GymNpcDialogueController {
     this.line.textContent = this.pendingGiftLine;
     this.pendingGiftLine = null;
     const added = addGift(this.active.item);
-    if (added && this.active.id === 'tim') chargeEdGift(TIM_ITEM);
     this.progress.hidden = true;
     this.confirmation.textContent = added ? 'An item has been added to your inventory.' : '';
     this.confirmation.hidden = !added;

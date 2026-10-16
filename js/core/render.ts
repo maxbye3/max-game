@@ -36,7 +36,6 @@ import { roadAccident } from '../overworld/road-accident.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from '../overworld/overworld-props-render.js';
 import { drawMaddyTeaPower, drawMaddyTeaWorldOverlay } from '../powers/maddy/maddy-tea-power.js';
-import { drawEdPower } from '../powers/ed/ed-power.js';
 import { adamJumpOffset, adamPowerSecondsLeft, drawAdamPower, drawAdamShadow } from '../powers/adam/adam-power.js';
 import { samCameraJolt } from '../powers/sam/sam-power.js';
 import { drawSamPower, drawSamVictimEffects, drawSamWorldOverlay, drawSamTerrain, drawSamGround } from '../powers/sam/sam-power-render.js';
@@ -220,7 +219,6 @@ export function draw(time: number, worldTime = time): void {
   drawKatieWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
   if (playerVisible) {
     drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, time);
-    drawEdPower(context, player.x - cameraX, player.y - cameraY);
     drawAdamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, SEAL_MODE);
     drawSamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
     drawTimPower(context, player.x - cameraX, player.y - cameraY, time, adamHeight);

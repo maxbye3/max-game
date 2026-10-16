@@ -7,13 +7,45 @@ import { build } from 'esbuild';
 
 const temporaryDirectory = await mkdtemp(join(tmpdir(), 'max-game-tests-'));
 
-async function loadModule(name, source) {
+async function loadModule(name, source, extraExports = '') {
   const outfile = join(temporaryDirectory, `${name}.mjs`);
-  await build({ entryPoints: [source], outfile, bundle: true, format: 'esm', platform: 'node' });
+  const input = extraExports ? { stdin: { contents: `export * from './${source}'; ${extraExports}`, resolveDir: process.cwd() } } : { entryPoints: [source] };
+  await build({ ...input, outfile, bundle: true, format: 'esm', platform: 'node' });
   return import(`${pathToFileURL(outfile).href}?test=${Date.now()}`);
 }
 
 try {
+  const { TattooGame, TATTOO_STENCIL } = await loadModule('tattoo-game', 'js/powers/ed/tattoo-game.ts');
+  const tattoo = new TattooGame();
+  tattoo.draw(TATTOO_STENCIL[0][0], 0);
+  assert.equal(tattoo.strokes.length, 0, 'the needle is inactive before Start');
+  tattoo.start(1000);
+  assert.equal(tattoo.secondsLeft(1000), 10);
+  for (const path of TATTOO_STENCIL) {
+    for (const point of path) tattoo.draw(point, 2000);
+    tattoo.lift();
+  }
+  assert.deepEqual(tattoo.result(), { score: 100, coverage: 100, accuracy: 100 }, 'tracing the Halstead lettering and tribal strokes earns full marks');
+  tattoo.update(10999);
+  assert.equal(tattoo.phase, 'drawing');
+  const completedStrokes = tattoo.strokes.length;
+  tattoo.draw({ x: 120, y: 260 }, 11000);
+  assert.equal(tattoo.phase, 'finished', 'the needle stops at exactly ten seconds');
+  assert.equal(tattoo.strokes.length, completedStrokes, 'ink after the deadline cannot change the tattoo');
+  tattoo.start(20000);
+  assert.deepEqual(tattoo.result(), { score: 0, coverage: 0, accuracy: 0 }, 'retry clears the previous tattoo');
+  tattoo.draw({ x: 120, y: 265 }, 20001);
+  assert.equal(tattoo.result().score, 0, 'off-design ink does not earn points');
+  tattoo.draw({ x: -100, y: 20 }, 20002);
+  tattoo.draw({ x: 350, y: 200 }, 20003);
+  assert.equal(tattoo.strokes.length, 2, 'leaving the arm lifts the needle rather than joining distant points');
+  tattoo.lift();
+  tattoo.draw({ x: 200, y: 200 }, 20004);
+  assert.equal(tattoo.strokes.length, 3, 'releasing and pressing starts a separate stroke');
+  tattoo.draw({ x: Number.NaN, y: 200 }, 20005);
+  assert.equal(tattoo.strokes.length, 3);
+  console.log('Ed tattoo game: Halstead stencil scoring, exact deadline, fresh retries and disconnected strokes passed');
+
   const battle = await loadModule('battle-outcome', 'js/characters/niall/battle-outcome.ts');
   assert.equal(battle.getBattleResult('victory').niallQuestState, 'following');
   assert.equal(battle.getBattleResult('defeat').niallQuestState, undefined);
@@ -1042,6 +1074,77 @@ try {
   assert.equal(possessedBody.getPlayerBody(), 'alex-s', 'possession survives navigation');
   playerBody.setPlayerBody('player');
   console.log('Car accident: swept impact, stopped car, grave camera pan, ghost spawn and persistent possession passed');
+  const { GymNpcDialogueController, JournalGalleryController, setTestBody, setTestWheldon } = await loadModule('gym-npc-dialogue', 'js/interiors/gym-npc-dialogue.ts', "export { JournalGalleryController } from './js/interiors/journal-gallery.ts'; export { setPlayerBody as setTestBody } from './js/core/player-body.ts'; export { setWheldonPlayerSpriteEnabled as setTestWheldon } from './js/core/player-sprite-test.ts';");
+  const setTestPlayer = (player) => {
+    setTestBody(player === 'ghost-alex' ? 'ghost' : 'player');
+    setTestWheldon(player === 'alex' || player === 'ghost-alex');
+  };
+  const timLine = element('#test-tim-line');
+  const timNext = element('#test-tim-next');
+  const timProgress = element('#test-tim-progress');
+  const timConfirmation = element('#test-tim-confirmation');
+  const timDialogue = new GymNpcDialogueController(timLine, timNext, timProgress, timConfirmation);
+  for (const player of ['alex', 'ghost-alex']) {
+    values.clear();
+    setTestPlayer(player);
+    for (const eaten of [null, 'false', 'true']) {
+      if (eaten !== null) values.set('max-game:alex-w:eatenDoughnut', eaten);
+      timDialogue.start('tim', true);
+      const highlighted = timLine.children[1];
+      assert.equal(highlighted.textContent, eaten === 'true' ? 'go talk to Lucy' : 'eat some doughnuts');
+      assert.equal(timLine.children.map((child) => typeof child === 'string' ? child : child.textContent).join(''),
+        eaten === 'true' ? "Not now Alex, it's just getting good go talk to Lucy." : 'Alex you look hungry you should eat some doughnuts');
+      assert.equal(timNext.hidden, true);
+      assert.equal(timProgress.hidden, true);
+      timDialogue.next();
+      assert.equal(values.has('max-game:inventory-gifts'), false, 'the cinema hint cannot advance into a gift');
+      timDialogue.stop();
+    }
+    timDialogue.start('tim');
+    assert.doesNotMatch(timLine.textContent, /doughnuts|go talk to Lucy/, 'Tim keeps his ordinary dialogue outside the cinema');
+    assert.equal(timNext.hidden, false);
+    timDialogue.stop();
+  }
+  setTestPlayer('max');
+  timDialogue.start('tim', true);
+  assert.equal(timNext.hidden, false, 'other players keep Tim\'s ordinary dialogue');
+  timDialogue.stop();
+  values.clear();
+  values.set('max-game:tim-at-cinema', 'true');
+  const { CinemaAudienceController } = await loadModule('cinema-audience', 'js/interiors/cinema-audience.ts');
+  const audienceEvents = [];
+  const audience = new CinemaAudienceController({ openDialogue: () => audienceEvents.push('audience'), closeDialogue: () => audienceEvents.push('close') });
+  audience.update(262, 440, false);
+  audience.update(280, 440, true, true);
+  assert.deepEqual(audienceEvents, ['audience'], 'audience chatter cannot overwrite or close Tim\'s dialogue');
+  audience.update(262, 440, false);
+  assert.deepEqual(audienceEvents, ['audience', 'audience'], 'audience dialogue resumes after leaving Tim');
+  console.log('Tim cinema: Alex and Ghost Alex doughnut states, highlighted hints, location gating and audience priority passed');
+
+  element('#workout-gallery').querySelector = () => null;
+  element('#journal-gallery').querySelector = () => null;
+  const alexJournal = new JournalGalleryController(() => {});
+  alexJournal.hide();
+  for (const player of ['alex', 'ghost-alex', 'max', 'lucy', null]) {
+    values.clear();
+    setTestPlayer(player);
+    const canReadJournal = player === 'alex' || player === 'ghost-alex';
+    alexJournal.open();
+    assert.equal(alexJournal.isOpen(), canReadJournal, 'the main journal also requires an Alex form');
+    alexJournal.hide();
+    timDialogue.start('julian');
+    timDialogue.next();
+    assert.equal(element('#tim-workout-journal-options').hidden, !canReadJournal);
+    element('#tim-workout-journal-yas').listeners.get('click')();
+    assert.equal(element('#tim-workout-journal-panel').hidden, !canReadJournal, 'only Alex and Ghost Alex can open the journal');
+    if (canReadJournal) element('#tim-workout-journal-close').listeners.get('click')();
+    assert.ok(JSON.parse(values.get('max-game:inventory-gifts')).includes('julian-item'), 'all players still receive Julian\'s gift');
+    timDialogue.stop();
+    element('#tim-workout-journal-yas').listeners.get('click')();
+    assert.equal(element('#tim-workout-journal-panel').hidden, true, 'a hidden journal choice cannot reopen a finished conversation');
+  }
+  values.clear();
+  console.log('Workout journal: Alex and Ghost Alex access, other and unset players blocked, Julian gifts preserved');
 
   const busIntroTraffic = await loadModule('bus-intro-traffic', 'js/overworld/bus-intro.ts');
   const originalRandom = Math.random;

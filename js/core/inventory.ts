@@ -26,7 +26,8 @@ import {
 } from '../powers/katy/katy-power.js';
 import { resolveSiteAsset } from './site-assets.js';
 import { activateMaddyTeaPower, maddyTeaSecondsLeft, MADDY_TEA_REVEAL } from '../powers/maddy/maddy-tea-power.js';
-import { activateEdPower, edPowerSecondsLeft, ED_POWER_REVEAL, isEdGiftCharged } from '../powers/ed/ed-power.js';
+import { isEdGiftCharged } from '../powers/ed/ed-power.js';
+import { openEdTattooGame } from '../powers/ed/tattoo-ui.js';
 import { activateNiallSpeed, niallSpeedSecondsLeft } from '../powers/niall/niall-speed-power.js';
 import { activateAdamPower, adamPowerSecondsLeft, ADAM_POWER_REVEAL, setupAdamLeapControl, updateAdamLeapControl } from '../powers/adam/adam-power.js';
 import { activateSamPower, samPowerSecondsLeft, SAM_POWER_DURATION, samPowerReveal } from '../powers/sam/sam-power.js';
@@ -131,7 +132,6 @@ let katyTheme: HTMLAudioElement | null = null;
 let katyThemeTimeout = 0;
 let katyItemDescription = '';
 let maddyItemDescription = '';
-let edPowerPendingReveal = false;
 let adamPowerPendingReveal = false;
 let oscarPowerPendingReveal = false;
 let andyPowerPendingReveal = false;
@@ -343,13 +343,9 @@ function renderGiftItems(): void {
         announce("Maddy's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'ed-item') {
-        activateEdPower();
-        playItemTheme(ED_THEME_SOURCE, true);
-        edPowerPendingReveal = true;
-        powerupStatus.textContent = 'Halstead 10.0s';
-        if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Ed's item activated.");
         setInventoryOpen(false);
+        openEdTattooGame(() => playItemTheme(ED_THEME_SOURCE, true), stopItemTheme);
+        announce("Ed's tattoo challenge: ink HALSTEAD in ten seconds.");
       } else if (item.id === 'adam-item') {
         activateAdamPower();
         stopPowerMusic();
@@ -431,11 +427,6 @@ export function setupInventory(): void {
   if (adamRemaining > 0) {
     adamPowerPendingReveal = true;
   }
-  const edRemaining = edPowerSecondsLeft();
-  if (edRemaining > 0) {
-    edPowerPendingReveal = true;
-    playItemTheme(ED_THEME_SOURCE, true, edRemaining * 1000);
-  }
   window.addEventListener('max-game:inventory-gift-added', () => {
     renderGiftItems();
     inventoryToggle.classList.remove('inventory-added-wobble');
@@ -488,7 +479,6 @@ export function updatePowerups(frameTime: number): void {
   const katyEffectExpired = updateKatyPower(now);
   const katySecondsLeft = katyPowerSecondsLeft(now);
   const teaSecondsLeft = maddyTeaSecondsLeft(now);
-  const edSecondsLeft = edPowerSecondsLeft();
   const niallSecondsLeft = niallSpeedSecondsLeft();
   const adamSecondsLeft = adamPowerSecondsLeft();
   const samSecondsLeft = samPowerSecondsLeft(now);
@@ -516,10 +506,6 @@ export function updatePowerups(frameTime: number): void {
   if (maddyItemDescription && teaSecondsLeft === 0) {
     expiredDescriptions.push(maddyItemDescription);
     maddyItemDescription = '';
-  }
-  if (edPowerPendingReveal && edSecondsLeft === 0) {
-    expiredDescriptions.push(ED_POWER_REVEAL);
-    edPowerPendingReveal = false;
   }
   if (adamPowerPendingReveal && adamSecondsLeft === 0) {
     expiredDescriptions.push(ADAM_POWER_REVEAL);
@@ -693,10 +679,6 @@ export function updatePowerups(frameTime: number): void {
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (adamSecondsLeft > 0) {
     const status = `Adam power ${adamSecondsLeft.toFixed(1)}s`;
-    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
-    if (powerupStatus.hidden) powerupStatus.hidden = false;
-  } else if (edSecondsLeft > 0) {
-    const status = `Halstead ${edSecondsLeft.toFixed(1)}s`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (teaSecondsLeft > 0) {
