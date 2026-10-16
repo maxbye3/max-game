@@ -1,3 +1,4 @@
+import { setAlexEatenDoughnut } from './alex-w-state.js';
 import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isEdTattooOpen } from '../powers/ed/tattoo-ui.js';
 import { isTimInputPowerActive, updateTimInputWorld } from '../powers/tim/tim-input-power.js';
@@ -189,6 +190,7 @@ requireElement<HTMLButtonElement>('#reset-all').addEventListener('click', () => 
   resetTimRoute();
   resetMikeAftermath();
   resetMusicLibrary();
+  setAlexEatenDoughnut(false);
   setPlayerBody('player');
   setWheldonPlayerSpriteEnabled(false);
   const sealMode = new URLSearchParams(window.location.search).has('seal');

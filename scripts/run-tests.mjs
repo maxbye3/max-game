@@ -1129,9 +1129,12 @@ try {
     values.clear();
     setTestPlayer(player);
     const canReadJournal = player === 'alex' || player === 'ghost-alex';
-    alexJournal.open();
-    assert.equal(alexJournal.isOpen(), canReadJournal, 'the main journal also requires an Alex form');
-    alexJournal.hide();
+    for (const eaten of [null, 'false', 'true']) {
+      if (eaten !== null) values.set('max-game:alex-w:eatenDoughnut', eaten);
+      alexJournal.open();
+      assert.equal(alexJournal.isOpen(), canReadJournal && eaten === 'true', 'the main journal requires Wheldon and an eaten doughnut');
+      alexJournal.hide();
+    }
     timDialogue.start('julian');
     timDialogue.next();
     assert.equal(element('#tim-workout-journal-options').hidden, !canReadJournal);

@@ -285,8 +285,7 @@ function showWheldonQuestion(): void {
   noelDialogueLine.textContent = '';
   noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = true;
-  const eatenDoughnut = hasAlexEatenDoughnut();
-  noelDialogueQuestion.textContent = eatenDoughnut ? WHELDON_DIALOGUE_LINES[1] : 'Will you help me find a doughnut?';
+  noelDialogueQuestion.textContent = WHELDON_DIALOGUE_LINES[1];
   wheldonYesButton.textContent = 'Yes';
   wheldonNoButton.textContent = 'No';
   possessAlexButton.hidden = getPlayerBody() !== 'ghost';
@@ -295,8 +294,7 @@ function showWheldonQuestion(): void {
 }
 function showWheldonAnswer(wantsToRead: boolean): void {
   wheldonDialogueStage = 'answer';
-  if (hasAlexEatenDoughnut() && wantsToRead) { openAlexJournal(); return; }
-  noelDialogueLine.textContent = hasAlexEatenDoughnut() ? WHELDON_DIALOGUE_LINES[3] : wantsToRead ? 'Yes please! I just want a delicious doughnut.' : WHELDON_DIALOGUE_LINES[4];
+  noelDialogueLine.textContent = WHELDON_DIALOGUE_LINES[wantsToRead ? 2 : 3];
   noelDialogueProgress.hidden = true;
   noelDialogueNext.hidden = false;
   noelDialogueQuestion.hidden = true;
@@ -426,7 +424,7 @@ function startAlexJournalOffer(): void {
   requireElement<HTMLButtonElement>('#alex-journal-yes').focus();
 }
 function openAlexJournal(): void {
-  if (!isAlexPlayer()) return;
+  if (!isAlexPlayer() || !hasAlexEatenDoughnut()) return;
   alexJournalOptions.hidden = true;
   noelDialogue.hidden = true;
   journalGallery.open();
@@ -461,17 +459,17 @@ function startWheldonDialogue(): void {
   if (nearbyInteraction !== 'wheldon' || noelDialogueOpen) return;
   openNoelDialogue(); beginDialogueAudio('Alex W', '../');
   wheldonHungryAudio.currentTime = 0;
-  if (!hasAlexEatenDoughnut()) window.dispatchEvent(new CustomEvent('max-game:temporary-audio-focus', { detail: true }));
+  window.dispatchEvent(new CustomEvent('max-game:temporary-audio-focus', { detail: true }));
   const resumeAmbience = (): void => { window.dispatchEvent(new CustomEvent('max-game:temporary-audio-focus', { detail: false })); };
   wheldonHungryAudio.addEventListener('ended', resumeAmbience, { once: true });
-  if (!hasAlexEatenDoughnut()) void wheldonHungryAudio.play().catch(() => {
+  void wheldonHungryAudio.play().catch(() => {
     // The browser may block playback until the player has interacted with the page.
     wheldonHungryAudio.removeEventListener('ended', resumeAmbience);
     resumeAmbience();
   });
   wheldonDialogueStage = 'opening';
   noelSpeaker.textContent = 'Alex'; setProfileImage(noelDialogueProfile, 'Alex W', '../');
-  noelDialogueLine.textContent = hasAlexEatenDoughnut() ? 'That doughnut hit the spot!' : WHELDON_DIALOGUE_LINES[0];
+  noelDialogueLine.textContent = WHELDON_DIALOGUE_LINES[0];
   noelDialogueQuestion.hidden = true;
   noelDialogueOptions.hidden = true;
   noelDialogueProgress.hidden = true;

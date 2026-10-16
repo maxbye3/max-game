@@ -1,3 +1,4 @@
+import { hasAlexEatenDoughnut } from '../core/alex-w-state.js';
 import { isAlexPlayer } from '../core/player-character.js';
 import { requireElement } from '../core/dom.js';
 import { JOURNAL_IMAGE_SOURCES } from './journal-image-sources.js';
@@ -39,7 +40,7 @@ export class JournalGalleryController {
   }
 
   open(): void {
-    if (!isAlexPlayer()) return;
+    if (!isAlexPlayer() || !hasAlexEatenDoughnut()) return;
     this.panel.hidden = false;
     this.gallery.querySelector<HTMLButtonElement>('button')?.focus();
   }
