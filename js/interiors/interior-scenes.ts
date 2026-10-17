@@ -294,7 +294,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       interactions: [
         { kind: 'charity-cook', label: 'Talk to the man cooking', x: 420, y: 425, distance: 86 },
         { kind: 'charity-computer', label: 'Talk to the man on the computer', x: 125, y: 355, distance: 86 },
-        { kind: 'charity-teacher', label: 'Talk to the woman behind the counter', x: 256, y: 260, distance: 70 },
+        { kind: 'charity-teacher', label: 'Talk to the Japanese teacher', x: 256, y: 260, distance: 70 },
       ],
       playerStart: { x: 256, y: 600 },
     };

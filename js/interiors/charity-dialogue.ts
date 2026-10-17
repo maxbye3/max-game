@@ -26,7 +26,7 @@ const CONVERSATIONS = {
     url: 'https://2026-07-18-create-a-github-project.vercel.app/#',
   },
   'charity-teacher': {
-    speaker: 'Woman behind counter',
+    speaker: 'Japanese teacher',
     lines: [
       'こんにちは！日本語を勉強してみませんか？',
       '毎日このページをチェックできるように、ブックマークしてね！マックスの連続記録を超えられるかな？',
