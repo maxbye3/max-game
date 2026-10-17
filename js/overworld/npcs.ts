@@ -1,30 +1,9 @@
 import { requireElement } from '../core/dom.js';
 import { getPlayerBody } from '../core/player-body.js';
 import { createGameAudio } from '../core/audio-mute.js';
-import { ADAM_DIALOGUE_LINES } from '../generated/dialogues/adam-dialogue.js';
-import { ALICE_DIALOGUE_LINES } from '../generated/dialogues/alice-dialogue.js';
-import { BOCHRA_DIALOGUE_LINES } from '../generated/dialogues/bochra-dialogue.js';
-import { CHRIS_DIALOGUE_LINES } from '../generated/dialogues/chris-dialogue.js';
-import { DAN_DIALOGUE_LINES } from '../generated/dialogues/dan-dialogue.js';
-import { ADAM_FACTS } from '../characters/adam/adam-facts.js';
-import { ALEX_S_DIALOGUE_LINES } from '../generated/dialogues/alex-s-dialogue.js';
-import { KATY_DIALOGUE_LINES } from '../generated/dialogues/katy-dialogue.js';
-import { KATIE_DIALOGUE_LINES } from '../generated/dialogues/katie-dialogue.js';
-import { JOE_DIALOGUE_LINES } from '../generated/dialogues/joe-dialogue.js';
-import { JU_DIALOGUE_LINES } from '../generated/dialogues/ju-dialogue.js';
-import { GEORGIA_DIALOGUE_LINES } from '../generated/dialogues/georgia-dialogue.js';
-import { GEORGIA, georgiaState, setGeorgiaInteractionPaused } from '../characters/georgia/georgia.js';
-import { getNextArsenalFixtureDialogue } from '../characters/ed/arsenal-fixture.js';
-import { ED_DIALOGUE_LINES } from '../generated/dialogues/ed-dialogue.js';
-import { addGift, ADAM_ITEM, ALEX_S_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, hasGift, JOE_ITEM, JU_ITEM, KATIE_ITEM, MADDY_ITEM, nextGiftLine, OSCAR_ITEM, REI_ITEM_1, REI_ITEM_2, removeGift, SAM_ITEM, type GiftItem, GIFT_ITEMS } from '../core/inventory-gifts.js';
-import { MARINA_D_DIALOGUE_LINES } from '../generated/dialogues/marina-d-dialogue.js';
+import { setGeorgiaInteractionPaused } from '../characters/georgia/georgia.js';
+import { addGift, hasGift, MADDY_ITEM, nextGiftLine, REI_ITEM_1, REI_ITEM_2, removeGift, type GiftItem } from '../core/inventory-gifts.js';
 import { MADDY_DIALOGUE_LINES } from '../generated/dialogues/maddy-dialogue.js';
-import { MASON_DIALOGUE_LINES } from '../generated/dialogues/mason-dialogue.js';
-import { MELI_DIALOGUE_LINES } from '../generated/dialogues/meli-dialogue.js';
-import { MIKE_DIALOGUE_LINES } from '../generated/dialogues/mike-dialogue.js';
-import { OSCAR_DIALOGUE_LINES } from '../generated/dialogues/oscar-dialogue.js';
-import { REI_DIALOGUE_LINES } from '../generated/dialogues/rei-dialogue.js';
-import { SAM_DIALOGUE_LINES } from '../generated/dialogues/sam-dialogue.js';
 import { announceWorldInteraction } from '../core/world-interactions.js';
 import { hideSignDialogue } from '../core/signs.js';
 import { readStorage, writeStorage } from '../core/storage.js';
@@ -38,274 +17,9 @@ import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
 import { releaseAllInput } from '../core/input.js';
 import { characterAsset } from '../core/character-assets.js';
 import { refreshLetterboxdReviews } from '../core/letterboxd-reviews.js';
+import { NPCS, type NpcDefinition } from './npc-definitions.js';
+export * from './npc-definitions.js';
 
-interface NpcDefinition {
-  readonly id: 'adam' | 'alice' | 'bochra' | 'chris' | 'dan' | 'ed' | 'joe' | 'ju' | 'mike' | 'rei' | 'marinaD' | 'maddy' | 'sam' | 'katie' | 'mason' | 'meli' | 'oscar' | 'alexS' | 'katy' | 'georgia';
-  readonly name: string;
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-  readonly interactionDistance: number;
-  readonly getPosition?: () => { readonly x: number; readonly y: number };
-  readonly itemGift?: GiftItem;
-  readonly songReward?: Song;
-  readonly dialogueLines: readonly string[];
-  readonly getFixtureLine?: () => Promise<string>;
-  readonly followUpLine?: () => string;
-  // Said after the rotating greeting, every time the player walks up.
-  readonly requestLine?: string;
-}
-
-// Alice and Chris are already rendered at these positions by map-characters.ts.
-export const ALICE: NpcDefinition = {
-  id: 'alice',
-  name: 'Alice',
-  x: 260,
-  y: 120,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: ALICE_DIALOGUE_LINES,
-  itemGift: ALICE_ITEM,
-};
-
-export const CHRIS: NpcDefinition = {
-  id: 'chris',
-  name: 'Chris',
-  x: 475,
-  y: 270,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: CHRIS_DIALOGUE_LINES,
-  itemGift: CHRIS_ITEM,
-};
-
-export const ADAM: NpcDefinition = {
-  id: 'adam',
-  name: 'adam',
-  x: 195,
-  y: 916,
-  width: 37,
-  height: 60,
-  interactionDistance: 56,
-  dialogueLines: ADAM_DIALOGUE_LINES,
-  followUpLine: nextAdamFact,
-  itemGift: ADAM_ITEM,
-};
-
-export const ED: NpcDefinition = {
-  id: 'ed',
-  name: 'ed',
-  x: 254,
-  y: 909,
-  width: 25,
-  height: 54,
-  interactionDistance: 56,
-  dialogueLines: ED_DIALOGUE_LINES,
-  getFixtureLine: getNextArsenalFixtureDialogue,
-  itemGift: ED_ITEM,
-  songReward: 'Outer wildeds',
-};
-
-export const MIKE: NpcDefinition = {
-  id: 'mike',
-  name: 'mike',
-  x: 300,
-  y: 685,
-  width: 40,
-  height: 46,
-  interactionDistance: 56,
-  itemGift: GIFT_ITEMS[0]!,
-  dialogueLines: MIKE_DIALOGUE_LINES,
-};
-
-export const REI: NpcDefinition = {
-  id: 'rei',
-  name: 'rei',
-  x: 456,
-  y: 500,
-  width: 32,
-  height: 45,
-  interactionDistance: 56,
-  dialogueLines: REI_DIALOGUE_LINES,
-  songReward: 'Lemon jelly',
-  requestLine: 'I need some red paint to finish this sign. Help me find some',
-};
-
-// Marina D is already drawn by map-characters.ts.
-export const MARINA_D: NpcDefinition = {
-  id: 'marinaD',
-  name: 'marina d',
-  x: 201,
-  y: 1034,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: MARINA_D_DIALOGUE_LINES,
-};
-
-export const MADDY: NpcDefinition = {
-  id: 'maddy',
-  name: 'Maddy',
-  x: 383,
-  y: 1045,
-  width: 25,
-  height: 59,
-  interactionDistance: 58,
-  dialogueLines: MADDY_DIALOGUE_LINES,
-};
-
-// Sam is already drawn by map-characters.ts.
-export const SAM: NpcDefinition = {
-  id: 'sam',
-  name: 'Sam',
-  x: 324,
-  y: 974,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: SAM_DIALOGUE_LINES,
-  itemGift: SAM_ITEM,
-};
-
-// Katie is already drawn by map-characters.ts; she is distinct from Katy.
-export const KATIE: NpcDefinition = {
-  id: 'katie',
-  name: 'Katie',
-  x: 1130,
-  y: 1018,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: KATIE_DIALOGUE_LINES,
-  itemGift: KATIE_ITEM,
-};
-
-// Mason and Meli are already drawn next to each other by map-characters.ts.
-export const MASON: NpcDefinition = {
-  id: 'mason',
-  name: 'Mason',
-  x: 820,
-  y: 570,
-  width: 25,
-  height: 69,
-  interactionDistance: 58,
-  dialogueLines: MASON_DIALOGUE_LINES,
-};
-
-export const MELI: NpcDefinition = {
-  id: 'meli',
-  name: 'Meli',
-  x: 858,
-  y: 570,
-  width: 25,
-  height: 69,
-  interactionDistance: 58,
-  dialogueLines: MELI_DIALOGUE_LINES,
-};
-
-// Oscar is already drawn by map-characters.ts.
-export const OSCAR: NpcDefinition = {
-  id: 'oscar',
-  name: 'Oscar',
-  x: 636,
-  y: 564,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  itemGift: OSCAR_ITEM,
-  dialogueLines: OSCAR_DIALOGUE_LINES,
-};
-
-export const JU: NpcDefinition = {
-  id: 'ju',
-  name: 'Ju',
-  x: 1000,
-  y: 180,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: JU_DIALOGUE_LINES,
-  itemGift: JU_ITEM,
-};
-
-export const BOCHRA: NpcDefinition = {
-  id: 'bochra',
-  name: 'Bochra',
-  x: 1114,
-  y: 172,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: BOCHRA_DIALOGUE_LINES,
-  itemGift: BOCHRA_ITEM,
-};
-
-export const DAN: NpcDefinition = {
-  id: 'dan',
-  name: 'Dan',
-  x: 1150,
-  y: 372,
-  width: 25,
-  height: 48,
-  interactionDistance: 58,
-  dialogueLines: DAN_DIALOGUE_LINES,
-  itemGift: DAN_ITEM,
-};
-
-export const JOE: NpcDefinition = {
-  id: 'joe',
-  name: 'Joe',
-  x: 1080,
-  y: 1070,
-  width: 25,
-  height: 52,
-  interactionDistance: 58,
-  dialogueLines: JOE_DIALOGUE_LINES,
-  itemGift: JOE_ITEM,
-};
-
-export const ALEX_S: NpcDefinition = {
-  id: 'alexS',
-  name: 'Alex S',
-  x: 680,
-  y: 1063,
-  width: 20,
-  height: 46,
-  interactionDistance: 58,
-  songReward: 'Africa',
-  itemGift: ALEX_S_ITEM,
-  dialogueLines: ALEX_S_DIALOGUE_LINES,
-};
-
-export const KATY: NpcDefinition = {
-  id: 'katy',
-  name: 'Katy',
-  x: 422,
-  y: 640,
-  width: 35,
-  height: 52,
-  interactionDistance: 58,
-  itemGift: GIFT_ITEMS[1]!,
-  dialogueLines: KATY_DIALOGUE_LINES,
-};
-
-export const GEORGIA_NPC: NpcDefinition = {
-  id: 'georgia',
-  name: 'Georgia',
-  x: GEORGIA.x,
-  y: GEORGIA.y,
-  width: GEORGIA.width,
-  height: GEORGIA.height,
-  interactionDistance: 64,
-  getPosition: () => georgiaState,
-  itemGift: GEORGIA_ITEM,
-  dialogueLines: GEORGIA_DIALOGUE_LINES,
-};
-
-const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, MADDY, SAM, KATIE, MASON, MELI, OSCAR, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
 const dialogue = requireElement<HTMLElement>('#npc-dialogue');
 const speaker = requireElement<HTMLElement>('#npc-speaker');
 const dialogueLine = requireElement<HTMLElement>('#npc-dialogue-line');
@@ -317,7 +31,6 @@ const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
 const oscarOptions = requireElement<HTMLElement>('#oscar-dialogue-options');
 const aliceOptions = requireElement<HTMLElement>('#alice-dialogue-options');
 const gameShell = requireElement<HTMLElement>('.game-shell');
-let adamFactIndex = 0;
 const maddyDialogueAudio = createGameAudio(characterAsset('maddy', 'dialogueAudio'));
 maddyDialogueAudio.preload = 'none';
 let maddyDisplayedLineIndex = -1;
@@ -414,12 +127,6 @@ function showQuestCompleteOverlay(): void {
 
 function nextDialogueIndex(npc: NpcDefinition): number {
   return nextDialogueVisitIndex(npc.id, npc.dialogueLines.length);
-}
-
-function nextAdamFact(): string {
-  const fact = ADAM_FACTS[adamFactIndex % ADAM_FACTS.length] ?? '';
-  adamFactIndex += 1;
-  return fact;
 }
 
 function hasMoreDialogue(): boolean {

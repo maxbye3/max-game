@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { withGameTest } from './helpers.mjs';
+
+await withGameTest(async ({ loadModule }) => {
+  const katiePower = await loadModule('katie-power', 'js/powers/katie/katie-power.ts');
+  const katieTargets = [{ id: 'near', x: 200, y: 100, height: 52 }, { id: 'far', x: 1800, y: 100, height: 52 }];
+  katiePower.activateKatiePower(1000);
+  assert.equal(katiePower.isKatiePowerActive(999), false);
+  assert.equal(katiePower.katiePowerSecondsLeft(1000), 10, 'the requested ten seconds overrides the item description duration');
+  katiePower.updateKatieWorld(2000, 100, 100, katieTargets);
+  assert.equal(katiePower.getKatieRings().length, 0);
+  assert.equal(katiePower.getKatieNeighbours().length, 0, 'characters react only after smoke reaches them');
+  katiePower.updateKatieWorld(2600, 100, 100, katieTargets);
+  assert.equal(katiePower.getKatieRings().length, 1);
+  assert.equal(katiePower.getKatieNeighbours().length, 1);
+  assert.ok(katiePower.katieCharacterPose('near', 2900).x > 0, 'a reached character recoils away from the stationary player');
+  assert.deepEqual(katiePower.katieCharacterPose('far', 2900), { x: 0, y: 0, lean: 0 });
+  assert.equal(katiePower.katieCigaretteRemaining(6000), 0.5, 'the cigarette burns down on real time');
+  katiePower.updateKatieWorld(8000, 100, 100, katieTargets);
+  assert.equal(katiePower.getKatieRings().length, 3, 'delayed frames catch up breaths without dropping them');
+  assert.equal(katiePower.getKatieNeighbours().length, 2, 'the expanding smoke eventually reaches distant characters');
+  katiePower.updateKatieWorld(8500, 100, 100, [katieTargets[0]]);
+  assert.equal(katiePower.getKatieNeighbours().length, 1, 'removed characters do not leave phantom coughs');
+  assert.ok(Math.abs(katiePower.katieWorldDeltaTime(0.05, 1025) - 0.028) < 1e-9, 'an entering frame slows only its active overlap');
+  assert.ok(Math.abs(katiePower.katieWorldDeltaTime(0.05, 11025) - 0.028) < 1e-9, 'world time returns across the ending frame');
+  assert.equal(katiePower.isKatiePowerActive(10999), true);
+  katiePower.updateKatieWorld(11000, 100, 100, katieTargets);
+  assert.equal(katiePower.isKatiePowerActive(11000), false);
+  assert.equal(katiePower.getKatieRings().length, 0);
+  assert.equal(katiePower.getKatieNeighbours().length, 0);
+  assert.deepEqual(katiePower.katieCharacterPose('near', 11000), { x: 0, y: 0, lean: 0 });
+  assert.equal(katiePower.katieWorldDeltaTime(0.05, 11050), 0.05);
+  katiePower.activateKatiePower(12000);
+  assert.equal(katiePower.getKatieRings().length, 0);
+  assert.equal(katiePower.katiePowerSecondsLeft(12000), 10);
+});

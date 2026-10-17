@@ -1,0 +1,204 @@
+:root {
+  --accent: #c9f5a8;
+  --accent-rgb: 201 245 168;
+  --panel-rgb: 7 23 14;
+  --text: #f5fff6;
+  --font-pixel: "Press Start Game", monospace;
+  --font-display: "Orbitron Game", sans-serif;
+
+  color-scheme: dark;
+  font-family: "Exo 2 Game", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  background: #0d251a;
+}
+
+@font-face {
+  font-family: "Press Start Game";
+  font-weight: 400;
+  src: url("fonts/PressStart2P.8d0248e41694.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Exo 2 Game";
+  font-weight: 200;
+  src: url("fonts/Exo2-ExtraLight.7033c763f4cc.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Orbitron Game";
+  font-weight: 700;
+  src: url("fonts/Orbitron-Bold.69403fffca24.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Arcade Classic Game";
+  font-weight: 400;
+  src: url("fonts/ARCADECLASSIC.af1addeae051.woff2") format("woff2");
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 35%, #274d34, #09170f 72%);
+}
+
+.game-shell {
+  --dialogue-bottom: 84px;
+  --dialogue-top: 24px;
+  --dialogue-width: calc(100% - 24px);
+  --dialogue-left: 50%;
+  --dialogue-translate: -50%;
+  position: relative;
+  width: min(100vw, 100dvh);
+  height: min(100vw, 100dvh);
+  padding: 10px;
+}
+
+.door-loading {
+  position: absolute;
+  z-index: 30;
+  inset: 10px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(0 0 0 / 48%);
+  pointer-events: all;
+}
+
+.door-loading[hidden] { display: none; }
+
+.door-loading-box {
+  width: 100%;
+  padding: 22px 16px;
+  border-block: 2px solid var(--accent);
+  color: var(--text);
+  background: rgb(var(--panel-rgb) / 96%);
+  font: 16px/1.5 var(--font-pixel);
+  text-align: center;
+  text-shadow: 2px 2px #000;
+}
+
+.door-loading-dots {
+  display: inline-block;
+  width: 3ch;
+  text-align: left;
+}
+
+.door-loading-dots::after {
+  content: ".";
+  animation: door-loading-dots 1.2s steps(1, end) infinite;
+}
+
+@keyframes door-loading-dots {
+  0%, 24% { content: "."; }
+  25%, 49% { content: ".."; }
+  50%, 74% { content: "..."; }
+  75%, 100% { content: ""; }
+}
+
+.game-shell.cave-shell {
+  width: min(100vw, 196dvh);
+  height: auto;
+  aspect-ratio: 2 / 1;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgb(222 255 225 / 35%);
+  border-radius: 12px;
+  box-shadow: 0 22px 70px rgb(0 0 0 / 55%);
+  image-rendering: pixelated;
+}
+
+.top-actions {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  z-index: 8;
+  display: flex;
+  gap: 8px;
+}
+
+.reset-all {
+  position: absolute;
+  z-index: 8;
+  top: calc(74px + env(safe-area-inset-top));
+  left: calc(24px + env(safe-area-inset-left));
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgb(var(--panel-rgb) / 88%);
+  font: 8px/1.4 var(--font-pixel);
+  cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .reset-all {
+    top: calc(64px + env(safe-area-inset-top));
+    left: calc(12px + env(safe-area-inset-left));
+  }
+}
+
+.music-toggle,
+.audio-mute-toggle,
+.thoughts-toggle,
+.inventory-toggle,
+.interior-exit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 156px;
+  width: 156px;
+  height: 42px;
+  min-width: 0;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgb(var(--panel-rgb) / 88%);
+  font: 10px var(--font-pixel);
+  cursor: pointer;
+}
+
+.inventory-toggle { margin-left: auto; }
+.interior-exit { text-decoration: none; }
+
+.music-toggle,
+.audio-mute-toggle { color: var(--accent); }
+
+.mute-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  shape-rendering: crispEdges;
+}
+
+.audio-mute-toggle[aria-pressed="true"] .mute-icon-waves,
+.audio-mute-toggle[aria-pressed="false"] .mute-icon-cross { display: none; }
+
+.inventory-added-wobble {
+  animation: inventory-added-wobble 1s ease-in-out;
+}
+
+@keyframes inventory-added-wobble {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-7deg); }
+  40% { transform: rotate(7deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+}

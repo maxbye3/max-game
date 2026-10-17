@@ -1,0 +1,10 @@
+/* Import order preserves the game cascade. Asset URLs are relative to the generated root style.css. */
+@import "./base.css";
+@import "./hud.css";
+@import "./navigation.css";
+@import "./world.css";
+@import "./battle.css";
+@import "./dialogue.css";
+@import "./interior-features.css";
+@import "./controls.css";
+@import "./overlays.css";

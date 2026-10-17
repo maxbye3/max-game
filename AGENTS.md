@@ -1,41 +1,23 @@
-# Max Game Project Notes
+# Max's Overworld
 
-## Project shape
+Browser TypeScript canvas game. Preserve pixel art, gameplay, and phone-friendly controls.
 
-- This is a browser-based TypeScript canvas game called "Max's Overworld".
-- The first screen is `index.html`, styled by `style.css`, and it loads `dist/main-bundle.js`.
-- Source TypeScript lives in `js/`. Build output lives in `dist/`.
-- The external overworld entry point is `js/main.ts`.
-- The diary lab interior entry point is `js/internal.ts`.
-- Game constants and map/building coordinates are in `js/config.ts`.
-- Original image, audio, font, and character assets live under `img/`, `audio/`, `fonts/`, and `char/`.
-- Generated TypeScript lives under `js/generated/`; optimized images under `img/web/`; generated character/battle art under `img/generated/` and `img/battle/`; generated audio under `audio/powers/`; and browser bundles under `dist/`. These are build outputs and should be recreated by the npm scripts rather than hand-edited.
+## Find sources
 
-## Commands
+- Entries: `js/core/main.ts`, `js/interiors/internal.ts`, `js/characters/niall/niall-fight.ts`, `js/core/transform.ts`. Coordinates: `js/core/config.ts`.
+- NPC data: `js/overworld/npc-definitions.ts`; conversation state: `npcs.ts`. Interiors separate assets, player movement, and room dialogue into adjacent modules.
+- UI: ordered sources in `css/game.css`; touch layout in `css/controls.css`; panels in `css/dialogue.css`.
+- Consult the relevant section of [docs/development.md](docs/development.md) for the task map, commands, browser fixtures, generation, and character recipe.
 
-- Run `npm run typecheck` after TypeScript changes.
-- Run `npm test` for focused progression, sprite, and build-entry checks.
-- Run `npm run build` after changing files in `js/` so `dist/` stays in sync.
-- Use `npm run watch` for active browser iteration; it watches all three game entry points.
-- A plain static server is enough to test the game, for example `python3 -m http.server`.
+## Work and verify
 
-## Editing rules
+- Edit sources. Never hand-edit generated `js/generated/`, `dist/`, `style.css`, `img/web/`, `img/generated/`, `img/battle/`, or `audio/powers/`. Original assets live in `img/`, `audio/`, `fonts/`, and `char/`.
+- After TS changes run `npm run build` once: it generates, typechecks, validates dialogue, runs all Node suites, and bundles. Do not repeat included checks unless later edits or failures require it.
+- During iteration use `npm run test:controls`, `test:dialogue`, `test:progression`, `test:powers`, `test:assets`, `test:content`, or `test:tooling`. `npm test -- <suite>` selects matching suites; `npm test` runs all.
+- CSS-only: `npm run bundle`. `npm run watch` watches four entries and CSS. A static server works: `python3 -m http.server`.
+- For movement, collision, signs, doors, inventory, or rendering, exercise the changed interaction in a browser. Check mobile and desktop for layout, including affected control modes/orientations. Reuse `npm run test:browser -- --prepared` after a current build.
+- Search relevant source ranges, avoid generated output/asset dumps, and keep normal logs concise. Keep edits scoped.
 
-- Edit TypeScript sources in `js/` first, then rebuild generated `dist/` bundles.
-- Do not hand-edit generated sourcemaps unless the build command regenerates them.
-- Keep game UI controls mobile-friendly; this project is often worked on from a phone.
-- Preserve pixel-art rendering and the existing canvas-first game feel.
-- Keep changes tightly scoped. Avoid unrelated asset churn or broad restyling.
+## Portraits
 
-## Character dialogue portraits
-
-- Only use a portrait file directly in `char/<character>/`: `profile.png`, `profile.jpg`, or `profile.jpeg`.
-- If that folder has no profile file, show no portrait. Absence is intentional, not a missing asset to fill in.
-- Never fall back to `/player`, `/example`, `char/real`, avatars, item art, or another character's picture.
-- Apply this rule to every character, not character-specific exceptions. Keep `scripts/generate-profiles.mjs` and its generated mapping consistent with it.
-- When wiring up a character, check their root folder and test both portrait-present and portrait-absent behavior.
-
-## Verification
-
-- For movement, collision, signs, doors, inventory, or rendering changes, verify the game loads in a browser and check the relevant interaction manually.
-- For layout changes, check both narrow mobile and desktop-sized viewports.
+Only use `profile.png`, `profile.jpg`, or `profile.jpeg` directly in `char/<character>/`. No root profile means no portrait, intentionally. Never fall back to `player`, `example`, `char/real`, avatars, item art, or another character. Apply this rule uniformly; keep `scripts/generate-profiles.mjs` and its mapping consistent. Verify both portrait-present and portrait-absent cases when wiring characters.

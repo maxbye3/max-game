@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import { withGameTest } from './helpers.mjs';
+
+await withGameTest(async ({ loadModule }) => {
+  const helenPower = await loadModule('helen-power', 'js/powers/helen/helen-power.ts');
+  helenPower.activateHelenPower(1000);
+  assert.equal(helenPower.helenPowerSecondsLeft(1000), 10);
+  assert.equal(helenPower.helenMovementMultiplier(999), 1);
+  assert.equal(helenPower.helenMovementMultiplier(1000), 0.5);
+  assert.equal(helenPower.helenCharacterPose('player', 1000).width, 1.5);
+  assert.equal(helenPower.helenMovementMultiplier(10999), 0.5);
+  assert.equal(helenPower.helenMovementMultiplier(11000), 1);
+  assert.equal(helenPower.helenCharacterPose('player', 11000).width, 1);
+  assert.ok(Math.abs(helenPower.helenWorldDeltaTime(0.05, 1025) - 0.0375) < 1e-9);
+  assert.equal(helenPower.helenWorldDeltaTime(0.05, 2000), 0.025);
+  assert.ok(Math.abs(helenPower.helenWorldDeltaTime(0.05, 11025) - 0.0375) < 1e-9);
+  const helenTargets = [{ id: 'near', x: 200, y: 100, height: 52 }, { id: 'far', x: 1000, y: 100, height: 52 }];
+  helenPower.updateHelenWorld(1000, 100, 100, helenTargets);
+  assert.equal(helenPower.getHelenNeighbours().length, 0, 'pressure has not reached other characters yet');
+  helenPower.updateHelenWorld(1500, 110, 100, helenTargets);
+  assert.equal(helenPower.getHelenNeighbours().length, 1);
+  assert.equal(helenPower.getHelenSteps().length, 1, 'moving creates a heavy footprint');
+  helenPower.updateHelenWorld(1950, 110, 100, helenTargets);
+  assert.equal(helenPower.helenCharacterPose('near', 1950).width, 1.5);
+  assert.equal(helenPower.helenCharacterPose('far', 1950).width, 1);
+  assert.equal(helenPower.getHelenSteps().length, 1, 'standing still does not spawn footsteps');
+  helenPower.updateHelenWorld(3000, 110, 100, helenTargets);
+  assert.equal(helenPower.getHelenNeighbours().length, 2, 'the pressure wave spreads across the world');
+  helenPower.updateHelenWorld(3200, 110, 100, []);
+  assert.equal(helenPower.getHelenNeighbours().length, 0, 'removed characters leave the effect');
+  helenPower.updateHelenWorld(11000, 110, 100, helenTargets);
+  assert.equal(helenPower.getHelenSteps().length, 0);
+  assert.equal(helenPower.getHelenWaves().length, 0);
+  assert.equal(helenPower.helenWorldDeltaTime(0.05, 11050), 0.05);
+  helenPower.activateHelenPower(12000);
+  assert.equal(helenPower.helenPowerSecondsLeft(12000), 10);
+  assert.equal(helenPower.getHelenNeighbours().length, 0);
+});

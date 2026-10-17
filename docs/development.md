@@ -1,0 +1,88 @@
+# Development guide
+
+## Setup and commands
+
+Use Node 20+ and `npm ci`. The game runs on a static server; no API server or credentials are required.
+
+| Command | Purpose |
+| --- | --- |
+| `npm run build` | Generate once, typecheck, validate dialogue, run all Node suites, and bundle |
+| `npm run build:site` | The same checks, then package a complete deployable `_site/` |
+| `npm run bundle` | Refresh generated inputs, build CSS and four JS bundles, stamp HTML cache keys |
+| `npm run typecheck` | Refresh generated inputs and check TypeScript |
+| `npm test` | All Node suites, content refresh, and web performance checks |
+| `npm test -- dialogue` | Only suites whose names contain `dialogue` |
+| `node scripts/run-tests.mjs powers-rei` | Only Rei's power suite |
+| `npm run test:controls` | Interior movement, collisions, paused movement, and power direction changes |
+| `npm run test:dialogue` | NPC conversations, room characters, journals, and Niall |
+| `npm run test:progression` | Save progression, road traffic, interior collision |
+| `npm run test:assets` | Sprite crops, build entries, loading, audio, rendering caches |
+| `npm run test:content` | Feed freshness, fallbacks, refresh/cancellation, galleries |
+| `npm run test:tooling` | Generation cache invalidation and recovery |
+| `npm run watch` | Watch all four TS entries and `css/`, rebuilding cache keys |
+
+Filters are OR matches: `npm test -- dialogue controls` runs both groups. The runner isolates suites in separate processes, continues after failures, and reports a summary plus all failures. Add `--verbose` for individual passing suite names. Fixtures live in `scripts/tests/helpers.mjs`; add independently runnable `*.test.mjs` files in that directory. Preserve meaningful behavioral assertions when extracting tests.
+
+## Browser checks
+
+Install Chromium once: `npx playwright install chromium` (on CI use `--with-deps`).
+
+- `npm run test:browser` builds current sources, serves on an ephemeral local port, and checks phone portrait, phone landscape, and desktop.
+- `npm run test:browser -- --prepared` reuses a current build. Use this only after generating/bundling the current sources.
+- Add `--screenshots` to save screenshots under ignored `test-results/`; failures always save a screenshot. Add `--headed` to inspect the running browser.
+- `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` optionally selects an existing compatible Chromium binary; normally Playwright uses its own installation.
+
+`scripts/lib/browser-fixture.mjs` appends small test hooks to the actual game entry sources in a temporary directory. These hooks open real conversations and expose real held input; they never enter shipped bundles. The browser checks toggle real controls, check hit targets and dialogue bounds, scroll long text, and press/release each direction. They also check root portraits for Sam and deliberate portrait absence for Rei. A separate pass loads the shipped bundles for all eleven interior types and verifies that the real thumbstick moves the overworld player. Interior movement and character stages have focused Node tests as well. Exercise any additional interaction changed by a task in the browser.
+
+## Source map
+
+| Concern | Location |
+| --- | --- |
+| Entry / overworld loop | `js/core/main.ts` |
+| World constants / collisions | `js/core/config.ts`, `js/core/collision*.ts` |
+| Keyboard and touch input | `js/core/input.ts`, `js/core/mobile-controls.ts` |
+| Overworld NPC positions, dialogue, gifts, songs | `js/overworld/npc-definitions.ts` |
+| Stateful NPC conversation / Rei quest | `js/overworld/npcs.ts` |
+| Interior orchestration | `js/interiors/internal.ts` |
+| Interior sprites and image loading | `js/interiors/interior-assets.ts` |
+| Interior player movement and collision | `js/interiors/interior-player.ts` |
+| Noel, Wheldon, Helen, cat conversations | `js/interiors/room-character-dialogue.ts` |
+| Specialized conversations | `js/interiors/*dialogue.ts`, `js/characters/dad/` |
+| Room definitions and drawing | `js/interiors/interior-scenes.ts`, `interior-render.ts` |
+| Gifts / save persistence | `js/core/inventory-gifts.ts`, `world-state.ts`, `storage.ts` |
+| Battle / transformation entries | `js/characters/niall/niall-fight.ts`, `js/core/transform.ts` |
+
+CSS is intentionally ordered in `css/game.css`: base, HUD, navigation, world effects/signs, battle, dialogue, interior features, controls/responsive layout, overlays. Asset URLs in these sources are relative to the root output `style.css`. The style builder concatenates them without changing cascade order or URLs. Edit `css/controls.css` for touch layouts and dialogue clearance, and `css/dialogue.css` for shared conversation panels.
+
+## Generated inputs
+
+`node scripts/generate-source.mjs` fingerprints each generator's source files, helper scripts, and outputs. It skips unchanged work; edits, missing/corrupt outputs, added/deleted inputs, and generator changes invalidate the relevant task. The disposable cache is `.cache/generation.json`; deleting it forces a safe rebuild. `npm run generate:source -- --force` explicitly regenerates everything.
+
+Tasks: `dialogues`, `profiles`, `dialogue-themes`, `internal-collision`, `ghost-sprite`, `web-assets`, `battle-avatars`, `styles`. A single task can be run with `node scripts/generate-source.mjs styles`. Specialized `generate:*` npm commands use the same cache. The build invokes generation once, rather than nesting npm lifecycle hooks.
+
+Optimized images/music/fonts are optional prepared copies. Stale or missing prepared copies fall back to originals. Use `npm run prepare:web-assets` after editing assets when you want optimized copies; this also refreshes styles. Collision guides are original assets, and the collision generator never modifies them.
+
+## Character recipe
+
+For dialogue-only changes edit `char/<character>/dialogue.txt`, then build. Do not edit generated arrays.
+
+For a new ordinary overworld character:
+
+1. Add original assets and dialogue to the character's root folder. A portrait is optional and must be a root `profile.png`, `profile.jpg`, or `profile.jpeg`.
+2. Add an entry to `char/manifest.json`, including `directory`, `displayName`, and `files.dialogue`. The generator automatically adds its dialogue module and registry entry and removes retired generated modules; there is no separate generator list to maintain.
+3. Add a `defineNpc` record in `js/overworld/npc-definitions.ts` and include it in `NPCS`. A record specifies the name/position and optional `itemGift`, `songReward`, `requestLine`, and follow-up hooks. Common geometry and generated dialogue lookup are supplied centrally. Existing visit IDs such as `alexS` and `marinaD` stay unchanged; their `character` field selects the canonical manifest ID.
+4. Add its world rendering through `js/overworld/map-characters.ts` or a dedicated renderer. Interaction definitions do not automatically draw new sprites.
+5. Run dialogue and asset checks, build, and verify the interaction and both portrait cases in the browser.
+
+Example (after adding the manifest entry and generating):
+
+```ts
+export const NEW_CHARACTER = defineNpc('new-character', {
+  name: 'New Character',
+  x: 400,
+  y: 500,
+  // itemGift: NEW_ITEM,
+});
+```
+
+Keep custom story flows in controllers: Rei has staged mission rewards; Maddy has timed voice lines; Ed has an asynchronous fixture follow-up; Georgia has a moving position. These hooks should remain explicit rather than forcing every character through additional configuration.

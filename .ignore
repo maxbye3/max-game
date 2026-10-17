@@ -1,0 +1,2 @@
+# Search editable CSS sources under css/ instead of their generated concatenation.
+/style.css

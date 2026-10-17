@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import { withGameTest } from './helpers.mjs';
+
+await withGameTest(async ({ loadModule }) => {
+  const bochraPower = await loadModule('bochra-power', 'js/powers/bochra/bochra-power.ts');
+  assert.equal(bochraPower.bochraPowerSecondsLeft(0), 0);
+  bochraPower.activateBochraPower(1000);
+  assert.equal(bochraPower.bochraPowerSecondsLeft(1000), 10);
+  assert.equal(bochraPower.isBochraPowerActive(999), false);
+  assert.equal(bochraPower.isBochraPowerActive(10999), true);
+  assert.equal(bochraPower.isBochraPowerActive(11000), false);
+  bochraPower.updateBochraWorld(1000, 100, 100, [{ id: 'friend', x: 130, y: 100, height: 52 }]);
+  assert.equal(bochraPower.getBochraStage().moving, false);
+  assert.equal(bochraPower.bochraDancePose('player', 1000).stretch, 1);
+  bochraPower.updateBochraWorld(1125, 110, 100, [{ id: 'friend', x: 130, y: 100, height: 52 }]);
+  assert.equal(bochraPower.getBochraStage().moving, true);
+  assert.notEqual(bochraPower.bochraDancePose('player', 1125).rotation, 0);
+  assert.notEqual(bochraPower.bochraDancePose('friend', 1125).rotation, 0);
+  assert.equal(bochraPower.bochraDancePose('distant', 1125).rotation, 0);
+  assert.equal(bochraPower.getBochraSteps().length, 1);
+  assert.ok(bochraPower.bochraMovementMultiplier(1125) > 1);
+  bochraPower.updateBochraWorld(1200, 110, 100, []);
+  assert.equal(bochraPower.getBochraStage().moving, false);
+  assert.equal(bochraPower.bochraDancePose('player', 1200).rotation, 0);
+  bochraPower.updateBochraWorld(11000, 120, 100, []);
+  assert.equal(bochraPower.getBochraSteps().length, 0);
+  assert.equal(bochraPower.getBochraDancers().length, 0);
+  assert.equal(bochraPower.bochraMovementMultiplier(11000), 1);
+  assert.equal(bochraPower.bochraPowerSecondsLeft(11000), 0);
+  bochraPower.activateBochraPower(12000);
+  assert.equal(bochraPower.getBochraSteps().length, 0);
+  assert.equal(bochraPower.bochraPowerSecondsLeft(12000), 10);
+});

@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { withGameTest } from './helpers.mjs';
+
+await withGameTest(async ({ loadModule }) => {
+  const mikePower = await loadModule('mike-power', 'js/powers/mike/mike-power.ts');
+  const mikeTargets = [{ id: 'near', x: 220, y: 100, height: 52 }, { id: 'far', x: 2000, y: 100, height: 52 }];
+  mikePower.activateMikePower(1000);
+  assert.equal(mikePower.isMikePowerActive(999), false);
+  assert.equal(mikePower.mikePowerSecondsLeft(1000), 10);
+  assert.equal(mikePower.mikeHappinessMultiplier(1000), 1.36);
+  assert.equal(mikePower.mikeMovementMultiplier(1000), 1.36);
+  mikePower.updateMikeWorld(1000, 100, 100, mikeTargets);
+  assert.equal(mikePower.getMikeJoyGuests().length, 0);
+  mikePower.updateMikeWorld(1500, 115, 100, mikeTargets);
+  assert.equal(mikePower.isMikeTargetHappy('near', 1500), true, 'the happiness wave reaches real characters');
+  assert.equal(mikePower.isMikeTargetHappy('far', 1500), false, 'unreached characters keep their normal behaviour');
+  assert.ok(mikePower.mikeCharacterPose('near', 1500).y < 0, 'a reached character visibly dances');
+  assert.deepEqual(mikePower.mikeCharacterPose('far', 1500), { x: 0, y: 0, lean: 0, scale: 1 });
+  assert.equal(mikePower.getMikeOrigin().x, 100, 'the wave remains anchored while the player moves');
+  assert.equal(mikePower.getMikeProtagonist().x, 115);
+  assert.ok(mikePower.getMikeJoyTrails().length >= 2);
+  mikePower.updateMikeWorld(2000, 130, 100, [{ ...mikeTargets[0], x: 250 }]);
+  assert.equal(mikePower.getMikeJoyGuests()[0].x, 250, 'moving characters keep their live position');
+  mikePower.updateMikeWorld(2100, 130, 100, []);
+  assert.equal(mikePower.isMikeTargetHappy('near', 2100), false, 'removed characters cannot leave phantom reactions');
+  assert.ok(Math.abs(mikePower.mikeWorldDeltaTime(0.05, 1025) - 0.059) < 1e-9, 'the entering frame accelerates only its active overlap');
+  assert.ok(Math.abs(mikePower.mikeWorldDeltaTime(0.05, 11025) - 0.059) < 1e-9, 'the ending frame restores normal world time');
+  assert.equal(mikePower.isMikePowerActive(10999), true);
+  mikePower.updateMikeWorld(11000, 130, 100, mikeTargets);
+  assert.equal(mikePower.isMikePowerActive(11000), false);
+  assert.equal(mikePower.mikeHappinessMultiplier(11000), 1);
+  assert.equal(mikePower.mikeMovementMultiplier(11000), 1);
+  assert.equal(mikePower.mikeWorldDeltaTime(0.05, 11050), 0.05);
+  assert.equal(mikePower.getMikeJoyGuests().length, 0);
+  assert.equal(mikePower.getMikeJoyTrails().length, 0);
+  assert.deepEqual(mikePower.mikeCharacterPose('player', 11000), { x: 0, y: 0, lean: 0, scale: 1 });
+  mikePower.activateMikePower(12000);
+  assert.equal(mikePower.mikePowerSecondsLeft(12000), 10);
+  mikePower.updateMikeWorld(12000, 500, 500, []);
+  assert.equal(mikePower.getMikeOrigin().x, 500);
+  assert.equal(mikePower.getMikeJoyTrails().length, 1, 'reactivation starts a fresh garden');
+
+  window.dispatchEvent = () => {};
+});

@@ -27,7 +27,7 @@ for (const [kind, file, variable] of [
   if (content !== await readFile(file, 'utf8').catch(() => '')) await writeFile(file, content);
 }
 await writeFile('scripts/web-assets.manifest.json', JSON.stringify(manifest, null, 2) + '\n');
-let stylesheet = await readFile('style.css', 'utf8');
+let stylesheet = await readFile('css/base.css', 'utf8');
 for (const [source, asset] of Object.entries(manifest.fonts ?? {})) {
   const bytes = await readFile(source).catch(() => null);
   const hash = bytes && createHash('sha256').update(bytes).digest('hex').slice(0, 12);
@@ -37,4 +37,4 @@ for (const [source, asset] of Object.entries(manifest.fonts ?? {})) {
   stylesheet = stylesheet.replace(pattern, `src: url("${prepared ? asset.output : source}") format("${prepared ? 'woff2' : 'truetype'}");`);
   if (!prepared) console.warn(`Using original font ${source}; run npm run prepare:web-assets after editing it.`);
 }
-if (stylesheet !== await readFile('style.css', 'utf8')) await writeFile('style.css', stylesheet);
+if (stylesheet !== await readFile('css/base.css', 'utf8')) await writeFile('css/base.css', stylesheet);

@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { withGameTest } from './helpers.mjs';
+
+await withGameTest(async ({ loadModule }) => {
+  const timInputPower = await loadModule('tim-input-power', 'js/powers/tim/tim-input-power.ts');
+  assert.deepEqual(timInputPower.timInputVector(1, 0, 500), { x: 1, y: 0 }, 'Tim controls stay normal before activation');
+  timInputPower.activateTimInputPower(1000);
+  assert.equal(timInputPower.timPowerVisualState(999), null);
+  assert.equal(timInputPower.timPowerVisualState(1000).intensity, 0, 'the scene opens smoothly rather than flashing');
+  assert.equal(timInputPower.timInputPowerSecondsLeft(1000), 10);
+  assert.deepEqual(timInputPower.timInputVector(1, 0, 1000), { x: -1, y: 0 });
+  assert.deepEqual(timInputPower.timInputVector(-1, 1, 1000), { x: 1, y: -1 }, 'keyboard and d-pad diagonals both reverse');
+  const diagonalIntent = timInputPower.timPowerVisualState(1300);
+  assert.ok(Math.abs(diagonalIntent.intentX + Math.SQRT1_2) < 1e-9);
+  assert.ok(Math.abs(diagonalIntent.intentY - Math.SQRT1_2) < 1e-9);
+  assert.equal(diagonalIntent.intensity, 1, 'the world currents follow the normalized attempted direction');
+  assert.deepEqual(timInputPower.timInputVector(0, 0, 1000), { x: 0, y: 0 });
+  timInputPower.updateTimInputWorld(1000, 100, 100);
+  assert.equal(timInputPower.getTimInputSteps(1000).length, 0);
+  timInputPower.updateTimInputWorld(1050, 110, 100);
+  assert.deepEqual(timInputPower.getTimInputSteps(1050), [{ x: 110, y: 100, at: 1050, reverse: true }]);
+  timInputPower.updateTimInputWorld(1100, 111, 100);
+  assert.equal(timInputPower.getTimInputSteps(1100).length, 1, 'stationary frames do not fill the floor with tracks');
+  timInputPower.updateTimInputWorld(2000, 120, 100);
+  assert.equal(timInputPower.getTimInputSteps(2000).at(-1).reverse, false);
+  assert.ok(timInputPower.timInputPowerSecondsLeft(10999) > 0);
+  assert.equal(timInputPower.timInputPowerSecondsLeft(11000), 0);
+  assert.deepEqual(timInputPower.timInputVector(1, 0, 11000), { x: 1, y: 0 }, 'movement resets exactly at ten seconds');
+  assert.deepEqual(timInputPower.getTimInputSteps(11000), []);
+  assert.equal(timInputPower.timPowerVisualState(11000), null, 'body and landscape effects stop at the controls deadline');
+  timInputPower.updateTimInputWorld(11000, 120, 100);
+  timInputPower.activateTimInputPower(12000);
+  assert.equal(timInputPower.getTimInputSteps(12000).length, 0, 'a second use starts with a clean trail');
+  assert.equal(timInputPower.timPowerVisualState(12500).intentX, 0, 'a second use does not inherit an earlier direction');
+  assert.match(timInputPower.timInputPowerReveal(), /opposite/);
+});

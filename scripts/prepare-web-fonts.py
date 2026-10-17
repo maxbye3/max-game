@@ -5,7 +5,7 @@ import re
 import json
 from fontTools.ttLib import TTFont
 
-stylesheet = Path('style.css')
+stylesheet = Path('css/base.css')
 css = stylesheet.read_text()
 manifest_path = Path('scripts/web-assets.manifest.json')
 manifest = json.loads(manifest_path.read_text())

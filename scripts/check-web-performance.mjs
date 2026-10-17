@@ -64,7 +64,9 @@ try {
     assert.ok(!source.includes('collision'), 'collision guides stay untouched');
   }
   const { webImageSource } = await moduleFor('web-images');
-  assert.equal(webImageSource('../img/external/overworld.png?v=old'), `../${imageSource('img/external/overworld.png')}`);
+  const mapSource = '../img/external/overworld.png?v=old';
+  assert.equal(webImageSource(mapSource), WEB_IMAGE_SOURCES['img/external/overworld.png'] ? `../${imageSource('img/external/overworld.png')}` : mapSource);
+  assert.equal(webImageSource('../img/not-prepared.png?v=keep'), '../img/not-prepared.png?v=keep', 'source fallbacks retain their cache key');
   assert.equal(webImageSource('../char/bochra/profile.jpg'), '../char/bochra/profile.jpg');
 
   const stylesheet = await readFile('style.css', 'utf8');
@@ -73,11 +75,16 @@ try {
   }
 
   const storage = new Map();
+  let loadDeferredAssets;
   globalThis.window = {
     location: { search: '' },
     localStorage: { getItem: (key) => storage.get(key) ?? null },
     setTimeout: globalThis.setTimeout,
     clearTimeout: globalThis.clearTimeout,
+    requestIdleCallback: (callback, options) => {
+      assert.equal(options.timeout, 1500, 'deferred art cannot wait indefinitely');
+      loadDeferredAssets = callback;
+    },
   };
   const sources = [];
   globalThis.Image = class {
@@ -85,22 +92,28 @@ try {
     decode() { return Image.stallDecode ? new Promise(() => {}) : Promise.resolve(); }
     set src(source) { sources.push(source); queueMicrotask(() => this.onload()); }
   };
+  const imageLoaded = source => sources.some(loaded => loaded.split('?')[0] === imageSource(source).split('?')[0]);
   const { loadAssets } = await moduleFor('assets');
   await loadAssets();
-  assert.ok(!sources.includes(imageSource('char/siblings/girls-sprite.png')));
-  assert.ok(!sources.includes(imageSource('img/external/mike-aftermath.png')));
-  assert.ok(!sources.includes(imageSource('char/player/seal-game.png')));
-  assert.ok(sources.includes(imageSource('img/external/billboard-unfinished.png')));
+  assert.ok(imageLoaded('img/external/road.png'), 'the road is ready for the first frame');
+  assert.ok(!imageLoaded('img/external/billboard-unfinished.png'), 'secondary art stays off the first-frame path');
+  assert.equal(typeof loadDeferredAssets, 'function');
+  loadDeferredAssets();
+  assert.ok(!imageLoaded('char/siblings/girls-sprite.png'));
+  assert.ok(!imageLoaded('img/external/mike-aftermath.png'));
+  assert.ok(!imageLoaded('char/player/seal-game.png'));
+  assert.ok(imageLoaded('img/external/billboard-unfinished.png'));
   Image.stallDecode = true;
   await loadAssets();
   Image.stallDecode = false;
   sources.length = 0; storage.set('max-game:mike-aftermath', 'true'); window.location.search = '?seal=1';
   await loadAssets(true);
-  assert.ok(sources.includes(imageSource('char/siblings/girls-sprite.png')));
-  assert.ok(sources.includes(imageSource('img/external/mike-aftermath.png')));
-  assert.ok(sources.includes(imageSource('char/player/seal-game.png')));
-  assert.ok(!sources.includes(imageSource('char/mike/overworld-avatar.png')));
-  assert.ok(sources.includes(imageSource('char/rei/overworld-avatar.png')), 'Rei remains visible after the quest');
+  loadDeferredAssets();
+  assert.ok(imageLoaded('char/siblings/girls-sprite.png'));
+  assert.ok(imageLoaded('img/external/mike-aftermath.png'));
+  assert.ok(imageLoaded('char/player/seal-game.png'));
+  assert.ok(!imageLoaded('char/mike/overworld-avatar.png'));
+  assert.ok(imageLoaded('char/rei/overworld-avatar.png'), 'Rei remains visible after the quest');
   // The permanent solar cap must still render after temporary powers expire.
   window.localStorage.setItem = (key, value) => storage.set(key, value);
   const characterFile = join(directory, 'character-render.mjs');
