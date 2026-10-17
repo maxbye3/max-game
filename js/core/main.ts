@@ -126,6 +126,7 @@ function gameLoop(time: number): void {
       updateNpcInteractions(player.x, player.y);
       updateNiallInteraction(worldDeltaTime, player.x, player.y);
     }
+    updateSigns(player.x, player.y);
     draw(time, worldAnimationTime);
     return;
   }
