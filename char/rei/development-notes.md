@@ -1,0 +1,5 @@
+# Development prompts
+
+These describe game behaviour and are not spoken dialogue.
+
+If the player walks into the road and a car knocks them down, the car stops on top of them and a dialogue comes saying "Oh no", the camera then pans to where the grave is and the player is now ghost sprite and works exactly the same way as regular sprite.

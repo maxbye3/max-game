@@ -1,6 +1,6 @@
 import type { SamPowerTarget } from '../sam/sam-power.js';
 
-export const ALICE_POWER_DURATION = 20_000;
+export const ALICE_POWER_DURATION = 10_000;
 const FLASH_RADIUS = 260;
 
 let startedAt = Infinity;
@@ -75,5 +75,5 @@ export function aliceCharacterPose(
 }
 
 export function alicePowerReveal(): string {
-  return "Alice's camera flash blinded you and everyone nearby for twenty seconds. The afterimage slowly faded, and your vision returned.";
+  return "Alice's camera flash blinded you and everyone nearby for ten seconds. The afterimage slowly faded, and your vision returned.";
 }

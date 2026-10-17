@@ -1,3 +1,4 @@
+import { NIALL_BATTLE_SPRITE, PLAYER_BATTLE_SPRITE } from '../../generated/characters/niall/battle-sprites.generated.js';
 import { createBattleOpening } from './niall-opening.js';
 import { getBattleResult, type BattleOutcome } from './battle-outcome.js';
 import { requireElement } from '../../core/elements.js';
@@ -11,6 +12,8 @@ const niallHpText = requireElement<HTMLElement>('#niall-hp-text');
 const fomoStatus = requireElement<HTMLElement>('#fomo-status');
 const playerBattler = requireElement<HTMLImageElement>('#player-battler');
 const niallBattler = requireElement<HTMLImageElement>('#niall-battler');
+playerBattler.src = PLAYER_BATTLE_SPRITE;
+niallBattler.src = NIALL_BATTLE_SPRITE;
 const battleLog = requireElement<HTMLElement>('#battle-log');
 const actionGrid = requireElement<HTMLElement>('#move-grid');
 const itemGrid = requireElement<HTMLElement>('#item-grid');
@@ -43,7 +46,7 @@ function renderBattle(): void {
   });
   healthItem.disabled = !battle.canAct || battle.healthItemUsed;
   healthItem.textContent = battle.healthItemUsed ? 'Capri Sun (used)' : 'Capri Sun';
-  attackButton.textContent = battle.playerAttackIndex >= 5 ? 'Portuguese hot sauce' : 'Attack';
+  attackButton.textContent = battle.nextPlayerAttack.label ?? 'Attack';
 }
 
 function appendLog(message: string): void {

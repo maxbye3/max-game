@@ -48,7 +48,9 @@ try {
 
   const battle = await loadModule('battle-outcome', 'js/characters/niall/battle-outcome.ts');
   assert.equal(battle.getBattleResult('victory').niallQuestState, 'following');
-  assert.equal(battle.getBattleResult('defeat').niallQuestState, undefined);
+  assert.equal(battle.getBattleResult('defeat').niallQuestState, 'following');
+  assert.equal(battle.getBattleResult('defeat').href, '../index.html?niall=bus');
+  assert.match(battle.getBattleResult('defeat').message, /YOU LOSE!.*walk you back to the bus/);
   assert.deepEqual(battle.getBattleResult('escape'), {
     message: "Alright, I'll walk you back to the bus.",
     linkLabel: 'Walk to the bus',
@@ -87,7 +89,7 @@ try {
 
   const unhealed = playNiallFight();
   assert.equal(unhealed.fight.playerHp, 0, 'without healing Buckfast defeats the player');
-  assert.equal(unhealed.fight.niallHp, 10, 'Niall survives the final Buckfast turn by one hot-sauce attack');
+  assert.equal(unhealed.fight.niallHp, 40, 'Niall survives when Buckfast defeats the unhealed player');
   assert.equal(unhealed.fight.niallAttackIndex, 10, 'Buckfast is the final attack in the unhealed battle');
   assert.equal(unhealed.enemyMoves.at(-1).passOut, true);
   assert.equal(
@@ -106,12 +108,12 @@ try {
 
   const healed = playNiallFight(8);
   assert.equal(healed.fight.healthItemUsed, true);
-  assert.equal(healed.fight.playerHp, 20, 'one late health item lets the player survive Buckfast and win');
-  assert.equal(healed.fight.niallHp, 0, 'hot sauce defeats Niall after the player survives Buckfast');
-  assert.equal(healed.fight.niallAttackIndex, 10);
-  assert.equal(healed.enemyMoves.at(-1).passOut, true);
-  assert.equal(healed.playerMoves.at(-1).message, 'You put Portuguese hot sauce on his food.');
-  assert.equal(healed.playerMoves.at(-1).victoryMessage, 'Niall passes out. YOU WIN!');
+  assert.equal(healed.fight.playerHp, 4, 'one late health item lets the player survive Buckfast and the recycled attacks');
+  assert.equal(healed.fight.niallHp, 0, 'recycled player attacks can defeat Niall');
+  assert.equal(healed.fight.niallAttackIndex, 12);
+  assert.deepEqual(healed.playerMoves.slice(6, 12), niallBattle.PLAYER_ATTACKS, 'all player commands repeat after hot sauce');
+  assert.deepEqual(healed.enemyMoves.slice(10), niallBattle.NIALL_ATTACKS.slice(0, 2), 'Niall restarts his attacks after Buckfast');
+  assert.match(niallBattle.PLAYER_ATTACKS[4].message, /North Korea/, 'the Korean attack comes later in the list');
   assert.equal(healed.fight.takeNiallTurn(), null, 'Niall cannot attack after being defeated');
   assert.equal(healed.fight.useHealthItem(), 0, 'the healing item cannot be reused');
 
@@ -664,7 +666,7 @@ try {
 
   const juPower = await loadModule('ju-power', 'js/powers/ju/ju-power.ts');
   juPower.activateJuPower(1000);
-  assert.equal(juPower.juPowerSecondsLeft(1000), 10);
+  assert.equal(juPower.juPowerSecondsLeft(1000), 15);
   assert.equal(juPower.isJuPowerActive(999), false);
   assert.equal(juPower.juMovementMultiplier(1000), 1.65);
   assert.deepEqual(juPower.juInputVector(1, -1, 2699), { x: 1, y: -1 });
@@ -673,7 +675,7 @@ try {
   assert.deepEqual(juPower.juInputVector(1, -1, 3400), { x: 1, y: -1 });
   assert.ok(Math.abs(juPower.juWorldDeltaTime(0.05, 2725) - 0.03) < 1e-9, 'a frame entering possession only slows its overlap');
   assert.ok(Math.abs(juPower.juWorldDeltaTime(0.05, 3425) - 0.03) < 1e-9, 'a frame leaving possession restores ordinary world time');
-  assert.ok(Math.abs(juPower.juWorldDeltaTime(10, 11000) - 7.76) < 1e-9, 'all four possession windows are integrated across a delayed frame');
+  assert.ok(Math.abs(juPower.juWorldDeltaTime(15, 16000) - 11.64) < 1e-9, 'all six possession windows are integrated across a delayed frame');
   const juTargets = [{ id: 'near', x: 200, y: 100, height: 52 }, { id: 'far', x: 1500, y: 100, height: 52 }];
   juPower.updateJuWorld(1000, 100, 100, juTargets);
   assert.equal(juPower.getJuRevellers().length, 0);
@@ -690,17 +692,17 @@ try {
   assert.equal(juPower.getJuRevellers().length, 2, 'the procession spreads with the travelling pulses');
   juPower.updateJuWorld(4300, 110, 100, []);
   assert.equal(juPower.getJuRevellers().length, 0);
-  assert.equal(juPower.isJuPowerActive(10999), true);
-  juPower.updateJuWorld(11000, 110, 100, juTargets);
-  assert.equal(juPower.isJuPowerActive(11000), false);
-  assert.equal(juPower.juMovementMultiplier(11000), 1);
-  assert.deepEqual(juPower.juInputVector(1, -1, 11000), { x: 1, y: -1 });
-  assert.deepEqual(juPower.juCharacterPose('player', 11000), { x: 0, lift: 0, lean: 0 });
+  assert.equal(juPower.isJuPowerActive(15999), true);
+  juPower.updateJuWorld(16000, 110, 100, juTargets);
+  assert.equal(juPower.isJuPowerActive(16000), false);
+  assert.equal(juPower.juMovementMultiplier(16000), 1);
+  assert.deepEqual(juPower.juInputVector(1, -1, 16000), { x: 1, y: -1 });
+  assert.deepEqual(juPower.juCharacterPose('player', 16000), { x: 0, lift: 0, lean: 0 });
   assert.equal(juPower.getJuPulses().length, 0);
   assert.equal(juPower.getJuSteps().length, 0);
-  assert.equal(juPower.juWorldDeltaTime(0.05, 11050), 0.05);
-  juPower.activateJuPower(12000);
-  assert.equal(juPower.juPowerSecondsLeft(12000), 10);
+  assert.equal(juPower.juWorldDeltaTime(0.05, 16050), 0.05);
+  juPower.activateJuPower(17000);
+  assert.equal(juPower.juPowerSecondsLeft(17000), 15);
   assert.equal(juPower.getJuRevellers().length, 0);
   console.log('Ju power: duration, possessions, movement, world timing, propagation, shadow pursuit and cleanup passed');
 
@@ -1058,15 +1060,18 @@ try {
   assert.equal(reveals, 1, 'a single accident only spawns one ghost');
 
   const trafficHits = await loadModule('road-traffic-hits', 'js/overworld/road-traffic.ts');
+  values.set('max-game:interior-visited', 'true');
   trafficHits.startRoadTraffic();
-  trafficHits.updateRoadTraffic(30);
+  const roadPlayer = { x: 692, y: trafficHits.ROAD_CAR_CENTER_Y };
+  trafficHits.updateRoadTraffic(0.05, roadPlayer);
+  trafficHits.updateRoadTraffic(5, roadPlayer);
   const enteringCar = trafficHits.getRoadTrafficCars()[0];
-  trafficHits.updateRoadTraffic(0.5);
+  trafficHits.updateRoadTraffic(0.5, roadPlayer);
   assert.equal(trafficHits.stopRoadCarOnPlayer(enteringCar.x - 50, trafficHits.ROAD_CAR_CENTER_Y - 60), false, 'the sidewalk is safe');
   assert.equal(trafficHits.stopRoadCarOnPlayer(enteringCar.x - 50, trafficHits.ROAD_CAR_CENTER_Y), true, 'a swept car hits a player between frames');
   const stoppedCar = trafficHits.getRoadTrafficCars()[0];
   assert.equal(stoppedCar.x + trafficHits.ROAD_CAR_WIDTH / 2, enteringCar.x - 50, 'the car stops centered over the player');
-  trafficHits.updateRoadTraffic(1);
+  trafficHits.updateRoadTraffic(1, roadPlayer);
   assert.equal(trafficHits.getRoadTrafficCars()[0].x, stoppedCar.x, 'the accident car stays stopped');
   assert.equal(trafficHits.stopRoadCarOnPlayer(enteringCar.x - 50, trafficHits.ROAD_CAR_CENTER_Y), false, 'a stopped car cannot retrigger the accident');
 
@@ -1154,59 +1159,73 @@ try {
   values.clear();
   console.log('Workout journal: Alex and Ghost Alex access, other and unset players blocked, Julian gifts preserved');
 
-  const busIntroTraffic = await loadModule('bus-intro-traffic', 'js/overworld/bus-intro.ts');
-  const originalRandom = Math.random;
-  try {
-    Math.random = () => 0;
+  {
+    const busIntroTraffic = await loadModule('bus-intro-traffic', 'js/overworld/bus-intro.ts');
     const introPlayer = { x: 0, y: 0, direction: 'down', frame: 0, animationTime: 0 };
     for (let frame = 0; frame < 170 && busIntroTraffic.isBusIntroActive(); frame += 1) {
       busIntroTraffic.updateBusIntro(0.05, introPlayer);
     }
-    assert.equal(busIntroTraffic.isBusIntroActive(), false, 'road traffic waits for the bus to finish leaving');
+    assert.equal(busIntroTraffic.isBusIntroActive(), false, 'the bus finishes leaving');
     assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), []);
-    for (let frame = 0; frame < 599; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
-    assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), [], 'the first car waits 30 seconds');
-    busIntroTraffic.updateBusIntro(0.05, introPlayer);
-    const firstRoadCar = busIntroTraffic.getRoadTrafficCars()[0];
-    assert.equal(firstRoadCar?.spriteIndex, 0);
-    assert.ok((firstRoadCar?.x ?? 0) > 0, 'cars enter from the right with their fronts facing the direction of travel');
-    busIntroTraffic.updateBusIntro(1, introPlayer);
-    assert.equal(busIntroTraffic.getRoadTrafficCars()[0]?.x, (firstRoadCar?.x ?? 0) - 220);
-    for (let frame = 0; frame < 379; frame += 1) busIntroTraffic.updateBusIntro(0.05, introPlayer);
-    assert.equal(busIntroTraffic.getRoadTrafficCars().length, 0, 'the next car waits 20 seconds');
-    busIntroTraffic.updateBusIntro(0.05, introPlayer);
-    assert.deepEqual(
-      busIntroTraffic.getRoadTrafficCars().map((car) => car.spriteIndex),
-      [1],
-      'cars use separate sprites in sequence',
-    );
-    console.log('Road traffic: cars travel left, start after 30 seconds and follow 20-second gaps');
-  } finally {
-    Math.random = originalRandom;
+    busIntroTraffic.updateBusIntro(60, introPlayer);
+    assert.deepEqual(busIntroTraffic.getRoadTrafficCars(), [], 'traffic stays disabled before the first interior visit');
   }
+  const roadConfig = await loadModule('road-config', 'js/core/config.ts');
+  const { ROAD_X, ROAD_Y, ROAD_WIDTH, ROAD_HEIGHT } = roadConfig;
   const originalLocationSearch = window.location.search;
-  for (const search of ['?door=journal', '?niall=bus']) {
+  for (const search of ['?door=bookshop', '?niall=bus', '?body=ghost']) {
     window.location.search = search;
+    values.delete('max-game:interior-visited');
+    values.set('max-game:player-body', search.includes('ghost') ? 'ghost' : 'player');
+    const beforeVisit = await loadModule(`traffic-before-visit-${search}`, 'js/overworld/bus-intro.ts');
+    beforeVisit.setupBusIntro();
+    const returningPlayer = { x: ROAD_X + ROAD_WIDTH / 2, y: ROAD_Y + ROAD_HEIGHT / 2, direction: 'down', frame: 0, animationTime: 0 };
+    beforeVisit.updateBusIntro(0.05, returningPlayer);
+    beforeVisit.updateBusIntro(60, returningPlayer);
+    assert.deepEqual(beforeVisit.getRoadTrafficCars(), [], 'a return URL alone cannot unlock traffic');
+    worldState.markInteriorVisited();
     const returningTraffic = await loadModule(
-      `returning-traffic-${search.includes('door') ? 'door' : 'niall'}`,
+      `returning-traffic-${search}`,
       'js/overworld/bus-intro.ts',
     );
     returningTraffic.setupBusIntro();
     assert.equal(returningTraffic.isBusIntroActive(), false, `${search} skips the arrival intro`);
-    const returningPlayer = { x: 100, y: 200, direction: 'down', frame: 0, animationTime: 0 };
-    returningTraffic.updateBusIntro(29.95, returningPlayer);
-    assert.deepEqual(returningTraffic.getRoadTrafficCars(), [], 'return traffic keeps the first-car delay');
+    returningPlayer.y = ROAD_Y - 1;
+    returningTraffic.updateBusIntro(60, returningPlayer);
+    assert.deepEqual(returningTraffic.getRoadTrafficCars(), [], 'waiting off the road never spawns a car');
+    returningPlayer.y = ROAD_Y;
+    returningTraffic.updateBusIntro(0.05, returningPlayer);
+    returningTraffic.updateBusIntro(4.95, returningPlayer);
+    assert.deepEqual(returningTraffic.getRoadTrafficCars(), [], 'road entry waits five seconds');
     returningTraffic.setupBusIntro();
     returningTraffic.updateBusIntro(0.05, returningPlayer);
-    assert.equal(returningTraffic.getRoadTrafficCars().length, 1, `${search} starts traffic even without the intro`);
+    assert.equal(returningTraffic.getRoadTrafficCars().length, 1, `${search} enables traffic after an interior visit`);
+    assert.equal(returningTraffic.getRoadTrafficCars()[0].spriteIndex, 0);
     const carX = returningTraffic.getRoadTrafficCars()[0].x;
+    assert.equal(carX, ROAD_X + ROAD_WIDTH, 'cars enter from the right');
     returningTraffic.updateBusIntro(1, returningPlayer);
     assert.equal(returningTraffic.getRoadTrafficCars()[0].x, carX - 220, 'return traffic continues moving');
-    assert.equal(returningPlayer.x, 100);
-    assert.equal(returningPlayer.y, 200);
+    returningTraffic.updateBusIntro(60, returningPlayer);
+    assert.deepEqual(returningTraffic.getRoadTrafficCars(), [], 'staying on the road does not run a periodic spawn timer');
+    returningPlayer.y = ROAD_Y - 1;
+    returningTraffic.updateBusIntro(0.05, returningPlayer);
+    returningPlayer.x = ROAD_X;
+    returningPlayer.y = ROAD_Y + ROAD_HEIGHT;
+    returningTraffic.updateBusIntro(0.05, returningPlayer);
+    returningTraffic.updateBusIntro(2, returningPlayer);
+    returningPlayer.x = ROAD_X - 1;
+    returningTraffic.updateBusIntro(0.05, returningPlayer);
+    returningPlayer.x = ROAD_X + ROAD_WIDTH;
+    returningTraffic.updateBusIntro(0.05, returningPlayer);
+    returningTraffic.updateBusIntro(2.9, returningPlayer);
+    assert.deepEqual(returningTraffic.getRoadTrafficCars().map((car) => car.spriteIndex), [1], 're-entry does not postpone the previous car');
+    returningPlayer.x += 1;
+    returningTraffic.updateBusIntro(2.1, returningPlayer);
+    assert.deepEqual(returningTraffic.getRoadTrafficCars().map((car) => car.spriteIndex), [1, 2], 'every entry across the road bounds schedules a car, even if the player leaves');
   }
   window.location.search = originalLocationSearch;
-  console.log('Road traffic: building and Niall returns spawn moving cars without replaying the intro');
+  values.clear();
+  console.log('Road traffic: interior visit gating, five-second entries, all road bounds, repeat entries and moving cars passed');
   values.set('max-game:niall-quest-state', 'following');
   const niall = await loadModule('niall-bus-dialogue', 'js/characters/niall/niall.ts');
   niall.updateNiallInteraction(0, niall.NIALL_BUS_STOP.triggerX, niall.NIALL_BUS_STOP.triggerY);

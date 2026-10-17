@@ -1,5 +1,5 @@
-export const JU_POWER_DURATION = 10_000;
-export const JU_POWER_REVEAL = "Ju's power: FANTASTIC VIBES turned you into a floating, radiant party magnet with a faster stride. Your amulet sent rainbow pulses across the landscape and swept nearby characters into a dancing procession. Its curse summoned a shadow that followed you: four short possessions reversed your controls, slowed your movement and dragged the world into a haunted, sluggish mirror realm. The amulet, shadow, procession and curse all vanished after ten seconds.";
+export const JU_POWER_DURATION = 15_000;
+export const JU_POWER_REVEAL = "Ju's power: FANTASTIC VIBES turned you into a floating, radiant party magnet with a faster stride. Your amulet sent rainbow pulses across the landscape and swept nearby characters into a dancing procession. Its curse summoned a shadow that followed you: six short possessions reversed your controls, slowed your movement and dragged the world into a haunted, sluggish mirror realm. The amulet, shadow, procession and curse all vanished after fifteen seconds.";
 const CYCLE_DURATION = 2500;
 const CURSE_START = 1700;
 const CURSE_END = 2400;

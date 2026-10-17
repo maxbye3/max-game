@@ -1,9 +1,10 @@
 import { ROAD_HEIGHT, ROAD_WIDTH, ROAD_X, ROAD_Y } from '../core/config.js';
+import type { Player } from '../core/types.js';
+import { hasVisitedInterior } from '../core/world-state.js';
 
 const CAR_SPRITE_COUNT = 6;
 const CAR_SPEED = 220;
-const FIRST_CAR_DELAY_MS = 30000;
-const CAR_INTERVAL_MS = 20000;
+const ROAD_ENTRY_CAR_DELAY_MS = 5000;
 
 export const ROAD_CAR_WIDTH = 132;
 export const ROAD_CAR_CENTER_Y = ROAD_Y + ROAD_HEIGHT * 0.76;
@@ -16,18 +17,17 @@ export interface RoadTrafficCar {
 }
 
 const cars: { spriteIndex: number; x: number; previousX: number; stopped: boolean }[] = [];
-let trafficStarted = false;
-let timeUntilNextCarMs = 0;
+let trafficEnabled = false;
+let playerWasOnRoad = false;
+const pendingCarsMs: number[] = [];
 let nextSpriteIndex = 0;
 
 export function startRoadTraffic(): void {
-  if (trafficStarted) return;
-  trafficStarted = true;
-  timeUntilNextCarMs = FIRST_CAR_DELAY_MS;
+  trafficEnabled = hasVisitedInterior();
 }
 
-export function updateRoadTraffic(deltaTime: number): void {
-  if (!trafficStarted || deltaTime <= 0) return;
+export function updateRoadTraffic(deltaTime: number, player: Pick<Player, 'x' | 'y'>): void {
+  if (!trafficEnabled || deltaTime <= 0) return;
 
   for (const car of cars) {
     car.previousX = car.x;
@@ -37,12 +37,19 @@ export function updateRoadTraffic(deltaTime: number): void {
     if ((cars[index]?.x ?? ROAD_X) + ROAD_CAR_WIDTH < ROAD_X) cars.splice(index, 1);
   }
 
-  timeUntilNextCarMs -= deltaTime * 1000;
-  if (timeUntilNextCarMs <= 0) {
+  for (let index = 0; index < pendingCarsMs.length; index += 1) {
+    pendingCarsMs[index] = (pendingCarsMs[index] ?? 0) - deltaTime * 1000;
+  }
+  while ((pendingCarsMs[0] ?? Infinity) <= 0) {
+    pendingCarsMs.shift();
     cars.push({ spriteIndex: nextSpriteIndex, x: ROAD_X + ROAD_WIDTH, previousX: ROAD_X + ROAD_WIDTH, stopped: false });
     nextSpriteIndex = (nextSpriteIndex + 1) % CAR_SPRITE_COUNT;
-    timeUntilNextCarMs = CAR_INTERVAL_MS;
   }
+
+  const playerIsOnRoad = player.x >= ROAD_X && player.x <= ROAD_X + ROAD_WIDTH &&
+    player.y >= ROAD_Y && player.y <= ROAD_Y + ROAD_HEIGHT;
+  if (playerIsOnRoad && !playerWasOnRoad) pendingCarsMs.push(ROAD_ENTRY_CAR_DELAY_MS);
+  playerWasOnRoad = playerIsOnRoad;
 }
 
 export function getRoadTrafficCars(): readonly RoadTrafficCar[] {

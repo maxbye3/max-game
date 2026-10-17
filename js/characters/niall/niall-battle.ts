@@ -8,6 +8,7 @@ export interface NiallAttack {
 }
 
 export interface PlayerAttack {
+  readonly label?: string;
   readonly damage: number;
   readonly message: string;
   readonly effectMessage: string;
@@ -21,13 +22,13 @@ export const HEALTH_ITEM_HP = 50;
 export const PLAYER_ATTACKS: readonly PlayerAttack[] = [
   {
     damage: 10,
-    message: 'You tell Niall your slightly fringe thoughts on North Korea after watching Godzilla.',
-    effectMessage: 'Niall is enraged! NIALL loses 10 HP.',
+    message: 'You tell Niall he cannot borrow your phone charger.',
+    effectMessage: 'Niall begins to pace anxiously. NIALL loses 10 HP.',
   },
   {
     damage: 10,
-    message: 'You tell Niall he cannot borrow your phone charger.',
-    effectMessage: 'Niall begins to pace anxiously. NIALL loses 10 HP.',
+    message: 'You tell Niall to stop smiling.',
+    effectMessage: 'He smiles wider, but there is panic in his eyes. NIALL loses 10 HP.',
   },
   {
     damage: 20,
@@ -36,16 +37,17 @@ export const PLAYER_ATTACKS: readonly PlayerAttack[] = [
   },
   {
     damage: 10,
-    message: 'You tell Niall to stop smiling.',
-    effectMessage: 'He smiles wider, but there is panic in his eyes. NIALL loses 10 HP.',
-  },
-  {
-    damage: 10,
     message: 'You tell Niall off for leaving his socks on your couch.',
     effectMessage: 'Niall puts on the movie Doom. NIALL loses 10 HP.',
   },
   {
+    damage: 10,
+    message: 'You tell Niall your slightly fringe thoughts on North Korea after watching Godzilla.',
+    effectMessage: 'Niall is enraged! NIALL loses 10 HP.',
+  },
+  {
     damage: 20,
+    label: 'Portuguese hot sauce',
     message: 'You put Portuguese hot sauce on his food.',
     effectMessage: 'Niall loses 20 HP.',
     victoryMessage: 'Niall passes out. YOU WIN!',
@@ -123,7 +125,7 @@ export class NiallBattle {
   }
 
   get nextPlayerAttack(): PlayerAttack {
-    return PLAYER_ATTACKS[Math.min(this.playerAttackIndex, PLAYER_ATTACKS.length - 1)]!;
+    return PLAYER_ATTACKS[this.playerAttackIndex % PLAYER_ATTACKS.length]!;
   }
 
   damageNiall(amount: number): void {
@@ -160,7 +162,7 @@ export class NiallBattle {
       this.battleOver || !this.waitingForNiall || this.pendingNiallAttack ||
       this.playerHp <= 0 || this.niallHp <= 0
     ) return null;
-    const attack = NIALL_ATTACKS[Math.min(this.niallAttackIndex, NIALL_ATTACKS.length - 1)]!;
+    const attack = NIALL_ATTACKS[this.niallAttackIndex % NIALL_ATTACKS.length]!;
     this.pendingNiallAttack = attack;
     this.waitingForNiall = false;
     return attack;

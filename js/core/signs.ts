@@ -23,6 +23,7 @@ import { requireElement } from './dom.js';
 import { releaseAllInput } from './input.js';
 import { announceWorldInteraction } from './world-interactions.js';
 import type { CollisionShape } from './types.js';
+import { isAnyPowerActive } from '../powers/active-power.js';
 import { isMikePowerActive } from '../powers/mike/mike-power.js';
 import { getPlayerBody, setPlayerBody } from './player-body.js';
 import { isWheldonPlayerSpriteEnabled, setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
@@ -151,8 +152,12 @@ function distanceToSign(playerX: number, playerY: number, sign: Sign): number {
   return Math.hypot(dx, dy);
 }
 
+function isSignSuppressed(sign: Sign): boolean {
+  return isMikePowerActive() || (sign.id === 'grave' && isAnyPowerActive());
+}
+
 function showSign(sign: Sign): void {
-  if (isMikePowerActive()) return;
+  if (isSignSuppressed(sign)) return;
   if (dismissedSignId === sign.id) return;
   if (activeSign?.id === sign.id) return;
 
@@ -192,7 +197,7 @@ export function isSignDialogueOpen(): boolean {
 export function bumpSignAt(playerX: number, playerY: number): boolean {
   if (isMikePowerActive()) return false;
   const sign = SIGNS.find((candidate) => playerFootIntersectsSign(playerX, playerY, candidate));
-  if (!sign) return false;
+  if (!sign || isSignSuppressed(sign)) return false;
 
   showSign(sign);
   return true;
@@ -200,7 +205,7 @@ export function bumpSignAt(playerX: number, playerY: number): boolean {
 
 /** Proximity reads the nearest sign automatically; moving away dismisses it. */
 export function updateSigns(playerX: number, playerY: number): void {
-  if (isMikePowerActive()) {
+  if (isMikePowerActive() || (activeSign && isSignSuppressed(activeSign))) {
     if (activeSign) hideSignDialogue();
     return;
   }

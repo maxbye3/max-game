@@ -17,9 +17,10 @@ const RESULTS: Record<BattleOutcome, BattleResult> = {
     niallQuestState: 'following',
   },
   defeat: {
-    message: 'YOU LOSE!',
-    linkLabel: 'Back to the map',
-    href: '../index.html',
+    message: "YOU LOSE! Alright, I'll walk you back to the bus.",
+    linkLabel: 'Walk to the bus',
+    href: '../index.html?niall=bus',
+    niallQuestState: 'following',
   },
   escape: {
     message: "Alright, I'll walk you back to the bus.",

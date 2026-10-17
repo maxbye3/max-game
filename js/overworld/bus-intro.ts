@@ -142,7 +142,7 @@ export function getBusIntroBus(): {
 
 export function updateBusIntro(deltaTime: number, player: Player): void {
   if (!active) {
-    updateRoadTraffic(deltaTime);
+    updateRoadTraffic(deltaTime, player);
     return;
   }
 
