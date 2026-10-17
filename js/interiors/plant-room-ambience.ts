@@ -23,7 +23,7 @@ export function setupInteriorAmbience(doorId: string | null): void {
 
   const pause = (): void => { tracks.forEach((track) => track.pause()); };
   const start = (): void => {
-    if (hasPowerAudioFocus() || document.hidden || (doorId === 'music-shop' && hasDialogueAudioFocus('Andy'))) { pause(); return; }
+    if (hasPowerAudioFocus() || document.hidden || (doorId === 'music-shop' && hasDialogueAudioFocus('Andy')) || (doorId === 'cinema' && hasDialogueAudioFocus('Dad'))) { pause(); return; }
     setVolume();
     for (const track of tracks) {
       if (!track.paused) continue;
