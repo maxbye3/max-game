@@ -1381,12 +1381,14 @@ canvas {
 
 .npc-dialogue {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   z-index: 9;
   left: var(--dialogue-left);
   bottom: var(--dialogue-bottom);
   width: min(var(--dialogue-max-width, 350px), var(--dialogue-width));
   max-height: calc(100% - var(--dialogue-bottom) - var(--dialogue-top));
-  overflow-y: auto;
+  overflow: hidden;
   overflow-anchor: none;
   padding: 14px 16px 16px;
   translate: var(--dialogue-translate) 0;
@@ -1397,8 +1399,18 @@ canvas {
   box-shadow: 5px 5px 0 rgb(0 0 0 / 55%);
 }
 
+.npc-dialogue[hidden] { display: none; }
+
+.npc-dialogue-content {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .npc-dialogue-header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -1527,6 +1539,10 @@ canvas {
 
 .npc-dialogue-next {
   display: block;
+  flex-shrink: 0;
+  align-self: flex-end;
+  min-width: 44px;
+  min-height: 44px;
   margin: 12px 0 0 auto;
   padding: 8px 12px;
   border: 1px solid #8eaf93;
@@ -2352,6 +2368,33 @@ kbd {
   .game-shell:has(.controls[data-mobile-controls="split"]) {
     --dialogue-top: calc(50% + 44px);
     --dialogue-bottom: calc(144px + env(safe-area-inset-bottom));
+  }
+  /* During conversations, bring the side arrows beside Down to free text space. */
+  .game-shell:has(.controls[data-mobile-controls="split"]):has(.npc-dialogue:not([hidden])) {
+    --dialogue-top: calc(152px + env(safe-area-inset-top));
+  }
+  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button {
+    inset: auto;
+    width: 64px;
+    height: 64px;
+    clip-path: none;
+    bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button[data-directions="left"] {
+    left: calc(12px + env(safe-area-inset-left));
+  }
+  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button[data-directions="right"] {
+    right: calc(12px + env(safe-area-inset-right));
+  }
+  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button:is([data-directions="up"], [data-directions="down"]) {
+    left: calc(50% - 32px);
+  }
+  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button[data-directions="up"] {
+    top: calc(76px + env(safe-area-inset-top));
+    bottom: auto;
+  }
+  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-key {
+    inset: 0;
   }
   .controls {
     left: calc(12px + env(safe-area-inset-left));

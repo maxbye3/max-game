@@ -1,11 +1,13 @@
 .npc-dialogue {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   z-index: 9;
   left: var(--dialogue-left);
   bottom: var(--dialogue-bottom);
   width: min(var(--dialogue-max-width, 350px), var(--dialogue-width));
   max-height: calc(100% - var(--dialogue-bottom) - var(--dialogue-top));
-  overflow-y: auto;
+  overflow: hidden;
   overflow-anchor: none;
   padding: 14px 16px 16px;
   translate: var(--dialogue-translate) 0;
@@ -16,8 +18,18 @@
   box-shadow: 5px 5px 0 rgb(0 0 0 / 55%);
 }
 
+.npc-dialogue[hidden] { display: none; }
+
+.npc-dialogue-content {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .npc-dialogue-header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -146,6 +158,10 @@
 
 .npc-dialogue-next {
   display: block;
+  flex-shrink: 0;
+  align-self: flex-end;
+  min-width: 44px;
+  min-height: 44px;
   margin: 12px 0 0 auto;
   padding: 8px 12px;
   border: 1px solid #8eaf93;

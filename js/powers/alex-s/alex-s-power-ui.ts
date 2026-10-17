@@ -2,6 +2,7 @@ import { alexSPowerSecondsLeft, alexSToastLine, getAlexResurrection, RESURRECTIO
 import { releaseAllInput } from '../../core/input.js';
 import { setProfileImage } from '../../core/profile-images.js';
 import { resolveSiteAsset } from '../../core/site-assets.js';
+import { setupDialoguePanel } from '../../core/dialogue-layout.js';
 
 let choice: HTMLElement | null = null;
 let dialogue: HTMLElement | null = null;
@@ -82,6 +83,8 @@ function createUi(): void {
   talk = document.createElement('button'); talk.type = 'button'; talk.className = 'npc-talk alex-resurrection-talk'; talk.hidden = true;
   talk.addEventListener('click', openAlexToastDialogue);
   shell.append(choice, dialogue, talk);
+  setupDialoguePanel(choice);
+  setupDialoguePanel(dialogue);
   window.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeChoice(); closeDialogue(); } });
   window.addEventListener('max-game:world-interaction-opened', () => { closeChoice(); closeDialogue(); });
 }

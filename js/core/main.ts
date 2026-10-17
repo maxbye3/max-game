@@ -19,6 +19,7 @@ import { updateBochraWorld } from '../powers/bochra/bochra-power.js';
 import { startGameLoop } from './game-loop.js';
 import { loadAssets } from './assets.js';
 import { setupAudioMute } from './audio-mute.js';
+import { setupDialoguePanel } from './dialogue-layout.js';
 import { playDoughnutReturnVoice } from './alex-w-voice.js';
 import { setupBusIntro, updateBusIntro } from '../overworld/bus-intro.js';
 import {
@@ -174,6 +175,7 @@ function gameLoop(time: number): void {
 }
 
 setupInput();
+document.querySelectorAll<HTMLElement>('.npc-dialogue').forEach(setupDialoguePanel);
 setupLucyPowerInput(canvas);
 setupCharacterMenu();
 setupAudioMute();

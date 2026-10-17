@@ -28,6 +28,7 @@ import { hasCaveColander } from '../core/colander.js';
 import { isAlexResurrectionUiBlocking } from '../powers/alex-s/alex-s-power-ui.js';
 import { announceWorldInteraction } from '../core/world-interactions.js';
 import { createGameAudio, setupAudioMute } from '../core/audio-mute.js';
+import { setupDialoguePanel } from '../core/dialogue-layout.js';
 import { CAVE_SIBLINGS, CaveSiblingsController } from './cave-siblings.js';
 import { CinemaAudienceController } from './cinema-audience.js';
 import { DiaryLabFeatures } from './diary-lab-features.js';
@@ -626,6 +627,7 @@ function gameLoop(time: number): void {
   draw(time, worldAnimationTime);
 }
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
+document.querySelectorAll<HTMLElement>('.npc-dialogue').forEach(setupDialoguePanel);
 bindControls(); setupAudioMute(); setupInteriorAmbience(enteredDoor);
 setupInventory();
 bindPowerDialogueDismissal(closeNoelDialogue);

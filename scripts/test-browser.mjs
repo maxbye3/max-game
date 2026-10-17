@@ -17,6 +17,17 @@ const directory = await mkdtemp(join(tmpdir(), 'max-browser-tests-'));
 const server = await serveGame();
 let browser;
 const overlaps = (a, b) => a.x < b.x + b.width - 1 && a.x + a.width > b.x + 1 && a.y < b.y + b.height - 1 && a.y + a.height > b.y + 1;
+async function assertDialogueActions(panel) {
+  if (!await panel.evaluate(element => element.matches('.npc-dialogue'))) return;
+  for (const action of await panel.locator('.npc-dialogue-close:visible, .npc-dialogue-next:visible').all()) {
+    assert.ok(await action.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      const panel = element.closest('.npc-dialogue').getBoundingClientRect();
+      return box.top >= panel.top && box.bottom <= panel.bottom &&
+        [4, box.width - 4].every(x => [4, box.height - 4].every(y => element.contains(document.elementFromPoint(box.x + x, box.y + y))));
+    }), 'Close and Next remain fully visible and clickable');
+  }
+}
 try {
   const fixtures = [await buildBrowserFixture(false, directory), await buildBrowserFixture(true, directory)];
   browser = await chromium.launch({ headless: !process.argv.includes('--headed'), ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}) });
@@ -65,6 +76,8 @@ try {
               document.querySelectorAll('.npc-dialogue, .sign-dialogue').forEach(panel => { panel.hidden = true; });
               const panel = document.querySelector(selector);
               panel.querySelector('p').textContent = 'Keep exploring the village, meet the other characters and discover their stories. '.repeat(25);
+              const next = panel.querySelector('.npc-dialogue-next');
+              if (next) next.hidden = false;
               panel.hidden = false; panel.scrollTop = 0;
             }, selector);
             const panel = page.locator(selector), bounds = await panel.boundingBox();
@@ -73,16 +86,31 @@ try {
             const movement = mode === 'stick' ? '.mobile-thumbstick' : mode === 'pad' ? '.dpad' : mode === 'split' ? '.mobile-split-key' : '.keyboard-hint';
             for (const control of await page.locator(movement).all()) {
               assert.ok(!overlaps(bounds, await control.boundingBox()), `${selector} clears ${mode}`);
-              if (mobile) assert.ok(await control.evaluate(element => {
+              if (mobile) assert.ok(await control.evaluate((element, mode) => {
                 const box = element.getBoundingClientRect();
-                return element.closest('.controls').contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
-              }), 'movement touch targets are exposed');
+                if (mode === 'stick') return element.closest('.controls').contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+                return [8, box.width - 8].every(x => [8, box.height - 8].every(y =>
+                  element.closest('.controls').contains(document.elementFromPoint(box.x + x, box.y + y))));
+              }, mode), `${selector} ${mode} movement touch targets are exposed`);
             }
             assert.ok(!overlaps(bounds, await page.locator('.movement-actions').boundingBox()), 'dialogue clears the action buttons');
-            assert.ok(await panel.evaluate(element => {
+            const scrollable = selector === '#sign-dialogue' ? panel : panel.locator('.npc-dialogue-content');
+            await assertDialogueActions(panel);
+            assert.ok(await scrollable.evaluate(element => {
               element.scrollTop = element.scrollHeight;
               return element.scrollTop > 0 && element.scrollWidth <= element.clientWidth + 1;
             }), 'long dialogue scrolls without horizontal overflow');
+            await assertDialogueActions(panel);
+            if (selector !== '#sign-dialogue') {
+              assert.ok(await scrollable.evaluate(element => element.clientHeight >= 32), 'scroll area shows at least a full line');
+              const progress = panel.locator('.dialogue-progress');
+              if (await progress.count()) {
+                await progress.evaluate(element => { element.textContent = '2/10'; });
+                assert.ok(await scrollable.evaluate(element => element.scrollTop > 0), 'status updates preserve the reading position');
+              }
+              await panel.locator('.dialogue-line-row p').evaluate(element => { element.textContent = 'The next long dialogue line. '.repeat(60); });
+              await page.waitForFunction(selector => document.querySelector(selector + ' .npc-dialogue-content').scrollTop === 0, selector);
+            }
             if (mode === 'keyboard') {
               await page.keyboard.down('ArrowRight');
               assert.ok(await page.evaluate(() => window.__gameTest.isHeld('right')));
@@ -100,12 +128,37 @@ try {
               }
             }
             if (process.argv.includes('--screenshots') && selector === npc) {
-              await panel.evaluate(element => { element.scrollTop = 0; });
+              await scrollable.evaluate(element => { element.scrollTop = 0; });
               await page.screenshot({path:`test-results/${interior ? 'interior' : 'overworld'}-${viewport.width}-${mode}.png`});
             }
             await panel.evaluate(element => { element.hidden = true; });
             layouts++;
           }
+        }
+        if (interior) {
+          await page.goto(server.url + '/internal/index.html?door=garden-room');
+          await page.locator('#door-loading').waitFor({ state: 'hidden' });
+          await page.waitForFunction(() => !!window.__gameTest);
+          await page.evaluate(() => { window.pauseGameTest = true; });
+          await page.waitForTimeout(80);
+          await page.evaluate(() => { for (let i = 0; i < 3; i++) window.__gameTest.openNpc('lucy'); });
+          if (mobile) {
+            while (await page.locator('.controls').getAttribute('data-mobile-controls') !== 'split') await page.locator('#controls-toggle').click();
+          }
+          await page.evaluate(() => document.fonts.ready);
+          const panel = page.locator(npc);
+          assert.match(await panel.locator('.dialogue-line-row p').textContent(), /eat bamboo/);
+          await assertDialogueActions(panel);
+          if (viewport.width === 390) {
+            assert.ok(await panel.locator('.npc-dialogue-content').evaluate(element => element.scrollHeight <= element.clientHeight + 1), 'Lucy’s pictured line fits without scrolling');
+          }
+          if (process.argv.includes('--screenshots')) await page.screenshot({path:`test-results/lucy-${viewport.width}.png`});
+          await page.locator('#noel-dialogue-next').click();
+          await assertDialogueActions(panel);
+          await page.locator('#noel-dialogue-next').click();
+          assert.equal(await page.locator('#lucy-plant-diary-options').isVisible(), true, 'Lucy’s real dialogue reaches its choices');
+          await page.locator('#lucy-plant-diary-neh').click();
+          await assertDialogueActions(panel);
         }
         assert.deepEqual(errors, [], 'the game loads without browser exceptions');
         console.log(`PASS browser ${interior ? 'interior' : 'overworld'} ${viewport.width}×${viewport.height}`);

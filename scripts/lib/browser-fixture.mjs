@@ -26,7 +26,7 @@ export async function serveGame() {
 export async function buildBrowserFixture(interior, directory) {
   const entry = interior ? 'js/interiors/internal.ts' : 'js/core/main.ts';
   const hook = interior
-    ? `window.__gameTest = { isHeld: direction => input.isHeld(direction), openNpc: kind => { closeNoelDialogue(); nearbyInteraction = kind; startRoomCharacterDialogue(kind); } };`
+    ? `window.__gameTest = { isHeld: direction => input.isHeld(direction), openNpc: kind => { closeNoelDialogue(); nearbyInteraction = kind; if (kind === 'lucy') startLucyDialogue(); else startRoomCharacterDialogue(kind); } };`
     : `import { isHeld } from './input.js'; import { NPCS } from '../overworld/npc-definitions.js';
        window.__gameTest = { isHeld, openNpc: id => { const npc = NPCS.find(npc => npc.id === id); updateNpcInteractions(-100, -100); const position = npc.getPosition?.() ?? npc; updateNpcInteractions(position.x, position.y); } };`;
   const outfile = join(directory, interior ? 'interior.js' : 'main.js');
