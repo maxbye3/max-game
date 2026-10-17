@@ -35,7 +35,7 @@
     "marina-d": { "displayName": "Marina D", "directory": "marina-d", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "mapSprite": "map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
     "mason": { "displayName": "Mason", "directory": "mason", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "mapSprite": "map-sprite.png" } },
     "meli": { "displayName": "Meli", "directory": "meli", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "mapSprite": "map-sprite.png" } },
-    "mike": { "displayName": "Mike", "directory": "mike", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "overworldAvatar": "overworld-avatar.png" } },
+    "mike": { "displayName": "Mike", "directory": "mike", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "overworldAvatar": "overworld-avatar.png", "theme": "theme.mp3" } },
     "niall": { "displayName": "Niall", "directory": "niall", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "explanationMark": "explanation-mark.png", "item": "player/item.png", "niallSprite": "niall-sprite.png" } },
     "noel": { "displayName": "Noel", "directory": "noel", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "interiorAvatar": "interior-avatar.png", "item": "item.png", "mapSprite": "map-sprite.png" } },
     "oscar": { "displayName": "Oscar", "directory": "oscar", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "theme": "theme.mp3" } },
