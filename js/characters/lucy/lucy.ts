@@ -3,10 +3,13 @@ import { addGift, hasGift, LUCY_ITEM, nextGiftLine } from '../../core/inventory-
 import { PlantDiaryGalleryController } from '../../interiors/plant-diary-gallery.js';
 import { nextDialogueVisitIndex } from '../../core/dialogue-visit.js';
 import { characterAsset } from '../../core/character-assets.js';
+import { hasAlexEatenDoughnut } from '../../core/alex-w-state.js';
+import { isAlexPlayer } from '../../core/player-character.js';
 
 export class LucyController {
   readonly sprite = new Image();
   private lineIndex = 0;
+  private dialogueLines: readonly string[] = LUCY_DIALOGUE_LINES;
   private pendingGiftLine: string | null = null;
   private pendingGiftItem = LUCY_ITEM;
   private pendingGiftConfirmation: string | null = null;
@@ -30,7 +33,11 @@ export class LucyController {
   }
 
   start(): void {
-    this.lineIndex = nextDialogueVisitIndex('lucy', LUCY_DIALOGUE_LINES.length);
+    const fedAlex = isAlexPlayer() && hasAlexEatenDoughnut();
+    this.dialogueLines = fedAlex
+      ? ["Now that you look less hungry you should look for my panda's friend in the journal!"]
+      : LUCY_DIALOGUE_LINES;
+    this.lineIndex = fedAlex ? 0 : nextDialogueVisitIndex('lucy', this.dialogueLines.length);
     const hasNewGift = !hasGift(this.pendingGiftItem);
     this.pendingGiftLine = hasNewGift ? nextGiftLine() : null;
     this.pendingGiftConfirmation = hasNewGift ? 'An item has been added to your inventory.' : null;
@@ -60,7 +67,7 @@ export class LucyController {
       if (this.plantDiaryOptions) this.plantDiaryOptions.hidden = false;
       return;
     }
-    this.lineIndex = (this.lineIndex + 1) % LUCY_DIALOGUE_LINES.length;
+    this.lineIndex = (this.lineIndex + 1) % this.dialogueLines.length;
     this.showLine();
   }
 
@@ -76,10 +83,10 @@ export class LucyController {
 
   private showLine(): void {
     this.giftConfirmation.hidden = true;
-    this.dialogueLine.textContent = LUCY_DIALOGUE_LINES[this.lineIndex] ?? '';
-    this.dialogueProgress.textContent = `${this.lineIndex + 1}/${LUCY_DIALOGUE_LINES.length}`;
+    this.dialogueLine.textContent = this.dialogueLines[this.lineIndex] ?? '';
+    this.dialogueProgress.textContent = `${this.lineIndex + 1}/${this.dialogueLines.length}`;
     this.dialogueProgress.hidden = false;
-    this.nextButton.hidden = !this.pendingGiftLine && !this.plantDiaryOfferPending && LUCY_DIALOGUE_LINES.length <= 1;
+    this.nextButton.hidden = !this.pendingGiftLine && !this.plantDiaryOfferPending && this.dialogueLines.length <= 1;
   }
 
   private resumeDialogue(): void {
