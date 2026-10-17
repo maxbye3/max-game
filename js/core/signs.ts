@@ -42,7 +42,7 @@ const SIGN_MESSAGES = [
   'Hey, welcome to my website! You can quick-travel by clicking the “Jump” button in the bottom-right. Hit me if you have questions!',
   'People add things to your inventory as you talk to them click the inventory button to use it. Hope this helped!',
   'DC has one of the highest employment rates in the country, so helping folks find work is my side hustle.',
-  "Max is going to be adding more people, places, things so check back soon! Have ideas and don't have me on whatsapp? Jump on over to the Feedback Center - he would love to hear them.",
+  "Max is going to be adding more people, places, things so check back soon! Have ideas and don't have me on whatsapp? Jump on the thoughts button - he would love to hear them.",
 ] as const;
 
 // World-space bounds for every fully visible, readable sign in the composed map.
