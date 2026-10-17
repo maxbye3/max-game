@@ -83,7 +83,16 @@ export class LucyController {
 
   private showLine(): void {
     this.giftConfirmation.hidden = true;
-    this.dialogueLine.textContent = this.dialogueLines[this.lineIndex] ?? '';
+    const line = this.dialogueLines[this.lineIndex] ?? '';
+    this.dialogueLine.textContent = line;
+    const phrase = "panda's friend";
+    const highlightStart = line.indexOf(phrase);
+    if (highlightStart >= 0) {
+      const highlight = document.createElement('mark');
+      highlight.className = 'dialogue-highlight';
+      highlight.textContent = phrase;
+      this.dialogueLine.replaceChildren(line.slice(0, highlightStart), highlight, line.slice(highlightStart + phrase.length));
+    }
     this.dialogueProgress.textContent = `${this.lineIndex + 1}/${this.dialogueLines.length}`;
     this.dialogueProgress.hidden = false;
     this.nextButton.hidden = !this.pendingGiftLine && !this.plantDiaryOfferPending && this.dialogueLines.length <= 1;
