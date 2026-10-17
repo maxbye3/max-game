@@ -4,6 +4,7 @@
   "private": true,
   "description": "Max's Overworld - a browser overworld game",
   "scripts": {
+    "build:site": "npm run typecheck && npm run check:dialogues && node scripts/test-content-refresh.mjs && npm run bundle && node scripts/package-site.mjs",
     "build": "npm run typecheck && npm run check:dialogues && npm test && npm run bundle",
     "prepare:web-assets": "node scripts/prepare-web-assets.mjs && python3 scripts/prepare-web-fonts.py",
     "clean:dist": "node scripts/clean-dist.mjs",

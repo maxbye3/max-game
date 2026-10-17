@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: write
-  pages: write
+  actions: write
 
 concurrency:
   group: refresh-external-content
@@ -37,5 +37,5 @@ jobs:
           git commit -m 'Refresh external content'
           git pull --rebase origin "$TARGET_BRANCH"
           git push
-          # Explicitly publish data updates rather than relying on a bot push.
-          gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"
+          # Bot pushes do not trigger push workflows; dispatch the full site build.
+          gh workflow run deploy.yml --ref "$TARGET_BRANCH"
