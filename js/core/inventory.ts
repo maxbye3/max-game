@@ -303,6 +303,7 @@ function renderGiftItems(): void {
         powerupStatus.textContent = 'Katy effect 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
         announce("Katy's item activated.");
+        setInventoryOpen(false);
       } else if (item.id === 'rei-item' || item.id === 'rei-item-2') {
         const kind: ReiPowerKind = item.id === 'rei-item' ? 'gravity' : 'sparkle';
         activateReiPower(kind);
