@@ -1,6 +1,5 @@
 import { withCharacterPowers } from '../powers/shared/character-power-render.js';
 import { images } from '../core/assets.js';
-import { SPRITE_HEIGHT } from '../core/config.js';
 import { ADAM, ALEX_S, ED, KATY, MIKE, REI } from './npcs.js';
 import { drawMapCharacters } from './map-characters.js';
 import { drawGymTimCutscene } from '../interiors/gym-tim-cutscene.js';
@@ -10,7 +9,7 @@ import { isOscarEaten } from '../powers/oscar/oscar-power.js';
 import { getPlayerBody } from '../core/player-body.js';
 
 const REI_PAINT = { x: 438, y: 490, width: 15, height: 20 } as const;
-const ALEX_S_RENDER_SCALE = SPRITE_HEIGHT / ALEX_S.height;
+const ALEX_S_RENDER_SCALE = 52 / ALEX_S.height;
 
 function drawNpc(
   context: CanvasRenderingContext2D,
