@@ -200,19 +200,17 @@ export function prependPlayerReaction(line: HTMLElement): void {
     writeStorage(ALEX_INDEX_KEY, String(alexGreetingIndex));
   }
   prefix.hidden = false;
-  if (ghost) {
-    const reaction = prefix;
-    const observer = new MutationObserver(() => {
-      reaction.hidden = true;
-      observer.disconnect();
-      reactionObservers.delete(line);
-    });
-    reactionObservers.set(line, observer);
-    // The caller fills in the opening line synchronously after adding the reaction.
-    queueMicrotask(() => {
-      if (reactionObservers.get(line) === observer) {
-        observer.observe(line, { childList: true, characterData: true, subtree: true });
-      }
-    });
-  }
+  const reaction = prefix;
+  const observer = new MutationObserver(() => {
+    reaction.hidden = true;
+    observer.disconnect();
+    reactionObservers.delete(line);
+  });
+  reactionObservers.set(line, observer);
+  // The caller fills in the opening line synchronously after adding the reaction.
+  queueMicrotask(() => {
+    if (reactionObservers.get(line) === observer) {
+      observer.observe(line, { childList: true, characterData: true, subtree: true });
+    }
+  });
 }
