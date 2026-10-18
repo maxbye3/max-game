@@ -1,10 +1,11 @@
 import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
+import { playerStartupParams } from './player-startup.js';
 import { readStorage, writeStorage } from './storage.js';
 
 export type PlayerBody = 'player' | 'ghost' | 'alex-s';
 const BODY_KEY = 'max-game:player-body';
 const storedBody = readStorage(BODY_KEY);
-const urlBody = new URLSearchParams(window.location?.search ?? '').get('body');
+const urlBody = playerStartupParams.get('body');
 // Migrate saves made before room possession used the Wheldon toggle.
 if (urlBody === 'alex-w' || (!urlBody && storedBody === 'alex-w')) {
   setWheldonPlayerSpriteEnabled(true);

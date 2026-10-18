@@ -1,9 +1,10 @@
 import type { Direction } from './types.js';
 import type { PlayerSpriteFrame } from './player-sprite.js';
 import { readStorage, writeStorage } from './storage.js';
+import { playerStartupParams } from './player-startup.js';
 
 const WHELDON_KEY = 'max-game:wheldon-player-sprite';
-const urlWheldon = new URLSearchParams(window.location?.search ?? '').get('wheldon');
+const urlWheldon = playerStartupParams.get('wheldon');
 let wheldonPlayerSpriteEnabled = urlWheldon === '1' || (urlWheldon !== '0' && readStorage(WHELDON_KEY) === 'true');
 
 const SOURCE_WIDTH = 210;
