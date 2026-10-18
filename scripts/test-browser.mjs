@@ -199,6 +199,7 @@ try {
         await page.reload();
         await assertPlayer();
         await page.locator('#character-toggle').click();
+        await page.locator('[data-character="player"][aria-pressed="true"]').waitFor({ state: 'visible' });
         assert.equal(await page.locator('[data-character="player"]').getAttribute('aria-pressed'), 'true');
         await page.locator(`[data-character="${character}"]`).click();
         await page.locator('#jump-toggle').click();
