@@ -18,14 +18,16 @@ const server = await serveGame();
 let browser;
 const overlaps = (a, b) => a.x < b.x + b.width - 1 && a.x + a.width > b.x + 1 && a.y < b.y + b.height - 1 && a.y + a.height > b.y + 1;
 async function assertDialogueActions(panel) {
-  for (const action of await panel.locator('.npc-dialogue-close:visible, .npc-dialogue-next:visible').all()) {
+  for (const action of await panel.locator('.npc-dialogue-close:visible, .npc-dialogue-next:visible, .npc-dialogue-options button:visible, .npc-dialogue-options a:visible, select:visible').all()) {
+    await action.scrollIntoViewIfNeeded();
     assert.ok(await action.evaluate(element => {
       const box = element.getBoundingClientRect();
       const panel = element.closest('.npc-dialogue, .sign-dialogue').getBoundingClientRect();
       return box.top >= panel.top && box.bottom <= panel.bottom &&
         [4, box.width - 4].every(x => [4, box.height - 4].every(y => element.contains(document.elementFromPoint(box.x + x, box.y + y))));
-    }), 'Close and Next remain fully visible and clickable');
+    }), 'dialogue navigation and replies remain fully visible and clickable');
   }
+  assert.equal(await panel.evaluate(element => element.scrollTop), 0, 'the fixed dialogue header never scrolls out of view');
 }
 try {
   const fixtures = [await buildBrowserFixture(false, directory), await buildBrowserFixture(true, directory)];
@@ -53,6 +55,7 @@ try {
         await page.evaluate(() => document.fonts.ready);
         const npc = interior ? '#noel-dialogue' : '#npc-dialogue';
         if (!interior) {
+          await page.evaluate(() => window.__gameTest.prepareResurrectionDialogues());
           await page.evaluate(() => window.__gameTest.openNpc('sam'));
           assert.equal(await page.locator('#npc-dialogue-profile').isVisible(), true);
           assert.equal(await page.locator('#npc-dialogue-profile').getAttribute('src'), 'char/sam/profile.png');
@@ -70,7 +73,7 @@ try {
               await page.locator('#controls-toggle').click();
             }
           }
-          for (const selector of interior ? [npc] : [npc, '#niall-dialogue', '#sign-dialogue']) {
+          for (const selector of interior ? [npc] : [npc, '#niall-dialogue', '#sign-dialogue', '.alex-resurrection-choice', '.alex-resurrection-dialogue']) {
             await page.evaluate(selector => {
               document.querySelectorAll('.npc-dialogue, .sign-dialogue').forEach(panel => { panel.hidden = true; });
               const panel = document.querySelector(selector);
@@ -107,10 +110,25 @@ try {
                 await progress.evaluate(element => { element.textContent = '2/10'; });
                 assert.ok(await scrollable.evaluate(element => element.scrollTop > 0), 'status updates preserve the reading position');
               }
-              await panel.locator('.dialogue-line-row p').evaluate(element => { element.textContent = 'The next long dialogue line. '.repeat(60); });
-              await page.waitForFunction(selector => document.querySelector(selector + ' .npc-dialogue-content').scrollTop === 0, selector);
+              if (await panel.locator('.dialogue-line-row p').count()) {
+                await panel.locator('.dialogue-line-row p').evaluate(element => { element.textContent = 'The next long dialogue line. '.repeat(60); });
+                await page.waitForFunction(selector => document.querySelector(selector + ' .npc-dialogue-content').scrollTop === 0, selector);
+              }
+              for (const group of await panel.locator('.npc-dialogue-actions > .npc-dialogue-options').all()) {
+                await group.evaluate(element => { element.hidden = false; });
+                await panel.locator('.npc-dialogue-next').evaluate(element => { element.hidden = true; });
+                await assertDialogueActions(panel);
+                assert.ok(await scrollable.evaluate(element => element.clientHeight >= 32), 'reply choices leave a readable message area');
+                await scrollable.evaluate(element => { element.scrollTop = element.scrollHeight; });
+                await assertDialogueActions(panel);
+                assert.ok(await scrollable.evaluate(element => element.scrollTop > 0 && element.scrollWidth <= element.clientWidth + 1), 'the entire message remains scrollable while replies stay accessible');
+                await group.evaluate(element => { element.hidden = true; });
+              }
+              await panel.locator('.npc-dialogue-next').evaluate(element => { element.hidden = false; });
             }
-            if (mode === 'keyboard') {
+            if (selector.startsWith('.alex-resurrection-')) {
+              // These modal conversations deliberately block movement while open.
+            } else if (mode === 'keyboard') {
               await page.keyboard.down('ArrowRight');
               assert.ok(await page.evaluate(() => window.__gameTest.isHeld('right')));
               await page.keyboard.up('ArrowRight');
@@ -167,6 +185,39 @@ try {
           }
         }
         if (interior) {
+          await page.goto(server.url + '/internal/index.html?door=job-center');
+          await page.locator('#door-loading').waitFor({ state: 'hidden' });
+          await page.waitForFunction(() => !!window.__gameTest);
+          await page.evaluate(() => { window.pauseGameTest = true; });
+          await page.waitForTimeout(80);
+          await page.evaluate(() => document.fonts.ready);
+          for (const mode of mobile ? ['stick', 'pad', 'split'] : ['keyboard']) {
+            if (mobile) {
+              while (await page.locator('.controls').getAttribute('data-mobile-controls') !== mode) await page.locator('#controls-toggle').click();
+            }
+            for (const kind of ['charity-cook', 'charity-computer', 'charity-teacher']) {
+              await page.evaluate(kind => window.__gameTest.openNpc(kind), kind);
+              if (kind === 'charity-cook') {
+                await page.locator('#noel-dialogue-next').click();
+                await page.locator('#noel-dialogue-next').click();
+                assert.equal(await page.locator('#noel-dialogue-progress').textContent(), '3/3');
+              }
+              const panel = page.locator(npc);
+              await assertDialogueActions(panel);
+              assert.equal(await panel.locator('.npc-dialogue-options button:visible').count(), 2, 'both real charity replies are available');
+              const content = panel.locator('.npc-dialogue-content');
+              await content.evaluate(element => { element.scrollTop = element.scrollHeight; });
+              await assertDialogueActions(panel);
+              assert.ok(await content.evaluate(element => element.scrollWidth <= element.clientWidth + 1), 'English and Japanese dialogue wrap within the message area');
+              if (process.argv.includes('--screenshots') && kind === 'charity-cook') {
+                await content.evaluate(element => { element.scrollTop = 0; });
+                await page.screenshot({path:`test-results/cook-${viewport.width}-${mode}.png`});
+              }
+              await panel.locator('.npc-dialogue-options button:visible').last().click();
+              if (kind === 'charity-cook') await panel.waitFor({state:'hidden'});
+              else assert.ok(await page.locator('#noel-dialogue-next').isVisible(), 'declining continues the conversation');
+            }
+          }
           await page.goto(server.url + '/internal/index.html?door=garden-room');
           await page.locator('#door-loading').waitFor({ state: 'hidden' });
           await page.waitForFunction(() => !!window.__gameTest);

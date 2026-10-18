@@ -89,7 +89,6 @@ kbd {
   .sign-dialogue { width: min(calc(100% - 24px), var(--dialogue-width)); }
   .npc-talk { right: 12px; bottom: 12px; }
   .game-shell { --dialogue-bottom: 68px; --dialogue-top: 12px; }
-  #noel-dialogue-question { font-size: 6px !important; }
 }
 
 .visually-hidden {

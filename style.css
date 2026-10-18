@@ -1421,6 +1421,16 @@ canvas {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+}
+
+.npc-dialogue-actions {
+  flex-shrink: 0;
+  /* Reserve room for the header and message even when replies are very long. */
+  max-height: min(180px, max(44px, calc(100dvh - var(--dialogue-top) - var(--dialogue-bottom) - 112px)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .npc-dialogue-header {
@@ -1433,10 +1443,12 @@ canvas {
 }
 
 .npc-dialogue h2 {
+  min-width: 0;
   margin: 0;
   color: var(--accent);
   font: 10px/1.5 var(--font-pixel);
   text-transform: none;
+  overflow-wrap: anywhere;
 }
 
 .npc-dialogue p {
@@ -1505,7 +1517,7 @@ canvas {
   border-top: 0;
   color: #fff3c8;
   font-size: 8px !important;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 #noel-dialogue-line mark {
@@ -1541,6 +1553,7 @@ canvas {
   text-align: left;
   text-decoration: none;
   cursor: pointer;
+  overflow-wrap: anywhere;
 }
 
 .npc-dialogue-options button:hover,
@@ -1635,6 +1648,7 @@ canvas {
 }
 
 .npc-dialogue-close {
+  flex-shrink: 0;
   width: 28px;
   height: 28px;
   padding: 0;
@@ -2041,7 +2055,6 @@ kbd {
   .sign-dialogue { width: min(calc(100% - 24px), var(--dialogue-width)); }
   .npc-talk { right: 12px; bottom: 12px; }
   .game-shell { --dialogue-bottom: 68px; --dialogue-top: 12px; }
-  #noel-dialogue-question { font-size: 6px !important; }
 }
 
 .visually-hidden {

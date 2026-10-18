@@ -1,14 +1,17 @@
-/** Keep the speaker and Next button visible while long conversations scroll. */
+/** Keep the speaker, replies and Next button accessible while dialogue text scrolls. */
 export function setupDialoguePanel(panel: HTMLElement): void {
   const header = panel.querySelector<HTMLElement>('.npc-dialogue-header');
   if (!header || panel.querySelector('.npc-dialogue-content')) return;
   const next = panel.querySelector<HTMLButtonElement>('.npc-dialogue-next');
   const content = document.createElement('div');
   content.className = 'npc-dialogue-content';
+  const actions = document.createElement('div');
+  actions.className = 'npc-dialogue-actions';
   for (const child of Array.from(panel.children)) {
-    if (child !== header && child !== next) content.append(child);
+    if (child === header || child === next) continue;
+    (child.matches('.npc-dialogue-options') ? actions : content).append(child);
   }
-  header.after(content);
+  header.after(content, actions);
   if (next) panel.append(next);
 
   // New lines, choices and reopened conversations always start at the top.
@@ -18,7 +21,10 @@ export function setupDialoguePanel(panel: HTMLElement): void {
       const element = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement;
       return element?.closest('.dialogue-line-row p, .npc-dialogue-question, .npc-dialogue-options');
     });
-    if (changed) content.scrollTop = 0;
+    if (changed) {
+      content.scrollTop = 0;
+      actions.scrollTop = 0;
+    }
   }).observe(panel, {
     childList: true,
     characterData: true,
