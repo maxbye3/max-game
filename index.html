@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=0d6b1420c41e" />
+    <link rel="stylesheet" href="style.css?v=96e7b5560bf7" />
   </head>
   <body>
     <main class="game-shell">
@@ -80,13 +80,15 @@
           <h2 id="sign-dialogue-title">Sign</h2>
           <button id="sign-dialogue-close" class="npc-dialogue-close sign-dialogue-close" type="button" aria-label="Close sign">×</button>
         </div>
-        <p id="sign-dialogue-text"></p>
-        <div id="grave-options" class="npc-dialogue-options" hidden>
-          <button id="grave-return-player" type="button">Return to original form</button>
-        </div>
-        <div id="sign-dialogue-signature" class="sign-dialogue-signature" hidden>
-          <img id="sign-dialogue-signature-image" src="img/external/signature.png" alt="Max's signature">
-          <img id="sign-dialogue-bus-image" src="img/external/bus.png" alt="Bus" hidden>
+        <div class="sign-dialogue-content">
+          <p id="sign-dialogue-text"></p>
+          <div id="grave-options" class="npc-dialogue-options" hidden>
+            <button id="grave-return-player" type="button">Return to original form</button>
+          </div>
+          <div id="sign-dialogue-signature" class="sign-dialogue-signature" hidden>
+            <img id="sign-dialogue-signature-image" src="img/external/signature.png" alt="Max's signature">
+            <img id="sign-dialogue-bus-image" src="img/external/bus.png" alt="Bus" hidden>
+          </div>
         </div>
       </section>
       <section id="npc-dialogue" class="npc-dialogue" aria-live="polite" hidden>
@@ -143,6 +145,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=3f3740401dff"></script>
+    <script src="dist/main-bundle.js?v=dbcffeeb8d10"></script>
   </body>
 </html>

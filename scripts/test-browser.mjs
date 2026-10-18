@@ -18,11 +18,10 @@ const server = await serveGame();
 let browser;
 const overlaps = (a, b) => a.x < b.x + b.width - 1 && a.x + a.width > b.x + 1 && a.y < b.y + b.height - 1 && a.y + a.height > b.y + 1;
 async function assertDialogueActions(panel) {
-  if (!await panel.evaluate(element => element.matches('.npc-dialogue'))) return;
   for (const action of await panel.locator('.npc-dialogue-close:visible, .npc-dialogue-next:visible').all()) {
     assert.ok(await action.evaluate(element => {
       const box = element.getBoundingClientRect();
-      const panel = element.closest('.npc-dialogue').getBoundingClientRect();
+      const panel = element.closest('.npc-dialogue, .sign-dialogue').getBoundingClientRect();
       return box.top >= panel.top && box.bottom <= panel.bottom &&
         [4, box.width - 4].every(x => [4, box.height - 4].every(y => element.contains(document.elementFromPoint(box.x + x, box.y + y))));
     }), 'Close and Next remain fully visible and clickable');
@@ -94,7 +93,7 @@ try {
               }, mode), `${selector} ${mode} movement touch targets are exposed`);
             }
             assert.ok(!overlaps(bounds, await page.locator('.movement-actions').boundingBox()), 'dialogue clears the action buttons');
-            const scrollable = selector === '#sign-dialogue' ? panel : panel.locator('.npc-dialogue-content');
+            const scrollable = panel.locator(selector === '#sign-dialogue' ? '.sign-dialogue-content' : '.npc-dialogue-content');
             await assertDialogueActions(panel);
             assert.ok(await scrollable.evaluate(element => {
               element.scrollTop = element.scrollHeight;
@@ -133,6 +132,38 @@ try {
             }
             await panel.evaluate(element => { element.hidden = true; });
             layouts++;
+          }
+          if (!interior) {
+            for (const id of await page.evaluate(() => window.__gameTest.signIds)) {
+              await page.evaluate(id => window.__gameTest.openSign(id), id);
+              const panel = page.locator('#sign-dialogue');
+              const content = panel.locator('.sign-dialogue-content');
+              assert.ok(await panel.isVisible(), `${id} opens through the real sign interaction`);
+              assert.equal(await content.evaluate(element => element.scrollTop), 0, 'each sign opens at the start of its message');
+              const bounds = await panel.boundingBox();
+              const movement = mode === 'split' ? '.mobile-split-key' : mode === 'pad' ? '.dpad' : mode === 'stick' ? '.mobile-thumbstick' : '.keyboard-hint';
+              for (const control of await page.locator(movement).all()) {
+                assert.ok(!overlaps(bounds, await control.boundingBox()), `${id} clears ${mode} movement controls`);
+              }
+              if (viewport.width === 390) {
+                assert.ok(await content.evaluate(element => element.scrollHeight <= element.clientHeight + 1), `${id} message and artwork fit together on a phone`);
+              }
+              await content.evaluate(element => { element.scrollTop = element.scrollHeight; });
+              assert.ok(await content.evaluate(element => {
+                const bounds = element.getBoundingClientRect();
+                const image = element.querySelector('.sign-dialogue-signature:not([hidden]) img:not([hidden])');
+                const end = (image ?? element.querySelector('p')).getBoundingClientRect();
+                return element.scrollWidth <= element.clientWidth + 1 && end.bottom <= bounds.bottom + 1 &&
+                  (!image || (image.naturalWidth > 0 && end.top >= bounds.top - 1));
+              }), `${id} final content and complete artwork are reachable without clipping`);
+              await assertDialogueActions(panel);
+              if (process.argv.includes('--screenshots') && id === 'east-directory') {
+                await content.evaluate(element => { element.scrollTop = 0; });
+                await page.screenshot({path:`test-results/sign-${viewport.width}-${mode}.png`});
+              }
+            }
+            await page.locator('#sign-dialogue-close').click();
+            await page.locator('#sign-dialogue').waitFor({state:'hidden'});
           }
         }
         if (interior) {

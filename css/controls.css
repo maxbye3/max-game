@@ -432,31 +432,31 @@ kbd {
     --dialogue-top: calc(50% + 44px);
     --dialogue-bottom: calc(144px + env(safe-area-inset-bottom));
   }
-  /* During conversations, bring the side arrows beside Down to free text space. */
-  .game-shell:has(.controls[data-mobile-controls="split"]):has(.npc-dialogue:not([hidden])) {
+  /* While reading, bring the side arrows beside Down to free text space. */
+  .game-shell:has(.controls[data-mobile-controls="split"]):has(:is(.npc-dialogue, .sign-dialogue):not([hidden])) {
     --dialogue-top: calc(152px + env(safe-area-inset-top));
   }
-  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button {
+  .game-shell:has(:is(.npc-dialogue, .sign-dialogue):not([hidden])) .mobile-split-button {
     inset: auto;
     width: 64px;
     height: 64px;
     clip-path: none;
     bottom: calc(68px + env(safe-area-inset-bottom));
   }
-  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button[data-directions="left"] {
+  .game-shell:has(:is(.npc-dialogue, .sign-dialogue):not([hidden])) .mobile-split-button[data-directions="left"] {
     left: calc(12px + env(safe-area-inset-left));
   }
-  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button[data-directions="right"] {
+  .game-shell:has(:is(.npc-dialogue, .sign-dialogue):not([hidden])) .mobile-split-button[data-directions="right"] {
     right: calc(12px + env(safe-area-inset-right));
   }
-  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button:is([data-directions="up"], [data-directions="down"]) {
+  .game-shell:has(:is(.npc-dialogue, .sign-dialogue):not([hidden])) .mobile-split-button:is([data-directions="up"], [data-directions="down"]) {
     left: calc(50% - 32px);
   }
-  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-button[data-directions="up"] {
+  .game-shell:has(:is(.npc-dialogue, .sign-dialogue):not([hidden])) .mobile-split-button[data-directions="up"] {
     top: calc(76px + env(safe-area-inset-top));
     bottom: auto;
   }
-  .game-shell:has(.npc-dialogue:not([hidden])) .mobile-split-key {
+  .game-shell:has(:is(.npc-dialogue, .sign-dialogue):not([hidden])) .mobile-split-key {
     inset: 0;
   }
   .controls {

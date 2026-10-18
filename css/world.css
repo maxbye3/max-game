@@ -1,11 +1,13 @@
 .sign-dialogue {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   z-index: 6;
   top: max(108px, var(--dialogue-top));
   left: var(--dialogue-left);
   width: min(390px, calc(100% - 48px), var(--dialogue-width));
   max-height: calc(100% - max(108px, var(--dialogue-top)) - var(--dialogue-bottom));
-  overflow-y: auto;
+  overflow: hidden;
   padding: 12px 15px 15px;
   translate: var(--dialogue-translate) 0;
   border: 2px solid #f5fff6;
@@ -14,8 +16,19 @@
   box-shadow: 5px 5px 0 rgb(0 0 0 / 55%);
 }
 
+.sign-dialogue[hidden] { display: none; }
+
+.sign-dialogue-content {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+}
+
 .sign-dialogue-heading {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 9px;
@@ -23,7 +36,9 @@
 }
 
 .sign-dialogue-heading h2 {
+  min-width: 0;
   margin-right: auto;
+  overflow-wrap: anywhere;
 }
 
 .sign-dialogue-icon {

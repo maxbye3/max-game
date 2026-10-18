@@ -27,8 +27,10 @@ export async function buildBrowserFixture(interior, directory) {
   const entry = interior ? 'js/interiors/internal.ts' : 'js/core/main.ts';
   const hook = interior
     ? `window.__gameTest = { isHeld: direction => input.isHeld(direction), openNpc: kind => { closeNoelDialogue(); nearbyInteraction = kind; if (kind === 'lucy') startLucyDialogue(); else startRoomCharacterDialogue(kind); } };`
-    : `import { isHeld } from './input.js'; import { NPCS } from '../overworld/npc-definitions.js';
-       window.__gameTest = { isHeld, openNpc: id => { const npc = NPCS.find(npc => npc.id === id); updateNpcInteractions(-100, -100); const position = npc.getPosition?.() ?? npc; updateNpcInteractions(position.x, position.y); } };`;
+    : `import { isHeld } from './input.js'; import { NPCS } from '../overworld/npc-definitions.js'; import { SIGNS } from './signs.js';
+       window.__gameTest = { isHeld, signIds: SIGNS.map(sign => sign.id),
+         openSign: id => { updateSigns(-100, -100); const sign = SIGNS.find(sign => sign.id === id); updateSigns(sign.x + sign.width / 2, sign.y + sign.height); },
+         openNpc: id => { const npc = NPCS.find(npc => npc.id === id); updateNpcInteractions(-100, -100); const position = npc.getPosition?.() ?? npc; updateNpcInteractions(position.x, position.y); } };`;
   const outfile = join(directory, interior ? 'interior.js' : 'main.js');
   await build({ stdin: { contents: await readFile(entry, 'utf8') + '\n' + hook, resolveDir: resolve(entry, '..'), loader: 'ts' }, bundle: true, format: 'iife', outfile });
   return outfile;

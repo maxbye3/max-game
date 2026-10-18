@@ -117,6 +117,7 @@ export const SIGN_COLLISION_SHAPES: readonly CollisionShape[] = [
 ];
 
 const dialogue = requireElement<HTMLElement>('#sign-dialogue');
+const dialogueContent = requireElement<HTMLElement>('.sign-dialogue-content');
 const dialogueTitle = requireElement<HTMLElement>('#sign-dialogue-title');
 const dialogueText = requireElement<HTMLElement>('#sign-dialogue-text');
 const dialogueSignature = requireElement<HTMLElement>('#sign-dialogue-signature');
@@ -172,6 +173,7 @@ function showSign(sign: Sign): void {
   signatureImage.hidden = isBusStop;
   busImage.hidden = !isBusStop;
   dialogue.hidden = false;
+  dialogueContent.scrollTop = 0;
   announcer.textContent = `${sign.title}: ${sign.message}`;
 }
 
