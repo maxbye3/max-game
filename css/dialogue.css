@@ -91,6 +91,25 @@
 
 .dialogue-profile[hidden] { display: none; }
 
+.npc-dialogue:has(.dialogue-profile[src$="/kirin/profile.png"]:not([hidden])) {
+  --dialogue-max-width: 460px;
+}
+.dialogue-line-row:has(.dialogue-profile[src$="/kirin/profile.png"]:not([hidden])) {
+  display: grid;
+  grid-template-columns: clamp(104px, 12vw, 128px) minmax(0, 1fr);
+  gap: 8px 14px;
+}
+.dialogue-profile[src$="/kirin/profile.png"] {
+  grid-row: 1 / span 2;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  image-rendering: auto;
+}
+.dialogue-line-row:has(.dialogue-profile[src$="/kirin/profile.png"]:not([hidden])) .dialogue-progress {
+  grid-column: 2;
+}
+
 .dialogue-line-row p {
   flex: 1;
   min-width: 0;

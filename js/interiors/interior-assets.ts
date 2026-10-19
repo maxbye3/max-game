@@ -36,7 +36,10 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
   const musicHouseNpcs = MUSIC_HOUSE_NPCS.filter((npc) => npc.id !== 'tim' || isTimAtMusicShop()).map((npc, index) => ({ ...npc, id: npc.id ?? (index === 0 ? 'andy' : 'aliya'), image: new Image() }));
   const gymNpcs = GYM_NPCS.map((npc) => ({ ...npc, image: new Image() }));
   const timCinemaSeat = isCinemaInterior && isTimAtCinema() ? new Image() : null;
-  const cinemaNpcs = isCinemaInterior ? [{ id: 'dad', source: `../${characterAsset('dad', 'avatar')}`, x: 398, y: 462, width: 48, height: 72, image: new Image() }] : [];
+  const cinemaNpcs = isCinemaInterior ? [
+    { id: 'dad', source: `../${characterAsset('dad', 'avatar')}`, x: 398, y: 462, width: 48, height: 72, image: new Image() },
+    { id: 'kirin', source: `../${characterAsset('kirin', 'mapSprite')}`, x: 115, y: 535, width: 52, height: 80, image: new Image() },
+  ] : [];
   interior.src = webImageSource(scene.backgroundSource);
   const interiorFrames = scene.backgroundAnimation?.sources.map((source) => {
     const image = new Image();

@@ -50,6 +50,7 @@ export class DirectionInputController {
   setup(): void {
     setupThoughts(() => this.releaseAll());
     window.addEventListener('max-game:ed-power-activated', () => this.releaseAll());
+    window.addEventListener('max-game:kirin-power-activated', () => this.releaseAll());
     this.releaseButtonHandlers.push(setupMobileControls(
       (direction, held) => held ? this.holdDirection(direction) : this.releaseDirection(direction),
       () => this.releaseAll(),

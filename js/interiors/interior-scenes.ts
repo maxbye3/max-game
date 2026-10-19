@@ -46,7 +46,7 @@ import { isTimAtCinema, isTimAtMusicShop } from '../characters/tim/tim-location.
 import type { CharityNpc } from './charity-dialogue.js';
 
 export type InteriorKind = 'diaryLab' | 'plantRoom' | 'cinema' | 'musicShop' | 'gym' | 'bookshop' | 'mansion' | 'cave' | 'artStudio' | 'doughnutShop' | 'charity';
-export type InteractionKind = CharityNpc | 'noel' | 'wheldon' | 'josh' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'helen' | 'dad' | 'minnie' | 'buzz' | 'tigger' | 'socks';
+export type InteractionKind = CharityNpc | 'noel' | 'wheldon' | 'josh' | 'diary' | 'experiments' | 'colander' | 'siblings' | 'andy' | 'aliya' | 'lucy' | 'julian' | 'tim' | 'kirin' | 'helen' | 'dad' | 'minnie' | 'buzz' | 'tigger' | 'socks';
 
 export interface InteriorDoor {
   readonly triggerX: number;
@@ -328,6 +328,7 @@ export function getInteriorScene(enteredDoor: string | null): InteriorScene {
       doors: CINEMA_DOORS,
       interactions: [
         { kind: 'dad', label: 'Talk to Dad', x: 398, y: 462, distance: 64 },
+        { kind: 'kirin', label: 'Talk to Kirin', x: 115, y: 535, distance: 58 },
       ],
       playerStart: { x: 256, y: 650 },
     };

@@ -45,6 +45,7 @@ import { InteriorDoorsController } from './interior-doors.js';
 import { setupInventory, updatePowerups } from '../core/inventory.js';
 import { maddyWorldDeltaTime } from '../powers/maddy/maddy-tea-power.js';
 import { isEdTattooOpen } from '../powers/ed/tattoo-ui.js';
+import { isKirinMovieOpen } from '../powers/kirin/kirin-movie.js';
 import { isOscarEaten, isOscarPowerActive, updateOscarPower } from '../powers/oscar/oscar-power.js';
 import { andyWorldDeltaTime } from '../powers/andy/andy-power.js';
 import { updateAndyWorld } from '../powers/andy/andy-world-power.js';
@@ -128,7 +129,7 @@ let previousTime = 0;
 let nearbyInteraction: InteractionKind | null = null;
 let noelDialogueOpen = false;
 
-const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'noel' || interaction === 'wheldon' || interaction === 'josh' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim' || interaction === 'helen' || interaction === 'dad' || interaction === 'minnie' || interaction === 'buzz' || interaction === 'tigger' || interaction === 'socks';
+const isCharacterInteraction = (interaction: InteractionKind | null): boolean => interaction === 'noel' || interaction === 'wheldon' || interaction === 'josh' || interaction === 'siblings' || interaction === 'lucy' || interaction === 'andy' || interaction === 'aliya' || interaction === 'julian' || interaction === 'tim' || interaction === 'kirin' || interaction === 'helen' || interaction === 'dad' || interaction === 'minnie' || interaction === 'buzz' || interaction === 'tigger' || interaction === 'socks';
 const OSCAR_INTERIOR_TARGETS = INTERACTION_TARGETS
   .filter((interaction) => isCharacterInteraction(interaction.kind))
   .map((interaction) => ({ id: interaction.kind, x: interaction.x, y: interaction.y, height: 42 }));
@@ -395,9 +396,9 @@ function startMusicHouseDialogue(kind: 'andy' | 'aliya'): void {
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
 }
-function startGymNpcDialogue(kind: 'julian' | 'tim'): void {
+function startGymNpcDialogue(kind: 'julian' | 'tim' | 'kirin'): void {
   if (nearbyInteraction !== kind || noelDialogueOpen) return; input.releaseAll(); openNoelDialogue();
-  beginDialogueAudio(kind === 'julian' ? 'Julian' : 'Tim', '../'); const npc = gymNpcDialogue.start(kind, isCinemaInterior); noelSpeaker.textContent = npc.name; noelDialogueProfile.src = npc.profileSource ?? ''; noelDialogueProfile.alt = npc.profileSource ? `${npc.name} profile` : ''; noelDialogueProfile.hidden = !npc.profileSource;
+  const npc = gymNpcDialogue.start(kind, isCinemaInterior); beginDialogueAudio(npc.name, '../'); noelSpeaker.textContent = npc.name; noelDialogueProfile.src = npc.profileSource ?? ''; noelDialogueProfile.alt = npc.profileSource ? `${npc.name} profile` : ''; noelDialogueProfile.hidden = !npc.profileSource;
   noelDialogueQuestion.hidden = true; noelDialogueOptions.hidden = true; siblingsDialogueOptions.hidden = true; musicDialogueOptions.hidden = true; noelDialogue.hidden = false; interactionPrompt.hidden = true;
 }
 function startDadDialogue(): void {
@@ -415,7 +416,7 @@ function activateNearbyInteraction(): void {
   else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') startMusicHouseDialogue(nearbyInteraction);
   else if (nearbyInteraction === 'lucy') startLucyDialogue();
   else if (nearbyInteraction === 'helen') startRoomCharacterDialogue('helen');
-  else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') startGymNpcDialogue(nearbyInteraction);
+  else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim' || nearbyInteraction === 'kirin') startGymNpcDialogue(nearbyInteraction);
   else if (nearbyInteraction === 'minnie' || nearbyInteraction === 'buzz' || nearbyInteraction === 'tigger' || nearbyInteraction === 'socks') startRoomCharacterDialogue(nearbyInteraction);
 }
 function bindControls(): void {
@@ -457,7 +458,7 @@ function bindControls(): void {
     if (nearbyInteraction === 'lucy') lucy?.next();
     else if (nearbyInteraction === 'helen') roomDialogue.next('helen');
     else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') musicHouseDialogue.next();
-    else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim') gymNpcDialogue.next();
+    else if (nearbyInteraction === 'julian' || nearbyInteraction === 'tim' || nearbyInteraction === 'kirin') gymNpcDialogue.next();
     else if (nearbyInteraction === 'dad') dadDialogue.next();
     else if (nearbyInteraction === 'noel') roomDialogue.next('noel');
     else if (nearbyInteraction === 'wheldon') roomDialogue.next('wheldon');
@@ -521,6 +522,7 @@ function updateNearbyInteraction(): void {
     nearbyInteraction = target?.kind ?? null;
     if (nearbyInteraction !== previousInteraction && noelDialogueOpen) closeNoelDialogue();
     if (nearbyInteraction === 'dad' && previousInteraction !== 'dad') startDadDialogue();
+    if (nearbyInteraction === 'kirin' && previousInteraction !== 'kirin') startGymNpcDialogue('kirin');
     if (target) interactionPrompt.textContent = target.label;
     interactionPrompt.hidden = true;
     cinemaAudience?.update(player.x, player.y, noelDialogueOpen, target !== undefined);
@@ -569,7 +571,7 @@ function updateNearbyInteraction(): void {
   if (nextInteraction === 'lucy') { interactionPrompt.hidden = true; startLucyDialogue(); return; }
   if (nextInteraction === 'helen') { interactionPrompt.hidden = true; startRoomCharacterDialogue('helen'); return; }
   if (nextInteraction === 'andy' || nextInteraction === 'aliya') { interactionPrompt.hidden = true; startMusicHouseDialogue(nextInteraction); return; }
-  if (nextInteraction === 'julian' || nextInteraction === 'tim') { interactionPrompt.hidden = true; startGymNpcDialogue(nextInteraction); return; }
+  if (nextInteraction === 'julian' || nextInteraction === 'tim' || nextInteraction === 'kirin') { interactionPrompt.hidden = true; startGymNpcDialogue(nextInteraction); return; }
   if (target) interactionPrompt.textContent = target.label;
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
@@ -585,7 +587,7 @@ function gameLoop(time: number): void {
   previousTime = time;
   if (doughnutShop?.eating) return;
   updatePowerups(time);
-  if (isThoughtsOpen() || isEdTattooOpen()) { draw(time, worldAnimationTime); return; }
+  if (isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) { draw(time, worldAnimationTime); return; }
   if (!isKatiePowerActive(time)) settleGeorgiaFlight(player, flightLandingBlocked, FLIGHT_BOUNDS, time);
   let visibleKatieTargets = KATIE_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
   let visibleOscarTargets = OSCAR_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));

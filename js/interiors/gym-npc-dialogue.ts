@@ -1,5 +1,7 @@
 import { JULIAN_DIALOGUE_LINES } from '../generated/dialogues/julian-dialogue.js';
 import { TIM_DIALOGUE_LINES } from '../generated/dialogues/tim-dialogue.js';
+import { KIRIN_DIALOGUE_LINES } from '../generated/dialogues/kirin-dialogue.js';
+import { KIRIN_ITEM } from '../core/inventory-gifts.js';
 import { addGift, hasGift, JULIAN_ITEM, nextGiftLine, TIM_ITEM, type GiftItem } from '../core/inventory-gifts.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 import { WorkoutGalleryController } from './workout-gallery.js';
@@ -7,7 +9,7 @@ import { characterAsset } from '../core/character-assets.js';
 import { getTimCinemaDialogue, type TimCinemaDialogue } from '../characters/tim/tim-cinema-dialogue.js';
 import { isAlexPlayer } from '../core/player-character.js';
 
-export type GymNpcId = 'julian' | 'tim';
+export type GymNpcId = 'julian' | 'tim' | 'kirin';
 
 interface GymNpcChat {
   readonly id: GymNpcId;
@@ -18,6 +20,10 @@ interface GymNpcChat {
 }
 
 const GYM_NPC_CHATS: Record<GymNpcId, GymNpcChat> = {
+  kirin: {
+    id: 'kirin', name: 'Kirin', dialogueLines: KIRIN_DIALOGUE_LINES,
+    profileSource: `../${characterAsset('kirin', 'profile')}`, item: KIRIN_ITEM,
+  },
   julian: {
     id: 'julian', name: 'Julian', dialogueLines: JULIAN_DIALOGUE_LINES,
     item: JULIAN_ITEM,

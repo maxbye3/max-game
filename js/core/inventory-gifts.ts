@@ -219,6 +219,13 @@ function showItemReceivedOverlay(item: GiftItem): void {
   window.setTimeout(() => overlay.remove(), ITEM_RECEIVED_OVERLAY_DURATION);
 }
 
+export const KIRIN_ITEM: GiftItem = {
+  id: 'kirin-item',
+  name: "Kirin's Diet Coke",
+  imageSource: characterAsset('kirin', 'item'),
+  description: 'Forces the protagonist to sit and watch a movie.',
+};
+
 export const GIFT_ITEMS: readonly GiftItem[] = [
   {
     id: 'mike-item',
@@ -257,6 +264,7 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   DAN_ITEM,
   JOE_ITEM,
   ALEX_S_ITEM,
+  KIRIN_ITEM,
 ];
 
 function readGiftIds(): string[] {

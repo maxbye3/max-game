@@ -1,6 +1,7 @@
 import { setAlexEatenDoughnut } from './alex-w-state.js';
 import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isEdTattooOpen } from '../powers/ed/tattoo-ui.js';
+import { isKirinMovieOpen } from '../powers/kirin/kirin-movie.js';
 import { isTimInputPowerActive, updateTimInputWorld } from '../powers/tim/tim-input-power.js';
 import { isReiPowerActive, reiWorldDeltaTime, updateReiWorld } from '../powers/rei/rei-power.js';
 import { isNoelPowerActive, updateNoelWorld } from '../powers/noel/noel-power.js';
@@ -101,7 +102,7 @@ function gameLoop(time: number): void {
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
-  if (isDoorNavigationStarted() || isThoughtsOpen() || isEdTattooOpen()) {
+  if (isDoorNavigationStarted() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) {
     draw(time, worldAnimationTime);
     return;
   }

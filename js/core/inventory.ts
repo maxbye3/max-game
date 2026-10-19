@@ -38,6 +38,7 @@ import { endDialogueAudio } from './dialogue-audio.js';
 import { activateAlexSPower, alexSPowerSecondsLeft, alexSPowerReveal, alexSThemeSecondsLeft } from '../powers/alex-s/alex-s-power.js';
 import { openAlexResurrectionChoice, openAlexToastDialogue, updateAlexResurrectionUi } from '../powers/alex-s/alex-s-power-ui.js';
 import { characterAsset, characterAssetOrNull } from './character-assets.js';
+import { openKirinMovie } from '../powers/kirin/kirin-movie.js';
 
 const ITEM_THEME_DURATION = 10_000;
 const ADAM_THEME_SOURCE = characterAsset('adam', 'theme');
@@ -382,6 +383,11 @@ function renderGiftItems(): void {
         lucyPowerPendingReveal = true;
         announce("Mayo god activated! Hold click or touch and drag on the game to squirt mayonnaise.");
         setInventoryOpen(false);
+      } else if (item.id === 'kirin-item') {
+        stopPowerMusic();
+        setInventoryOpen(false);
+        openKirinMovie();
+        announce('Kirin’s private screening! Take your seat, watch the film, and throw some popcorn.');
       } else {
         announce(`${item.name}: ${item.description}`);
       }
