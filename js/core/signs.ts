@@ -25,8 +25,6 @@ import { announceWorldInteraction } from './world-interactions.js';
 import type { CollisionShape } from './types.js';
 import { isAnyPowerActive } from '../powers/active-power.js';
 import { isMikePowerActive } from '../powers/mike/mike-power.js';
-import { getPlayerBody, setPlayerBody } from './player-body.js';
-import { isWheldonPlayerSpriteEnabled, setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 
 interface Sign {
   readonly id: string;
@@ -125,8 +123,6 @@ const signatureImage = requireElement<HTMLImageElement>('#sign-dialogue-signatur
 const busImage = requireElement<HTMLImageElement>('#sign-dialogue-bus-image');
 const announcer = requireElement<HTMLElement>('#announcer');
 const closeButton = requireElement<HTMLButtonElement>('#sign-dialogue-close');
-const graveOptions = requireElement<HTMLElement>('#grave-options');
-const returnPlayerButton = requireElement<HTMLButtonElement>('#grave-return-player');
 
 // Signs should be read from right beside them, not across the pavement.
 const READ_DISTANCE = 20;
@@ -183,7 +179,6 @@ export function hideSignDialogue(): void {
   dialogueSignature.hidden = true;
   signatureImage.hidden = true;
   busImage.hidden = true;
-  graveOptions.hidden = true;
 }
 
 function dismissSignDialogue(): void {
@@ -234,22 +229,8 @@ export function updateSigns(playerX: number, playerY: number): void {
   } else if (activeSign && distanceToSign(playerX, playerY, activeSign) > DISMISS_DISTANCE) {
     hideSignDialogue();
   }
-  graveOptions.hidden = activeSign?.id !== 'grave' ||
-    (getPlayerBody() === 'player' && !isWheldonPlayerSpriteEnabled());
 }
 
-returnPlayerButton.addEventListener('click', () => {
-  if (activeSign?.id !== 'grave') return;
-  setWheldonPlayerSpriteEnabled(false);
-  setPlayerBody('player');
-  const url = new URL(window.location.href);
-  url.searchParams.set('body', 'player');
-  url.searchParams.set('wheldon', '0');
-  window.history.replaceState(null, '', url);
-  releaseAllInput();
-  dismissSignDialogue();
-  announcer.textContent = 'Returned to original form.';
-});
 closeButton.addEventListener('click', dismissSignDialogue);
 window.addEventListener('max-game:world-interaction-opened', hideSignDialogue);
 window.addEventListener('max-game:mike-power-activated', hideSignDialogue);

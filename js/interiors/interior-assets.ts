@@ -14,6 +14,15 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
   const isGymInterior = scene.kind === 'gym';
   const isBookshopInterior = scene.kind === 'bookshop';
   const isCinemaInterior = scene.kind === 'cinema';
+  const cinemaFilm = isCinemaInterior ? document.createElement('video') : null;
+  if (cinemaFilm) {
+    cinemaFilm.muted = true;
+    cinemaFilm.loop = true;
+    cinemaFilm.playsInline = true;
+    cinemaFilm.autoplay = true;
+    cinemaFilm.src = '../video/film.mp4';
+    void cinemaFilm.play().catch(() => {});
+  }
   const isCaveInterior = scene.kind === 'cave';
   const interior = new Image(); const collisionMask = new Image();
   const doorOverlay = new Image(); const spriteSheet = new Image();
@@ -74,5 +83,5 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     ...cinemaNpcs.map((npc) => npc.image),
     ...(timCinemaSeat ? [timCinemaSeat] : []),
   ];
-  return { interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, requiredImages };
+  return { interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, cinemaFilm, requiredImages };
 }

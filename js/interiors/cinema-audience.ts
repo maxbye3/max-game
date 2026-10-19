@@ -17,6 +17,10 @@ const AUDIENCE = [
   { x: 262, y: 440 },
 ] as const;
 const DIALOGUE_LINES = [
+  'this is a double feature',
+  'the first film was made in 2003',
+  'max sure made people do some weird stuff back in the day',
+  'the next film is 2013. It got him a job at rebel minds',
   'Shhh!', "The film's on.", 'This is where it gets good.', 'I need to pee.',
   'Got any popcorn?', 'This film is long.', 'Is that Nicolas Cage?', 'Move your head.',
   "You're blocking the screen.", 'What did they say?', "Wait, who's that?",

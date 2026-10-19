@@ -49,6 +49,7 @@ interface InteriorRenderOptions {
   spriteSheet: HTMLImageElement; ghostSpriteSheet: HTMLImageElement; noelSprite: HTMLImageElement; joshSprite: HTMLImageElement; siblingsSprite: HTMLImageElement; gardenPanda: HTMLImageElement;
   musicDjMachine: HTMLImageElement; gymGloves: HTMLImageElement;
   timCinemaSeat: HTMLImageElement | null;
+  cinemaFilm: HTMLVideoElement | null;
   diaryRoomNpcs: readonly InteriorSceneryNpc[];
   bookshopNpcs: readonly InteriorSceneryNpc[]; musicHouseNpcs: readonly InteriorSceneryNpc[]; gymNpcs: readonly InteriorSceneryNpc[]; cinemaNpcs: readonly InteriorSceneryNpc[];
   caveSiblings: CaveSiblingsController | null;
@@ -97,6 +98,17 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
       viewportWidth * scaleX,
       viewportHeight * scaleY,
     );
+    const film = options.cinemaFilm;
+    if (film && film.readyState >= 2 && film.videoWidth > 0) {
+      // Show the entire film, leaving the painted screen visible on either side.
+      const screenX = 115; const screenY = 133; const screenWidth = 277; const screenHeight = 84;
+      const fit = Math.min(screenWidth / film.videoWidth, screenHeight / film.videoHeight);
+      const width = film.videoWidth * fit; const height = film.videoHeight * fit;
+      context.drawImage(film,
+        (screenX + (screenWidth - width) / 2 - cameraX) * scaleX,
+        (screenY + (screenHeight - height) / 2 - cameraY) * scaleY,
+        width * scaleX, height * scaleY);
+    }
     if (timCinemaSeat) {
       // Replace only the front-row occupant; retain the original cinema artwork.
       const seatX = 188; const seatY = 298; const seatWidth = 52; const seatHeight = 54;

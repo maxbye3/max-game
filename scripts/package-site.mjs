@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const output = resolve('_site');
 await rm(output, { recursive: true, force: true });
 await mkdir(output);
-for (const path of ['index.html', 'style.css', 'transform.html', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'fonts', 'char', 'data']) {
+for (const path of ['index.html', 'style.css', 'transform.html', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'video', 'fonts', 'char', 'data']) {
   await cp(path, resolve(output, path), { recursive: true });
 }
 

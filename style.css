@@ -1534,7 +1534,6 @@ canvas {
 
 .npc-dialogue-options[hidden] { display: none; }
 
-#grave-return-player { min-height: 44px; }
 
 #alice-dialogue-options > * {
   min-height: 44px;
