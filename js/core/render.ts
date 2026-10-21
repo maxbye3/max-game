@@ -133,7 +133,11 @@ export function draw(time: number, worldTime = time): void {
     : wheldonMode
     ? getWheldonPlayerSpriteFrame(player.direction, player.animationTime)
     : getPlayerSpriteFrame(body === 'player' && SEAL_MODE, player.direction, player.frame, SCALE);
-  const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
+  const { sourceX, sourceY, sourceWidth, sourceHeight } = spriteFrame;
+  const sealRenderScale = SEAL_MODE && !ghostMode && !wheldonMode ? 0.5 : 1;
+  const width = spriteFrame.width * sealRenderScale;
+  const height = spriteFrame.height * sealRenderScale;
+  const baselineOffset = spriteFrame.baselineOffset * sealRenderScale;
   const adamActive = adamPowerSecondsLeft() > 0;
   const adamLift = adamJumpOffset();
   const adamHeight = adamActive ? Math.round(height * 1.14) : height;

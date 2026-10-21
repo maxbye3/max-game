@@ -1,4 +1,5 @@
 import { setAlexEatenDoughnut } from './alex-w-state.js';
+import { resetCaveTransformationForCurrentForm } from './cave-transformation.js';
 import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isEdTattooOpen } from '../powers/ed/tattoo-ui.js';
 import { isKirinMovieOpen } from '../powers/kirin/kirin-movie.js';
@@ -63,6 +64,7 @@ import { updateAndyWorld } from '../powers/andy/andy-world-power.js';
 import { getPlayerBody, setPlayerBody } from './player-body.js';
 import { checkRoadAccident, roadAccident, setupRoadAccident, updateRoadAccident } from '../overworld/road-accident.js';
 
+resetCaveTransformationForCurrentForm();
 let previousTime = 0;
 let worldAnimationTime = 0;
 restoreBuildingAmbience(new URLSearchParams(window.location.search).get('door'));

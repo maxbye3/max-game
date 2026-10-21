@@ -4,6 +4,7 @@ import { readPng, rgbaAt } from '../png.mjs';
 import { withGameTest } from './helpers.mjs';
 
 await withGameTest(async ({ loadModule }) => {
+  window.location.search = '?seal=1';
   const story = await loadModule('cave-transformation', 'js/core/cave-transformation.ts');
   assert.equal(story.hasCaveTransformation(), false);
   story.completeCaveTransformation();
@@ -20,6 +21,56 @@ await withGameTest(async ({ loadModule }) => {
   assert.equal(url.searchParams.get('seal'),'1');
   assert.equal(url.searchParams.get('transformed'),'1');
   assert.equal(url.searchParams.has('colander'),false,'leaving after transformation cannot restart the colander chase');
+  const changedCharacter = new URL('https://game.example/index.html?door=northwest-portal&seal=1&transformed=1&awakened=1&colander=1&chase=1&body=ghost&wheldon=0');
+  story.resetCaveTransformation(changedCharacter);
+  window.location.search = changedCharacter.search;
+  assert.equal(story.hasCaveTransformation(),false,'changing out of seal form resets the saved cave story');
+  for (const key of ['seal','transformed','awakened','colander','chase']) assert.equal(changedCharacter.searchParams.has(key),false,`${key} cannot revive an old colander sequence`);
+  assert.equal(changedCharacter.searchParams.get('door'),'northwest-portal','character changes preserve the current doorway');
+  assert.equal(changedCharacter.searchParams.get('body'),'ghost','the chosen character survives the reset');
+  assert.equal(changedCharacter.searchParams.get('wheldon'),'0');
+  assert.equal(collision.playerIsBlocked(320,180),false,'the tied-up body no longer blocks the reset cave');
+});
+
+for (const body of ['player', 'ghost', 'alex-s']) {
+  for (const staleSeal of [false, true]) await withGameTest(async ({ loadModule, values }) => {
+    const url = new URL(`https://game.example/internal/index.html?door=northwest-portal&body=${body}&transformed=1&awakened=1&colander=1&chase=1${staleSeal ? '&seal=1' : ''}`);
+    // A player with seal=1 is a real seal; a ghost/possessed body overrides it.
+    if (body === 'player' && staleSeal) return;
+    Object.assign(window.location, { href: url.href, search: url.search });
+    values.set('max-game:siblings:transformed', 'true');
+    const navigate = (next) => Object.assign(window.location, { href: String(next), search: new URL(next).search });
+    window.history = { state: null, replaceState: (_state, _title, next) => navigate(next) };
+    window.location.replace = navigate;
+    const story = await loadModule('reset-story', 'js/core/cave-transformation.ts', `
+      export { isSiblingPursuitActive } from './js/core/sibling-pursuit.ts';
+      export { CaveSiblingsController } from './js/interiors/cave-siblings.ts';
+    `);
+    assert.equal(story.hasCaveTransformation(), false, `${body} cannot retain the chair scene`);
+    story.resetCaveTransformationForCurrentForm();
+    assert.equal(values.get('max-game:siblings:transformed'), 'false');
+    assert.equal(story.isSiblingPursuitActive(), false, 'old pursuit cannot suppress the entrance');
+    const clean = new URL(window.location.href);
+    assert.equal(clean.searchParams.get('body'), body);
+    assert.equal(clean.searchParams.get('door'), 'northwest-portal');
+    for (const key of ['seal', 'transformed', 'awakened', 'colander', 'chase']) assert.equal(clean.searchParams.has(key), false);
+    const lines = [];
+    const girls = new story.CaveSiblingsController({ showLine: line => lines.push(line), showOptions() {}, closeDialogue() {} });
+    assert.equal(girls.isEntering, true);
+    assert.equal(girls.darknessAlpha, 1);
+    girls.update(1.35, 1350);
+    assert.equal(girls.startWelcome(1350), true);
+    assert.equal(lines[0].line, 'welcome.');
+  });
+}
+
+for (const search of ['?seal=1&transformed=1', '?colander=1&chase=1']) await withGameTest(async ({ loadModule, values }) => {
+  Object.assign(window.location, { href: `https://game.example/${search}`, search });
+  if (search.includes('transformed')) values.set('max-game:siblings:transformed', 'true');
+  const story = await loadModule('keep-story', 'js/core/cave-transformation.ts');
+  story.resetCaveTransformationForCurrentForm();
+  assert.equal(window.location.search, search, 'active seal scenes and fresh colander chases survive entry');
+  assert.equal(story.hasCaveTransformation(), search.includes('transformed'));
 });
 
 const { SEAL_SPRITE_SOURCE } = await (async () => {

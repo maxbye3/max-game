@@ -1,4 +1,4 @@
-import { hasCaveTransformation, completeCaveTransformation, SEAL_SIBLING_LINES } from '../core/cave-transformation.js';
+import { hasCaveTransformation, completeCaveTransformation, isSealPlayer, resetCaveTransformationForCurrentForm, SEAL_SIBLING_LINES } from '../core/cave-transformation.js';
 import { isSiblingPursuitActive } from '../core/sibling-pursuit.js';
 import { InteriorSiblingChase, INTERIOR_CHASE_MESSAGE } from './interior-sibling-chase.js';
 import { playMessageVoices, startCatchTransition } from '../overworld/cave-thief-cutscene.js';
@@ -70,7 +70,8 @@ import { webImageSource } from '../core/web-images.js';
 import { DadDialogueController } from '../characters/dad/dad-dialogue-controller.js';
 import { createInteriorRenderer } from './interior-render.js';
 import { CharityDialogueController, isCharityNpc } from './charity-dialogue.js';
-const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = searchParams.has('seal'); const doorLoading = requireElement<HTMLElement>('#door-loading');
+resetCaveTransformationForCurrentForm();
+const searchParams = new URLSearchParams(window.location.search); const SEAL_MODE = isSealPlayer(); const doorLoading = requireElement<HTMLElement>('#door-loading');
 const interactionPrompt = requireElement<HTMLButtonElement>('#interaction-prompt');
 const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
 const noelSpeaker = requireElement<HTMLElement>('#noel-speaker');
@@ -100,7 +101,7 @@ markInteriorVisited();
 const isCinemaInterior = scene.kind === 'cinema'; const isMusicShopInterior = scene.kind === 'musicShop';
 const isGymInterior = scene.kind === 'gym'; const isBookshopInterior = scene.kind === 'bookshop'; const isPlantRoomInterior = scene.kind === 'plantRoom';
 const isCaveInterior = scene.kind === 'cave';
-if (searchParams.get('transformed') === '1') completeCaveTransformation();
+if (isSealPlayer() && searchParams.get('transformed') === '1') completeCaveTransformation();
 const isTransformedCave = isCaveInterior && hasCaveTransformation();
 let sealSiblingLineIndex = 0;
 const isDiaryLabInterior = scene.kind === 'diaryLab';
@@ -441,7 +442,6 @@ function activateNearbyInteraction(): void {
   else if (nearbyInteraction === 'josh') startJoshDialogue();
   else if (nearbyInteraction === 'siblings') startSiblingsDialogue(performance.now());
   else if (nearbyInteraction === 'diary' || nearbyInteraction === 'experiments') startFeatureInteraction(nearbyInteraction);
-  else if (nearbyInteraction === 'colander') startColanderPickup();
   else if (nearbyInteraction === 'andy' || nearbyInteraction === 'aliya') startMusicHouseDialogue(nearbyInteraction);
   else if (nearbyInteraction === 'lucy') startLucyDialogue();
   else if (nearbyInteraction === 'helen') startRoomCharacterDialogue('helen');
@@ -581,6 +581,7 @@ function updateNearbyInteraction(): void {
   if (previousInteraction === 'siblings' && nextInteraction !== 'siblings') {
     caveSiblings?.leaveRange();
   }
+  if (nextInteraction === 'colander') { startColanderPickup(); return; }
   if (nextInteraction === 'wheldon') {
     startRoomCharacterDialogue('wheldon');
     return;
