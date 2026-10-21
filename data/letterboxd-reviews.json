@@ -1,6 +1,22 @@
 {
-  "updatedAt": "2026-10-16T21:23:15.295Z",
+  "updatedAt": "2026-10-21T06:00:08.355Z",
   "reviews": [
+    {
+      "title": "Obsession",
+      "year": "2025",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/1/2/3/4/4/7/2/1234472-obsession-2025-2-0-600-0-900-crop.jpg?v=cff6fc00b6",
+      "rating": 5,
+      "review": "Unbelievable. The acting, the message, the supporting cast, the spooks. This film really was incredible and I've been obsessed with it since seeing it.",
+      "url": "https://letterboxd.com/maxbye/film/obsession-2025/"
+    },
+    {
+      "title": "You Can See Everything",
+      "year": "2026",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/1/6/2/9/4/4/3/1629443-you-can-see-everything-0-600-0-900-crop.jpg?v=84f6724d74",
+      "rating": 4.5,
+      "review": "Three hours flew by. Terrific film. Nathan Fielder is a genius. It was as good as I hoped it would be.",
+      "url": "https://letterboxd.com/maxbye/film/you-can-see-everything/"
+    },
     {
       "title": "Resident Evil",
       "year": "2026",
@@ -224,22 +240,6 @@
       "rating": 3.5,
       "review": "Glorious violence. Giving up ghosts to kill everyone in his block. Short and sweet. If not a bit pointless.",
       "url": "https://letterboxd.com/maxbye/film/the-punisher-one-last-kill/"
-    },
-    {
-      "title": "Hearts of Darkness: A Filmmaker's Apocalypse",
-      "year": "1991",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/4/9/2/6/7/49267-hearts-of-darkness-a-filmmaker-s-apocalypse-0-600-0-900-crop.jpg?v=5b73dec0f7",
-      "rating": 4,
-      "review": "Shit go really nuts huh. Those are completely ruined by avengers. Seems like a Woody Allen character who's completely over his head - still managed to produce a banging film despite the chaos",
-      "url": "https://letterboxd.com/maxbye/film/hearts-of-darkness-a-filmmakers-apocalypse/"
-    },
-    {
-      "title": "Mortal Kombat II",
-      "year": "2026",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/8/3/6/5/7/1/836571-mortal-kombat-ii-0-600-0-900-crop.jpg?v=6fea3b13de",
-      "rating": 4,
-      "review": "Extremely fun romp with karl urban. Ightly shite first 30 minutes but otherwise great film. Lots of violence.",
-      "url": "https://letterboxd.com/maxbye/film/mortal-kombat-ii/"
     }
   ]
 }
