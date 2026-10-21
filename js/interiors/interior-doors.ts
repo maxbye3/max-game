@@ -1,3 +1,5 @@
+import { hasCaveTransformation } from '../core/cave-transformation.js';
+import { isSiblingPursuitActive } from '../core/sibling-pursuit.js';
 import type { InteriorScene } from './interior-scenes.js';
 import { createGameAudio } from '../core/audio-mute.js';
 import { getPlayerBody } from '../core/player-body.js';
@@ -29,7 +31,7 @@ export class InteriorDoorsController {
   }
 
   syncExitLink(link: HTMLAnchorElement | null): void {
-    if (link && this.options.enteredDoor) link.href = this.returnUrl();
+    if (link) link.href = this.returnUrl();
   }
 
   update(playerX: number, playerY: number): void {
@@ -101,6 +103,8 @@ export class InteriorDoorsController {
     const params = new URLSearchParams();
     if (this.options.enteredDoor) params.set('door', this.options.enteredDoor);
     if (this.options.hasCaveColander()) params.set('colander', '1');
+    if (isSiblingPursuitActive()) params.set('chase', '1');
+    if (hasCaveTransformation()) params.set('transformed', '1');
     if (this.options.sealMode) params.set('seal', '1');
     if (getPlayerBody() !== 'player') params.set('body', getPlayerBody());
     if (isWheldonPlayerSpriteEnabled()) params.set('wheldon', '1');

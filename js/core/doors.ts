@@ -1,3 +1,5 @@
+import { hasCaveTransformation } from './cave-transformation.js';
+import { isSiblingPursuitActive } from './sibling-pursuit.js';
 import { hasCaveColander } from './colander.js';
 import { getPlayerBody } from './player-body.js';
 import { isWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
@@ -28,10 +30,6 @@ export const DOORWAYS: readonly Doorway[] = [
   { id: 'snow-mansion', x: 792, y: 1100, width: 32, height: 32 },
   { id: 'feedback-center', x: 123, y: 1103, width: 30, height: 31 },
 ];
-
-// Re-enable this entrance when the siblings' cave is ready to open.
-const TEMPORARILY_CLOSED_DOOR_IDS = new Set(['northwest-portal']);
-const ACTIVE_DOORWAYS = DOORWAYS.filter((doorway) => !TEMPORARILY_CLOSED_DOOR_IDS.has(doorway.id));
 
 const OPEN_DISTANCE = 42;
 const PASSAGE_MARGIN = 8;
@@ -74,7 +72,7 @@ export function isDoorNavigationStarted(): boolean {
 
 export function updateDoors(playerX: number, playerY: number): void {
   const nextOpenDoorIds = new Set(
-    ACTIVE_DOORWAYS
+    DOORWAYS
       .filter((doorway) => distanceToDoorway(playerX, playerY, doorway) <= OPEN_DISTANCE)
       .map((doorway) => doorway.id),
   );
@@ -90,7 +88,7 @@ export function updateDoors(playerX: number, playerY: number): void {
   hasSyncedInitialDoorState = true;
 
   if (navigationStarted) return;
-  const enteredDoorway = ACTIVE_DOORWAYS.find((doorway) => pointInsideDoorway(playerX, playerY, doorway));
+  const enteredDoorway = DOORWAYS.find((doorway) => pointInsideDoorway(playerX, playerY, doorway));
   if (!enteredDoorway) return;
 
   navigationStarted = true;
@@ -98,6 +96,8 @@ export function updateDoors(playerX: number, playerY: number): void {
   carryBuildingAmbienceInside(enteredDoorway.id);
   const params = new URLSearchParams({ door: enteredDoorway.id });
   if (hasCaveColander()) params.set('colander', '1');
+  if (isSiblingPursuitActive()) params.set('chase', '1');
+  if (hasCaveTransformation()) params.set('transformed', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
   if (getPlayerBody() !== 'player') params.set('body', getPlayerBody());
   if (isWheldonPlayerSpriteEnabled()) params.set('wheldon', '1');
@@ -106,16 +106,9 @@ export function updateDoors(playerX: number, playerY: number): void {
 }
 
 export function getOpenDoorways(): Doorway[] {
-  return ACTIVE_DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));
+  return DOORWAYS.filter((doorway) => openDoorIds.has(doorway.id));
 }
 
 export function isDoorPassagePoint(x: number, y: number): boolean {
-  return ACTIVE_DOORWAYS.some((doorway) => pointInsideDoorway(x, y, doorway, PASSAGE_MARGIN));
-}
-
-export function isTemporarilyClosedDoorPoint(x: number, y: number): boolean {
-  return DOORWAYS.some((doorway) =>
-    TEMPORARILY_CLOSED_DOOR_IDS.has(doorway.id) &&
-    pointInsideDoorway(x, y, doorway, PASSAGE_MARGIN),
-  );
+  return DOORWAYS.some((doorway) => pointInsideDoorway(x, y, doorway, PASSAGE_MARGIN));
 }

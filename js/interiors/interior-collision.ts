@@ -1,3 +1,4 @@
+import { hasCaveTransformation } from '../core/cave-transformation.js';
 import { ART_STUDIO_WALLS, CAVE_WALLS, CHARITY_WALLS, DOUGHNUT_SHOP_WALLS, type InteriorScene } from './interior-scenes.js';
 
 const PLAYER_FRAME_WIDTH = 23;
@@ -30,6 +31,7 @@ export class InteriorCollision {
       );
     }
     if (this.scene.kind === 'cave') {
+      if (hasCaveTransformation() && x > 299 && x < 341 && y > 138 && y < 207) return true;
       return CAVE_WALLS.some(([wallX, wallY, width, height]) =>
         x >= wallX && x < wallX + width && y >= wallY && y < wallY + height,
       );

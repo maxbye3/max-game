@@ -94,6 +94,7 @@ try {
   };
   const imageLoaded = source => sources.some(loaded => loaded.split('?')[0] === imageSource(source).split('?')[0]);
   const { loadAssets } = await moduleFor('assets');
+  const { SEAL_SPRITE_SOURCE } = await moduleFor('seal-sprite.generated');
   await loadAssets();
   assert.ok(imageLoaded('img/external/road.png'), 'the road is ready for the first frame');
   assert.ok(!imageLoaded('img/external/billboard-unfinished.png'), 'secondary art stays off the first-frame path');
@@ -101,7 +102,7 @@ try {
   loadDeferredAssets();
   assert.ok(!imageLoaded('char/siblings/girls-sprite.png'));
   assert.ok(!imageLoaded('img/external/mike-aftermath.png'));
-  assert.ok(!imageLoaded('char/player/seal-game.png'));
+  assert.ok(!imageLoaded(SEAL_SPRITE_SOURCE));
   assert.ok(imageLoaded('img/external/billboard-unfinished.png'));
   Image.stallDecode = true;
   await loadAssets();
@@ -111,7 +112,7 @@ try {
   loadDeferredAssets();
   assert.ok(imageLoaded('char/siblings/girls-sprite.png'));
   assert.ok(imageLoaded('img/external/mike-aftermath.png'));
-  assert.ok(imageLoaded('char/player/seal-game.png'));
+  assert.ok(imageLoaded(SEAL_SPRITE_SOURCE));
   assert.ok(!imageLoaded('char/mike/overworld-avatar.png'));
   assert.ok(imageLoaded('char/rei/overworld-avatar.png'), 'Rei remains visible after the quest');
   // The permanent solar cap must still render after temporary powers expire.

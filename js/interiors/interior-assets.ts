@@ -1,3 +1,6 @@
+import { SEAL_SPRITE_SOURCE } from '../generated/core/seal-sprite.generated.js';
+import { hasCaveTransformation } from '../core/cave-transformation.js';
+import { isSiblingPursuitActive } from '../core/sibling-pursuit.js';
 import { GHOST_SPRITE_SOURCE } from '../generated/core/ghost-sprite.generated.js';
 import { createDiaryRoomNpcs } from './diary-room-npcs.js';
 import { BOOKSHOP_NPCS } from './bookshop-npcs.js';
@@ -24,6 +27,8 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     void cinemaFilm.play().catch(() => {});
   }
   const isCaveInterior = scene.kind === 'cave';
+  const cavePlayerChair = scene.kind === 'cave' && hasCaveTransformation() ? new Image() : null;
+  if (cavePlayerChair) cavePlayerChair.src = `../${characterAsset('siblings', 'playerChair')}`;
   const interior = new Image(); const collisionMask = new Image();
   const doorOverlay = new Image(); const spriteSheet = new Image();
   const ghostSpriteSheet = new Image();
@@ -48,12 +53,12 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
   }) ?? [];
   if (SHOW_COLLISION_SHAPES && scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
   if (scene.doorOverlaySource) doorOverlay.src = webImageSource(scene.doorOverlaySource);
-  const playerSpriteSource = ghostWheldonPlayer ? characterAsset('alex-s', 'ghostWheldonSprite') : wheldonPlayer ? characterAsset('alex-s', 'wheldonSprite') : SEAL_MODE ? `${playerAsset('sealSpriteSheet')}?v=20260831-transparent` : playerAsset('spriteSheet');
-  spriteSheet.src = webImageSource(`../${playerSpriteSource}`);
+  const playerSpriteSource = ghostWheldonPlayer ? characterAsset('alex-s', 'ghostWheldonSprite') : wheldonPlayer ? characterAsset('alex-s', 'wheldonSprite') : SEAL_MODE ? SEAL_SPRITE_SOURCE : playerAsset('spriteSheet');
+  spriteSheet.src = playerSpriteSource.startsWith('data:') ? playerSpriteSource : webImageSource(`../${playerSpriteSource}`);
   if (scene.kind === 'artStudio') joshSprite.src = webImageSource(`../${characterAsset('josh', 'avatar')}`);
   if (scene.kind === 'mansion') noelSprite.src = webImageSource(`../${characterAsset('noel', 'interiorAvatar')}`);
   if (scene.kind === 'plantRoom') gardenPanda.src = webImageSource('../img/internal/art/panda.png');
-  if (isCaveInterior) siblingsSprite.src = webImageSource(`../${characterAsset('siblings', 'girlsSprite')}`);
+  if (isCaveInterior || isSiblingPursuitActive()) siblingsSprite.src = webImageSource(`../${characterAsset('siblings', 'girlsSprite')}`);
   if (isMusicShopInterior) musicDjMachine.src = '../img/internal/music-dj-machine.png';
   if (isBookshopInterior) {
     bookshopNpcs.forEach((npc) => {
@@ -70,6 +75,7 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
   if (isCinemaInterior) cinemaNpcs.forEach((npc) => { npc.image.src = webImageSource(npc.source); });
 
   const requiredImages = [
+    ...(cavePlayerChair ? [cavePlayerChair] : []),
     interior,
     ...interiorFrames,
     spriteSheet,
@@ -80,11 +86,11 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     ...(scene.kind === 'artStudio' ? [joshSprite] : []),
     ...(scene.kind === 'mansion' ? [noelSprite] : []),
     ...(isBookshopInterior ? bookshopNpcs.map((npc) => npc.image) : []),
-    ...(isCaveInterior ? [siblingsSprite] : []),
+    ...((isCaveInterior || isSiblingPursuitActive()) ? [siblingsSprite] : []),
     ...(isMusicShopInterior ? [...musicHouseNpcs.map((npc) => npc.image), musicDjMachine] : []),
     ...(isGymInterior ? [gymGloves, ...gymNpcs.map((npc) => npc.image)] : []),
     ...cinemaNpcs.map((npc) => npc.image),
     ...(timCinemaSeat ? [timCinemaSeat] : []),
   ];
-  return { interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, cinemaFilm, requiredImages };
+  return { cavePlayerChair, interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, cinemaFilm, requiredImages };
 }

@@ -58,7 +58,7 @@ CSS is intentionally ordered in `css/game.css`: base, HUD, navigation, world eff
 
 `node scripts/generate-source.mjs` fingerprints each generator's source files, helper scripts, and outputs. It skips unchanged work; edits, missing/corrupt outputs, added/deleted inputs, and generator changes invalidate the relevant task. The disposable cache is `.cache/generation.json`; deleting it forces a safe rebuild. `npm run generate:source -- --force` explicitly regenerates everything.
 
-Tasks: `dialogues`, `profiles`, `dialogue-themes`, `internal-collision`, `ghost-sprite`, `web-assets`, `battle-avatars`, `styles`. A single task can be run with `node scripts/generate-source.mjs styles`. Specialized `generate:*` npm commands use the same cache. The build invokes generation once, rather than nesting npm lifecycle hooks.
+Tasks: `dialogues`, `profiles`, `dialogue-themes`, `internal-collision`, `ghost-sprite`, `seal-sprite`, `web-assets`, `battle-avatars`, `styles`. A single task can be run with `node scripts/generate-source.mjs styles`. Specialized `generate:*` npm commands use the same cache. The build invokes generation once, rather than nesting npm lifecycle hooks.
 
 Optimized images/music/fonts are optional prepared copies. Stale or missing prepared copies fall back to originals. Use `npm run prepare:web-assets` after editing assets when you want optimized copies; this also refreshes styles. Collision guides are original assets, and the collision generator never modifies them.
 

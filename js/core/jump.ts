@@ -1,3 +1,5 @@
+import { hasCaveTransformation } from './cave-transformation.js';
+import { isSiblingPursuitActive } from './sibling-pursuit.js';
 import { isTimInputPowerActive, TIM_INPUT_POWER_DURATION } from '../powers/tim/tim-input-power.js';
 import { isSamPowerActive, SAM_POWER_DURATION } from '../powers/sam/sam-power.js';
 import { isReiPowerActive, REI_POWER_DURATION } from '../powers/rei/rei-power.js';
@@ -67,6 +69,8 @@ function jumpTo(destinationId: string): void {
   releaseAllInput();
   const params = new URLSearchParams({ door: destinationId });
   if (hasCaveColander()) params.set('colander', '1');
+  if (isSiblingPursuitActive()) params.set('chase', '1');
+  if (hasCaveTransformation()) params.set('transformed', '1');
   if (new URLSearchParams(window.location.search).has('seal')) params.set('seal', '1');
   if (getPlayerBody() !== 'player') params.set('body', getPlayerBody());
   if (isWheldonPlayerSpriteEnabled()) params.set('wheldon', '1');

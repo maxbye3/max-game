@@ -5,6 +5,7 @@ import { getPlayerBody } from '../../core/player-body.js';
 import { getPlayerSpriteFrame } from '../../core/player-sprite.js';
 import { getGhostSpriteFrame } from '../../core/ghost-sprite.js';
 import { getWheldonPlayerSpriteFrame, isWheldonPlayerSpriteEnabled } from '../../core/player-sprite-test.js';
+import { SEAL_SPRITE_SOURCE } from '../../generated/core/seal-sprite.generated.js';
 import { GHOST_SPRITE_SOURCE } from '../../generated/core/ghost-sprite.generated.js';
 
 let movieDialog: HTMLDialogElement | null = null;
@@ -19,7 +20,7 @@ function drawSeatedPlayer(canvas: HTMLCanvasElement): void {
   const frame = wheldon ? getWheldonPlayerSpriteFrame('up', 0, ghost)
     : ghost ? getGhostSpriteFrame('up', 0, 2) : getPlayerSpriteFrame(seal, 'up', 0, 2);
   const source = wheldon ? characterAsset('alex-s', ghost ? 'ghostWheldonSprite' : 'wheldonSprite')
-    : ghost ? GHOST_SPRITE_SOURCE : playerAsset(seal ? 'sealSpriteSheet' : 'spriteSheet');
+    : ghost ? GHOST_SPRITE_SOURCE : seal ? SEAL_SPRITE_SOURCE : playerAsset('spriteSheet');
   const image = new Image();
   image.src = source.startsWith('data:') ? source : resolveSiteAsset(source);
   void image.decode().then(() => {

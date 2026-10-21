@@ -1,3 +1,7 @@
+import { hasCaveTransformation, completeCaveTransformation, SEAL_SIBLING_LINES } from '../core/cave-transformation.js';
+import { isSiblingPursuitActive } from '../core/sibling-pursuit.js';
+import { InteriorSiblingChase, INTERIOR_CHASE_MESSAGE } from './interior-sibling-chase.js';
+import { playMessageVoices, startCatchTransition } from '../overworld/cave-thief-cutscene.js';
 import { createInteriorAssets } from './interior-assets.js';
 import { createInteriorPlayerUpdater } from './interior-player.js';
 import { createRoomCharacterDialogue, type RoomCharacterKind } from './room-character-dialogue.js';
@@ -58,7 +62,7 @@ import { markInteriorVisited } from '../core/world-state.js';
 import { JOSH, NOEL, WHELDON, getInteriorScene, type InteractionKind } from './interior-scenes.js';
 import { JoshDialogueController } from './josh-dialogue.js';
 import type { Direction } from '../core/types.js';
-import { setProfileImage } from '../core/profile-images.js';
+import { setProfileImage, setSiblingProfileImage } from '../core/profile-images.js';
 import { beginDialogueAudio, endDialogueAudio, bindPowerDialogueDismissal } from '../core/dialogue-audio.js';
 import { prependPlayerReaction } from '../core/player-dialogue.js';
 import { startGameLoop } from '../core/game-loop.js';
@@ -72,6 +76,7 @@ const noelDialogue = requireElement<HTMLElement>('#noel-dialogue');
 const noelSpeaker = requireElement<HTMLElement>('#noel-speaker');
 const noelDialogueLine = requireElement<HTMLElement>('#noel-dialogue-line');
 const noelDialogueProfile = requireElement<HTMLImageElement>('#noel-dialogue-profile');
+const noelDialogueSecondProfile = requireElement<HTMLImageElement>('#noel-dialogue-second-profile');
 const noelDialogueProgress = requireElement<HTMLElement>('#noel-dialogue-progress');
 const noelGiftConfirmation = requireElement<HTMLElement>('#noel-gift-confirmation');
 const noelDialogueNext = requireElement<HTMLButtonElement>('#noel-dialogue-next');
@@ -95,6 +100,9 @@ markInteriorVisited();
 const isCinemaInterior = scene.kind === 'cinema'; const isMusicShopInterior = scene.kind === 'musicShop';
 const isGymInterior = scene.kind === 'gym'; const isBookshopInterior = scene.kind === 'bookshop'; const isPlantRoomInterior = scene.kind === 'plantRoom';
 const isCaveInterior = scene.kind === 'cave';
+if (searchParams.get('transformed') === '1') completeCaveTransformation();
+const isTransformedCave = isCaveInterior && hasCaveTransformation();
+let sealSiblingLineIndex = 0;
 const isDiaryLabInterior = scene.kind === 'diaryLab';
 const wheldonPlayer = getPlayerBody() === 'alex-s' || (getPlayerBody() === 'player' && isWheldonPlayerSpriteEnabled());
 const ghostWheldonPlayer = getPlayerBody() === 'ghost' && isWheldonPlayerSpriteEnabled();
@@ -102,7 +110,7 @@ document.title = scene.title;
 canvas.setAttribute('aria-label', scene.ariaLabel);
 const WORLD_WIDTH = scene.width;
 const WORLD_HEIGHT = scene.height;
-const INTERACTION_TARGETS = scene.interactions.filter((interaction) => !(isDiaryLabInterior && wheldonPlayer && interaction.kind === 'wheldon'));
+const INTERACTION_TARGETS = scene.interactions.map(interaction => isTransformedCave && interaction.kind === 'siblings' ? { ...interaction, y: 160 } : interaction).filter((interaction) => !(isDiaryLabInterior && wheldonPlayer && interaction.kind === 'wheldon'));
 if (isCaveInterior) {
   canvas.width = WORLD_WIDTH;
   canvas.height = WORLD_HEIGHT;
@@ -119,7 +127,7 @@ colanderWarningVoices.forEach((voice) => {
   voice.preload = 'none';
 });
 const player = {
-  x: scene.playerStart.x,
+  x: isTransformedCave && searchParams.has('awakened') ? 374 : scene.playerStart.x,
   y: scene.playerStart.y,
   direction: 'up' as Direction,
   frame: 0,
@@ -147,6 +155,7 @@ const dadDialogue = new DadDialogueController(
   () => openFeature('movies'),
 );
 function openNoelDialogue(characterConversation = true): void {
+  noelDialogueSecondProfile.hidden = true;
   announceWorldInteraction();
   input.releaseAll();
   if (characterConversation && !noelDialogueOpen) prependPlayerReaction(noelDialogueLine);
@@ -182,7 +191,7 @@ let caveColanderHeld = hasCaveColander();
 const interiorDoors = new InteriorDoorsController(scene, {
   enteredDoor,
   sealMode: SEAL_MODE,
-  hasCaveColander: () => caveColanderHeld,
+  hasCaveColander: () => caveColanderHeld && !isTransformedCave,
 });
 const doughnutShop = scene.kind === 'doughnutShop' && wheldonPlayer
   ? new DoughnutShopController(() => interiorDoors.returnUrl(), () => input.releaseAll())
@@ -193,10 +202,11 @@ const collision = new InteriorCollision(
 );
 const FLIGHT_BOUNDS = { minX: 23, minY: 160, maxX: WORLD_WIDTH - 23, maxY: WORLD_HEIGHT - 1 };
 const flightLandingBlocked = (x: number, y: number): boolean => collision.playerIsBlocked(x, y) || scene.doors.some((door) => Math.hypot(x - door.exitX, y - door.exitY) < 32);
-const caveSiblings = isCaveInterior
+const caveSiblings = isCaveInterior && !isTransformedCave && !isSiblingPursuitActive()
   ? new CaveSiblingsController({
     showLine: ({ speaker, line }, index, total) => {
-      noelSpeaker.textContent = speaker; setProfileImage(noelDialogueProfile, speaker, '../');
+      noelSpeaker.textContent = speaker; setSiblingProfileImage(noelDialogueProfile, speaker, '../');
+      noelDialogueSecondProfile.hidden = true;
       noelDialogueLine.textContent = line;
       noelDialogueProgress.textContent = `${index + 1}/${total}`;
       noelDialogueProgress.hidden = false;
@@ -300,7 +310,25 @@ function showSiblingsDialogue(): void {
   noelDialogue.hidden = false;
   interactionPrompt.hidden = true;
 }
+function showSealSiblingLine(): void {
+  const current = SEAL_SIBLING_LINES[sealSiblingLineIndex];
+  if (!current) return;
+  noelSpeaker.textContent = current.speaker;
+  setSiblingProfileImage(noelDialogueProfile, current.speaker, '../');
+  noelDialogueLine.textContent = current.text;
+  showSiblingsDialogue();
+  noelDialogueNext.hidden = false;
+  colanderWarningVoices.forEach(voice => { voice.pause(); voice.currentTime = 0; });
+  void colanderWarningVoices[current.speaker === 'Maddy' ? 0 : 1]?.play().catch(() => {});
+}
 function startSiblingsDialogue(time: number): void {
+  if (isTransformedCave) {
+    if (noelDialogueOpen) return;
+    sealSiblingLineIndex = 0;
+    openNoelDialogue();
+    showSealSiblingLine();
+    return;
+  }
   if (
     nearbyInteraction !== 'siblings' ||
     noelDialogueOpen ||
@@ -350,7 +378,7 @@ function startFeatureInteraction(kind: 'diary' | 'experiments'): void {
   if (!noelDialogueOpen) openFeature(kind);
 }
 function startColanderPickup(): void {
-  if (!isCaveInterior || noelDialogueOpen || caveColanderHeld) return;
+  if (!isCaveInterior || isTransformedCave || noelDialogueOpen || caveColanderHeld) return;
   input.releaseAll();
   // Stop any in-progress Maddy/Marina line before this hardcoded prompt
   // takes over the shared dialogue UI, so voices never overlap it.
@@ -359,7 +387,8 @@ function startColanderPickup(): void {
   interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
   nearbyInteraction = null;
   openNoelDialogue(); beginDialogueAudio('Maddy', '../');
-  noelSpeaker.textContent = 'THE GIRLS'; setProfileImage(noelDialogueProfile, 'Maddy', '../');
+  noelSpeaker.textContent = 'THE GIRLS'; setSiblingProfileImage(noelDialogueProfile, 'Maddy', '../');
+  setSiblingProfileImage(noelDialogueSecondProfile, 'Marina', '../');
   noelDialogueLine.textContent = 'PUT THAT DOWN NOW';
   noelDialogueProgress.hidden = true;
   noelGiftConfirmation.hidden = true;
@@ -454,6 +483,11 @@ function bindControls(): void {
   });
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
   noelDialogueNext.addEventListener('click', () => {
+    if (isTransformedCave && nearbyInteraction === 'siblings') {
+      if (++sealSiblingLineIndex < SEAL_SIBLING_LINES.length) showSealSiblingLine();
+      else closeNoelDialogue();
+      return;
+    }
     if (isCharityNpc(nearbyInteraction)) { charityDialogue.next(); return; }
     if (nearbyInteraction === 'lucy') lucy?.next();
     else if (nearbyInteraction === 'helen') roomDialogue.next('helen');
@@ -508,7 +542,7 @@ function bindControls(): void {
 const updatePlayer = createInteriorPlayerUpdater({
   player, input, width: WORLD_WIDTH, height: WORLD_HEIGHT, frameCount: FRAME_COUNT, collision,
   flightBounds: FLIGHT_BOUNDS, flightLandingBlocked,
-  isJournalOpen: () => journalGallery.isOpen() || !alexJournalOptions.hidden,
+  isJournalOpen: () => journalGallery.isOpen() || !alexJournalOptions.hidden || (isTransformedCave && noelDialogueOpen),
   isCaveEntering: () => caveSiblings?.isEntering ?? false,
 });
 function updateNearbyInteraction(): void {
@@ -529,7 +563,7 @@ function updateNearbyInteraction(): void {
     return;
   }
   const target = INTERACTION_TARGETS
-    .filter((interaction) => interaction.kind !== 'colander' || !caveColanderHeld)
+    .filter((interaction) => interaction.kind !== 'colander' || (!caveColanderHeld && !isTransformedCave))
     .filter((interaction) => !isOscarEaten(interaction.kind))
     .map((interaction) => ({
       ...interaction,
@@ -575,8 +609,20 @@ function updateNearbyInteraction(): void {
   if (target) interactionPrompt.textContent = target.label;
   interactionPrompt.hidden = !target || noelDialogueOpen;
 }
+const chaseMessage = document.createElement('section');
+chaseMessage.className = 'npc-dialogue sibling-chase-message';
+chaseMessage.setAttribute('role', 'status');
+chaseMessage.textContent = INTERIOR_CHASE_MESSAGE;
+chaseMessage.hidden = true;
+if (isSiblingPursuitActive()) requireElement<HTMLElement>('.game-shell').append(chaseMessage);
+const siblingChase = isSiblingPursuitActive() ? new InteriorSiblingChase(
+  scene.playerStart,
+  (x, y) => collision.playerIsBlocked(x, y),
+  () => { closeNoelDialogue(); chaseMessage.hidden = false; playMessageVoices('../'); },
+  () => { closeNoelDialogue(); input.releaseAll(); chaseMessage.hidden = true; startCatchTransition('../transform.html'); requireElement<HTMLElement>('.game-shell').inert = true; },
+) : null;
 const draw = createInteriorRenderer({
-  ...assets, scene, player, sealMode: SEAL_MODE, collision,
+  ...assets, scene, player, sealMode: SEAL_MODE, collision, siblingChase,
   caveSiblings, lucy, interiorDoors, getCaveColanderHeld: () => caveColanderHeld,
 });
 let worldAnimationTime = 0;
@@ -586,6 +632,12 @@ function gameLoop(time: number): void {
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   if (doughnutShop?.eating) return;
+  siblingChase?.update(deltaTime, player);
+  if (siblingChase) {
+    chaseMessage.hidden = siblingChase.phase !== 'message';
+    canvas.dataset.siblingChase = siblingChase.phase;
+    if (siblingChase.phase === 'caught') { draw(time, worldAnimationTime); return; }
+  }
   updatePowerups(time);
   if (isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) { draw(time, worldAnimationTime); return; }
   if (!isKatiePowerActive(time)) settleGeorgiaFlight(player, flightLandingBlocked, FLIGHT_BOUNDS, time);
@@ -614,7 +666,7 @@ function gameLoop(time: number): void {
     draw(time, worldAnimationTime);
     return;
   }
-  caveSiblings?.update(worldDeltaTime, time);
+  if (!siblingChase) caveSiblings?.update(worldDeltaTime, time);
   updatePlayer(deltaTime);
   doughnutShop?.update(player.x, player.y);
   if (doughnutShop?.eating) return;
@@ -624,7 +676,7 @@ function gameLoop(time: number): void {
   updateChrisWorld(time, player.x, player.y, visibleOscarTargets);
   updateDanWorld(time, player.x, player.y, visibleOscarTargets);
   updateGeorgiaWorld(time, player.x, player.y, visibleOscarTargets);
-  if (!isAlicePowerActive(time) && !isChrisPowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateNearbyInteraction();
+  if (!siblingChase && !isAlicePowerActive(time) && !isChrisPowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isHelenPowerActive(time) && !isJoePowerActive(time) && !isJuPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateNearbyInteraction();
   if (!isAlicePowerActive(time) && !isGeorgiaPowerActive(time) && !isJulianPowerActive(time) && !isKatiePowerActive(time) && !isLucyPowerActive(time) && !isMikePowerActive(time) && !isNoelPowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) interiorDoors.update(player.x, player.y);
   draw(time, worldAnimationTime);
 }
@@ -644,7 +696,7 @@ Promise.all([...assets.requiredImages, ...(lucy ? [lucy.sprite] : [])].map((imag
     context.imageSmoothingEnabled = false;
     startGameLoop(gameLoop, () => { previousTime = 0; });
     doughnutShop?.enter();
-    if (isDiaryLabInterior) startAlexJournalOffer();
+    if (isDiaryLabInterior && !siblingChase) startAlexJournalOffer();
   })
   .catch((error: unknown) => {
     console.error(error);

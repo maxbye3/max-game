@@ -1,11 +1,11 @@
 import { hasMikeAftermath } from './world-state.js';
 import { characterAsset, playerAsset } from './character-assets.js';
 import { webImageSource } from './web-images.js';
+import { SEAL_SPRITE_SOURCE } from '../generated/core/seal-sprite.generated.js';
 import { GHOST_SPRITE_SOURCE } from '../generated/core/ghost-sprite.generated.js';
 
 const IMAGE_SOURCES = {
   map: 'img/external/overworld.png?v=riverside-sign-bookstore',
-  caveCover: 'img/external/cave-cover.png',
   eventTinder: 'img/external/event-tinder.png',
   road: 'img/external/road.png',
   roadTree: 'img/external/tree.png',
@@ -33,7 +33,7 @@ const IMAGE_SOURCES = {
   tori: 'img/external/buildings/tori.png',
   spriteSheet: playerAsset('spriteSheet'),
   ghostSpriteSheet: GHOST_SPRITE_SOURCE,
-  sealSpriteSheet: `${playerAsset('sealSpriteSheet')}?v=20260831-transparent`,
+  sealSpriteSheet: SEAL_SPRITE_SOURCE,
   georgia: characterAsset('georgia', 'avatar'),
   georgiaBike: characterAsset('georgia', 'bike'),
   mike: characterAsset('mike', 'overworldAvatar'),

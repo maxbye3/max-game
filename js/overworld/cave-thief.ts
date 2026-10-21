@@ -1,3 +1,4 @@
+import { isSiblingPursuitActive, setSiblingPursuitActive } from '../core/sibling-pursuit.js';
 import { isMikeTargetHappy } from '../powers/mike/mike-power.js';
 import { SPEED, WORLD_HEIGHT, WORLD_WIDTH } from '../core/config.js';
 import { buildThiefPath, thiefPathCell, type PathPoint } from './cave-thief-path.js';
@@ -78,9 +79,16 @@ function readReturnedFromCave(): boolean {
 }
 
 export function setupCaveThief(): void {
-  if (!readReturnedFromCave()) return;
+  if (new URLSearchParams(window.location.search).has('seal')) { setSiblingPursuitActive(false); return; }
+  const resumed = isSiblingPursuitActive();
+  if (!resumed && !readReturnedFromCave()) return;
+  setSiblingPursuitActive(true);
+  if (resumed) {
+    const door = DOORWAYS.find(door => door.id === new URLSearchParams(window.location.search).get('door'));
+    if (door) { entrance.x = door.x + door.width / 2; entrance.y = door.y + door.height + SPAWN_OUTSIDE_CAVE_OFFSET; }
+  }
   state.phase = 'waiting';
-  state.returnTime = performance.now();
+  state.returnTime = performance.now() - (resumed ? SEQUENCE_DELAY - 1500 : 0);
   state.x = entrance.x;
   state.y = entrance.y;
 }
@@ -206,7 +214,7 @@ export function updateCaveThief(
   speedMultiplier: number,
 ): void {
   if (state.phase === 'hidden') return;
-  if (isOscarEaten('cave-thief')) return;
+  if (isOscarEaten('cave-thief')) { setSiblingPursuitActive(false); return; }
   if (state.phase === 'chasing' && (isSamTargetRecoiling('cave-thief') || isMikeTargetHappy('cave-thief', time))) {
     state.animationTime = 0;
     state.frame = 0;

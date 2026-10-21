@@ -1678,6 +1678,8 @@ canvas {
   cursor: pointer;
 }
 
+.sibling-chase-message { font: 10px/1.8 var(--font-pixel); pointer-events: none; }
+
 .gift-items {
   display: grid;
   gap: 8px;

@@ -1,3 +1,5 @@
+import { hasCaveTransformation } from '../core/cave-transformation.js';
+import type { InteriorSiblingChase } from './interior-sibling-chase.js';
 import { updateLucyPointerView } from '../powers/lucy/lucy-power-input.js';
 import { drawTimPower, drawTimPowerGround, drawTimWorld } from '../powers/tim/tim-power-render.js';
 import { drawSamPower, drawSamVictimEffects, drawSamWorldOverlay, drawSamTerrain, drawSamGround } from '../powers/sam/sam-power-render.js';
@@ -40,6 +42,8 @@ import type { InteriorScene } from './interior-scenes.js';
 import type { InteriorSceneryNpc } from './interior-scenery-npcs.js';
 
 interface InteriorRenderOptions {
+  cavePlayerChair: HTMLImageElement | null;
+  siblingChase: InteriorSiblingChase | null;
   scene: InteriorScene;
   player: { x: number; y: number; direction: Direction; frame: number; animationTime: number };
   sealMode: boolean;
@@ -63,7 +67,8 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
   const SEAL_MODE = options.sealMode;
   const WORLD_WIDTH = scene.width; const WORLD_HEIGHT = scene.height;
   const VIEW_SCALE = 1; const PLAYER_SCALE = 2;
-  const isCaveInterior = scene.kind === 'cave'; const isDiaryLabInterior = scene.kind === 'diaryLab';
+  const isCaveInterior = scene.kind === 'cave';
+  const transformedCave = isCaveInterior && hasCaveTransformation(); const isDiaryLabInterior = scene.kind === 'diaryLab';
   const isMusicShopInterior = scene.kind === 'musicShop';
   const isGymInterior = scene.kind === 'gym'; const isBookshopInterior = scene.kind === 'bookshop'; const isPlantRoomInterior = scene.kind === 'plantRoom';
   return function draw(timeMs = 0, worldTimeMs = timeMs): void {
@@ -169,20 +174,20 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
         CAVE_COLANDER.eraseHeight * scaleY,
       );
     }
-    if (isCaveInterior && !isOscarEaten('siblings')) {
+    if (isCaveInterior && !options.siblingChase && !isOscarEaten('siblings')) {
       const frame = caveSiblings?.isEntering
         ? CAVE_SIBLINGS_WALK_FRAMES[caveSiblings.walkFrame]
         : CAVE_SIBLINGS_IDLE_FRAME;
       if (frame) {
         const [sourceX, sourceY, sourceWidth, sourceHeight] = frame;
-        withCharacterPowers(context, (CAVE_SIBLINGS.x - cameraX) * scaleX, ((caveSiblings?.y ?? CAVE_SIBLINGS.endY) - cameraY) * scaleY, CAVE_SIBLINGS.height * scaleY, 'siblings', () => context.drawImage(
+        withCharacterPowers(context, (CAVE_SIBLINGS.x - cameraX) * scaleX, ((caveSiblings?.y ?? CAVE_SIBLINGS.endY + (transformedCave ? 28 : 0)) - cameraY) * scaleY, CAVE_SIBLINGS.height * scaleY, 'siblings', () => context.drawImage(
           siblingsSprite,
           sourceX,
           sourceY,
           sourceWidth,
           sourceHeight,
           Math.round((CAVE_SIBLINGS.x - cameraX - CAVE_SIBLINGS.width / 2) * scaleX),
-          Math.round(((caveSiblings?.y ?? CAVE_SIBLINGS.endY) - cameraY - CAVE_SIBLINGS.height) * scaleY),
+          Math.round(((caveSiblings?.y ?? CAVE_SIBLINGS.endY + (transformedCave ? 28 : 0)) - cameraY - CAVE_SIBLINGS.height) * scaleY),
           CAVE_SIBLINGS.width * scaleX,
           CAVE_SIBLINGS.height * scaleY,
         ), timeMs);
@@ -270,12 +275,20 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
       // Darken the environment and the siblings but never the player, who
       // should stay fully visible regardless of how dark the cave gets.
       context.save();
-      context.globalAlpha = caveSiblings?.darknessAlpha ?? 0.2;
+      context.globalAlpha = caveSiblings?.darknessAlpha ?? ((options.siblingChase || transformedCave) ? 0.68 : 0.2);
       context.fillStyle = '#000';
       context.fillRect(0, 0, viewportWidth * scaleX, viewportHeight * scaleY);
       context.restore();
     }
-    if (isCaveInterior && !caveColanderHeld) {
+    if (options.cavePlayerChair) {
+      context.drawImage(options.cavePlayerChair, (284 - cameraX) * scaleX, (136 - cameraY) * scaleY, 72 * scaleX, 72 * scaleY);
+      context.save();
+      context.translate((320 - cameraX) * scaleX, (146 - cameraY) * scaleY);
+      context.rotate(Math.PI);
+      drawColander(context, 0, -11 * scaleY, Math.min(scaleX, scaleY));
+      context.restore();
+    }
+    if (isCaveInterior && !caveColanderHeld && !transformedCave) {
       drawColander(
         context,
         Math.round((CAVE_COLANDER.x - cameraX) * scaleX),
@@ -329,6 +342,13 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
       30 * scaleY,
     );
     context.restore();
+    const pursuer = options.siblingChase;
+    if (pursuer && pursuer.phase !== 'waiting' && siblingsSprite.complete && siblingsSprite.naturalWidth) {
+      const frames = CAVE_SIBLINGS_WALK_FRAMES;
+      const frame = pursuer.phase === 'chasing' ? frames[pursuer.frame % frames.length] ?? CAVE_SIBLINGS_IDLE_FRAME : CAVE_SIBLINGS_IDLE_FRAME;
+      context.drawImage(siblingsSprite, frame[0], frame[1], frame[2], frame[3],
+        (pursuer.x - cameraX - 28) * scaleX, (pursuer.y - cameraY - 44) * scaleY, 56 * scaleX, 44 * scaleY);
+    }
     drawMaddyTeaWorldOverlay(context, timeMs);
     drawAndyWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawBochraLights(context, cameraX, cameraY, timeMs, scaleX, scaleY);
