@@ -41,7 +41,6 @@ import { isNiallBattleTransitionActive, isNiallEncounterBlockingPlayer, NIALL } 
 import { bumpSignAt } from './signs.js';
 import type { Direction, Player } from './types.js';
 import { getPlayerBody } from './player-body.js';
-import { GHOST_SPAWN } from '../overworld/road-accident-scene.js';
 
 const clampX = (x: number) => Math.max(HALF_WIDTH, Math.min(WORLD_WIDTH - HALF_WIDTH, x));
 const clampY = (y: number) => Math.max(SPRITE_HEIGHT, Math.min(WORLD_HEIGHT, y));
@@ -70,7 +69,6 @@ export const player: Player = {
   frame: 0,
   animationTime: 0,
 };
-if (getPlayerBody() === 'ghost') Object.assign(player, GHOST_SPAWN, { direction: 'down' });
 
 export const directionRows: Record<Direction, number> = {
   down: 0,

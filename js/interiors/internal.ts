@@ -3,6 +3,7 @@ import { isSiblingPursuitActive } from '../core/sibling-pursuit.js';
 import { InteriorSiblingChase, INTERIOR_CHASE_MESSAGE } from './interior-sibling-chase.js';
 import { playMessageVoices, startCatchTransition } from '../overworld/cave-thief-cutscene.js';
 import { createInteriorAssets } from './interior-assets.js';
+import { loadInteriorImage } from './interior-image-loading.js';
 import { createInteriorPlayerUpdater } from './interior-player.js';
 import { createRoomCharacterDialogue, type RoomCharacterKind } from './room-character-dialogue.js';
 import { isAlexPlayer } from '../core/player-character.js';
@@ -690,7 +691,7 @@ window.addEventListener('max-game:alex-s-dialogue', () => { input.releaseAll(); 
 document.querySelector('.interior-exit')?.addEventListener('click', (event) => { if (isAlicePowerActive() || isKatiePowerActive() || isLucyPowerActive() || isMikePowerActive() || isNoelPowerActive() || isOscarPowerActive() || isReiPowerActive() || isSamPowerActive() || isTimInputPowerActive()) event.preventDefault(); });
 setupJump();
 
-Promise.all([...assets.requiredImages, ...(lucy ? [lucy.sprite] : [])].map((image) => image.decode()))
+Promise.all([...assets.requiredImages, ...(lucy ? [lucy.sprite] : [])].map(loadInteriorImage))
   .then(() => {
     input.releaseAll();
     doorLoading.hidden = true;

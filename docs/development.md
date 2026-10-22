@@ -4,6 +4,8 @@
 
 Use Node 20+ and `npm ci`. The game runs on a static server; no API server or credentials are required.
 
+The inventory shows the version from `package.json`, stamped into both pages during bundling. Bump it for a release with `npm version patch --no-git-tag-version`, then build and commit the updated version and lockfile with the changes.
+
 | Command | Purpose |
 | --- | --- |
 | `npm run build` | Generate once, typecheck, validate dialogue, run all Node suites, and bundle |

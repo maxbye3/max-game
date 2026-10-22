@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { buildBrowserFixture, serveGame } from './lib/browser-fixture.mjs';
+import { checkGhostFlows } from './lib/ghost-browser-checks.mjs';
 
 if (!process.argv.includes('--prepared')) {
   for (const script of ['scripts/generate-source.mjs', 'scripts/bundle.mjs']) {
@@ -32,6 +33,7 @@ async function assertDialogueActions(panel) {
 try {
   const fixtures = [await buildBrowserFixture(false, directory), await buildBrowserFixture(true, directory)];
   browser = await chromium.launch({ headless: !process.argv.includes('--headed'), ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}) });
+  await checkGhostFlows(browser, server, fixtures[0]);
   let layouts = 0;
   for (const viewport of [{width:320,height:568}, {width:390,height:740}, {width:844,height:390}, {width:1280,height:900}]) {
     for (const interior of [false, true]) {
@@ -302,6 +304,55 @@ try {
     } finally { await page.close(); }
   }
   console.log('PASS character refresh: player restored from both ghosts and Wheldon on phone and desktop; room navigation preserves selections.');
+  // Room entry must survive browser decode failures and a transient image request failure.
+  for (const viewport of [{width:390,height:740}, {width:844,height:390}, {width:1280,height:900}]) {
+    const page = await browser.newPage({ viewport, isMobile: viewport.width < 1000, hasTouch: viewport.width < 1000 });
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' && !message.text().startsWith('Failed to load resource:')) errors.push(message.text()); });
+    try {
+      await page.addInitScript(() => {
+        localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true');
+        HTMLImageElement.prototype.decode = function () {
+          return this.src.endsWith('/buzz/buzz-2.png') ? new Promise(() => {}) : Promise.reject(new DOMException('Decode rejected', 'EncodingError'));
+        };
+      });
+      let attempts = 0;
+      await page.route('**/img/internal/diary-room/buzz/buzz-1.png*', route => {
+        attempts++;
+        return attempts === 1 ? route.abort('failed') : route.continue();
+      });
+      await page.goto(`${server.url}/internal/index.html?door=diary-lab-left&debug-position`);
+      await page.locator('#door-loading').waitFor({state:'hidden'});
+      await page.waitForFunction(() => !!document.querySelector('#game').dataset.playerVariant);
+      assert.equal(attempts, 2, 'a failed diary-room image is retried once');
+      assert.deepEqual(errors, [], 'rejected and stalled decodes do not stop the room');
+      await page.locator('.interior-exit').click();
+      await page.locator('#door-loading').waitFor({state:'hidden'});
+      assert.match(new URL(page.url()).pathname, /\/index.html$/);
+      assert.equal(new URL(page.url()).pathname.includes('/internal/'), false, 'the diary room exit returns to the overworld');
+    } catch (error) {
+      await page.screenshot({path:`test-results/failure-diary-loading-${viewport.width}.png`});
+      throw error;
+    } finally { await page.close(); }
+  }
+  console.log('PASS diary loading: rejected/stalled decodes and transient image failures recover on phone and desktop.');
+  const missingImagePage = await browser.newPage();
+  try {
+    const errors = [];
+    let attempts = 0;
+    missingImagePage.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+    await missingImagePage.addInitScript(() => { localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); });
+    await missingImagePage.route('**/img/internal/diary-room/buzz/buzz-1.png*', route => {
+      attempts++;
+      return route.fulfill({status:404, body:'Missing image'});
+    });
+    await missingImagePage.goto(`${server.url}/internal/index.html?door=diary-lab-left`);
+    await missingImagePage.locator('#door-loading').waitFor({state:'hidden'});
+    assert.equal(attempts, 2, 'a permanently missing image stops after one retry');
+    assert.ok(errors.some(message => message.includes('Failed to load interior image:') && message.includes('/buzz/buzz-1.png')), 'the load error identifies the failed asset');
+    assert.equal(await missingImagePage.locator('#game').getAttribute('data-player-variant'), null, 'a missing required image still prevents room startup');
+  } finally { await missingImagePage.close(); }
   // Exercise shipped bundles too, including every branch of interior asset setup.
   const production = await browser.newPage({ viewport: {width:390,height:740}, isMobile: true, hasTouch: true });
   const errors = [];

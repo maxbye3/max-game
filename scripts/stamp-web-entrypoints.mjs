@@ -2,10 +2,12 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 
+const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+
 // A changed bundle or stylesheet gets a fresh cache key on any static host.
 for (const page of ['index.html', 'internal/index.html', 'niall-fight/index.html', 'transform.html']) {
   const html = await readFile(page, 'utf8');
-  let updated = html;
+  let updated = html.replace(/(<p class="inventory-version">)[^<]*(<\/p>)/, `$1Version ${version}$2`);
   for (const match of html.matchAll(/(?:src|href)="((?:\.\.\/)?(?:dist\/[^"?]+\.js|style\.css))(?:\?[^"\s]*)?"/g)) {
     const bytes = await readFile(resolve(dirname(page), match[1]));
     const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 12);

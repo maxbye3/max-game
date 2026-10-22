@@ -125,8 +125,10 @@ function gameLoop(time: number): void {
     draw(time, worldAnimationTime);
     return;
   }
+  updateTimInputWorld(time, player.x, player.y);
   if (getPlayerBody() === 'ghost') {
-    if (!isAlexResurrectionUiBlocking()) {
+    if (!isAlexResurrectionUiBlocking() && !isTimInputPowerActive(time)) {
+      updateGymTimCutscene(worldDeltaTime, player);
       updateNpcInteractions(player.x, player.y);
       updateNiallInteraction(worldDeltaTime, player.x, player.y);
     }
@@ -134,7 +136,6 @@ function gameLoop(time: number): void {
     draw(time, worldAnimationTime);
     return;
   }
-  updateTimInputWorld(time, player.x, player.y);
   if (!isAlicePowerActive(time) && !isDanPowerActive(time) && !isGeorgiaPowerActive(time) && !isKatiePowerActive(time) && !isOscarPowerActive(time) && !isReiPowerActive(time) && !isSamPowerActive(time) && !isTimInputPowerActive(time)) updateHole(deltaTime, player);
   updateBuildingAmbience(player.x, player.y);
   const targets = currentSamTargets();

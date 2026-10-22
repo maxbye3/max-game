@@ -188,6 +188,7 @@
 
 
 .inventory-message { min-height: 1.2em; margin: 10px 2px 0; color: var(--accent); font-size: 13px; }
+.inventory-version { margin: 12px 2px 0; color: #a7bda9; font-size: 12px; }
 
 .inventory-gift-actions {
   display: grid;
