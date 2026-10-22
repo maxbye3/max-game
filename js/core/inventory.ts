@@ -1,19 +1,20 @@
-import { activateTimInputPower, timInputPowerReveal, timInputPowerSecondsLeft, TIM_INPUT_POWER_DURATION } from '../powers/tim/tim-input-power.js';
+import { activateTimInputPower, timInputPowerSecondsLeft, TIM_INPUT_POWER_DURATION } from '../powers/tim/tim-input-power.js';
 import { getPlayerBody } from './player-body.js';
-import { activateReiPower, reiPowerSecondsLeft, REI_POWER_DURATION, REI_POWER_REVEALS, type ReiPowerKind } from '../powers/rei/rei-power.js';
-import { activateNoelPower, isNoelPowerActive, noelAssetClaim, noelPowerReveal, noelPowerSecondsLeft, updateNoelAssessment } from '../powers/noel/noel-power.js';
-import { activateAlicePower, alicePowerReveal, alicePowerSecondsLeft, ALICE_POWER_DURATION } from '../powers/alice/alice-power.js';
-import { activateMikePower, mikePowerSecondsLeft, MIKE_POWER_REVEAL } from '../powers/mike/mike-power.js';
-import { activateLucyPower, isLucyCapEquipped, lucyPowerReveal, lucyPowerSecondsLeft, setLucyCapEquipped } from '../powers/lucy/lucy-power.js';
-import { activateKatiePower, katiePowerSecondsLeft, KATIE_POWER_DURATION, KATIE_POWER_REVEAL } from '../powers/katie/katie-power.js';
-import { activateJulianPower, julianPowerSecondsLeft, julianPowerReveal } from '../powers/julian/julian-power.js';
+import { getRevealedItemDescription, revealItemDescription } from './item-descriptions.js';
+import { activateReiPower, reiPowerSecondsLeft, REI_POWER_DURATION, type ReiPowerKind } from '../powers/rei/rei-power.js';
+import { activateNoelPower, isNoelPowerActive, noelAssetClaim, noelPowerSecondsLeft, updateNoelAssessment } from '../powers/noel/noel-power.js';
+import { activateAlicePower, alicePowerSecondsLeft, ALICE_POWER_DURATION } from '../powers/alice/alice-power.js';
+import { activateMikePower, mikePowerSecondsLeft } from '../powers/mike/mike-power.js';
+import { activateLucyPower, isLucyCapEquipped, lucyPowerSecondsLeft, setLucyCapEquipped } from '../powers/lucy/lucy-power.js';
+import { activateKatiePower, katiePowerSecondsLeft, KATIE_POWER_DURATION } from '../powers/katie/katie-power.js';
+import { activateJulianPower, julianPowerSecondsLeft } from '../powers/julian/julian-power.js';
 import { updateJulianPowerUi } from '../powers/julian/julian-power-ui.js';
-import { activateJuPower, juPowerSecondsLeft, JU_POWER_DURATION, JU_POWER_REVEAL } from '../powers/ju/ju-power.js';
-import { activateJoePower, joePowerSecondsLeft, JOE_POWER_DURATION, JOE_POWER_REVEAL } from '../powers/joe/joe-power.js';
-import { activateHelenPower, helenPowerSecondsLeft, HELEN_POWER_REVEAL } from '../powers/helen/helen-power.js';
-import { activateGeorgiaPower, georgiaPowerSecondsLeft, GEORGIA_POWER_DURATION, GEORGIA_POWER_REVEAL } from '../powers/georgia/georgia-power.js';
-import { activateDanPower, danPowerSecondsLeft, DAN_POWER_DURATION, DAN_POWER_REVEAL } from '../powers/dan/dan-power.js';
-import { activateChrisPower, chrisPowerSecondsLeft, CHRIS_POWER_DURATION, CHRIS_POWER_REVEAL } from '../powers/chris/chris-power.js';
+import { activateJuPower, juPowerSecondsLeft, JU_POWER_DURATION } from '../powers/ju/ju-power.js';
+import { activateJoePower, joePowerSecondsLeft, JOE_POWER_DURATION } from '../powers/joe/joe-power.js';
+import { activateHelenPower, helenPowerSecondsLeft } from '../powers/helen/helen-power.js';
+import { activateGeorgiaPower, georgiaPowerSecondsLeft, GEORGIA_POWER_DURATION } from '../powers/georgia/georgia-power.js';
+import { activateDanPower, danPowerSecondsLeft, DAN_POWER_DURATION } from '../powers/dan/dan-power.js';
+import { activateChrisPower, chrisPowerSecondsLeft, CHRIS_POWER_DURATION } from '../powers/chris/chris-power.js';
 import { createGameAudio, focusPowerAudio, releaseGameAudio } from './audio-mute.js';
 import { POWER_THEME_SOURCES } from '../generated/core/power-themes.generated.js';
 import { requireElement } from './dom.js';
@@ -25,17 +26,17 @@ import {
   updateKatyPower,
 } from '../powers/katy/katy-power.js';
 import { resolveSiteAsset } from './site-assets.js';
-import { activateMaddyTeaPower, maddyTeaSecondsLeft, MADDY_TEA_REVEAL } from '../powers/maddy/maddy-tea-power.js';
+import { activateMaddyTeaPower, maddyTeaSecondsLeft } from '../powers/maddy/maddy-tea-power.js';
 import { isEdGiftCharged } from '../powers/ed/ed-power.js';
 import { openEdTattooGame } from '../powers/ed/tattoo-ui.js';
 import { activateNiallSpeed, niallSpeedSecondsLeft } from '../powers/niall/niall-speed-power.js';
-import { activateAdamPower, adamPowerSecondsLeft, ADAM_POWER_REVEAL, setupAdamLeapControl, updateAdamLeapControl } from '../powers/adam/adam-power.js';
-import { activateSamPower, samPowerSecondsLeft, SAM_POWER_DURATION, samPowerReveal } from '../powers/sam/sam-power.js';
-import { activateOscarPower, oscarPowerSecondsLeft, OSCAR_POWER_DURATION, OSCAR_POWER_REVEAL } from '../powers/oscar/oscar-power.js';
-import { activateBochraPower, bochraPowerSecondsLeft, BOCHRA_POWER_DURATION, BOCHRA_POWER_REVEAL } from '../powers/bochra/bochra-power.js';
-import { activateAndyPower, andyPowerSecondsLeft, ANDY_POWER_DURATION, ANDY_POWER_REVEAL } from '../powers/andy/andy-power.js';
+import { activateAdamPower, adamPowerSecondsLeft, setupAdamLeapControl, updateAdamLeapControl } from '../powers/adam/adam-power.js';
+import { activateSamPower, samPowerSecondsLeft, SAM_POWER_DURATION } from '../powers/sam/sam-power.js';
+import { activateOscarPower, oscarPowerSecondsLeft, OSCAR_POWER_DURATION } from '../powers/oscar/oscar-power.js';
+import { activateBochraPower, bochraPowerSecondsLeft, BOCHRA_POWER_DURATION } from '../powers/bochra/bochra-power.js';
+import { activateAndyPower, andyPowerSecondsLeft, ANDY_POWER_DURATION } from '../powers/andy/andy-power.js';
 import { endDialogueAudio } from './dialogue-audio.js';
-import { activateAlexSPower, alexSPowerSecondsLeft, alexSPowerReveal, alexSThemeSecondsLeft } from '../powers/alex-s/alex-s-power.js';
+import { activateAlexSPower, alexSPowerSecondsLeft, alexSThemeSecondsLeft } from '../powers/alex-s/alex-s-power.js';
 import { openAlexResurrectionChoice, openAlexToastDialogue, updateAlexResurrectionUi } from '../powers/alex-s/alex-s-power-ui.js';
 import { characterAsset, characterAssetOrNull } from './character-assets.js';
 import { openKirinMovie } from '../powers/kirin/kirin-movie.js';
@@ -132,8 +133,8 @@ let itemTheme: HTMLAudioElement | null = null;
 let itemThemeTimeout = 0;
 let katyTheme: HTMLAudioElement | null = null;
 let katyThemeTimeout = 0;
-let katyItemDescription = '';
-let maddyItemDescription = '';
+let katyPowerPendingReveal = false;
+let maddyPowerPendingReveal = false;
 let adamPowerPendingReveal = false;
 let oscarPowerPendingReveal = false;
 let andyPowerPendingReveal = false;
@@ -161,6 +162,7 @@ function renderGiftItems(): void {
   getCollectedGifts().forEach((item) => {
     const card = document.createElement('div');
     card.className = 'inventory-gift';
+    card.dataset.itemId = item.id;
     const image = document.createElement('img');
     image.loading = 'lazy';
     image.decoding = 'async';
@@ -171,6 +173,12 @@ function renderGiftItems(): void {
     const name = document.createElement('strong');
     name.textContent = item.name;
     text.append(name);
+    const description = getRevealedItemDescription(item.id);
+    if (description !== null) {
+      const details = document.createElement('small');
+      details.textContent = description;
+      text.append(details);
+    }
     const actions = document.createElement('span');
     actions.className = 'inventory-gift-actions';
     const useButton = document.createElement('button');
@@ -186,7 +194,7 @@ function renderGiftItems(): void {
           removeGift(item);
           alexSPowerPendingReveal = true;
           playItemTheme(ALEX_S_THEME_SOURCE);
-          announce(`${character.name} has been resurrected for twenty seconds.`);
+          announce(revealItemDescription(item.id));
           openAlexToastDialogue();
         });
         return;
@@ -202,7 +210,6 @@ function renderGiftItems(): void {
         window.dispatchEvent(new Event('max-game:katie-power-activated'));
         playItemTheme(KATIE_THEME_SOURCE, true, KATIE_POWER_DURATION);
         katiePowerPendingReveal = true;
-        announce("Katie's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'ju-item') {
         activateJuPower();
@@ -211,7 +218,6 @@ function renderGiftItems(): void {
         juPowerPendingReveal = true;
         powerupStatus.textContent = 'Ju power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Ju's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'joe-item') {
         activateJoePower();
@@ -220,7 +226,6 @@ function renderGiftItems(): void {
         joePowerPendingReveal = true;
         powerupStatus.textContent = 'Joe power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Joe's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'georgia-item') {
         activateGeorgiaPower();
@@ -229,7 +234,6 @@ function renderGiftItems(): void {
         georgiaPowerPendingReveal = true;
         powerupStatus.textContent = 'Georgia power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Georgia's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'dan-item') {
         activateDanPower();
@@ -238,7 +242,6 @@ function renderGiftItems(): void {
         danPowerPendingReveal = true;
         powerupStatus.textContent = 'Dan power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Dan's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'chris-item') {
         activateChrisPower();
@@ -247,7 +250,6 @@ function renderGiftItems(): void {
         chrisPowerPendingReveal = true;
         powerupStatus.textContent = 'Chris power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Chris's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'bochra-item') {
         activateBochraPower();
@@ -255,7 +257,6 @@ function renderGiftItems(): void {
         bochraPowerPendingReveal = true;
         powerupStatus.textContent = 'Bochra power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Bochra's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'andy-item') {
         activateAndyPower();
@@ -263,14 +264,12 @@ function renderGiftItems(): void {
         andyPowerPendingReveal = true;
         powerupStatus.textContent = 'Andy power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Andy's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'julian-item') {
         activateJulianPower();
         window.dispatchEvent(new Event('max-game:julian-power-activated'));
 
         julianPowerPendingReveal = true;
-        announce("Julian's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'tim-item') {
         activateTimInputPower();
@@ -279,7 +278,6 @@ function renderGiftItems(): void {
         timPowerPendingReveal = true;
         powerupStatus.textContent = 'Tim power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Tim's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'helen-item') {
         activateHelenPower();
@@ -288,22 +286,19 @@ function renderGiftItems(): void {
         helenPowerPendingReveal = true;
         powerupStatus.textContent = 'Helen power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Helen's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'niall-item') {
         const charged = isEdGiftCharged(item);
         activateNiallSpeed(charged);
 
-        announce("Niall's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'katy-item') {
         const now = performance.now();
         activateKatyPower(now);
         playKatyTheme();
-        katyItemDescription = `${item.name}: ${item.description}`;
+        katyPowerPendingReveal = true;
         powerupStatus.textContent = 'Katy effect 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Katy's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'rei-item' || item.id === 'rei-item-2') {
         const kind: ReiPowerKind = item.id === 'rei-item' ? 'gravity' : 'sparkle';
@@ -312,21 +307,18 @@ function renderGiftItems(): void {
         stopKatyTheme();
         playItemTheme(REI_THEME_SOURCE, true, REI_POWER_DURATION);
         reiPendingReveals[kind] = true;
-        announce(`${item.name} activated.`);
         setInventoryOpen(false);
       } else if (item.id === 'alice-item') {
         if (!activateAlicePower()) return;
         window.dispatchEvent(new Event('max-game:alice-power-activated'));
         playItemTheme(ALICE_THEME_SOURCE, true, ALICE_POWER_DURATION);
         alicePowerPendingReveal = true;
-        announce("Alice's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'noel-item') {
         if (!activateNoelPower()) return;
         window.dispatchEvent(new Event('max-game:noel-power-activated'));
 
         noelPowerPendingReveal = true;
-        announce("Noel's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'mike-item') {
         activateMikePower();
@@ -335,27 +327,23 @@ function renderGiftItems(): void {
         mikePowerPendingReveal = true;
         powerupStatus.textContent = 'Happiness +36% 10.0s';
         powerupStatus.hidden = false;
-        announce("Mike's cookie made you 36% happier for ten seconds. Enjoy the extra spring in your step!");
         setInventoryOpen(false);
       } else if (item.id === 'maddy-item') {
         activateMaddyTeaPower();
         playItemTheme(MADDY_THEME_SOURCE, true);
-        maddyItemDescription = `${item.name}: ${MADDY_TEA_REVEAL}`;
+        maddyPowerPendingReveal = true;
         powerupStatus.textContent = 'Tea time 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Maddy's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'ed-item') {
         setInventoryOpen(false);
         openEdTattooGame(() => playItemTheme(ED_THEME_SOURCE, true), stopItemTheme);
-        announce("Ed's tattoo challenge: ink HALSTEAD in ten seconds.");
       } else if (item.id === 'adam-item') {
         activateAdamPower();
         playItemTheme(ADAM_THEME_SOURCE);
         adamPowerPendingReveal = true;
         powerupStatus.textContent = 'Adam power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Adam's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'sam-item') {
         activateSamPower();
@@ -365,7 +353,6 @@ function renderGiftItems(): void {
         playItemTheme(SAM_THEME_SOURCE, true, SAM_POWER_DURATION);
         powerupStatus.textContent = 'Sam power 13.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Sam's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'oscar-item') {
         activateOscarPower();
@@ -374,23 +361,19 @@ function renderGiftItems(): void {
         oscarPowerPendingReveal = true;
         powerupStatus.textContent = 'Oscar power 10.0s';
         if (powerupStatus.hidden) powerupStatus.hidden = false;
-        announce("Oscar's item activated.");
         setInventoryOpen(false);
       } else if (item.id === 'lucy-item') {
         activateLucyPower();
         window.dispatchEvent(new Event('max-game:lucy-power-activated'));
         playItemTheme(LUCY_THEME_SOURCE, true);
         lucyPowerPendingReveal = true;
-        announce("Mayo god activated! Hold click or touch and drag on the game to squirt mayonnaise.");
         setInventoryOpen(false);
       } else if (item.id === 'kirin-item') {
         stopPowerMusic();
         setInventoryOpen(false);
         openKirinMovie();
-        announce('Kirin’s private screening! Take your seat, watch the film, and throw some popcorn.');
-      } else {
-        announce(`${item.name}: ${item.description}`);
       }
+      announce(revealItemDescription(item.id));
       removeGift(item);
     });
     const deleteButton = document.createElement('button');
@@ -502,112 +485,114 @@ export function updatePowerups(frameTime: number): void {
   updateAdamLeapControl();
 
   if (alexSPowerPendingReveal && alexSSecondsLeft === 0) {
-    expiredDescriptions.push(alexSPowerReveal());
+    expiredDescriptions.push(revealItemDescription('alex-s-item'));
     alexSPowerPendingReveal = false;
   }
 
   if (katyEffectExpired) {
     stopKatyTheme();
-    if (katyItemDescription) expiredDescriptions.push(katyItemDescription);
-    katyItemDescription = '';
+    if (katyPowerPendingReveal) expiredDescriptions.push(revealItemDescription('katy-item'));
+    katyPowerPendingReveal = false;
   }
-  if (maddyItemDescription && teaSecondsLeft === 0) {
-    expiredDescriptions.push(maddyItemDescription);
-    maddyItemDescription = '';
+  if (maddyPowerPendingReveal && teaSecondsLeft === 0) {
+    expiredDescriptions.push(revealItemDescription('maddy-item'));
+    maddyPowerPendingReveal = false;
   }
   if (adamPowerPendingReveal && adamSecondsLeft === 0) {
-    expiredDescriptions.push(ADAM_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('adam-item'));
     adamPowerPendingReveal = false;
   }
   if (oscarPowerPendingReveal && oscarSecondsLeft === 0) {
-    expiredDescriptions.push(OSCAR_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('oscar-item'));
     oscarPowerPendingReveal = false;
   }
   if (andyPowerPendingReveal && andySecondsLeft === 0) {
-    expiredDescriptions.push(ANDY_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('andy-item'));
     andyPowerPendingReveal = false;
   }
 
   if (bochraPowerPendingReveal && bochraSecondsLeft === 0) {
-    expiredDescriptions.push(BOCHRA_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('bochra-item'));
     bochraPowerPendingReveal = false;
   }
 
   if (chrisPowerPendingReveal && chrisSecondsLeft === 0) {
-    expiredDescriptions.push(CHRIS_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('chris-item'));
     chrisPowerPendingReveal = false;
   }
 
   if (danPowerPendingReveal && danSecondsLeft === 0) {
-    expiredDescriptions.push(DAN_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('dan-item'));
     danPowerPendingReveal = false;
   }
   if (georgiaPowerPendingReveal && georgiaSecondsLeft === 0) {
-    expiredDescriptions.push(GEORGIA_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('georgia-item'));
     georgiaPowerPendingReveal = false;
   }
   if (helenPowerPendingReveal && helenSecondsLeft === 0) {
-    expiredDescriptions.push(HELEN_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('helen-item'));
     helenPowerPendingReveal = false;
   }
 
   if (joePowerPendingReveal && joeSecondsLeft === 0) {
-    expiredDescriptions.push(JOE_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('joe-item'));
     joePowerPendingReveal = false;
   }
 
   if (juPowerPendingReveal && juSecondsLeft === 0) {
-    expiredDescriptions.push(JU_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('ju-item'));
     juPowerPendingReveal = false;
   }
 
   if (julianPowerPendingReveal && julianSecondsLeft === 0) {
-    expiredDescriptions.push(julianPowerReveal());
+    expiredDescriptions.push(revealItemDescription('julian-item'));
     julianPowerPendingReveal = false;
   }
 
   if (katiePowerPendingReveal && katieSecondsLeft === 0) {
-    expiredDescriptions.push(KATIE_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('katie-item'));
     katiePowerPendingReveal = false;
   }
 
   if (lucyPowerPendingReveal && lucySecondsLeft === 0) {
-    expiredDescriptions.push(lucyPowerReveal());
+    expiredDescriptions.push(revealItemDescription('lucy-item'));
     lucyPowerPendingReveal = false;
   }
 
   if (mikePowerPendingReveal && mikeSecondsLeft === 0) {
-    expiredDescriptions.push(MIKE_POWER_REVEAL);
+    expiredDescriptions.push(revealItemDescription('mike-item'));
     mikePowerPendingReveal = false;
   }
   if (alicePowerPendingReveal && aliceSecondsLeft === 0) {
-    expiredDescriptions.push(alicePowerReveal());
+    expiredDescriptions.push(revealItemDescription('alice-item'));
     alicePowerPendingReveal = false;
   }
   if (noelPowerPendingReveal && noelSecondsLeft === 0) {
-    expiredDescriptions.push(noelPowerReveal());
+    expiredDescriptions.push(revealItemDescription('noel-item'));
     noelPowerPendingReveal = false;
-    renderGiftItems();
   }
 
   for (const kind of ['gravity', 'sparkle'] as const) {
     if (reiPendingReveals[kind] && reiPowerSecondsLeft(kind, now) === 0) {
-      expiredDescriptions.push(REI_POWER_REVEALS[kind]);
+      expiredDescriptions.push(revealItemDescription(kind === 'gravity' ? 'rei-item' : 'rei-item-2'));
       reiPendingReveals[kind] = false;
     }
   }
 
   if (timPowerPendingReveal && timSecondsLeft === 0) {
-    expiredDescriptions.push(timInputPowerReveal());
+    expiredDescriptions.push(revealItemDescription('tim-item'));
     timPowerPendingReveal = false;
   }
 
   if (samPowerPendingReveal && samSecondsLeft === 0) {
-    expiredDescriptions.push(samPowerReveal());
+    expiredDescriptions.push(revealItemDescription('sam-item'));
     samPowerPendingReveal = false;
   }
 
-  if (expiredDescriptions.length > 0) announce(expiredDescriptions.join('\n'));
+  if (expiredDescriptions.length > 0) {
+    announce(expiredDescriptions.join('\n'));
+    renderGiftItems();
+  }
 
   if (alexSSecondsLeft > 0) {
     const status = `Alex S resurrection ${alexSSecondsLeft.toFixed(1)}s`;

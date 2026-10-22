@@ -7,6 +7,7 @@ const cache = await readCache(cachePath);
 const charFiles = await readdir('char', { recursive: true });
 const dialogues = charFiles.filter(path => /^[^/]+\/(dialogue|alex-s-dialogue)\.txt$/.test(path)).map(path => `char/${path}`);
 const profiles = charFiles.filter(path => /^(?:[^/]+\/profile|siblings\/(?:maddy|marina))\.(png|jpe?g)$/.test(path)).map(path => `char/${path}`);
+const itemDescriptions = charFiles.filter(path => /^[^/]+\/(?:item(?:-[12])?|Item)\.txt$|^niall\/player\/item\.txt$/.test(path)).map(path => `char/${path}`);
 const collisionImages = ['diary-lab-collision.png', 'cinema-collisions.png', 'internal-music-house-collision.png', 'internal-music.png', 'internal-gym-collision.png', 'mansion-collision.png', 'bookshop-internal-collision.png', 'garden-collisions.png'].map(path => `img/internal/${path}`);
 const collisionModules = ['internal', 'cinema', 'music-house', 'gym', 'mansion', 'bookshop', 'garden'].map(name => `js/generated/interiors/${name}-collision-mask.ts`);
 const webFiles = async () => {
@@ -17,6 +18,7 @@ const definitions = [
   ['dialogues', [...dialogues, 'char/manifest.json'], async () => (await readdir('js/generated/dialogues').catch(error => { if (error.code === 'ENOENT') return []; throw error; })).map(path => `js/generated/dialogues/${path}`)],
   ['profiles', ['char/manifest.json', ...profiles], ['js/generated/core/profile-images.generated.ts']],
   ['dialogue-themes', ['char/manifest.json'], ['js/generated/core/dialogue-themes.generated.ts']],
+  ['item-descriptions', ['char/manifest.json', ...itemDescriptions], ['js/generated/core/item-descriptions.generated.ts']],
   ['internal-collision', [...collisionImages, 'scripts/png.mjs'], collisionModules],
   ['ghost-sprite', ['char/player/ghost_sprite.png'], ['js/generated/core/ghost-sprite.generated.ts']],
   ['seal-sprite', ['char/manifest.json', 'char/player/seal-sprite.png', 'scripts/png.mjs'], ['js/generated/core/seal-sprite.generated.ts']],
