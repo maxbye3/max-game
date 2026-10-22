@@ -12,8 +12,18 @@ for (const [id, character] of Object.entries(manifest.characters)) {
   if (profile) profileSources[id] = `char/${character.directory}/${profile}`;
 }
 
+// The cave siblings have explicitly named portraits, separate from overworld characters.
+const siblings = manifest.characters.siblings;
+const siblingFiles = await readdir(new URL(`../char/${siblings.directory}/`, import.meta.url));
+const siblingProfileSources = {};
+for (const [speaker, key] of [['Maddy', 'maddyProfile'], ['Marina', 'marinaProfile']]) {
+  const file = siblings.files[key];
+  if (file && siblingFiles.includes(file)) siblingProfileSources[speaker] = `char/${siblings.directory}/${file}`;
+}
+
 const generated = `// Generated from root profile files in char/manifest.json directories. No portrait fallback.\n` +
-  `export const PROFILE_IMAGE_SOURCES = ${JSON.stringify(profileSources, null, 2)} as const;\n`;
+  `export const PROFILE_IMAGE_SOURCES = ${JSON.stringify(profileSources, null, 2)} as const;\n` +
+  `export const SIBLING_PROFILE_IMAGE_SOURCES = ${JSON.stringify(siblingProfileSources, null, 2)} as const;\n`;
 const outputUrl = new URL('../js/generated/core/profile-images.generated.ts', import.meta.url);
 await mkdir(dirname(fileURLToPath(outputUrl)), { recursive: true });
 await writeFile(outputUrl, generated);

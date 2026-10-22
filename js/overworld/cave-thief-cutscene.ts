@@ -17,8 +17,9 @@ messageVoices.forEach((voice) => {
   voice.preload = 'none';
 });
 
-export function playMessageVoices(): void {
-  messageVoices.forEach((voice) => {
+export function playMessageVoices(prefix = ''): void {
+  messageVoices.forEach((voice, index) => {
+    voice.src = `${prefix}${characterAsset('siblings', index === 0 ? 'maddyAudio' : 'marinaAudio')}`;
     voice.pause();
     voice.currentTime = 0;
     void voice.play().catch(() => {
@@ -32,7 +33,7 @@ export function easeInOut(t: number): number {
 }
 
 /** Wipes the screen with the battle bands, then hands off to the transform scene. */
-export function startCatchTransition(): void {
+export function startCatchTransition(destination = 'transform.html'): void {
   releaseAllInput();
 
   const transition = document.createElement('div');
@@ -46,6 +47,6 @@ export function startCatchTransition(): void {
   gameShell.append(transition);
 
   window.setTimeout(() => {
-    window.location.assign('transform.html');
+    window.location.assign(destination);
   }, CATCH_TRANSITION_DURATION);
 }

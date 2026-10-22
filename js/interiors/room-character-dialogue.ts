@@ -88,6 +88,15 @@ export function createRoomCharacterDialogue({ open: openNoelDialogue, close: clo
     noelSpeaker.textContent = 'Noel';
     setProfileImage(noelDialogueProfile, 'Noel', '../');
     noelDialogueLine.textContent = NOEL_DIALOGUE_LINES[index] ?? '';
+    const timHint = 'maybe speak to Tim';
+    const hintIndex = noelDialogueLine.textContent.indexOf(timHint);
+    if (hintIndex !== -1) {
+      const line = noelDialogueLine.textContent;
+      const highlight = document.createElement('mark');
+      highlight.className = 'dialogue-highlight';
+      highlight.textContent = timHint;
+      noelDialogueLine.replaceChildren(line.slice(0, hintIndex), highlight, line.slice(hintIndex + timHint.length));
+    }
     noelDialogueProgress.textContent = `${index + 1}/${NOEL_DIALOGUE_LINES.length}`;
     noelDialogueProgress.hidden = false;
     noelDialogueNext.hidden = false;

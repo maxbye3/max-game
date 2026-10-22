@@ -2,6 +2,7 @@ import { requireElement } from './elements.js';
 import { releaseAllInput } from './input.js';
 import { getPlayerBody, setPlayerBody } from './player-body.js';
 import { isWheldonPlayerSpriteEnabled, setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
+import { resetCaveTransformation } from './cave-transformation.js';
 
 export function isCharacterMenuOpen(): boolean {
   return document.querySelector('#character-menu')?.matches(':popover-open') ?? false;
@@ -46,6 +47,12 @@ export function setupCharacterMenu(): void {
       const url = new URL(window.location.href);
       url.searchParams.set('body', getPlayerBody());
       url.searchParams.set('wheldon', wheldon ? '1' : '0');
+      if (url.searchParams.has('seal')) {
+        resetCaveTransformation(url);
+        releaseAllInput();
+        window.location.assign(url.toString());
+        return;
+      }
       window.history.replaceState(null, '', url);
       releaseAllInput();
       menu.hidePopover();

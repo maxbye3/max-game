@@ -16,6 +16,8 @@ import { beginDialogueAudio, endDialogueAudio } from '../../core/dialogue-audio.
 import { prependPlayerReaction } from '../../core/player-dialogue.js';
 import { isSamTargetRecoiling } from '../../powers/sam/sam-power.js';
 import { setProfileImage } from '../../core/profile-images.js';
+import { getPlayerBody } from '../../core/player-body.js';
+import { isWheldonPlayerSpriteEnabled } from '../../core/player-sprite-test.js';
 
 const CONTACT_DISTANCE = 30;
 const VERTICAL_SIGHT_HALF_WIDTH = 16;
@@ -64,6 +66,7 @@ export const niallState: {
 
 export const isNiallFollowing = () => questState === 'following';
 let battleTransitionActive = false;
+let battleTransitionTimer: number | undefined;
 type EncounterState = 'idle' | 'spotted' | 'chasing' | 'caught';
 let encounterState: EncounterState = 'idle';
 let busDialogueLines: string[] = [];
@@ -74,6 +77,10 @@ let hasShownBusArrival = false;
 export const isNiallBattleTransitionActive = () => battleTransitionActive;
 export const isNiallAlertActive = () => encounterState === 'spotted';
 export const isNiallEncounterBlockingPlayer = () => encounterState === 'spotted' || encounterState === 'caught';
+
+function canAttackPlayer(): boolean {
+  return getPlayerBody() === 'player' && !isWheldonPlayerSpriteEnabled() && !new URLSearchParams(window.location.search).has('seal');
+}
 
 function showDialogue(line: string): void {
   if (dialogue.hidden) prependPlayerReaction(dialogueLine);
@@ -102,7 +109,7 @@ function startBusDialogue(arrival: boolean): void {
 }
 
 function startFight(): void {
-  if (questState !== 'hostile' || battleTransitionActive) return;
+  if (questState !== 'hostile' || battleTransitionActive || !canAttackPlayer()) return;
   battleTransitionActive = true;
   releaseAllInput();
 
@@ -116,7 +123,7 @@ function startFight(): void {
   }
   gameShell.append(transition);
 
-  window.setTimeout(() => {
+  battleTransitionTimer = window.setTimeout(() => {
     window.location.assign('niall-fight/index.html');
   }, BATTLE_TRANSITION_DURATION);
 }
@@ -146,6 +153,19 @@ function chasePlayer(deltaTime: number, dx: number, dy: number, distance: number
 }
 
 export function updateNiallInteraction(deltaTime: number, playerX: number, playerY: number): void {
+  if (questState === 'hostile' && !canAttackPlayer()) {
+    if (encounterState !== 'idle') hideDialogue();
+    encounterState = 'idle';
+    niallState.animationTime = 0;
+    niallState.frame = 0;
+    if (battleTransitionActive) {
+      window.clearTimeout(battleTransitionTimer);
+      battleTransitionTimer = undefined;
+      battleTransitionActive = false;
+      document.querySelector('.battle-transition')?.remove();
+    }
+    return;
+  }
   if (isSamTargetRecoiling('niall')) {
     niallState.animationTime = 0;
     niallState.frame = 0;

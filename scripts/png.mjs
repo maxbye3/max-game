@@ -96,6 +96,8 @@ export function readPng(buffer) {
   let bitDepth = 0;
   let colorType = 0;
   const idatChunks = [];
+  let palette = null;
+  let transparency = null;
 
   while (offset < buffer.length) {
     const length = buffer.readUInt32BE(offset);
@@ -108,6 +110,10 @@ export function readPng(buffer) {
       height = data.readUInt32BE(4);
       bitDepth = data[8];
       colorType = data[9];
+    } else if (type === 'PLTE') {
+      palette = data;
+    } else if (type === 'tRNS') {
+      transparency = data;
     } else if (type === 'IDAT') {
       idatChunks.push(data);
     } else if (type === 'IEND') {
@@ -116,9 +122,21 @@ export function readPng(buffer) {
   }
 
   if (bitDepth !== 8) throw new Error(`Unsupported PNG bit depth ${bitDepth}; expected 8.`);
-  const bpp = bytesPerPixel(colorType);
+  const bpp = colorType === 3 ? 1 : bytesPerPixel(colorType);
   const filtered = inflateSync(Buffer.concat(idatChunks));
   const pixels = unfilterScanlines(filtered, width, height, bpp);
+  if (colorType === 3) {
+    if (!palette) throw new Error('Indexed PNG is missing its palette.');
+    const rgba = Buffer.alloc(width * height * 4);
+    for (let i = 0; i < pixels.length; i++) {
+      const index = pixels[i];
+      rgba[i * 4] = palette[index * 3] ?? 0;
+      rgba[i * 4 + 1] = palette[index * 3 + 1] ?? 0;
+      rgba[i * 4 + 2] = palette[index * 3 + 2] ?? 0;
+      rgba[i * 4 + 3] = transparency?.[index] ?? 255;
+    }
+    return { width, height, colorType: 6, bpp: 4, pixels: rgba };
+  }
   return { width, height, colorType, bpp, pixels };
 }
 

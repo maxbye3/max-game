@@ -3,7 +3,8 @@ import { createGameAudio, hasPowerAudioFocus } from '../core/audio-mute.js';
 import { ambienceSourceForDoor, carriedAmbienceFor, rememberAmbience } from '../core/ambient-theme.js';
 
 export function setupInteriorAmbience(doorId: string | null): void {
-  const source = doorId === 'music-shop' ? 'audio/music-house/theme.mp3' : ambienceSourceForDoor(doorId);
+  const source = doorId === 'northwest-portal' ? 'audio/cave/internal.mp3'
+    : doorId === 'music-shop' ? 'audio/music-house/theme.mp3' : ambienceSourceForDoor(doorId);
   if (!source || !doorId) return;
 
   const carried = carriedAmbienceFor(doorId);

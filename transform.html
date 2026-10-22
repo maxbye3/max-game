@@ -4,28 +4,90 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Transform</title>
-    <link rel="stylesheet" href="style.css?v=e8ccd033d846" />
+    <link rel="stylesheet" href="style.css?v=d682623aaa27" />
     <style>
-      .interior-exit {
+      .game-shell.cave-shell.transform-shell {
+        width: min(100vw, calc((100dvh - 200px) * 176 / 224));
+        height: auto;
+        aspect-ratio: auto;
+        display: block;
+      }
+      .game-shell.cave-shell.transform-shell > canvas {
+        width: 100%;
+        height: auto;
+        max-height: none;
+        aspect-ratio: 176 / 224;
+        margin: 0;
+      }
+      .transform-shell .transform-dialogue {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        translate: none;
+        width: min(350px, calc(100% - 24px));
+        max-height: none;
+        margin: 12px auto 0;
+      }
+      .transform-movie {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: #000;
+      }
+      .transform-movie[hidden], .transform-movie button[hidden] { display: none; }
+      .transform-movie video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .transform-movie button {
         position: absolute;
-        z-index: 8;
-        top: 24px;
-        left: 24px;
-        padding: 10px 12px;
-        border: 1px solid rgb(255 255 255 / 35%);
-        border-radius: 10px;
+        z-index: 1;
+        min-height: 44px;
+        padding: 12px;
+        font: 10px/1.5 var(--font-pixel);
         color: var(--text);
-        background: rgb(var(--panel-rgb) / 88%);
-        font: 10px/1.4 var(--font-pixel);
-        text-decoration: none;
+        background: #102519;
+        border: 1px solid #8eaf93;
+        border-radius: 8px;
+      }
+      #transform-movie-play { left: 50%; top: 50%; translate: -50% -50%; }
+      @media (max-height: 500px) and (orientation: landscape) {
+        .game-shell.cave-shell.transform-shell {
+          width: min(calc(100vw - 24px), calc((100dvh - 24px) * 176 / 224 + 362px));
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .game-shell.cave-shell.transform-shell > canvas {
+          width: min(48vw, calc((100dvh - 24px) * 176 / 224));
+          flex-shrink: 0;
+        }
+        .transform-shell .transform-dialogue {
+          flex: 1;
+          min-width: 0;
+          margin: 0;
+        }
       }
     </style>
   </head>
   <body>
-    <main class="game-shell cave-shell">
-      <canvas id="game" width="640" height="320" aria-label="Caught by Maddy and Marina"></canvas>
-      <a class="interior-exit" href="index.html">Exit</a>
+    <main class="game-shell cave-shell transform-shell">
+      <canvas id="game" width="176" height="224" aria-label="Caught by Maddy and Marina" tabindex="-1"></canvas>
+      <section id="transform-dialogue" class="npc-dialogue transform-dialogue" aria-live="polite" hidden>
+        <header class="npc-dialogue-header"><h2 id="transform-speaker">THE GIRLS</h2></header>
+        <div class="dialogue-line-row">
+          <img id="transform-maddy-profile" class="dialogue-profile" alt="" hidden>
+          <img id="transform-marina-profile" class="dialogue-profile" alt="" hidden>
+          <p id="transform-dialogue-line"></p>
+        </div>
+        <button id="transform-dialogue-next" class="npc-dialogue-next" type="button">Continue</button>
+      </section>
     </main>
-    <script src="dist/transform-bundle.js?v=1c1dbba68067"></script>
+    <section id="transform-movie" class="transform-movie" role="dialog" aria-modal="true" aria-label="Experimental dream prototype" hidden>
+      <video id="transform-video" playsinline disablepictureinpicture disableremoteplayback tabindex="-1" preload="none" aria-label="Dream prototype film"></video>
+      <button id="transform-movie-play" type="button" hidden>Play video</button>
+    </section>
+    <script src="dist/transform-bundle.js?v=2ccea34cd6e2"></script>
   </body>
 </html>

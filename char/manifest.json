@@ -3,7 +3,7 @@
     "directory": "player",
     "files": {
       "spriteSheet": "SpriteSheet.png",
-      "sealSpriteSheet": "seal-game.png",
+      "sealSpriteSheet": "seal-sprite.png",
       "avatar": "avatar.png",
       "item": "item.png",
       "profile": "profile.png",
@@ -42,7 +42,7 @@
     "oscar": { "displayName": "Oscar", "directory": "oscar", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "theme": "theme.mp3" } },
     "rei": { "displayName": "Rei", "directory": "rei", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "itemOne": "item-1.png", "itemTwo": "item-2.png", "overworldAvatar": "overworld-avatar.png", "theme": "theme.mp3" } },
     "sam": { "displayName": "Sam", "directory": "sam", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } },
-    "siblings": { "displayName": "Siblings", "directory": "siblings", "files": { "girlsSprite": "girls-sprite.png", "maddyAudio": "maddy.mp3", "marinaAudio": "marina.mp3", "playerChair": "player-chair.png", "sealChair": "seal-chair.png" } },
+    "siblings": { "displayName": "Siblings", "directory": "siblings", "files": { "girlsSprite": "girls-sprite.png", "maddyProfile": "maddy.jpg", "marinaProfile": "marina.jpg", "maddyAudio": "maddy.mp3", "marinaAudio": "marina.mp3", "playerChair": "player-chair.png", "sealChair": "seal-chair.png", "sealVideo": "seal.mp4" } },
     "tim": { "displayName": "Tim", "directory": "tim", "dialogueTheme": "theme.mp3", "files": { "avatar": "avatar.png", "dancing": "dancing.png", "dialogue": "dialogue.txt", "item": "item.png", "mapSprite": "map-sprite.png", "walkSprite": "walking-sprite.png", "profile": "profile.png", "theme": "theme.mp3" } }
   }
 }

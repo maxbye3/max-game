@@ -6,7 +6,7 @@ const cachePath = '.cache/generation.json';
 const cache = await readCache(cachePath);
 const charFiles = await readdir('char', { recursive: true });
 const dialogues = charFiles.filter(path => /^[^/]+\/(dialogue|alex-s-dialogue)\.txt$/.test(path)).map(path => `char/${path}`);
-const profiles = charFiles.filter(path => /^[^/]+\/profile\.(png|jpe?g)$/.test(path)).map(path => `char/${path}`);
+const profiles = charFiles.filter(path => /^(?:[^/]+\/profile|siblings\/(?:maddy|marina))\.(png|jpe?g)$/.test(path)).map(path => `char/${path}`);
 const collisionImages = ['diary-lab-collision.png', 'cinema-collisions.png', 'internal-music-house-collision.png', 'internal-music.png', 'internal-gym-collision.png', 'mansion-collision.png', 'bookshop-internal-collision.png', 'garden-collisions.png'].map(path => `img/internal/${path}`);
 const collisionModules = ['internal', 'cinema', 'music-house', 'gym', 'mansion', 'bookshop', 'garden'].map(name => `js/generated/interiors/${name}-collision-mask.ts`);
 const webFiles = async () => {
@@ -19,6 +19,7 @@ const definitions = [
   ['dialogue-themes', ['char/manifest.json'], ['js/generated/core/dialogue-themes.generated.ts']],
   ['internal-collision', [...collisionImages, 'scripts/png.mjs'], collisionModules],
   ['ghost-sprite', ['char/player/ghost_sprite.png'], ['js/generated/core/ghost-sprite.generated.ts']],
+  ['seal-sprite', ['char/manifest.json', 'char/player/seal-sprite.png', 'scripts/png.mjs'], ['js/generated/core/seal-sprite.generated.ts']],
   ['web-assets', webFiles, ['js/generated/core/web-images.generated.ts', 'js/generated/core/power-themes.generated.ts']],
   ['battle-avatars', ['char/niall/avatar.png', 'char/player/avatar.png', 'scripts/png.mjs'], ['img/battle/niall-avatar.png', 'img/battle/max-avatar.png', 'js/generated/characters/niall/battle-sprites.generated.ts']],
   ['styles', async () => (await readdir('css')).filter(path => path.endsWith('.css')).map(path => `css/${path}`), ['style.css']],

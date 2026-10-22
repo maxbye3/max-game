@@ -1,3 +1,4 @@
+import { isSealPlayer } from './cave-transformation.js';
 import { getPlayerBody } from './player-body.js';
 import { isWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { readStorage, writeStorage } from './storage.js';
@@ -141,6 +142,30 @@ const ALEX_GHOST_REACTIONS = [
   'Alex, your haunting privileges have been revoked.',
 ] as const;
 
+const SEAL_REACTIONS = [
+  'OMG SO CUTE 😭',
+  'WHY ARE YOU SO ROUND',
+  'LOOK AT YOUR LITTLE FACE 😭',
+  "SO SMOL 🥹 I CAN'T 😭",
+  'THE LITTLE WHISKERS',
+  "YOU'RE LITERALLY A POTATO",
+  'YOU HAVE NO BUSINESS BEING THIS CUTE',
+  'EXCUSE ME SIR 🥹',
+  'YOU LOOK LIKE A MARSHMALLOW',
+  'WHO GAVE YOU PERMISSION TO BE THIS ROUND',
+  'YOUR LITTLE FACE IS KILLING ME',
+  "YOU'RE A PERFECT LITTLE BLOB",
+  'THE WAY YOU WADDLE 😭',
+  'I WANT TO SQUISH YOUR CHEEKS',
+  'WHY DO YOU LOOK SO CONFUSED',
+  'HELLO ROUND FRIEND',
+  'PLEASE ACCEPT MY UNDIVIDED ATTENTION 🥺',
+] as const;
+const SEAL_INDEX_KEY = 'max-game:seal-dialogue-index';
+const storedSealIndex = Number(readStorage(SEAL_INDEX_KEY));
+let sealReactionIndex = Number.isSafeInteger(storedSealIndex) && storedSealIndex >= 0
+  ? storedSealIndex % SEAL_REACTIONS.length : 0;
+
 const INDEX_KEY = 'max-game:ghost-dialogue-index';
 const storedIndex = Number(readStorage(INDEX_KEY));
 let reactionIndex = Number.isSafeInteger(storedIndex) && storedIndex >= 0
@@ -171,10 +196,11 @@ export function prependPlayerReaction(line: HTMLElement): void {
   reactionObservers.delete(line);
   let prefix = prefixes.get(line);
   const body = getPlayerBody();
+  const seal = isSealPlayer();
   const ghost = body === 'ghost';
   const ghostAlex = ghost && isWheldonPlayerSpriteEnabled();
   const alex = body === 'alex-s' || (body === 'player' && isWheldonPlayerSpriteEnabled());
-  if (!ghost && !alex) {
+  if (!seal && !ghost && !alex) {
     if (prefix) prefix.hidden = true;
     return;
   }
@@ -184,7 +210,11 @@ export function prependPlayerReaction(line: HTMLElement): void {
     (line.closest('.dialogue-line-row') ?? line).before(prefix);
     prefixes.set(line, prefix);
   }
-  if (ghost) {
+  if (seal) {
+    prefix.textContent = SEAL_REACTIONS[sealReactionIndex] ?? SEAL_REACTIONS[0];
+    sealReactionIndex = (sealReactionIndex + 1) % SEAL_REACTIONS.length;
+    writeStorage(SEAL_INDEX_KEY, String(sealReactionIndex));
+  } else if (ghost) {
     if (ghostAlex) {
       prefix.textContent = ALEX_GHOST_REACTIONS[alexGhostReactionIndex] ?? ALEX_GHOST_REACTIONS[0];
       alexGhostReactionIndex = (alexGhostReactionIndex + 1) % ALEX_GHOST_REACTIONS.length;
