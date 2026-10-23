@@ -32,10 +32,20 @@ export async function buildBrowserFixture(interior, directory) {
        import { isGymTimCutsceneBlockingPlayer, getGymTimCutsceneDialogue } from '../interiors/gym-tim-cutscene.js';
        import { isTimAtMusicShop, isTimAtCinema } from '../characters/tim/tim-location.js';
        import { openAlexResurrectionChoice } from '../powers/alex-s/alex-s-power-ui.js';
+       import { drawMapCharacters, mapCharacters } from '../overworld/map-characters.js';
        window.__gameTest = { isHeld, signIds: SIGNS.map(sign => sign.id),
          doors: DOORWAYS,
          moveToNpc: id => { const npc = NPCS.find(npc => npc.id === id); const position = npc.getPosition?.() ?? npc; player.x = position.x; player.y = position.y; },
          timScene: () => ({ blocking: isGymTimCutsceneBlockingPlayer(), dialogue: getGymTimCutsceneDialogue(), atMusicShop: isTimAtMusicShop(), atCinema: isTimAtCinema() }),
+         mapNpcPixels: id => {
+           const character = mapCharacters.find(character => character.id === id);
+           if (!character?.sprite) return null;
+           const canvas = document.createElement('canvas');
+           canvas.width = character.sprite.width; canvas.height = character.height;
+           const context = canvas.getContext('2d');
+           drawMapCharacters(context, character.x - canvas.width / 2, character.y - canvas.height, npc => npc.id === id);
+           return { width: canvas.width, height: canvas.height, pixels: Array.from(context.getImageData(0, 0, canvas.width, canvas.height).data) };
+         },
          prepareResurrectionDialogues: () => { openAlexResurrectionChoice(() => {}); document.querySelector('.alex-resurrection-choice').hidden = true; },
          openSign: id => { updateSigns(-100, -100); const sign = SIGNS.find(sign => sign.id === id); updateSigns(sign.x + sign.width / 2, sign.y + sign.height); },
          openNpc: id => { const npc = NPCS.find(npc => npc.id === id); updateNpcInteractions(-100, -100); const position = npc.getPosition?.() ?? npc; updateNpcInteractions(position.x, position.y); } };`;

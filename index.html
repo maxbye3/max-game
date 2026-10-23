@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=82ccf2628ef5" />
+    <link rel="stylesheet" href="style.css?v=9e4190fec3e9" />
   </head>
   <body>
     <main class="game-shell">
@@ -101,12 +101,16 @@
         <p id="npc-gift-confirmation" class="dialogue-gift-confirmation" hidden></p>
         <button id="npc-dialogue-next" class="npc-dialogue-next" type="button" aria-label="Next dialogue line" hidden>&gt;</button>
         <div id="oscar-dialogue-options" class="npc-dialogue-options" hidden>
-          <button type="button">Yes</button>
-          <button type="button">No</button>
+          <a id="oscar-zen-garden-link" href="https://maxbye.co/zen-garden" target="_blank" rel="noopener noreferrer">Yes</a>
+          <button id="oscar-zen-garden-dismiss" type="button">No</button>
         </div>
         <div id="alice-dialogue-options" class="npc-dialogue-options" hidden>
           <a id="alice-event-tinder-link" href="https://maxbye.co/event-tinder" target="_blank" rel="noopener noreferrer">check it out</a>
           <button id="alice-event-tinder-dismiss" type="button">not now</button>
+        </div>
+        <div id="ruby-dialogue-options" class="npc-dialogue-options" hidden>
+          <a id="ruby-videos-yes" href="https://www.youtube.com/playlist?list=PLH4Z43KJdVn0" target="_blank" rel="noopener noreferrer">Yes</a>
+          <button id="ruby-videos-no" type="button">No</button>
         </div>
       </section>
       <section id="niall-dialogue" class="npc-dialogue" aria-live="polite" hidden>
@@ -143,6 +147,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=1238f180ed9c"></script>
+    <script src="dist/main-bundle.js?v=302bcd8eb2d7"></script>
   </body>
 </html>

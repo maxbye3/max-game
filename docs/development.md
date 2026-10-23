@@ -62,7 +62,7 @@ CSS is intentionally ordered in `css/game.css`: base, HUD, navigation, world eff
 
 Tasks: `dialogues`, `profiles`, `dialogue-themes`, `item-descriptions`, `internal-collision`, `ghost-sprite`, `seal-sprite`, `web-assets`, `battle-avatars`, `styles`. A single task can be run with `node scripts/generate-source.mjs styles`. Specialized `generate:*` npm commands use the same cache. The build invokes generation once, rather than nesting npm lifecycle hooks.
 
-Power descriptions come verbatim from each character’s `item.txt`. The item-description generator explicitly selects Andy’s `Item.txt`, Rei’s `item-1.txt`/`item-2.txt`, and Niall’s `player/item.txt`. Inventory reveals use this text and remember discoveries across navigation and future copies of the gift; edit the original text files to change the wording.
+Power descriptions come verbatim from each character’s `item.txt`. The item-description generator explicitly selects Andy’s `Item.txt`, Rei’s `item-1.txt`/`item-2.txt`, and Niall’s `player/item.txt`. Inventory reveals use this text and remember discoveries across navigation and future copies of the gift; edit the original text files to change the wording. Alex S uses `char/wheldon/item.txt`.
 
 Optimized images/music/fonts are optional prepared copies. Stale or missing prepared copies fall back to originals. Use `npm run prepare:web-assets` after editing assets when you want optimized copies; this also refreshes styles. Collision guides are original assets, and the collision generator never modifies them.
 

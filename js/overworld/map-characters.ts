@@ -3,6 +3,7 @@ import { webImageSource } from '../core/web-images.js';
 import { characterAsset, type CharacterId } from '../core/character-assets.js';
 import { samTargetId, samVictimOffset } from '../powers/sam/sam-power.js';
 import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
+import { RUBY } from './npc-definitions.js';
 
 export interface MapCharacterDefinition {
   readonly id: CharacterId;
@@ -15,6 +16,7 @@ export interface MapCharacterDefinition {
 
 export interface MapCharacter extends MapCharacterDefinition {
   readonly image: HTMLImageElement;
+  sprite: HTMLCanvasElement | null;
 }
 
 export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
@@ -31,18 +33,42 @@ export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
   { id: 'meli', name: 'Meli', source: characterAsset('meli', 'mapSprite'), x: 858, y: 570, height: 69 },
   { id: 'oscar', name: 'Oscar', source: characterAsset('oscar', 'mapSprite'), x: 636, y: 564, height: 52 },
   { id: 'sam', name: 'Sam', source: characterAsset('sam', 'mapSprite'), x: 324, y: 974, height: 52 },
+  { id: 'ruby', name: RUBY.name, source: characterAsset('ruby', 'overworldAvatar'), x: RUBY.x, y: RUBY.y, height: RUBY.height },
 ];
 
 export const mapCharacters: readonly MapCharacter[] = MAP_CHARACTER_DEFINITIONS.map((character) => ({
   ...character,
   image: new Image(),
+  sprite: null,
 }));
+
+function prepareMapSprite(character: MapCharacter): HTMLCanvasElement {
+  // Scaling an HTMLImageElement directly lets the browser sample a reduced
+  // decode, which can erase thin features such as Marina's eyes. Copy every
+  // source pixel first, then resize the canvas with nearest-neighbor sampling.
+  const source = document.createElement('canvas');
+  source.width = character.image.naturalWidth;
+  source.height = character.image.naturalHeight;
+  source.getContext('2d')!.drawImage(character.image, 0, 0);
+  const sprite = document.createElement('canvas');
+  sprite.height = character.height;
+  sprite.width = Math.round(character.height * source.width / source.height);
+  const context = sprite.getContext('2d')!;
+  context.imageSmoothingEnabled = false;
+  context.drawImage(source, 0, 0, sprite.width, sprite.height);
+  return sprite;
+}
 
 function loadImage(character: MapCharacter): Promise<void> {
   return new Promise((resolve, reject) => {
     character.image.onload = async () => {
-      await character.image.decode?.().catch(() => {});
-      resolve();
+      try {
+        await character.image.decode?.().catch(() => {});
+        character.sprite = prepareMapSprite(character);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
     };
     character.image.onerror = () => reject(new Error(`Failed to load ${character.source}`));
     character.image.src = webImageSource(character.source);
@@ -74,16 +100,16 @@ export function drawMapCharacters(
   context.save();
   context.imageSmoothingEnabled = false;
   for (const character of mapCharacters) {
-    if (!character.image.complete || character.image.naturalWidth === 0) continue;
+    if (!character.sprite) continue;
     if (!shouldDraw(character)) continue;
     // Leave room for stretched poses and recoil beyond the normal sprite.
     const margin = character.height * 4;
     if (character.x - cameraX < -margin || character.x - cameraX > context.canvas.width + margin ||
       character.y - cameraY < -margin || character.y - cameraY > context.canvas.height + margin) continue;
-    const width = Math.round(character.height * (character.image.naturalWidth / character.image.naturalHeight));
+    const width = character.sprite.width;
     const offset = samVictimOffset(samTargetId(character.id));
     withCharacterPowers(context, character.x - cameraX, character.y - cameraY, character.height, samTargetId(character.id), () => context.drawImage(
-      character.image,
+      character.sprite!,
       Math.round(character.x - cameraX - width / 2 + offset.x),
       Math.round(character.y - cameraY - character.height + offset.y),
       width,

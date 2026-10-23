@@ -30,9 +30,12 @@ const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
 const oscarOptions = requireElement<HTMLElement>('#oscar-dialogue-options');
 const aliceOptions = requireElement<HTMLElement>('#alice-dialogue-options');
+const rubyOptions = requireElement<HTMLElement>('#ruby-dialogue-options');
 const gameShell = requireElement<HTMLElement>('.game-shell');
 const maddyDialogueAudio = createGameAudio(characterAsset('maddy', 'dialogueAudio'));
 maddyDialogueAudio.preload = 'none';
+const rubyDialogueAudio = createGameAudio();
+rubyDialogueAudio.loop = false;
 let maddyDisplayedLineIndex = -1;
 
 function showMaddyTimedLine(index: number): void {
@@ -94,6 +97,30 @@ let currentDialogueLineIndex = 0;
 let requestLineShown = false;
 let nearbyNpc: NpcDefinition | null = null;
 let reiCompletionStage: 'intro' | 'explanation' | 'thanks' | null = null;
+let rubyStage: 'opening' | 'question' | 'decline' | 'final' | null = null;
+
+function showRubyLine(stage: NonNullable<typeof rubyStage>): void {
+  if (activeNpc?.id !== 'ruby') return;
+  rubyStage = stage;
+  const lineIndex = { opening: 0, question: 1, decline: 2, final: 3 }[stage];
+  dialogueLine.textContent = activeNpc.dialogueLines[lineIndex] ?? '';
+  dialogueProgress.hidden = true;
+  giftConfirmation.hidden = true;
+  rubyOptions.hidden = stage !== 'question';
+  nextButton.hidden = stage === 'question' || (stage === 'final' && pendingSongReward === null);
+  const voiceAsset = { opening: 'dialogueAudioOne', question: 'dialogueAudioTwo', decline: 'dialogueAudioThree', final: 'dialogueAudioFour' }[stage];
+  rubyDialogueAudio.pause();
+  rubyDialogueAudio.src = characterAsset('ruby', voiceAsset);
+  rubyDialogueAudio.currentTime = 0;
+  void rubyDialogueAudio.play().catch(() => {
+    // Browsers may require a player gesture before playing dialogue audio.
+  });
+}
+
+function chooseRubyVideos(accept: boolean): void {
+  if (activeNpc?.id !== 'ruby' || rubyStage !== 'question') return;
+  showRubyLine(accept ? 'final' : 'decline');
+}
 
 export function isNpcDialogueOpen(): boolean {
   return activeNpc !== null;
@@ -146,6 +173,8 @@ function closeDialogue(): void {
   maddyDialogueAudio.onended = null;
   maddyDialogueAudio.pause();
   maddyDialogueAudio.currentTime = 0;
+  rubyDialogueAudio.pause();
+  rubyDialogueAudio.currentTime = 0;
   maddyDisplayedLineIndex = -1;
   endDialogueAudio();
   activeNpc = null;
@@ -156,6 +185,7 @@ function closeDialogue(): void {
   pendingGiftConfirmation = null;
   requestLineShown = false;
   reiCompletionStage = null;
+  rubyStage = null;
   dialogue.hidden = true;
   dialogueProfile.hidden = true;
   nextButton.hidden = true;
@@ -163,6 +193,7 @@ function closeDialogue(): void {
   giftConfirmation.hidden = true;
   oscarOptions.hidden = true;
   aliceOptions.hidden = true;
+  rubyOptions.hidden = true;
 }
 
 function showRequestLine(): void {
@@ -274,7 +305,16 @@ function acceptQuest(): void {
 }
 
 function advanceDialogue(): void {
-  if (fixtureLoading || !oscarOptions.hidden || !aliceOptions.hidden) return;
+  if (fixtureLoading || !oscarOptions.hidden || !aliceOptions.hidden || !rubyOptions.hidden) return;
+  if (activeNpc?.id === 'ruby') {
+    if (rubyStage === 'opening') showRubyLine('question');
+    else if (rubyStage === 'decline') showRubyLine('final');
+    else if (rubyStage === 'final' && pendingSongReward) {
+      showSongLine();
+      nextButton.hidden = true;
+    }
+    return;
+  }
   if (activeNpc?.id === 'alice') {
     const lines = activeNpc.dialogueLines;
     if (currentDialogueLineIndex < lines.length - 1) {
@@ -354,6 +394,7 @@ function openDialogue(npc: NpcDefinition): void {
   hideSignDialogue();
   oscarOptions.hidden = true;
   aliceOptions.hidden = true;
+  rubyOptions.hidden = true;
   prependPlayerReaction(dialogueLine);
   beginDialogueAudio(npc.id === 'maddy' || npc.id === 'adam' ? undefined : npc.name);
   activeNpc = npc;
@@ -421,6 +462,11 @@ function openDialogue(npc: NpcDefinition): void {
   requestLineShown = false;
   speaker.textContent = npc.name;
   setProfileImage(dialogueProfile, npc.name);
+  if (npc.id === 'ruby') {
+    showRubyLine('opening');
+    dialogue.hidden = false;
+    return;
+  }
   showDialogueLine(npc);
   nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && !hasMoreDialogue() && npc.id !== 'alice';
   dialogue.hidden = false;
@@ -472,8 +518,12 @@ export function setupNpcInteractions(): void {
   window.addEventListener('max-game:dan-power-activated', closeDialogue);
   closeButton.addEventListener('click', closeDialogue);
   nextButton.addEventListener('click', advanceDialogue);
+  requireElement<HTMLAnchorElement>('#oscar-zen-garden-link').addEventListener('click', closeDialogue);
+  requireElement<HTMLButtonElement>('#oscar-zen-garden-dismiss').addEventListener('click', closeDialogue);
   requireElement<HTMLAnchorElement>('#alice-event-tinder-link').addEventListener('click', closeDialogue);
   requireElement<HTMLButtonElement>('#alice-event-tinder-dismiss').addEventListener('click', closeDialogue);
+  requireElement<HTMLAnchorElement>('#ruby-videos-yes').addEventListener('click', () => chooseRubyVideos(true));
+  requireElement<HTMLButtonElement>('#ruby-videos-no').addEventListener('click', () => chooseRubyVideos(false));
   window.addEventListener('keydown', (event) => {
     if (!activeNpc) return;
     if (event.code === 'Escape') {

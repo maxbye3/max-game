@@ -20,7 +20,7 @@ export async function withGameTest(run) {
   const elements = new Map();
   function element(selector) {
     if (!elements.has(selector)) elements.set(selector, {
-      hidden: false, textContent: '', src: '', children: [], listeners: new Map(),
+      hidden: false, textContent: '', src: '', children: [], dataset: {}, listeners: new Map(),
       classList: { toggle() {} },
       setAttribute() {}, removeAttribute(name) { if (name === 'src') this.src = ''; }, remove() {},
       getContext() { return {}; },

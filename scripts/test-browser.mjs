@@ -46,6 +46,16 @@ try {
       try {
         await page.addInitScript(() => {
           localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true');
+          window.__rubyVoicePlays = [];
+          const play = HTMLMediaElement.prototype.play;
+          HTMLMediaElement.prototype.play = function (...args) {
+            const clip = /\/char\/ruby\/(audio-[1-4]\.mp3)$/.exec(this.src)?.[1];
+            if (clip) {
+              window.__rubyVoicePlays.push(clip);
+              window.__rubyVoiceAudio = this;
+            }
+            return play.apply(this, args);
+          };
           const raf = requestAnimationFrame.bind(window);
           window.requestAnimationFrame = callback => window.pauseGameTest ? 0 : raf(callback);
         });
@@ -59,6 +69,15 @@ try {
         await page.evaluate(() => document.fonts.ready);
         const npc = interior ? '#noel-dialogue' : '#npc-dialogue';
         if (!interior) {
+          await page.waitForFunction(() => window.__gameTest.mapNpcPixels('marina-d') !== null, null, { polling: 100 });
+          const marina = await page.evaluate(() => window.__gameTest.mapNpcPixels('marina-d'));
+          assert.equal(marina.width, 35);
+          assert.equal(marina.height, 52, 'Marina keeps her existing map size');
+          for (const x of [14, 20]) for (const y of [19, 20]) {
+            const offset = (y * marina.width + x) * 4;
+            assert.ok(marina.pixels.slice(offset, offset + 3).every(channel => channel < 80), 'both of Marina’s eyes survive map rendering');
+            assert.equal(marina.pixels[offset + 3], 255);
+          }
           await page.evaluate(() => window.__gameTest.prepareResurrectionDialogues());
           await page.evaluate(() => window.__gameTest.openNpc('sam'));
           assert.equal(await page.locator('#npc-dialogue-profile').isVisible(), true);
@@ -66,6 +85,63 @@ try {
           await page.evaluate(() => window.__gameTest.openNpc('rei'));
           assert.equal(await page.locator('#npc-dialogue-profile').isVisible(), false);
           assert.equal(await page.locator('#npc-dialogue-profile').getAttribute('src'), null);
+          await page.locator('#npc-dialogue-close').click();
+          await page.evaluate(() => window.__gameTest.openNpc('ruby'));
+          assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), ['audio-1.mp3']);
+          assert.equal(await page.evaluate(() => window.__rubyVoiceAudio.loop), false);
+          await page.waitForFunction(() => window.__rubyVoiceAudio.ended, null, { polling: 100 });
+          assert.equal(await page.locator('#npc-dialogue-line').textContent(), "Moo moo makes dumb videos of me that I don't enjoy.");
+          assert.equal(await page.locator('#npc-dialogue-profile').isVisible(), false);
+          await page.locator('#npc-dialogue-next').click();
+          assert.equal(await page.locator('#npc-dialogue-line').textContent(), 'Wanna see them?');
+          assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), ['audio-1.mp3', 'audio-2.mp3']);
+          await page.waitForFunction(() => window.__rubyVoiceAudio.ended, null, { polling: 100 });
+          await assertDialogueActions(page.locator(npc));
+          const yes = page.locator('#ruby-videos-yes');
+          const playlist = 'https://www.youtube.com/playlist?list=PLH4Z43KJdVn0';
+          assert.equal(await yes.getAttribute('href'), playlist);
+          assert.equal(await yes.getAttribute('target'), '_blank');
+          assert.equal(await yes.getAttribute('rel'), 'noopener noreferrer');
+          await page.locator('#ruby-videos-no').click();
+          assert.equal(await page.locator('#npc-dialogue-line').textContent(), "good they're dumb");
+          assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), ['audio-1.mp3', 'audio-2.mp3', 'audio-3.mp3']);
+          await page.waitForFunction(() => window.__rubyVoiceAudio.ended, null, { polling: 100 });
+          await page.locator('#npc-dialogue-next').click();
+          assert.equal(await page.locator('#npc-dialogue-line').textContent(), "We're going to Japan together soon. We're very excited.");
+          assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), ['audio-1.mp3', 'audio-2.mp3', 'audio-3.mp3', 'audio-4.mp3']);
+          await page.waitForFunction(() => window.__rubyVoiceAudio.ended, null, { polling: 100 });
+          assert.equal(await page.evaluate(() => localStorage.getItem('max-game:unlocked-songs')), null);
+          await page.locator('#npc-dialogue-next').click();
+          assert.ok(await page.locator('#npc-gift-confirmation').isVisible());
+          assert.match(await page.locator('#npc-gift-confirmation').textContent(), /Moomoo was added to your music playlist/);
+          const artwork = page.locator('.item-received-overlay img[src="audio/music/sibling.png"]');
+          await artwork.waitFor({ state: 'visible' });
+          await artwork.evaluate(image => image.decode());
+          assert.equal(await page.locator('#music-select option[value="Moomoo"]').count(), 1);
+          assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:unlocked-songs'))), ['Moomoo']);
+          assert.equal(await page.locator('#npc-dialogue-next').isVisible(), false);
+          await page.locator('.item-received-overlay').waitFor({ state: 'detached' });
+          await page.evaluate(() => window.__gameTest.openNpc('ruby'));
+          assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), ['audio-1.mp3', 'audio-2.mp3', 'audio-3.mp3', 'audio-4.mp3', 'audio-1.mp3']);
+          assert.equal(await page.locator('#npc-dialogue-line').textContent(), "Moo moo makes dumb videos of me that I don't enjoy.");
+          await page.locator('#npc-dialogue-next').click();
+          assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), ['audio-1.mp3', 'audio-2.mp3', 'audio-3.mp3', 'audio-4.mp3', 'audio-1.mp3', 'audio-2.mp3']);
+          await page.context().route('https://www.youtube.com/**', route => route.fulfill({ body: 'Playlist test', contentType: 'text/html' }));
+          const popupPromise = page.waitForEvent('popup');
+          await yes.click();
+          const popup = await popupPromise;
+          await popup.waitForURL(playlist);
+          await popup.close();
+          assert.equal(await page.locator('#npc-dialogue-line').textContent(), "We're going to Japan together soon. We're very excited.");
+          assert.equal(await page.locator('#npc-dialogue-next').isVisible(), false, 'owned songs are not offered again');
+          for (let visit = 0; visit < 2; visit++) {
+            await page.evaluate(() => window.__gameTest.openNpc('ruby'));
+            await page.locator('#npc-dialogue-next').click();
+          }
+          assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), [1, 2, 3, 4, 1, 2, 4, 1, 2, 1, 2].map(clip => `audio-${clip}.mp3`));
+          await page.locator('#npc-dialogue-close').click();
+          assert.equal(await page.evaluate(() => window.__rubyVoiceAudio.paused), true);
+          await page.evaluate(() => window.__gameTest.openNpc('rei'));
         } else {
           await page.evaluate(() => window.__gameTest.openNpc('wheldon'));
           assert.ok(await page.locator(npc).isVisible(), 'real interior dialogue opens');

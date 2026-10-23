@@ -115,6 +115,14 @@ export const SAM = defineNpc('sam', {
   itemGift: SAM_ITEM,
 });
 
+export const RUBY = defineNpc('ruby', {
+  name: 'Ruby',
+  x: 209,
+  y: 1130,
+  height: 47,
+  songReward: 'Moomoo',
+});
+
 // Katie is already drawn by map-characters.ts; she is distinct from Katy.
 export const KATIE = defineNpc('katie', {
   name: 'Katie',
@@ -205,7 +213,7 @@ export const GEORGIA_NPC = defineNpc('georgia', {
   itemGift: GEORGIA_ITEM,
 });
 
-export const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, MADDY, SAM, KATIE, MASON, MELI, OSCAR, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
+export const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, MADDY, SAM, RUBY, KATIE, MASON, MELI, OSCAR, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
 
 let adamFactIndex = 0;
 function nextAdamFact(): string {

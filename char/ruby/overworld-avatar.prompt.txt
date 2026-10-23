@@ -1,0 +1,33 @@
+Generated with the built-in image_gen tool, using avatar.png as Ruby's identity reference and char/rei/overworld-avatar.png as the map-style reference.
+The transparent output was cropped to its alpha bounds and resized to 52 pixels tall with nearest-neighbor sampling.
+
+Use case: style-transfer
+Asset type: transparent PNG overworld NPC game sprite.
+Primary request: Create Ruby's overworld-avatar.png from the first reference, matching the small front-facing pixel art game character style of the second reference (Rei). Preserve Ruby's identity: voluminous curly burgundy hair, small silver earrings, brown jacket, multicolored horizontal stripe turtleneck, navy trousers and black-and-white shoes. One standing full body pose, arms relaxed, friendly expression. Clean crisp chunky pixel art, readable at 52 pixels tall, simple shading and dark outlines. Transparent background, no text, no extra objects. Full body tightly framed, head and both shoes fully included. Keep her human proportions close to her reference, with simplified detail suitable for a tiny map sprite. Produce a single sprite only.
+
+
+Face revision (built-in image_gen edit):
+Use case: precise-object-edit
+Asset type: existing 32 by 52 pixel transparent overworld sprite shown enlarged 16x.
+Input image 1: EDIT TARGET, Ruby's current sprite enlarged using nearest neighbor. Input image 2: identity reference only, Ruby's original avatar.
+Primary request: Fix ONLY the face in image 1. At present the eyes have disappeared during downscaling and only stray brow pixels remain. Replace the blank face with a clean appealing friendly pixel-art face: two clearly visible dark brown vertical eyes, aligned at the same height and spaced symmetrically, subtle rosy cheek pixels and a tiny simple closed smile. Keep the skin tone, face silhouette and burgundy bangs. Use the larger identity reference to retain her expression. Remove the big lopsided red mouth and stray black pixels. Make the face readable when the sprite is 52 pixels tall. Treat image 1 as a strict 32x52 logical pixel grid; every final feature must occupy full aligned logical cells, with both eyes at least 1 logical pixel wide and 2 logical pixels tall. Do not create subpixel details that will vanish when resized. Face should have simple two eyes and one smile, no nose needed at this scale.
+Constraints: Change ONLY face pixels. All hair outside the face, brown jacket, striped shirt, body, pose, feet, proportions, canvas aspect ratio and transparency must remain exactly as image 1. Preserve entire sprite framing with no new padding. No text, no background, no extra objects. True transparent PNG.
+
+Applied only the generated face interior to the existing 32x52 sprite, preserving all other pixels and the original alpha channel.
+
+
+Body-shape revision (built-in image_gen edit):
+Input 1: Ruby's existing overworld sprite. Input 2: the front-facing player sprite from char/player/SpriteSheet.png.
+Change only Ruby's body below her chin to match the player's compact body shape: short broad torso, short arms beside the hips, broad hips, very short chunky separated legs and shoes. Preserve the brown jacket, orange/cream striped shirt, navy trousers, black/white shoes, relaxed front-facing pose, and original colors. Preserve all burgundy curly hair, face, eyes, expression, silver earrings, and skin colors. Strict chunky pixel grid, transparent background, single full-body sprite, no text or ground shadow.
+
+Applied the generated compact body below the original 32x28 head region, keeping every original head pixel unchanged. The source sprite is now 32x44; its configured map height remains 52. Nearest-neighbor sampling preserves the pixel-art grid.
+
+Pants and eyes revision (built-in image_gen edit):
+Use case: precise-object-edit. Edit the current 32x44 Ruby sprite, using the front-facing player sprite only as a face-detail style reference. Extend the navy pants to the shoes, covering the exposed ankle strips without changing leg length or stance. Replace the lopsided L-shaped eye/brow pixels with two matching dark-brown vertical eyes, evenly spaced at the same height; no extra eyebrows or eyelashes. Completely remove the red mouth and fill with matching peach skin: no mouth, lips, smile or nose. Preserve the curly burgundy hair, earrings, cheeks, jacket, striped turtleneck, body shape, arms, hands, shoes, framing and transparency. Strict chunky pixel grid, no antialiasing, one sprite, no ground, shadow or text.
+
+Applied only the generated face interior and four pants-cuff pixels to the existing 32x44 sprite. All other pixels and the original alpha channel remain unchanged.
+
+Arms revision (built-in image_gen edit):
+Use case: precise-object-edit. Edit only Ruby's arms and hands, using the player sprite as a reference for small readable arms. Replace the broad sleeves and uneven horizontal hand blobs with slim brown jacket sleeves pointing down beside the body, with tiny peach hands at matching hip height. Keep the arms balanced in length and thickness and separate them from the torso with dark outlines. Preserve every other feature: curly hair, mouthless face and matching eyes, earrings, jacket torso, striped shirt, pants, shoes, body proportions, stance, 32x44 source framing and transparency. Strict low-resolution pixel grid, one sprite, transparent background, no text or ground.
+
+Composited the generated arms into the existing sprite, aligned to its original shoulder height. Only 92 pixels in the arm regions changed; the head, central torso and trouser pixels were retained. The configured map height remains 57 pixels.

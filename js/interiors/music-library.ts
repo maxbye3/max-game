@@ -8,6 +8,7 @@ export const SONGS = [
   'Nowimfallingasleep',
   'Lemon jelly',
   'bleep-blops',
+  'Moomoo',
 ] as const;
 
 export type Song = (typeof SONGS)[number];
@@ -23,6 +24,7 @@ export function getUnlockedSongs(): readonly Song[] {
 }
 
 export function getSongArtwork(song: Song): string {
+  if (song === 'Moomoo') return 'audio/music/sibling.png';
   if (song === 'bleep-blops') return 'audio/music/bits-bots.png';
   return song === 'Africa' || song === 'Outer wildeds' || song === 'Too much duolingo' || song === 'Lemon jelly'
     ? 'audio/music/caledonian-is-massive.png'

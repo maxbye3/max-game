@@ -1470,7 +1470,8 @@ canvas {
 .npc-dialogue-options[hidden] { display: none; }
 
 
-#alice-dialogue-options > * {
+#alice-dialogue-options > *,
+#ruby-dialogue-options > * {
   min-height: 44px;
 }
 

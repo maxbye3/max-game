@@ -8,6 +8,7 @@ import { WorkoutGalleryController } from './workout-gallery.js';
 import { characterAsset } from '../core/character-assets.js';
 import { getTimCinemaDialogue, type TimCinemaDialogue } from '../characters/tim/tim-cinema-dialogue.js';
 import { isAlexPlayer } from '../core/player-character.js';
+import { createGameAudio } from '../core/audio-mute.js';
 
 export type GymNpcId = 'julian' | 'tim' | 'kirin';
 
@@ -43,6 +44,7 @@ export class GymNpcDialogueController {
   private readonly journalOptions = document.querySelector<HTMLElement>('#tim-workout-journal-options');
   private readonly dialogue = document.querySelector<HTMLElement>('#noel-dialogue');
   private readonly workoutGallery: WorkoutGalleryController;
+  private readonly kirinVoice = createGameAudio(`../${characterAsset('kirin', 'dialogueAudio')}`);
 
   constructor(
     private readonly line: HTMLElement,
@@ -59,6 +61,9 @@ export class GymNpcDialogueController {
   }
 
   start(id: GymNpcId, atCinema = false): GymNpcChat {
+    this.kirinVoice.pause();
+    this.kirinVoice.currentTime = 0;
+    if (id === 'kirin') void this.kirinVoice.play().catch(() => {});
     const npc = GYM_NPC_CHATS[id];
     this.active = npc;
     this.cinemaDialogue = id === 'tim' && atCinema ? getTimCinemaDialogue() : null;
@@ -92,6 +97,8 @@ export class GymNpcDialogueController {
   }
 
   stop(): void {
+    this.kirinVoice.pause();
+    this.kirinVoice.currentTime = 0;
     this.active = null;
     this.cinemaDialogue = null;
     this.pendingGiftLine = null;

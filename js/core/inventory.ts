@@ -392,7 +392,7 @@ function renderGiftItems(): void {
   inventoryDeleteAll.disabled = isNoelPowerActive();
   if (!isNoelPowerActive() && noelAssetClaim() > 0) {
     const claim = document.createElement('p');
-    claim.textContent = `Noel's outstanding asset claim: ${noelAssetClaim().toFixed(3)} of a usable gift. At one whole unit, the contract repossesses a carried gift. Permanent equipment and music are protected.`;
+    claim.textContent = revealItemDescription('noel-item');
     giftItems.append(claim);
   }
 }

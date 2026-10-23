@@ -36,6 +36,7 @@ export function beginDialogueAudio(name?: string, prefix = ''): void {
   cancelThemeStop();
   dialogueHasAudioFocus = true;
   dialogueSpeaker = name?.trim().toLowerCase() ?? null;
+  theme.loop = dialogueSpeaker !== 'kirin';
   const source = name && !hasPowerAudioFocus() ? themeSourceFor(name) : null;
   if (!source) {
     theme.pause();
@@ -53,7 +54,7 @@ export function beginDialogueAudio(name?: string, prefix = ''): void {
   theme.currentTime = 0;
   notifyAudioFocusChanged();
   void theme.play().then(() => {
-    if (session !== dialogueAudioSession) return;
+    if (session !== dialogueAudioSession || !theme.loop) return;
     const duration = name?.trim().toLowerCase() === 'sam' ? 13_000 : 10_000;
     themeStopTimer = window.setTimeout(() => {
       if (session !== dialogueAudioSession) return;
