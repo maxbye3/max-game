@@ -43,6 +43,7 @@ Install Chromium once: `npx playwright install chromium` (on CI use `--with-deps
 | Entry / overworld loop | `js/core/main.ts` |
 | World constants / collisions | `js/core/config.ts`, `js/core/collision*.ts` |
 | Keyboard and touch input | `js/core/input.ts`, `js/core/mobile-controls.ts` |
+| Options, mute, reset, and feedback entry | `js/core/options-menu.ts`, `js/core/audio-mute.ts`, `js/core/thoughts.ts` |
 | Overworld NPC positions, dialogue, gifts, songs | `js/overworld/npc-definitions.ts` |
 | Stateful NPC conversation / Rei quest | `js/overworld/npcs.ts` |
 | Interior orchestration | `js/interiors/internal.ts` |

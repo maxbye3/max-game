@@ -15,16 +15,16 @@ export function setupThoughts(releaseInput: () => void): void {
   dialog.setAttribute('aria-labelledby', 'thoughts-title');
   dialog.innerHTML = `
     <header class="thoughts-header">
-      <h2 id="thoughts-title">Thoughts</h2>
-      <button class="thoughts-close" type="button" aria-label="Close thoughts">×</button>
+      <h2 id="thoughts-title">Thoughts and feedback</h2>
+      <button class="thoughts-close" type="button" aria-label="Close thoughts and feedback">×</button>
     </header>
-    <p>Got an idea for the game? I'd love to hear it.</p>
+    <p>Got an idea or feedback for the game? I'd love to hear it.</p>
     <form class="thoughts-form">
       <label for="thoughts-name">Name</label>
       <input id="thoughts-name" name="name" autocomplete="name" maxlength="100" required>
       <label for="thoughts-email">Email</label>
       <input id="thoughts-email" name="email" type="email" autocomplete="email" maxlength="254" required>
-      <label for="thoughts-idea">Your idea</label>
+      <label for="thoughts-idea">Your thoughts or feedback</label>
       <textarea id="thoughts-idea" name="idea" rows="4" maxlength="5000" required></textarea>
       <div class="thoughts-honey" aria-hidden="true">
         <label for="thoughts-website">Leave this empty</label>
@@ -58,7 +58,7 @@ export function setupThoughts(releaseInput: () => void): void {
     name.focus();
   });
   dialog.querySelector('.thoughts-close')!.addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => { releaseInput(); toggle.focus(); });
+  dialog.addEventListener('close', () => { releaseInput(); (document.querySelector<HTMLButtonElement>('#options-toggle') ?? toggle).focus(); });
   // Typing WASD or using arrow keys in a field must never move the player.
   dialog.addEventListener('keydown', (event) => event.stopPropagation());
   dialog.addEventListener('keyup', (event) => event.stopPropagation());

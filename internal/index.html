@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Diary & Laboratory</title>
-    <link rel="stylesheet" href="../style.css?v=9e4190fec3e9" />
+    <link rel="stylesheet" href="../style.css?v=543d02cac701" />
   </head>
   <body>
     <main class="game-shell">
@@ -14,6 +14,16 @@
       </div>
       <div class="top-actions">
         <a class="interior-exit" href="../index.html">Exit</a>
+        <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
+          Inventory <span class="inventory-count">1</span>
+        </button>
+        <button id="options-toggle" class="options-toggle" type="button" popovertarget="options-menu" aria-expanded="false" aria-controls="options-menu">Options</button>
+      </div>
+      <section id="options-menu" class="options-menu" popover aria-labelledby="options-title">
+        <div class="options-header">
+          <h2 id="options-title">Options</h2>
+          <button class="options-close" type="button" popovertarget="options-menu" popovertargetaction="hide" aria-label="Close options">×</button>
+        </div>
         <button id="audio-mute-toggle" class="audio-mute-toggle" type="button" aria-pressed="false">
           <svg class="mute-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
             <path d="M1 6h3l4-3v10l-4-3H1z" fill="currentColor" />
@@ -22,16 +32,14 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
-        <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
-          Inventory <span class="inventory-count">1</span>
-        </button>
-      </div>
+        <button id="reset-all" type="button">Reset game</button>
+        <button id="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts and feedback</button>
+      </section>
       <button id="interaction-prompt" class="npc-talk" type="button" hidden>Interact</button>
       <div id="powerup-status" class="powerup-status" hidden></div>
       <div class="movement-actions">
         <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
         <button id="controls-toggle" class="controls-toggle" type="button" aria-controls="movement-controls">Controls: Thumbstick</button>
-        <button id="thoughts-toggle" class="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts</button>
       </div>
       <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
         <div class="jump-header">
@@ -48,7 +56,7 @@
         </div>
         <div id="gift-items" class="gift-items" aria-label="Collected gifts"></div>
         <p id="inventory-message" class="inventory-message"></p>
-        <p class="inventory-version">Version 1.0.5</p>
+        <p class="inventory-version">Version 1.0.6</p>
       </section>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
       <section id="noel-dialogue" class="npc-dialogue" aria-live="polite" hidden>
@@ -289,6 +297,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=8c904d6b2ae0"></script>
+    <script src="../dist/internal-bundle.js?v=32b145c441a0"></script>
   </body>
 </html>

@@ -262,13 +262,6 @@ kbd {
   min-height: 44px;
 }
 
-.movement-actions .thoughts-toggle {
-  flex: 0 0 auto;
-  width: auto;
-  min-height: 44px;
-  font-size: 9px;
-}
-
 .controls-toggle {
   display: none;
   min-height: 44px;

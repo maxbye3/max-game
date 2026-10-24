@@ -130,31 +130,8 @@ canvas {
   gap: 8px;
 }
 
-.reset-all {
-  position: absolute;
-  z-index: 8;
-  top: calc(74px + env(safe-area-inset-top));
-  left: calc(24px + env(safe-area-inset-left));
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid rgb(255 255 255 / 35%);
-  border-radius: 10px;
-  color: var(--text);
-  background: rgb(var(--panel-rgb) / 88%);
-  font: 8px/1.4 var(--font-pixel);
-  cursor: pointer;
-}
-
-@media (max-width: 800px) {
-  .reset-all {
-    top: calc(64px + env(safe-area-inset-top));
-    left: calc(12px + env(safe-area-inset-left));
-  }
-}
-
 .music-toggle,
-.audio-mute-toggle,
-.thoughts-toggle,
+.options-toggle,
 .inventory-toggle,
 .interior-exit {
   display: flex;

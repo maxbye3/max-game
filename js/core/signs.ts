@@ -41,7 +41,7 @@ const SIGN_MESSAGES = [
   "Hey, welcome to my website! People will stop you to talk, but you can keep walking. You don't need to hit the [x] button to close the dialogue!",
   "People add things to your inventory as you talk to them. Click the Inventory button to use your items. You can also hop around the map with the Jump button!\n\nFinally if you don't like the controls you can toggle a new layout.",
   'DC has one of the highest employment rates in the country, so helping folks find work is my side hustle.',
-  "Max is going to be adding more people, places, and things, so check back soon! Have ideas and don't have me on WhatsApp? Jump on the Thoughts button - he would love to hear them.",
+  "Max is going to be adding more people, places, and things, so check back soon! Have ideas and don't have me on WhatsApp? Open Options, then Thoughts and feedback - he would love to hear them.",
 ] as const;
 
 // World-space bounds for every fully visible, readable sign in the composed map.

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Max's Overworld</title>
-    <link rel="stylesheet" href="style.css?v=9e4190fec3e9" />
+    <link rel="stylesheet" href="style.css?v=543d02cac701" />
   </head>
   <body>
     <main class="game-shell">
@@ -16,11 +16,20 @@
       <div id="door-loading" class="door-loading" role="status" aria-live="polite">
         <div class="door-loading-box">Loading<span class="door-loading-dots" aria-hidden="true"></span></div>
       </div>
-      <button id="reset-all" class="reset-all" type="button" aria-label="Reset Niall, Tim, Mike and songs">↻ Reset</button>
       <div class="top-actions">
         <button id="music-toggle" class="music-toggle" type="button" aria-expanded="false" aria-controls="music-panel">
           ♪ Music
         </button>
+        <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
+          Inventory <span class="inventory-count">1</span>
+        </button>
+        <button id="options-toggle" class="options-toggle" type="button" popovertarget="options-menu" aria-expanded="false" aria-controls="options-menu">Options</button>
+      </div>
+      <section id="options-menu" class="options-menu" popover aria-labelledby="options-title">
+        <div class="options-header">
+          <h2 id="options-title">Options</h2>
+          <button class="options-close" type="button" popovertarget="options-menu" popovertargetaction="hide" aria-label="Close options">×</button>
+        </div>
         <button id="audio-mute-toggle" class="audio-mute-toggle" type="button" aria-pressed="false">
           <svg class="mute-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
             <path d="M1 6h3l4-3v10l-4-3H1z" fill="currentColor" />
@@ -29,10 +38,9 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
-        <button id="inventory-toggle" class="inventory-toggle" type="button" aria-expanded="false" aria-controls="inventory-panel">
-          Inventory <span class="inventory-count">1</span>
-        </button>
-      </div>
+        <button id="reset-all" type="button">Reset game</button>
+        <button id="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts and feedback</button>
+      </section>
       <section id="music-panel" class="music-panel" aria-label="Music player" hidden>
         <div class="music-header">
           <h2>Music player</h2>
@@ -65,7 +73,6 @@
           <button type="button" data-character="ghost-wheldon" aria-pressed="false">ghost wheldon</button>
         </div>
         <button id="controls-toggle" class="controls-toggle" type="button" aria-controls="movement-controls">Toggle Controls</button>
-        <button id="thoughts-toggle" class="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts</button>
       </div>
       <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
         <div class="jump-header">
@@ -129,7 +136,7 @@
         </div>
         <div id="gift-items" class="gift-items" aria-label="Collected gifts"></div>
         <p id="inventory-message" class="inventory-message"></p>
-        <p class="inventory-version">Version 1.0.5</p>
+        <p class="inventory-version">Version 1.0.6</p>
       </section>
       <div id="movement-controls" class="controls">
         <div class="dpad" role="group" aria-label="Movement controls">
@@ -147,6 +154,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=c1733f3d3253"></script>
+    <script src="dist/main-bundle.js?v=4f2331c4bddf"></script>
   </body>
 </html>

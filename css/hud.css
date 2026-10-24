@@ -109,7 +109,7 @@
 @media (max-width: 560px) {
   .top-actions { top: 18px; left: 18px; right: 18px; }
   .music-toggle,
-  .audio-mute-toggle,
+  .options-toggle,
   .inventory-toggle,
   .interior-exit {
     flex: 0 0 calc((100% - 16px) / 3);
@@ -127,7 +127,7 @@
 @media (max-width: 340px) {
   .top-actions { gap: 6px; }
   .music-toggle,
-  .audio-mute-toggle,
+  .options-toggle,
   .inventory-toggle,
   .interior-exit { flex-basis: calc((100% - 12px) / 3); width: calc((100% - 12px) / 3); font-size: 7px; }
   .inventory-count { width: 14px; height: 14px; flex-basis: 14px; font-size: 12px; }

@@ -26,14 +26,14 @@ export async function serveGame() {
 export async function buildBrowserFixture(interior, directory) {
   const entry = interior ? 'js/interiors/internal.ts' : 'js/core/main.ts';
   const hook = interior
-    ? `window.__gameTest = { isHeld: direction => input.isHeld(direction), openNpc: kind => { closeNoelDialogue(); nearbyInteraction = kind; activateNearbyInteraction(); } };`
+    ? `window.__gameTest = { playerPosition: () => ({x:player.x, y:player.y}), isHeld: direction => input.isHeld(direction), openNpc: kind => { closeNoelDialogue(); nearbyInteraction = kind; activateNearbyInteraction(); } };`
     : `import { isHeld } from './input.js'; import { NPCS } from '../overworld/npc-definitions.js'; import { SIGNS } from './signs.js';
        import { DOORWAYS } from './doors.js';
        import { isGymTimCutsceneBlockingPlayer, getGymTimCutsceneDialogue } from '../interiors/gym-tim-cutscene.js';
        import { isTimAtMusicShop, isTimAtCinema } from '../characters/tim/tim-location.js';
        import { openAlexResurrectionChoice } from '../powers/alex-s/alex-s-power-ui.js';
        import { drawMapCharacters, mapCharacters } from '../overworld/map-characters.js';
-       window.__gameTest = { isHeld, signIds: SIGNS.map(sign => sign.id),
+       window.__gameTest = { isHeld, playerPosition: () => ({x:player.x, y:player.y}), signIds: SIGNS.map(sign => sign.id),
          doors: DOORWAYS,
          npcPositions: () => NPCS.map(({id, name, x, y}) => ({id, name, x, y})),
          mapNpcPositions: () => MAP_CHARACTER_DEFINITIONS.map(({id, x, y}) => ({id, x, y})),

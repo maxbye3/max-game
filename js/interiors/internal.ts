@@ -45,6 +45,7 @@ import { GoodreadsReadingController } from './goodreads-reading.js';
 import { LetterboxdReviewsController } from './letterboxd-reviews.js';
 import { DirectionInputController } from '../core/input.js';
 import { isThoughtsOpen } from '../core/thoughts.js';
+import { isOptionsMenuOpen, setupOptionsMenu } from '../core/options-menu.js';
 import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { setupInventory, updatePowerups } from '../core/inventory.js';
@@ -634,14 +635,14 @@ function gameLoop(time: number): void {
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   if (doughnutShop?.eating) return;
+  updatePowerups(time);
+  if (isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) { draw(time, worldAnimationTime); return; }
   siblingChase?.update(deltaTime, player);
   if (siblingChase) {
     chaseMessage.hidden = siblingChase.phase !== 'message';
     canvas.dataset.siblingChase = siblingChase.phase;
     if (siblingChase.phase === 'caught') { draw(time, worldAnimationTime); return; }
   }
-  updatePowerups(time);
-  if (isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) { draw(time, worldAnimationTime); return; }
   if (!isKatiePowerActive(time)) settleGeorgiaFlight(player, flightLandingBlocked, FLIGHT_BOUNDS, time);
   let visibleKatieTargets = KATIE_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
   let visibleOscarTargets = OSCAR_INTERIOR_TARGETS.filter((target) => !isOscarEaten(target.id));
@@ -685,7 +686,7 @@ function gameLoop(time: number): void {
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
 document.querySelectorAll<HTMLElement>('.npc-dialogue').forEach(setupDialoguePanel);
 bindControls(); setupAudioMute(); setupInteriorAmbience(enteredDoor);
-setupInventory();
+setupInventory(); setupOptionsMenu(() => input.releaseAll());
 bindPowerDialogueDismissal(closeNoelDialogue);
 window.addEventListener('max-game:alex-s-dialogue', () => { input.releaseAll(); closeNoelDialogue(); });
 document.querySelector('.interior-exit')?.addEventListener('click', (event) => { if (isAlicePowerActive() || isKatiePowerActive() || isLucyPowerActive() || isMikePowerActive() || isNoelPowerActive() || isOscarPowerActive() || isReiPowerActive() || isSamPowerActive() || isTimInputPowerActive()) event.preventDefault(); });

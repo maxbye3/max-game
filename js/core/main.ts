@@ -1,4 +1,3 @@
-import { setAlexEatenDoughnut } from './alex-w-state.js';
 import { resetCaveTransformationForCurrentForm } from './cave-transformation.js';
 import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isEdTattooOpen } from '../powers/ed/tattoo-ui.js';
@@ -41,13 +40,11 @@ import { setupInventory, updatePowerups } from './inventory.js';
 import { updateHole } from './hole.js';
 import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from '../interiors/music-player.js';
-import { resetMusicLibrary } from '../interiors/music-library.js';
 import { loadMapCharacters, MAP_CHARACTER_DEFINITIONS } from '../overworld/map-characters.js';
 import { rememberMapNpcPositions } from '../overworld/map-npc-positions.js';
 import { isNiallFollowing, niallState, updateNiallInteraction } from '../characters/niall/niall.js';
 import { restoreBuildingAmbience, updateBuildingAmbience } from './nightclub-audio.js';
-import { hasMikeAftermath, resetMikeAftermath, resetNiallQuestState } from './world-state.js';
-import { resetTimRoute } from '../characters/tim/tim-location.js';
+import { hasMikeAftermath } from './world-state.js';
 import { ADAM, ALEX_S, ED, KATY, MIKE, REI, setupNpcInteractions, updateNpcInteractions } from '../overworld/npcs.js';
 import { player, updatePlayer } from './player.js';
 import { draw, drawLoadFailure } from './render.js';
@@ -56,13 +53,13 @@ import { isAlexResurrectionUiBlocking } from '../powers/alex-s/alex-s-power-ui.j
 import { maddyWorldDeltaTime } from '../powers/maddy/maddy-tea-power.js';
 import { requireElement } from './elements.js';
 import { isCharacterMenuOpen, setupCharacterMenu } from './character-menu.js';
-import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
+import { isOptionsMenuOpen, setupOptionsMenu } from './options-menu.js';
 import { georgiaState } from '../characters/georgia/georgia.js';
 import { isSamPowerActive, samTargetId, type SamPowerTarget, updateSamPower } from '../powers/sam/sam-power.js';
 import { isOscarEaten, isOscarPowerActive, updateOscarPower } from '../powers/oscar/oscar-power.js';
 import { andyWorldDeltaTime } from '../powers/andy/andy-power.js';
 import { updateAndyWorld } from '../powers/andy/andy-world-power.js';
-import { getPlayerBody, setPlayerBody } from './player-body.js';
+import { getPlayerBody } from './player-body.js';
 import { checkRoadAccident, roadAccident, setupRoadAccident, updateRoadAccident } from '../overworld/road-accident.js';
 
 resetCaveTransformationForCurrentForm();
@@ -105,7 +102,7 @@ function gameLoop(time: number): void {
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
-  if (isDoorNavigationStarted() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) {
+  if (isDoorNavigationStarted() || isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) {
     draw(time, worldAnimationTime);
     return;
   }
@@ -184,6 +181,7 @@ document.querySelectorAll<HTMLElement>('.npc-dialogue').forEach(setupDialoguePan
 setupLucyPowerInput(canvas);
 setupCharacterMenu();
 setupAudioMute();
+setupOptionsMenu(releaseAllInput);
 setupBusIntro();
 setupInventory();
 setupJump();
@@ -192,18 +190,6 @@ setupNpcInteractions();
 setupRoadAccident(player);
 window.addEventListener('max-game:alex-s-dialogue', hideSignDialogue);
 setupCaveThief();
-requireElement<HTMLButtonElement>('#reset-all').addEventListener('click', () => {
-  releaseAllInput();
-  resetNiallQuestState();
-  resetTimRoute();
-  resetMikeAftermath();
-  resetMusicLibrary();
-  setAlexEatenDoughnut(false);
-  setPlayerBody('player');
-  setWheldonPlayerSpriteEnabled(false);
-  const sealMode = new URLSearchParams(window.location.search).has('seal');
-  window.location.assign(sealMode ? 'index.html?seal=1' : 'index.html');
-});
 
 loadAssets(isCaveThiefPursuitActive())
   .then(() => {
