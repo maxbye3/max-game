@@ -5,7 +5,10 @@ import { serveGame } from './lib/browser-fixture.mjs';
 
 // Profile shipped bundles with a fresh cache, 4 Mbps, 80 ms latency and 4x CPU
 // slowdown. Request sizes include in-flight files; readyMs measures playable entry.
-const output = process.argv[2] ?? 'test-results/loading-profile.json';
+const args = process.argv.slice(2);
+const muted = args.includes('--muted');
+const areas = args.filter(arg => arg.startsWith('--area=')).map(arg => arg.slice(7).toLowerCase());
+const output = args.find(arg => !arg.startsWith('--')) ?? `test-results/loading-profile${muted ? '-muted' : ''}.json`;
 const cases = [
   ['First map visit', '/index.html'],
   ['Returning map', '/index.html?door=snow-mansion'],
@@ -13,16 +16,19 @@ const cases = [
   ['Transformation', '/transform.html'],
   ['Niall battle', '/niall-fight/'],
 ];
+const selected = cases.filter(([name, path]) => !areas.length || areas.some(area => name.toLowerCase().includes(area) || path.includes(`door=${area}`)));
+if (!selected.length) throw new Error(`No areas match: ${areas.join(', ')}`);
 const server = await serveGame();
 const browser = await chromium.launch();
 const results = [];
 try {
-  for (const [name, path] of cases) {
+  for (const [name, path] of selected) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     try {
       const page = await context.newPage();
       const client = await context.newCDPSession(page);
       const requested = new Set(), errors = [];
+      await page.addInitScript(muted => { if (muted) localStorage.setItem('max-game:audio-muted', 'true'); }, muted);
       page.on('request', request => {
         if (request.url().startsWith(server.url)) requested.add(new URL(request.url()).pathname);
       });
@@ -61,7 +67,7 @@ try {
         return { samples: samples.length, p50Ms: samples[Math.floor(samples.length * 0.5)] ?? 0, p95Ms: samples[Math.floor(samples.length * 0.95)] ?? 0, maxMs: samples.at(-1) ?? 0 };
       });
       const assets = await Promise.all([...requested].map(async file => ({ file, bytes: (await stat(resolve('.' + file)).catch(() => ({ size: 0 }))).size })));
-      const result = { name, ...initial, frameWork, requested: assets.sort((a, b) => b.bytes - a.bytes), errors };
+      const result = { name, muted, ...initial, frameWork, requested: assets.sort((a, b) => b.bytes - a.bytes), errors };
       results.push(result);
       console.log(`${name}: ${(initial.readyMs / 1000).toFixed(2)}s; frame p95 ${frameWork.p95Ms.toFixed(1)}ms; ${(assets.reduce((sum, asset) => sum + asset.bytes, 0) / 1e6).toFixed(2)} MB requested; ${errors.length} errors`);
       if (errors.length) throw new Error(errors.join('\n'));

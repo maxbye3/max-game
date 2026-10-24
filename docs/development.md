@@ -19,7 +19,7 @@ The inventory shows the version from `package.json`, stamped into both pages dur
 | `npm run test:dialogue` | NPC conversations, room characters, journals, and Niall |
 | `npm run test:progression` | Save progression, road traffic, interior collision |
 | `npm run test:assets` | Sprite crops, build entries, loading, audio, rendering caches |
-| `npm run profile:loading` | Profile both map starts, all 11 interiors, transformation and battle with an empty browser cache, 4 Mbps network, 80 ms latency, and 4x CPU slowdown; saves `test-results/loading-profile.json` |
+| `npm run profile:loading` | Profile both map starts, all 11 interiors, transformation and battle with an empty browser cache, 4 Mbps network, 80 ms latency, and 4x CPU slowdown; saves `test-results/loading-profile.json`. Append `-- --muted` for muted playback or `-- --area=cinema --area=gym` to select areas. |
 | `npm run test:content` | Feed freshness, fallbacks, refresh/cancellation, galleries |
 | `npm run test:tooling` | Generation cache invalidation and recovery |
 | `npm run watch` | Watch all four TS entries and `css/`, rebuilding cache keys |
@@ -67,7 +67,7 @@ Tasks: `dialogues`, `profiles`, `dialogue-themes`, `item-descriptions`, `interna
 
 Power descriptions come verbatim from each character’s `item.txt`. The item-description generator explicitly selects Andy’s `Item.txt`, Rei’s `item-1.txt`/`item-2.txt`, and Niall’s `player/item.txt`. Inventory reveals use this text and remember discoveries across navigation and future copies of the gift; edit the original text files to change the wording. Alex S uses `char/wheldon/item.txt`.
 
-Room collision grids use byte-preserving run-length encoding where smaller, expanded only for the selected room. First poses are required for entry; extra cat/charity animation poses follow the first frame, retaining the first pose while later frames load. Room ambience starts when the room is ready. Photo galleries build their thumbnails when opened.
+Room collision grids use byte-preserving run-length encoding where smaller, expanded only for the selected room. First poses are required for entry; extra cat/charity animation poses follow the first frame, retaining the first pose while later frames load. Audible room ambience starts when the room is ready. Muted room/world ambience stays paused and resumes from its position on unmute, including while Options pauses movement. Muted story voices still play silently so dialogue timing and progression remain intact. The snowman cue preloads only on an audible nearby approach. Photo galleries build their thumbnails when opened.
 
 Map image hints and the measured large-room background hint are stamped into HTML during bundling from the same runtime source definitions. Smaller room images load with the game code to avoid bandwidth contention. See [the loading audit](loading-performance.md) for current measurements.
 

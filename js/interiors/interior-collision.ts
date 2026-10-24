@@ -5,6 +5,8 @@ import { ART_STUDIO_WALLS, CAVE_WALLS, CHARITY_WALLS, DOUGHNUT_SHOP_WALLS, type 
 const PLAYER_FRAME_WIDTH = 23;
 const PLAYER_FRAME_HEIGHT = 36;
 const PLAYER_SCALE = 2;
+const CHAIR = { left: 299, right: 341, top: 138, bottom: 207 };
+const isChairPoint = (x: number, y: number): boolean => x > CHAIR.left && x < CHAIR.right && y > CHAIR.top && y < CHAIR.bottom;
 
 export class InteriorCollision {
   readonly cellSize: number;
@@ -23,6 +25,11 @@ export class InteriorCollision {
   }
 
   isBlocked(x: number, y: number): boolean {
+    const transformed = this.scene.kind === 'cave' && isChairPoint(x, y) && hasCaveTransformation();
+    return this.pointIsBlocked(x, y, transformed);
+  }
+
+  private pointIsBlocked(x: number, y: number, transformed: boolean): boolean {
     if (x < 0 || x >= this.scene.width || y < 0 || y >= this.scene.height) return true;
     if (this.passageIsOpen(x, y)) return false;
     if (this.scene.kind === 'charity') {
@@ -31,7 +38,7 @@ export class InteriorCollision {
       );
     }
     if (this.scene.kind === 'cave') {
-      if (hasCaveTransformation() && x > 299 && x < 341 && y > 138 && y < 207) return true;
+      if (transformed && isChairPoint(x, y)) return true;
       return CAVE_WALLS.some(([wallX, wallY, width, height]) =>
         x >= wallX && x < wallX + width && y >= wallY && y < wallY + height,
       );
@@ -60,11 +67,13 @@ export class InteriorCollision {
     const left = x - halfWidth;
     const right = x + halfWidth;
     const top = y - footHeight;
+    // Resolve form/storage state once for the whole foot, only near the chair.
+    const transformed = this.scene.kind === 'cave' && right > CHAIR.left && left < CHAIR.right && y > CHAIR.top && top < CHAIR.bottom && hasCaveTransformation();
     for (let sampleY = top; sampleY <= y; sampleY += 3) {
       for (let sampleX = left; sampleX <= right; sampleX += 3) {
-        if (this.isBlocked(sampleX, sampleY)) return true;
+        if (this.pointIsBlocked(sampleX, sampleY, transformed)) return true;
       }
     }
-    return this.isBlocked(right, y);
+    return this.pointIsBlocked(right, y, transformed);
   }
 }

@@ -10,7 +10,7 @@ import {
   ZEN_GARDEN_X,
   ZEN_GARDEN_Y,
 } from './config.js';
-import { createGameAudio, hasPowerAudioFocus } from './audio-mute.js';
+import { createGameAudio, hasPowerAudioFocus, isAudioMuted } from './audio-mute.js';
 import { hasDialogueAudioFocus } from './dialogue-audio.js';
 import { ambienceSourceForDoor, carriedAmbienceFor, rememberAmbience } from './ambient-theme.js';
 
@@ -25,6 +25,8 @@ interface BuildingAmbience {
 const attempts = new WeakMap<HTMLAudioElement, number>();
 const pending = new WeakSet<HTMLAudioElement>();
 let gestureVersion = 0;
+let lastPlayerX = Number.NaN;
+let lastPlayerY = Number.NaN;
 window.addEventListener('pointerdown', () => { gestureVersion += 1; });
 window.addEventListener('keydown', () => { gestureVersion += 1; });
 
@@ -59,6 +61,12 @@ function updateAmbience(ambience: BuildingAmbience, playerX: number, playerY: nu
     return;
   }
 
+  if (isAudioMuted()) {
+    if (!ambience.audio.paused) ambience.audio.pause();
+    attempts.delete(ambience.audio);
+    return;
+  }
+
   const fadeRange = HEAR_DISTANCE - FULL_VOLUME_DISTANCE;
   const distanceVolume = Math.max(0, Math.min(1, (HEAR_DISTANCE - distance) / fadeRange));
   const volume = distanceVolume * (hasDialogueAudioFocus() ? 0.5 : 1);
@@ -73,8 +81,14 @@ function updateAmbience(ambience: BuildingAmbience, playerX: number, playerY: nu
 }
 
 export function updateBuildingAmbience(playerX: number, playerY: number): void {
+  lastPlayerX = playerX; lastPlayerY = playerY;
   BUILDING_AMBIENCE.forEach((ambience) => updateAmbience(ambience, playerX, playerY));
 }
+
+window.addEventListener('max-game:audio-mute-changed', () => {
+  // Options pauses world updates; the mute button must still react immediately.
+  if (Number.isFinite(lastPlayerX)) updateBuildingAmbience(lastPlayerX, lastPlayerY);
+});
 
 export function carryBuildingAmbienceInside(doorId: string): void {
   const source = ambienceSourceForDoor(doorId);

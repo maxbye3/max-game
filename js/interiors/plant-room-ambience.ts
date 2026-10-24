@@ -1,5 +1,5 @@
 import { hasDialogueAudioFocus } from '../core/dialogue-audio.js';
-import { createGameAudio, hasPowerAudioFocus } from '../core/audio-mute.js';
+import { createGameAudio, hasPowerAudioFocus, isAudioMuted } from '../core/audio-mute.js';
 import { ambienceSourceForDoor, carriedAmbienceFor, rememberAmbience } from '../core/ambient-theme.js';
 
 export function setupInteriorAmbience(doorId: string | null): void {
@@ -24,7 +24,7 @@ export function setupInteriorAmbience(doorId: string | null): void {
 
   const pause = (): void => { tracks.forEach((track) => track.pause()); };
   const start = (): void => {
-    if (hasPowerAudioFocus() || document.hidden || (doorId === 'music-shop' && hasDialogueAudioFocus('Andy')) || (doorId === 'cinema' && hasDialogueAudioFocus('Dad'))) { pause(); return; }
+    if (isAudioMuted() || hasPowerAudioFocus() || document.hidden || (doorId === 'music-shop' && hasDialogueAudioFocus('Andy')) || (doorId === 'cinema' && hasDialogueAudioFocus('Dad'))) { pause(); return; }
     setVolume();
     for (const track of tracks) {
       if (!track.paused) continue;
@@ -41,6 +41,7 @@ export function setupInteriorAmbience(doorId: string | null): void {
     start();
   });
   window.addEventListener('max-game:power-audio-focus', start);
+  window.addEventListener('max-game:audio-mute-changed', start);
   window.addEventListener('max-game:temporary-audio-focus', (event) => {
     if ((event as CustomEvent<boolean>).detail) pause();
     else start();

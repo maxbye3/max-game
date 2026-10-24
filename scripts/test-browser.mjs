@@ -10,6 +10,7 @@ import { checkItemDescriptions } from './lib/item-description-browser-checks.mjs
 import { checkMapNpcPositions } from './lib/map-npc-browser-checks.mjs';
 import { checkOptionsMenu } from './lib/options-browser-checks.mjs';
 import { checkPreparedRenderAssets } from './lib/render-assets-browser-checks.mjs';
+import { checkIdleWaste } from './lib/idle-waste-browser-checks.mjs';
 
 if (!process.argv.includes('--prepared')) {
   for (const script of ['scripts/generate-source.mjs', 'scripts/bundle.mjs']) {
@@ -38,6 +39,7 @@ try {
   const fixtures = [await buildBrowserFixture(false, directory), await buildBrowserFixture(true, directory)];
   browser = await chromium.launch({ headless: !process.argv.includes('--headed'), ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}) });
   await checkPreparedRenderAssets(browser, server);
+  await checkIdleWaste(browser, server);
   await checkOptionsMenu(browser, server, fixtures);
   await checkMapNpcPositions(browser, server, fixtures[0]);
   await checkItemDescriptions(browser, server);

@@ -303,7 +303,8 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     const ghostMode = getPlayerBody() === 'ghost';
     const ghostWheldonPlayer = ghostMode && isWheldonPlayerSpriteEnabled();
     const alexFrame = getWheldonPlayerSpriteFrame(player.direction, player.animationTime, ghostWheldonPlayer);
-    canvas.dataset.playerVariant = ghostWheldonPlayer ? 'ghost-wheldon' : ghostMode ? 'ghost' : wheldonPlayer ? 'alex-s' : SEAL_MODE ? 'seal' : 'default';
+    const variant = ghostWheldonPlayer ? 'ghost-wheldon' : ghostMode ? 'ghost' : wheldonPlayer ? 'alex-s' : SEAL_MODE ? 'seal' : 'default';
+    if (canvas.dataset.playerVariant !== variant) canvas.dataset.playerVariant = variant;
     const baseSpriteFrame = ghostMode && !ghostWheldonPlayer
       ? getGhostSpriteFrame(player.direction, player.frame, PLAYER_SCALE)
       : wheldonPlayer || ghostWheldonPlayer

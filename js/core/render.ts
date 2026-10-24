@@ -66,7 +66,8 @@ export function draw(time: number, worldTime = time): void {
   const body = getPlayerBody();
   const ghostMode = body === 'ghost';
   const ghostWheldonMode = ghostMode && isWheldonPlayerSpriteEnabled();
-  canvas.dataset.playerVariant = ghostWheldonMode ? 'ghost-wheldon' : ghostMode ? 'ghost' : body === 'player' ? (SEAL_MODE ? 'seal' : 'default') : body;
+  const variant = ghostWheldonMode ? 'ghost-wheldon' : ghostMode ? 'ghost' : body === 'player' ? (SEAL_MODE ? 'seal' : 'default') : body;
+  if (canvas.dataset.playerVariant !== variant) canvas.dataset.playerVariant = variant;
   if (LOG_PLAYER_POSITION) logPlayerPosition();
 
   // Rounded so the map is sampled on whole source pixels: a fractional source

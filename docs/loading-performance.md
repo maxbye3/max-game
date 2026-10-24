@@ -1,4 +1,32 @@
-# Loading audit — version 1.0.11
+# Loading audit — version 1.0.12
+
+## Muted downloads and repeated frame work
+
+This pass removes silent background-music downloads at entry, the map's unconditional snowman-sound preload, redundant canvas attribute writes, and repeated transformation-state reads inside cave collision sampling. Original art, audio files and dialogue timing are unchanged.
+
+The following cold-cache phone runs start with mute already enabled, use 4 Mbps download and 80 ms latency, and observe until 2.2 seconds after playable entry. Actual received audio bytes are counted through Chrome's network events; they exclude headers. Full file sizes identify the requested assets and do **not** mean the entire files transferred during that window. Cinema video remains enabled and is excluded from these audio totals.
+
+| Area | 1.0.11 requested audio file sizes | 1.0.11 received audio | 1.0.12 received audio |
+| --- | ---: | ---: | ---: |
+| Map at Mansion | 646,950 B | 363,962 B | 0 B |
+| Gym | 4,813,484 B | 1,132,580 B | 0 B |
+| Music House | 601,440 B | 601,440 B | 0 B |
+| Charity | 1,885,695 B | 930,224 B | 0 B |
+| Cinema | 540,756 B | 540,756 B | 0 B |
+
+Muted entry now makes zero audio requests in all five cases. Unmuting starts nearby/room music immediately, even with Options open; muting pauses it without discarding the current position. Story voices continue silently because their completion can advance conversations. The snowman still falls while muted, and its audible cue preloads only when approaching it.
+
+Both renderers now leave `data-player-variant` untouched until the variant actually changes. Cave foot collision resolves transformation state once near the chair, with no transformation URL/storage reads for clear floor away from it. Neither change caches state across checks, so changing form or resetting progression still takes effect immediately.
+
+The profiler supports `--muted` and repeatable `--area=` filters, for example `npm run profile:loading -- --muted --area=gym --area=cinema`. These changes primarily reduce unnecessary traffic and repeated work; the earlier room-entry reductions below remain the loading-time reference.
+
+Verification for 1.0.12 includes all 51 Node suites and a muted loading profile of both map starts, all 11 interiors, transformation and battle with no browser errors. In portrait, landscape and desktop, the five audio cases also check zero repeated variant-attribute mutations across 24 steady frames, immediate unmute with Options open, preserved playback position on mute, and hidden-tab pause/resume. Deployment packaging passed.
+
+All 11 interiors and all five map forms opened on phone and desktop with the updated inventory version. Additional checks exercised the transformed cave chair and walls in all three layouts, delayed Charity animation fallback/recovery, cat poses, Dad/Josh dialogue, lazy galleries and room exits.
+
+The complete integrated browser suite passed: 60 dialogue/control layouts, exact inventory descriptions, ghost doorway/Tim flows, character switching, diary image-failure recovery and all 11 shipped room bundles.
+
+## Previous pass — version 1.0.11
 
 This pass continues the 1.0.10 audit across both map starts, all 11 interiors, transformation and battle. Measurements use Chromium at a 390 × 844 phone viewport, an empty cache, 4 Mbps download, 80 ms latency and 4× CPU slowdown on a local uncompressed static server. These are individual controlled runs, not live-site guarantees.
 
@@ -22,7 +50,7 @@ Readiness means essential room/map images loaded and the game loop started. The 
 | Transformation | 6.61 s | 3.85 s | — |
 | Niall battle | 1.24 s | 1.25 s | — |
 
-## Changes in this pass
+### Changes in that pass
 
 - Generate room rendering copies from actual scene geometry. Large backgrounds use the pixels the canvas displays; Music House retains full vertical resolution for portrait stretching. Keep the original asset whenever preparation would increase its download.
 - Prepare door artwork at its displayed size: roughly 5–30 KB per room instead of 44–385 KB. Door positions, collision and exit triggers are unchanged.
@@ -32,7 +60,7 @@ Readiness means essential room/map images loaded and the game loop started. The 
 - Cull offscreen static map art. Nine sampled map views retain identical pixels while image draw calls fall from 218 to 61.
 - Discover universal map images in the HTML head. Only the large Music House background receives an early room-image hint; comparisons found smaller-room hints competing with startup JavaScript, so they were removed.
 
-## Verification
+### Verification
 
 - All 49 Node suites passed, including asset generation, source-pixel preservation, missing/stale cinema-copy fallback, visibility culling and preload URL matching.
 - 43 browser canvas comparisons verify prepared backgrounds and cave poses against their originals, with tight rounding tolerances for doorway alpha edges.
@@ -42,7 +70,7 @@ Readiness means essential room/map images loaded and the game loop started. The 
 - The pulled ghost-Wheldon doughnut quest still returns to the map and unlocks the journal on phone and desktop.
 - Deployment packaging verifies every generated rendering asset and the selected cinema film.
 
-## Reproduce
+### Reproduce
 
 Run `npm run build`, then `npm run profile:loading`. Detailed timings, request initiators, request sizes and frame work are written to ignored `test-results/loading-profile.json`. Use `npm run test:browser -- --prepared` after a current build for the integrated browser checks.
 
