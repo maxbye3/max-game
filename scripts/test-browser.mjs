@@ -51,7 +51,7 @@ try {
           window.__rubyVoicePlays = [];
           const play = HTMLMediaElement.prototype.play;
           HTMLMediaElement.prototype.play = function (...args) {
-            const clip = /\/char\/ruby\/(audio-[1-4]\.mp3)$/.exec(this.src)?.[1];
+            const clip = /\/char\/ruby\/(audio-[1-4]\.mp3)$/.exec(new URL(this.src, location.href).pathname)?.[1];
             if (clip) {
               window.__rubyVoicePlays.push(clip);
               window.__rubyVoiceAudio = this;

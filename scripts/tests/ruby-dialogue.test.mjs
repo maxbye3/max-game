@@ -71,7 +71,7 @@ await withGameTest(async ({ loadModule, element }) => {
   const FakeAudio = globalThis.Audio;
   globalThis.Audio = class extends FakeAudio {
     constructor() { super(); audioInstances.push(this); }
-    play() { this.paused = false; plays.push({ source: this.src, loop: this.loop }); return Promise.resolve(); }
+    play() { this.paused = false; plays.push({ source: this.src?.split('?')[0], loop: this.loop }); return Promise.resolve(); }
     pause() { this.paused = true; }
   };
   const npcs = await loadModule('ruby-voice', 'js/overworld/npcs.ts');
@@ -105,7 +105,7 @@ await withGameTest(async ({ loadModule, element }) => {
     next();
     assert.deepEqual(voicePlays().slice(start).map(play => play.source),
       (accept ? [1, 2, 4] : [1, 2, 3, 4]).map(clip => `char/ruby/audio-${clip}.mp3`), 'each screen plays its clip once; rewards never replay it');
-    const audio = audioInstances.find(audio => audio.src === voicePlays().at(-1).source);
+    const audio = audioInstances.find(audio => audio.src?.split('?')[0] === voicePlays().at(-1).source);
     audio.currentTime = 1;
     if (visit % 2 === 0) click('#npc-dialogue-close');
     else npcs.updateNpcInteractions(npcs.SAM.x, npcs.SAM.y);
