@@ -4,6 +4,8 @@ import { getBattleResult, type BattleOutcome } from './battle-outcome.js';
 import { requireElement } from '../../core/elements.js';
 import { NIALL_MAX_HP, PLAYER_MAX_HP, NiallBattle } from './niall-battle.js';
 import { setNiallQuestState } from '../../core/world-state.js';
+import { createNiallBattleAudio } from './niall-battle-audio.js';
+import { animateDamage, clearDamageAnimations } from './niall-battle-effects.js';
 
 const playerHpMeter = requireElement<HTMLMeterElement>('#player-hp');
 const niallHpMeter = requireElement<HTMLMeterElement>('#niall-hp');
@@ -23,6 +25,8 @@ const openingNext = requireElement<HTMLButtonElement>('#opening-next');
 const healthItem = requireElement<HTMLButtonElement>('[data-item="capri-sun"]');
 const attackButton = requireElement<HTMLButtonElement>('[data-action="attack"]');
 const battle = new NiallBattle(1);
+const battleAudio = createNiallBattleAudio();
+window.addEventListener('pagehide', battleAudio.stop);
 const opening = createBattleOpening(appendLog);
 let started = false;
 type MoveStage = 'player-setup' | 'player-effect' | 'niall-setup' | 'niall-effect' | null;
@@ -56,6 +60,7 @@ function appendLog(message: string): void {
 function finishBattle(outcome: BattleOutcome, moveMessage = ''): void {
   const result = getBattleResult(outcome);
   battle.finish();
+  battleAudio.finish();
   moveStage = null;
   actionGrid.hidden = true;
   itemGrid.hidden = true;
@@ -88,23 +93,6 @@ function checkOutcome(message = ''): boolean {
   return false;
 }
 
-function animateDamage(selector: string, amount: number): void {
-  if (!amount) return;
-  const indicator = requireElement<HTMLElement>(selector);
-  indicator.textContent = `-${amount}`;
-  indicator.hidden = false;
-  indicator.classList.remove('fly-away');
-  void indicator.offsetWidth;
-  indicator.classList.add('fly-away');
-}
-
-function clearDamageAnimations(): void {
-  document.querySelectorAll<HTMLElement>('.battle-damage').forEach((indicator) => {
-    indicator.hidden = true;
-    indicator.classList.remove('fly-away');
-  });
-}
-
 function showPlayerOptions(): void {
   moveStage = null;
   openingGrid.hidden = true;
@@ -128,6 +116,7 @@ function takePlayerTurn(attack: boolean, setupMessage?: string, effectMessage?: 
 }
 
 function advanceTurn(): void {
+  if (!battle.battleOver) battleAudio.start();
   if (victoryFollowUp) {
     appendLog(victoryFollowUp.message);
     openingGrid.hidden = true;
@@ -145,6 +134,7 @@ function advanceTurn(): void {
     const previousNiallHp = battle.niallHp;
     const move = battle.resolvePlayerTurn();
     if (!move) return;
+    if (pendingPlayerAttack) battleAudio.hit();
     animateDamage('#niall-opening-damage', pendingPlayerAttack ? previousNiallHp - battle.niallHp : 0);
     renderBattle();
     moveStage = 'player-effect';
@@ -170,6 +160,7 @@ function advanceTurn(): void {
   if (moveStage === 'niall-setup') {
     const move = battle.resolveNiallTurn();
     if (!move) return;
+    battleAudio.hit();
     if (move.selfDamage) niallBattler.classList.add('poisoned');
     animateDamage('#player-opening-damage', move.damage);
     animateDamage('#niall-opening-damage', move.selfDamage ?? 0);
@@ -246,3 +237,4 @@ itemGrid.addEventListener('click', (event) => {
 openingNext.addEventListener('click', advanceTurn);
 renderBattle();
 opening.playOpeningSequence();
+battleAudio.start();

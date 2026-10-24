@@ -2,7 +2,7 @@ const AUDIO_MUTED_KEY = 'max-game:audio-muted';
 const gameAudio = new Set<HTMLMediaElement>();
 const suspendedAudio = new Set<HTMLMediaElement>();
 
-let audioMuted = false;
+let audioMuted = readMutedPreference();
 let powerAudio: HTMLMediaElement | null = null;
 let powerAudioEndsAt = 0;
 let powerAudioTimer = 0;

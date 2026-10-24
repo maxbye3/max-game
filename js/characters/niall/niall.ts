@@ -18,6 +18,8 @@ import { isSamTargetRecoiling } from '../../powers/sam/sam-power.js';
 import { setProfileImage } from '../../core/profile-images.js';
 import { getPlayerBody } from '../../core/player-body.js';
 import { isWheldonPlayerSpriteEnabled } from '../../core/player-sprite-test.js';
+import { createGameAudio } from '../../core/audio-mute.js';
+import { resolveSiteAsset } from '../../core/site-assets.js';
 
 const CONTACT_DISTANCE = 30;
 const VERTICAL_SIGHT_HALF_WIDTH = 16;
@@ -73,6 +75,9 @@ let busDialogueLines: string[] = [];
 let busDialogueActive = false;
 let wasNearBusStop = false;
 let hasShownBusArrival = false;
+const caughtVoice = createGameAudio(resolveSiteAsset('char/niall/audio/caught.m4a'));
+const returnVoice = createGameAudio(resolveSiteAsset('char/niall/audio/back-to-bus.mp3'));
+let returnVoiceStarted = false;
 
 export const isNiallBattleTransitionActive = () => battleTransitionActive;
 export const isNiallAlertActive = () => encounterState === 'spotted';
@@ -91,6 +96,8 @@ function showDialogue(line: string): void {
 }
 
 function hideDialogue(): void {
+  caughtVoice.pause();
+  caughtVoice.currentTime = 0;
   endDialogueAudio();
   dialogue.hidden = true;
 }
@@ -172,6 +179,10 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
     return;
   }
   if (isNiallFollowing()) {
+    if (!returnVoiceStarted) {
+      returnVoiceStarted = true;
+      void returnVoice.play().catch(() => {});
+    }
     if (Math.hypot(playerX - NIALL_BUS_STOP.triggerX, playerY - NIALL_BUS_STOP.triggerY) <= BUS_STOP_DISTANCE) {
       questState = 'busStop';
       setNiallQuestState(questState);
@@ -210,6 +221,8 @@ export function updateNiallInteraction(deltaTime: number, playerX: number, playe
     encounterState = 'caught';
     releaseAllInput();
     showDialogue(NIALL_DIALOGUE_LINES[0] ?? '...');
+    caughtVoice.currentTime = 0;
+    void caughtVoice.play().catch(() => {});
     return;
   }
   if (distance === 0 || encounterState !== 'chasing') return;
