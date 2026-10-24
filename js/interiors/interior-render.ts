@@ -19,7 +19,8 @@ import { drawDanPlayer, drawDanWorld } from '../powers/dan/dan-power-render.js';
 import { drawChrisPlayer, drawChrisWorld } from '../powers/chris/chris-power-render.js';
 import { drawBochraFloor, drawBochraLights } from '../powers/bochra/bochra-power-render.js';
 import { drawColander } from '../core/colander.js';
-import { CAVE_SIBLINGS, CAVE_SIBLINGS_IDLE_FRAME, CAVE_SIBLINGS_WALK_FRAMES, CaveSiblingsController } from './cave-siblings.js';
+import { CAVE_SIBLINGS, CaveSiblingsController } from './cave-siblings.js';
+import { interiorRenderAssets, preparedBackground } from './render-assets.js';
 import { SHOW_COLLISION_SHAPES } from '../core/config.js';
 import { canvas, context } from '../core/dom.js';
 import { InteriorCollision } from './interior-collision.js';
@@ -88,16 +89,18 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     context.fillStyle = '#0b0d0d';
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.save();
-    const interiorSourceScale = scene.sourceScale;
+    const backgroundLayout = preparedBackground(scene.backgroundSource);
+    const sourceScaleX = backgroundLayout?.scaleX ?? scene.sourceScale;
+    const sourceScaleY = backgroundLayout?.scaleY ?? scene.sourceScale;
     const animatedBackground = scene.backgroundAnimation && options.interiorFrames.length > 0
       ? options.interiorFrames[Math.floor(timeMs / scene.backgroundAnimation.frameDurationMs) % options.interiorFrames.length]!
       : interior;
     context.drawImage(
       animatedBackground.complete && animatedBackground.naturalWidth > 0 ? animatedBackground : interior,
-      cameraX * interiorSourceScale,
-      cameraY * interiorSourceScale,
-      viewportWidth * interiorSourceScale,
-      viewportHeight * interiorSourceScale,
+      cameraX * sourceScaleX,
+      cameraY * sourceScaleY,
+      viewportWidth * sourceScaleX,
+      viewportHeight * sourceScaleY,
       0,
       0,
       viewportWidth * scaleX,
@@ -176,8 +179,8 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     }
     if (isCaveInterior && !options.siblingChase && !isOscarEaten('siblings')) {
       const frame = caveSiblings?.isEntering
-        ? CAVE_SIBLINGS_WALK_FRAMES[caveSiblings.walkFrame]
-        : CAVE_SIBLINGS_IDLE_FRAME;
+        ? interiorRenderAssets.siblings.walk[caveSiblings.walkFrame]
+        : interiorRenderAssets.siblings.idle;
       if (frame) {
         const [sourceX, sourceY, sourceWidth, sourceHeight] = frame;
         withCharacterPowers(context, (CAVE_SIBLINGS.x - cameraX) * scaleX, ((caveSiblings?.y ?? CAVE_SIBLINGS.endY + (transformedCave ? 28 : 0)) - cameraY) * scaleY, CAVE_SIBLINGS.height * scaleY, 'siblings', () => context.drawImage(
@@ -344,8 +347,8 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     context.restore();
     const pursuer = options.siblingChase;
     if (pursuer && pursuer.phase !== 'waiting' && siblingsSprite.complete && siblingsSprite.naturalWidth) {
-      const frames = CAVE_SIBLINGS_WALK_FRAMES;
-      const frame = pursuer.phase === 'chasing' ? frames[pursuer.frame % frames.length] ?? CAVE_SIBLINGS_IDLE_FRAME : CAVE_SIBLINGS_IDLE_FRAME;
+      const frames = interiorRenderAssets.siblings.walk;
+      const frame = pursuer.phase === 'chasing' ? frames[pursuer.frame % frames.length] ?? interiorRenderAssets.siblings.idle : interiorRenderAssets.siblings.idle;
       context.drawImage(siblingsSprite, frame[0], frame[1], frame[2], frame[3],
         (pursuer.x - cameraX - 28) * scaleX, (pursuer.y - cameraY - 44) * scaleY, 56 * scaleX, 44 * scaleY);
     }

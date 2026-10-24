@@ -13,6 +13,7 @@ await withGameTest(async ({ loadModule }) => {
   const { createInteriorAssets } = await loadModule('interior-assets', 'js/interiors/interior-assets.ts');
   const { getInteriorScene } = await loadModule('scenes', 'js/interiors/interior-scenes.ts');
   const { SEAL_SPRITE_SOURCE } = await loadModule('seal', 'js/generated/core/seal-sprite.generated.ts');
+  const { CINEMA_FILM_SOURCE } = await loadModule('film', 'js/generated/interiors/cinema-film.generated.ts');
   assert.ok(!SEAL_SPRITE_SOURCE.startsWith('data:'), 'the optional seal sheet stays outside every JS bundle');
   const cinema = createInteriorAssets(getInteriorScene('cinema'), false, false, false);
   assert.equal(video.src, '', 'the film downloads nothing while room images are loading');
@@ -21,7 +22,7 @@ await withGameTest(async ({ loadModule }) => {
   cinema.startDeferredAssets();
   assert.equal(video.src, '', 'the first room frame is scheduled before the film starts');
   frames.shift()();
-  assert.equal(video.src, '../video/film.mp4');
+  assert.equal(video.src, `../${CINEMA_FILM_SOURCE}`);
   assert.equal(video.plays, 1, 'the cinema still plays its film after entry');
   const doughnuts = createInteriorAssets(getInteriorScene('feedback-center'), false, false, false);
   assert.ok(doughnuts.interior.src.endsWith('.webp'), 'doughnut shop uses its prepared browser image');

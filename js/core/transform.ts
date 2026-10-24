@@ -1,4 +1,4 @@
-import { CAVE_SIBLINGS, CAVE_SIBLINGS_IDLE_FRAME } from '../interiors/cave-siblings.js';
+import { CAVE_SIBLINGS } from '../interiors/cave-siblings.js';
 import { canvas, context, requireElement } from './dom.js';
 import { characterAsset } from './character-assets.js';
 import { CAVE_COLANDER, CAVE_HEIGHT, CAVE_WIDTH } from '../interiors/interior-scenes.js';
@@ -10,6 +10,7 @@ import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { createGameAudio } from './audio-mute.js';
 import { webImageSource } from './web-images.js';
 import { loadInteriorImage } from '../interiors/interior-image-loading.js';
+import { interiorRenderAssets } from '../interiors/render-assets.js';
 
 const CAVE_DARKNESS_ALPHA = 0.68;
 const SCENE_VIEW = { x: 232, y: 20, width: 176, height: 224 };
@@ -72,7 +73,7 @@ const siblingsSprite = new Image();
 const sealChair = new Image();
 const playerChair = new Image();
 background.src = webImageSource('img/internal/cave.jpg?v=20260901-half-size-no-sword');
-siblingsSprite.src = webImageSource(characterAsset('siblings', 'girlsSprite'));
+siblingsSprite.src = interiorRenderAssets.siblings.source;
 sealChair.src = webImageSource(characterAsset('siblings', 'sealChair'));
 playerChair.src = webImageSource(characterAsset('siblings', 'playerChair'));
 
@@ -85,7 +86,7 @@ function draw(): void {
   context.translate(-view.x, -view.y);
   context.drawImage(background, 0, 0, CAVE_WIDTH, CAVE_HEIGHT);
 
-  const [sourceX, sourceY, sourceWidth, sourceHeight] = CAVE_SIBLINGS_IDLE_FRAME;
+  const [sourceX, sourceY, sourceWidth, sourceHeight] = interiorRenderAssets.siblings.idle;
   context.drawImage(
     siblingsSprite,
     sourceX,

@@ -38,8 +38,8 @@ await withGameTest(async ({ loadModule }) => {
   const ghostSource = await loadModule('ghost-source', 'js/generated/core/ghost-sprite.generated.ts');
   assert.ok(ghostSource.GHOST_SPRITE_SOURCE.startsWith('data:image/png;base64,'), 'inline ghost images allow canvas pixel reads under file://');
   assert.deepEqual(Buffer.from(ghostSource.GHOST_SPRITE_SOURCE.split(',')[1], 'base64'), await readFile('char/player/ghost_sprite.png'), 'the inline ghost contains the original artwork');
-  const assetsSource = await readFile('js/core/assets.ts', 'utf8');
-  assert.match(assetsSource, /ghostSpriteSheet: GHOST_SPRITE_SOURCE/, 'the game loads the origin-clean inline ghost');
+  const { IMAGE_SOURCES } = await loadModule('asset-sources', 'js/core/asset-sources.ts');
+  assert.equal(IMAGE_SOURCES.ghostSpriteSheet, ghostSource.GHOST_SPRITE_SOURCE, 'the game loads the origin-clean inline ghost');
   assert.equal(ghostSprite.getGhostSpriteFrame('left', 8, 1).sourceX, 181, 'late frames use ghost spacing rather than the normal 23px grid');
   assert.equal(ghostSprite.getGhostSpriteFrame('up', 4, 1).sourceY, 139, 'back-facing poses use their measured row');
   assert.equal(ghostSprite.getGhostSpriteFrame('downLeft', 2, 1).sourceY, 245, 'diagonal poses use their own row');

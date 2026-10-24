@@ -42,6 +42,7 @@ Install Chromium once: `npx playwright install chromium` (on CI use `--with-deps
 | Concern | Location |
 | --- | --- |
 | Entry / overworld loop | `js/core/main.ts` |
+| Image sources / loading priority | `js/core/asset-sources.ts`, `js/core/assets.ts` |
 | World constants / collisions | `js/core/config.ts`, `js/core/collision*.ts` |
 | Keyboard and touch input | `js/core/input.ts`, `js/core/mobile-controls.ts` |
 | Options, mute, reset, and feedback entry | `js/core/options-menu.ts`, `js/core/audio-mute.ts`, `js/core/thoughts.ts` |
@@ -62,11 +63,17 @@ CSS is intentionally ordered in `css/game.css`: base, HUD, navigation, world eff
 
 `node scripts/generate-source.mjs` fingerprints each generator's source files, helper scripts, and outputs. It skips unchanged work; edits, missing/corrupt outputs, added/deleted inputs, and generator changes invalidate the relevant task. The disposable cache is `.cache/generation.json`; deleting it forces a safe rebuild. `npm run generate:source -- --force` explicitly regenerates everything.
 
-Tasks: `dialogues`, `profiles`, `dialogue-themes`, `item-descriptions`, `internal-collision`, `ghost-sprite`, `seal-sprite`, `web-images`, `web-assets`, `battle-avatars`, `styles`. A single task can be run with `node scripts/generate-source.mjs styles`. Specialized `generate:*` npm commands use the same cache. The build invokes generation once, rather than nesting npm lifecycle hooks.
+Tasks: `dialogues`, `profiles`, `dialogue-themes`, `item-descriptions`, `internal-collision`, `interior-render-assets`, `cinema-film`, `ghost-sprite`, `seal-sprite`, `web-images`, `web-assets`, `battle-avatars`, `styles`. A single task can be run with `node scripts/generate-source.mjs styles`. Specialized `generate:*` npm commands use the same cache. The build invokes generation once, rather than nesting npm lifecycle hooks.
 
 Power descriptions come verbatim from each character’s `item.txt`. The item-description generator explicitly selects Andy’s `Item.txt`, Rei’s `item-1.txt`/`item-2.txt`, and Niall’s `player/item.txt`. Inventory reveals use this text and remember discoveries across navigation and future copies of the gift; edit the original text files to change the wording. Alex S uses `char/wheldon/item.txt`.
 
 Room collision grids use byte-preserving run-length encoding where smaller, expanded only for the selected room. First poses are required for entry; extra cat/charity animation poses follow the first frame, retaining the first pose while later frames load. Room ambience starts when the room is ready. Photo galleries build their thumbnails when opened.
+
+Map image hints and the measured large-room background hint are stamped into HTML during bundling from the same runtime source definitions. Smaller room images load with the game code to avoid bandwidth contention. See [the loading audit](loading-performance.md) for current measurements.
+
+Room rendering derivatives are generated from the actual scene geometry into `img/generated/interiors/`. They bake the canvas's nearest-neighbour sampling for large backgrounds and door art; short rooms retain vertical resolution for portrait stretching. The four cave poses are packed without changing their source pixels. Original art remains untouched. Browser checks compare prepared backgrounds/poses against original renders, including portrait/desktop crops.
+
+The cinema uses a checked-in 298×168 silent projection copy, with the original film retained for the fullscreen Kirin view. After changing `video/film.mp4`, use `npm run prepare:cinema-film` with ffmpeg on PATH (or `FFMPEG_PATH` pointing to its executable), then build. Normal builds require no ffmpeg; a stale projection falls back to the original film. The cinema pauses its video while the tab is hidden.
 
 Normal builds generate lossless WebP browser copies for `scripts/web-image-sources.json`, including on CI. Add original image paths to that registry to optimize them; optional dimensions use nearest-neighbour resizing. The seal sheet is generated as a separate, cache-versioned image and only fetched in seal form. Music/fonts remain optional prepared copies: use `npm run prepare:web-assets` to refresh them. Stale or missing copies fall back to originals. Collision guides are original assets and are never optimized.
 

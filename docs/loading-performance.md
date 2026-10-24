@@ -1,39 +1,49 @@
-# Loading audit — version 1.0.10
+# Loading audit — version 1.0.11
 
-Measured locally with Chromium at a 390 × 844 phone viewport, an empty cache, 4 Mbps download, 80 ms latency and 4× CPU slowdown. These are individual controlled runs, not live-site guarantees. Map/room readiness is the game-loop start after essential images load; the first-visit bus introduction remains unchanged. Special scenes are measured once their initial artwork is visible.
+This pass continues the 1.0.10 audit across both map starts, all 11 interiors, transformation and battle. Measurements use Chromium at a 390 × 844 phone viewport, an empty cache, 4 Mbps download, 80 ms latency and 4× CPU slowdown on a local uncompressed static server. These are individual controlled runs, not live-site guarantees.
 
-| Page | Before | After |
-| --- | ---: | ---: |
-| First map visit | 2.61 s | 2.28 s |
-| Returning map | 2.33 s | 2.25 s |
-| Diary room / laboratory | 3.75 s | 3.00 s |
-| Charity | 3.68 s | 2.66 s |
-| Cave | 6.04 s | 4.86 s |
-| Cinema | 3.92 s | 3.34 s |
-| Doughnut shop | 4.48 s | 4.22 s |
-| Plant Room | 3.76 s | 3.19 s |
-| Music House | 5.64 s | 5.06 s |
-| Gym | 4.77 s | 4.11 s |
-| Bookshop | 3.33 s | 2.82 s |
-| Art Studio | 5.14 s | 3.80 s |
-| Mansion | 3.62 s | 2.93 s |
-| Transformation | 8.36 s | 6.63 s |
-| Niall battle | 3.79 s | 1.24 s |
+Readiness means essential room/map images loaded and the game loop started. The first-visit bus introduction is unchanged. Special scenes are measured when their initial artwork is visible. Frame work is the 95th percentile of time inside animation-frame callbacks during the next two seconds; it includes early deferred loading and is not an FPS measurement.
 
-## Changes
+| Area | 1.0.10 loading | 1.0.11 loading | Frame work before → after |
+| --- | ---: | ---: | ---: |
+| First map visit | 2.23 s | 2.09 s | 17.5 → 16.1 ms |
+| Returning map | 2.21 s | 2.08 s | 19.5 → 18.2 ms |
+| Diary room / laboratory | 3.05 s | 2.64 s | 7.8 → 8.3 ms |
+| Charity | 2.65 s | 1.97 s | 7.9 → 7.7 ms |
+| Cave | 4.78 s | 2.24 s | 6.2 → 6.0 ms |
+| Cinema | 3.35 s | 2.56 s | 30.4 → 18.1 ms |
+| Doughnut shop | 4.20 s | 2.42 s | 6.8 → 7.2 ms |
+| Plant Room | 3.16 s | 2.25 s | 7.1 → 6.8 ms |
+| Music House | 5.03 s | 3.19 s | 8.6 → 9.1 ms |
+| Gym | 4.11 s | 2.94 s | 8.2 → 8.4 ms |
+| Bookshop | 2.82 s | 2.17 s | 6.7 → 7.8 ms |
+| Art Studio | 3.69 s | 3.07 s | 8.0 → 7.7 ms |
+| Mansion | 2.87 s | 2.30 s | 7.0 → 8.0 ms |
+| Transformation | 6.61 s | 3.85 s | — |
+| Niall battle | 1.24 s | 1.25 s | — |
 
-- Reduced encoded room collision grids from 114,760 to 25,220 bytes, preserving all seven grids byte for byte. The shared room bundle fell from 502 KB to about 416 KB.
-- Require the first cat and Charity background pose for entry; download later poses after the first room frame and retain the first pose while waiting. Start ambience once the room is ready.
-- Build hidden photo thumbnails only when their gallery opens. Keep saved/offline content and feed refresh behavior.
-- Generate smaller lossless browser copies for remaining map sprites, room characters, animation sheets and overlays. Existing image dimensions and sprite crop coordinates are preserved for the newly registered sources.
-- Ensure the actual selected map form is loaded before play. Give secondary art lower download priority and bound NPC image decoding so a stalled decode cannot hide a character indefinitely.
-- Remove duplicate original battle portrait requests and move transparent battle artwork out of JavaScript. Battle JS fell from 740 KB to about 15 KB.
-- Use prepared images and the retry/decode-tolerant loader on the transformation screen.
+## Changes in this pass
 
-## Verification and remaining costs
+- Generate room rendering copies from actual scene geometry. Large backgrounds use the pixels the canvas displays; Music House retains full vertical resolution for portrait stretching. Keep the original asset whenever preparation would increase its download.
+- Prepare door artwork at its displayed size: roughly 5–30 KB per room instead of 44–385 KB. Door positions, collision and exit triggers are unchanged.
+- Pack the four indoor cave poses at their original pixel resolution, reducing that image from 1.44 MB to about 215 KB. The original complete sheet remains available to the overworld chase.
+- Reduce the doughnut background from 870 KB to 316 KB, Gym from 474 KB to 148 KB, Plant Room from 604 KB to 193 KB, and Music House from 1.56 MB to 836 KB.
+- Prepare a silent 168-pixel-high cinema projection at the same frame rate/duration: 2.1 MB instead of 8 MB. The original film remains available to the fullscreen Kirin view. Pause the projection when the tab is hidden.
+- Cull offscreen static map art. Nine sampled map views retain identical pixels while image draw calls fall from 218 to 61.
+- Discover universal map images in the HTML head. Only the large Music House background receives an early room-image hint; comparisons found smaller-room hints competing with startup JavaScript, so they were removed.
 
-All 46 Node suites and deployment packaging passed. Browser checks covered all 11 interiors on phone and desktop, all five map forms, inventory/version, portrait/landscape layouts, stalled animation recovery, cat poses, movement, Dad/Josh dialogue, art-gallery opening and exits. Transformation and battle have separate phone/landscape/desktop interaction checks.
+## Verification
 
-The Music House background and the siblings' animation sheet remain large downloads. Their source artwork and animation coordinates were retained. Optional room audio and the cinema film continue downloading after entry; total requested bytes include these and should not be read as blocking startup bytes.
+- All 49 Node suites passed, including asset generation, source-pixel preservation, missing/stale cinema-copy fallback, visibility culling and preload URL matching.
+- 43 browser canvas comparisons verify prepared backgrounds and cave poses against their originals, with tight rounding tolerances for doorway alpha edges.
+- All 11 interiors and all five map forms opened on phone and desktop. Portrait, landscape and desktop checks covered movement, exits, stalled-animation fallback/recovery, cat poses, Dad/Josh conversations and lazy art galleries.
+- Transformation still advances after browser image-decode rejection; battle artwork and opening controls work in all three layouts.
+- The smaller cinema film plays, pauses while hidden and resumes without fetching the full-size film.
+- The pulled ghost-Wheldon doughnut quest still returns to the map and unlocks the journal on phone and desktop.
+- Deployment packaging verifies every generated rendering asset and the selected cinema film.
 
-Run `npm run build`, then `npm run profile:loading` to reproduce a full audit. Detailed request sizes and long tasks are saved to ignored `test-results/loading-profile.json`.
+## Reproduce
+
+Run `npm run build`, then `npm run profile:loading`. Detailed timings, request initiators, request sizes and frame work are written to ignored `test-results/loading-profile.json`. Use `npm run test:browser -- --prepared` after a current build for the integrated browser checks.
+
+Remaining large downloads include optional background music and full overworld animation sheets. They are distinct from the required room-entry images; total requested bytes include media that starts after entry.

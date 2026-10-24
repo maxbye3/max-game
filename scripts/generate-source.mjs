@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { readdir, readFile } from 'node:fs/promises';
 import { generateTask, readCache, writeCache } from './lib/generation-cache.mjs';
+import { interiorRenderInputs, interiorRenderOutputs } from './lib/interior-render-plan.mjs';
 
 const cachePath = '.cache/generation.json';
 const cache = await readCache(cachePath);
@@ -20,6 +21,8 @@ const definitions = [
   ['dialogue-themes', ['char/manifest.json'], ['js/generated/core/dialogue-themes.generated.ts']],
   ['item-descriptions', ['char/manifest.json', ...itemDescriptions], ['js/generated/core/item-descriptions.generated.ts']],
   ['internal-collision', [...collisionImages, 'scripts/png.mjs', 'scripts/lib/collision-encoding.mjs'], collisionModules],
+  ['interior-render-assets', interiorRenderInputs, interiorRenderOutputs],
+  ['cinema-film', async () => ['video/film.mp4', 'scripts/cinema-film.manifest.json', JSON.parse(await readFile('scripts/cinema-film.manifest.json', 'utf8').catch(() => 'null'))?.output].filter(Boolean), ['js/generated/interiors/cinema-film.generated.ts']],
   ['ghost-sprite', ['char/player/ghost_sprite.png'], ['js/generated/core/ghost-sprite.generated.ts']],
   ['seal-sprite', ['char/manifest.json', 'char/player/seal-sprite.png', 'scripts/png.mjs'], ['js/generated/core/seal-sprite.generated.ts', 'img/generated/seal-sprite.png']],
   ['battle-avatars', ['char/niall/avatar.png', 'char/player/avatar.png', 'scripts/png.mjs'], ['img/battle/niall-avatar.png', 'img/battle/max-avatar.png', 'js/generated/characters/niall/battle-sprites.generated.ts']],

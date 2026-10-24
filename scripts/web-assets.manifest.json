@@ -145,8 +145,8 @@
       "output": "img/web/map-sprite-v4.2ca8fe504ea9.webp"
     },
     "img/generated/seal-sprite.png": {
-      "sourceHash": "af2150ad5e10",
-      "output": "img/web/seal-sprite.0ef6aafdb1e0.webp"
+      "sourceHash": "5bde4d7187df",
+      "output": "img/web/seal-sprite.a9d1742c7153.webp"
     },
     "img/internal/charity/bg-1.png": {
       "sourceHash": "68204e40887a",
@@ -317,12 +317,12 @@
       "output": "img/web/music-dj-machine.c1469e732c8c.webp"
     },
     "img/battle/niall-avatar.png": {
-      "sourceHash": "6b0740a59803",
-      "output": "img/web/niall-avatar.c8a247697fbe.webp"
+      "sourceHash": "d2032703ebeb",
+      "output": "img/web/niall-avatar.8667c96bcf18.webp"
     },
     "img/battle/max-avatar.png": {
-      "sourceHash": "41e1e5c64ca9",
-      "output": "img/web/max-avatar.e223404bbca6.webp"
+      "sourceHash": "8c7b0a8dc66e",
+      "output": "img/web/max-avatar.f2484cfe57c7.webp"
     }
   },
   "themes": {

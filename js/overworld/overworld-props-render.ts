@@ -1,4 +1,5 @@
 import { images } from '../core/assets.js';
+import { drawVisibleImage } from '../core/draw-visible-image.js';
 import { COLLISION_SHAPES } from '../core/collision-data.js';
 import {
   ARTIST_STUDIO_X,
@@ -99,12 +100,16 @@ const BAKED_SNOWMAN_PATCH = {
   height: 88,
 } as const;
 
+function drawWorldImage(image: HTMLImageElement, ...coordinates: number[]): void {
+  drawVisibleImage(context, image, ...coordinates);
+}
+
 function isImageReady(image: HTMLImageElement): boolean {
   return image.complete && image.naturalWidth > 0;
 }
 
 function drawRoadTree(cameraX: number, cameraY: number): void {
-  context.drawImage(
+  drawWorldImage(
     images.roadTree,
     ROAD_TREE_X - cameraX,
     ROAD_TREE_Y - cameraY,
@@ -114,7 +119,7 @@ function drawRoadTree(cameraX: number, cameraY: number): void {
 }
 
 function drawRoadBusRoof(cameraX: number, cameraY: number): void {
-  context.drawImage(
+  drawWorldImage(
     images.roadBusRoof,
     ROAD_BUS_ROOF_X - cameraX,
     ROAD_BUS_ROOF_Y - cameraY,
@@ -124,7 +129,7 @@ function drawRoadBusRoof(cameraX: number, cameraY: number): void {
 }
 
 function drawRoadBusSign(cameraX: number, cameraY: number): void {
-  context.drawImage(
+  drawWorldImage(
     images.road,
     ROAD_BUS_SIGN_SOURCE_X,
     ROAD_BUS_SIGN_SOURCE_Y,
@@ -138,11 +143,11 @@ function drawRoadBusSign(cameraX: number, cameraY: number): void {
 }
 
 function drawGate(cameraX: number, cameraY: number): void {
-  context.drawImage(images.gate, GATE_X - cameraX, GATE_Y - cameraY, GATE_WIDTH, GATE_HEIGHT);
+  drawWorldImage(images.gate, GATE_X - cameraX, GATE_Y - cameraY, GATE_WIDTH, GATE_HEIGHT);
 }
 
 function drawTori(cameraX: number, cameraY: number): void {
-  context.drawImage(images.tori, TORI_X - cameraX, TORI_Y - cameraY, TORI_SIZE, TORI_SIZE);
+  drawWorldImage(images.tori, TORI_X - cameraX, TORI_Y - cameraY, TORI_SIZE, TORI_SIZE);
 }
 
 function drawSnowman(cameraX: number, cameraY: number): void {
@@ -151,7 +156,7 @@ function drawSnowman(cameraX: number, cameraY: number): void {
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(
+  drawWorldImage(
     images.snowMansion,
     BAKED_SNOWMAN_PATCH.sourceX,
     BAKED_SNOWMAN_PATCH.sourceY,
@@ -162,7 +167,7 @@ function drawSnowman(cameraX: number, cameraY: number): void {
     BAKED_SNOWMAN_PATCH.width,
     BAKED_SNOWMAN_PATCH.height,
   );
-  context.drawImage(
+  drawWorldImage(
     images.snowmanFallen,
     Math.round(SNOWMAN.x - cameraX - SNOWMAN.fallenWidth / 2),
     Math.round(SNOWMAN.y - cameraY - SNOWMAN.fallenHeight),
@@ -185,7 +190,7 @@ function drawCollisionShapes(cameraX: number, cameraY: number): void {
 
 function drawOpenDoorways(cameraX: number, cameraY: number): void {
   for (const doorway of getOpenDoorways()) {
-    context.drawImage(
+    drawWorldImage(
       images.doorOpen,
       Math.round(doorway.x - cameraX),
       Math.round(doorway.y - cameraY),
@@ -207,25 +212,25 @@ export function drawWorldBackground(
     toriCoversPlayer: playerY < TORI_PLAYER_DEPTH_Y,
   };
 
-  context.drawImage(images.map, -cameraX, -cameraY);
-  context.drawImage(images.eventTinder, 178 - cameraX, 44 - cameraY, 80, 80);
+  drawWorldImage(images.map, -cameraX, -cameraY);
+  drawWorldImage(images.eventTinder, 178 - cameraX, 44 - cameraY, 80, 80);
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(images.road, ROAD_X - cameraX, ROAD_Y - cameraY, ROAD_WIDTH, ROAD_HEIGHT);
+  drawWorldImage(images.road, ROAD_X - cameraX, ROAD_Y - cameraY, ROAD_WIDTH, ROAD_HEIGHT);
   if (!depth.roadCoversPlayer) {
     drawRoadTree(cameraX, cameraY);
     drawRoadBusRoof(cameraX, cameraY);
   }
   context.restore();
 
-  context.drawImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
+  drawWorldImage(images.billboard, BILLBOARD_X - cameraX, BILLBOARD_Y - cameraY);
   const billboardScreen = hasMikeAftermath() ? images.billboardFinished : images.billboardUnfinished;
   if (isImageReady(billboardScreen)) {
     context.save();
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
-    context.drawImage(
+    drawWorldImage(
       billboardScreen,
       BILLBOARD_SCREEN_X - cameraX,
       BILLBOARD_SCREEN_Y - cameraY,
@@ -234,17 +239,17 @@ export function drawWorldBackground(
     );
     context.restore();
   }
-  context.drawImage(images.tv, TV_X - cameraX, TV_Y - cameraY, TV_WIDTH, TV_HEIGHT);
+  drawWorldImage(images.tv, TV_X - cameraX, TV_Y - cameraY, TV_WIDTH, TV_HEIGHT);
   drawTvScreen(context, time, cameraX, cameraY);
 
-  context.drawImage(images.cinema, CINEMA_X - cameraX, CINEMA_Y - cameraY);
-  context.drawImage(images.musicShop, MUSIC_SHOP_X - cameraX, MUSIC_SHOP_Y - cameraY);
-  context.drawImage(images.gym, GYM_X - cameraX, GYM_Y - cameraY);
+  drawWorldImage(images.cinema, CINEMA_X - cameraX, CINEMA_Y - cameraY);
+  drawWorldImage(images.musicShop, MUSIC_SHOP_X - cameraX, MUSIC_SHOP_Y - cameraY);
+  drawWorldImage(images.gym, GYM_X - cameraX, GYM_Y - cameraY);
   if (Math.floor(time / GYM_ROOF_TOGGLE_INTERVAL) % 2 === 0) {
-    context.drawImage(images.gymRoof, GYM_ROOF_X - cameraX - 1, GYM_ROOF_Y - cameraY + 1);
+    drawWorldImage(images.gymRoof, GYM_ROOF_X - cameraX - 1, GYM_ROOF_Y - cameraY + 1);
   }
-  context.drawImage(images.snowMansion, SNOW_MANSION_X - cameraX, SNOW_MANSION_Y - cameraY - 10);
-  context.drawImage(
+  drawWorldImage(images.snowMansion, SNOW_MANSION_X - cameraX, SNOW_MANSION_Y - cameraY - 10);
+  drawWorldImage(
     images.musicShopSign,
     MUSIC_SHOP_SIGN_X - cameraX,
     MUSIC_SHOP_SIGN_Y - cameraY,
@@ -252,12 +257,12 @@ export function drawWorldBackground(
     MUSIC_SHOP_SIGN_HEIGHT,
   );
   drawSnowman(cameraX, cameraY);
-  context.drawImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
-  context.drawImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
+  drawWorldImage(images.jobCenter, JOB_CENTER_X - cameraX, JOB_CENTER_Y - cameraY);
+  drawWorldImage(images.artistStudio, ARTIST_STUDIO_X - cameraX, ARTIST_STUDIO_Y - cameraY);
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(
+  drawWorldImage(
     images.feedback,
     FEEDBACK_X - cameraX,
     FEEDBACK_Y - cameraY + FEEDBACK_SHOP.yOffset,
@@ -268,14 +273,14 @@ export function drawWorldBackground(
 
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  context.drawImage(
+  drawWorldImage(
     images.bookshop,
     BOOKSHOP_X - cameraX,
     BOOKSHOP_Y - cameraY,
     BOOKSHOP_WIDTH,
     BOOKSHOP_HEIGHT,
   );
-  context.drawImage(
+  drawWorldImage(
     images.diaryLab,
     DIARY_LAB_X - cameraX,
     DIARY_LAB_Y - cameraY,
@@ -283,9 +288,9 @@ export function drawWorldBackground(
     DIARY_LAB_HEIGHT,
   );
   context.imageSmoothingEnabled = false;
-  context.drawImage(images.zenGarden, ZEN_GARDEN_X - cameraX, ZEN_GARDEN_Y - cameraY);
+  drawWorldImage(images.zenGarden, ZEN_GARDEN_X - cameraX, ZEN_GARDEN_Y - cameraY);
   if (isImageReady(images.graveyard)) {
-    context.drawImage(
+    drawWorldImage(
       images.graveyard,
       GRAVEYARD_X - cameraX,
       GRAVEYARD_Y - cameraY,

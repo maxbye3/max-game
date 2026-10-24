@@ -1,66 +1,11 @@
+import { IMAGE_SOURCES } from './asset-sources.js';
 import { hasMikeAftermath } from './world-state.js';
-import { characterAsset, playerAsset } from './character-assets.js';
 import { webImageSource } from './web-images.js';
-import { SEAL_SPRITE_SOURCE } from '../generated/core/seal-sprite.generated.js';
-import { GHOST_SPRITE_SOURCE } from '../generated/core/ghost-sprite.generated.js';
 import { decodeLoadedImage } from './image-decoding.js';
 import { getPlayerBody } from './player-body.js';
 import { isWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 
-const IMAGE_SOURCES = {
-  map: 'img/external/overworld.png?v=riverside-sign-bookstore',
-  eventTinder: 'img/external/event-tinder.png',
-  road: 'img/external/road.png',
-  roadTree: 'img/external/tree.png',
-  roadBusRoof: 'img/external/bus-roof.png',
-  gate: 'img/external/gate.png',
-  graveyard: 'img/external/graveyard.png',
-  musicShopSign: 'img/external/music-shop-sign.png',
-  doorOpen: 'img/external/door-open.png',
-  billboard: 'img/external/buildings/billboard.png',
-  billboardUnfinished: 'img/external/billboard-unfinished.png',
-  billboardFinished: 'img/external/billboard-finished.png',
-  tv: 'img/external/buildings/tv.png',
-  cinema: 'img/external/buildings/cinema.png',
-  musicShop: 'img/external/buildings/music-shop.png',
-  gym: 'img/external/buildings/gym.png',
-  gymRoof: 'img/external/buildings/gym-roof.png',
-  snowMansion: 'img/external/buildings/snow-mansion.png',
-  snowmanFallen: 'img/external/snowman-fallen.png',
-  jobCenter: 'img/external/buildings/job-center.png',
-  artistStudio: 'img/external/buildings/artist-studio.png',
-  feedback: 'img/external/doughnut_shop.png',
-  diaryLab: 'img/external/buildings/diary-lab.png',
-  bookshop: 'img/external/buildings/bookshop.png',
-  zenGarden: 'img/external/buildings/zen-garden.png',
-  tori: 'img/external/buildings/tori.png',
-  spriteSheet: playerAsset('spriteSheet'),
-  ghostSpriteSheet: GHOST_SPRITE_SOURCE,
-  sealSpriteSheet: SEAL_SPRITE_SOURCE,
-  georgia: characterAsset('georgia', 'avatar'),
-  georgiaBike: characterAsset('georgia', 'bike'),
-  mike: characterAsset('mike', 'overworldAvatar'),
-  mikeAftermath: 'img/external/mike-aftermath.png',
-  paint: 'img/external/paint.png',
-  rei: characterAsset('rei', 'overworldAvatar'),
-  adam: characterAsset('adam', 'avatar'),
-  ed: characterAsset('ed', 'avatar'),
-  alexS: characterAsset('alex-s', 'avatar'),
-  wheldonSprite: characterAsset('alex-s', 'wheldonSprite'),
-  ghostWheldonSprite: characterAsset('alex-s', 'ghostWheldonSprite'),
-  katy: characterAsset('katy', 'mapSprite'),
-  timWalk: characterAsset('tim', 'walkSprite'),
-  niallSprite: characterAsset('niall', 'niallSprite'),
-  niallExplanationMark: characterAsset('niall', 'explanationMark'),
-  girlsSprite: characterAsset('siblings', 'girlsSprite'),
-  bus: 'img/external/bus.png',
-  roadCarBlue: 'img/external/cars/blue-hatchback.png',
-  roadCarRed: 'img/external/cars/red-hatchback.png',
-  roadCarSilver: 'img/external/cars/silver-hatchback.png',
-  roadCarGreen: 'img/external/cars/green-suv.png',
-  roadCarYellow: 'img/external/cars/yellow-taxi.png',
-  roadCarVan: 'img/external/cars/cream-van.png',
-} as const;
+
 
 export type AssetName = keyof typeof IMAGE_SOURCES;
 

@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { interiorRenderOutputs } from './lib/interior-render-plan.mjs';
 
 const output = resolve('_site');
 await rm(output, { recursive: true, force: true });
@@ -19,4 +20,10 @@ for (const name of ['web-images', 'power-themes']) {
 for (const path of ['img/external/overworld.png', 'img/external/road.png', 'img/battle/niall-avatar.png', 'img/battle/max-avatar.png']) {
   if (!(await stat(resolve(output, path))).isFile()) throw new Error(`Missing published asset: ${path}`);
 }
+for (const path of (await interiorRenderOutputs()).slice(1)) {
+  if (!(await stat(resolve(output, path))).isFile()) throw new Error(`Missing published render asset: ${path}`);
+}
+const cinemaModule = await readFile('js/generated/interiors/cinema-film.generated.ts', 'utf8');
+const cinemaSource = JSON.parse(cinemaModule.match(/= ("[^"]+");/)[1]);
+if (!(await stat(resolve(output, cinemaSource))).isFile()) throw new Error(`Missing published cinema film: ${cinemaSource}`);
 console.log('Packaged game with generated assets in _site.');

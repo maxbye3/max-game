@@ -4,6 +4,7 @@ import type { InteriorScene } from './interior-scenes.js';
 import { createGameAudio } from '../core/audio-mute.js';
 import { getPlayerBody } from '../core/player-body.js';
 import { isWheldonPlayerSpriteEnabled } from '../core/player-sprite-test.js';
+import { interiorRenderAssets } from './render-assets.js';
 
 const OPEN_DISTANCE = 53;
 const EXIT_DISTANCE = 18;
@@ -91,9 +92,10 @@ export class InteriorDoorsController {
     if (overlayDoorIndex === null) return;
     const door = this.scene.doors[overlayDoorIndex];
     if (!door) return;
+    const frame = interiorRenderAssets.doors[this.scene.kind]?.frames[overlayDoorIndex] ?? [door.sourceX, door.sourceY, door.sourceWidth, door.sourceHeight];
     context.drawImage(
       overlay,
-      door.sourceX, door.sourceY, door.sourceWidth, door.sourceHeight,
+      frame[0], frame[1], frame[2], frame[3],
       (door.x - cameraX) * scale, (door.y - cameraY) * scale,
       door.width * scale, door.height * scale,
     );

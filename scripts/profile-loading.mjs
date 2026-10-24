@@ -29,6 +29,13 @@ try {
       page.on('pageerror', error => errors.push(error.message));
       await page.addInitScript(() => {
         window.__loadingTasks = [];
+        window.__frameWork = [];
+        const frame = requestAnimationFrame.bind(window);
+        window.requestAnimationFrame = callback => frame(time => {
+          const start = performance.now();
+          callback(time);
+          window.__frameWork.push(performance.now() - start);
+        });
         new PerformanceObserver(list => window.__loadingTasks.push(...list.getEntries().map(task => ({ start: task.startTime, ms: task.duration })))).observe({ type: 'longtask', buffered: true });
       });
       await client.send('Network.enable');
@@ -43,15 +50,20 @@ try {
       }, name, { timeout: 120000 });
       const initial = await page.evaluate(() => ({
         readyMs: Math.round(performance.getEntriesByName('max-game:ready')[0]?.startTime ?? performance.now()),
-        resources: performance.getEntriesByType('resource').map(resource => ({ file: new URL(resource.name).pathname, bytes: resource.transferSize, ms: Math.round(resource.duration) })),
+        resources: performance.getEntriesByType('resource').map(resource => ({ file: new URL(resource.name).pathname, bytes: resource.transferSize, ms: Math.round(resource.duration), initiator: resource.initiatorType, startMs: Math.round(resource.startTime), endMs: Math.round(resource.responseEnd) })),
         longTasks: window.__loadingTasks,
       }));
-      // Also record the deferred map art and other downloads started after entry.
+      // Sample real frame callbacks while deferred art and audio are loading.
+      await page.evaluate(() => { window.__frameWork = []; });
       await page.waitForTimeout(2000);
+      const frameWork = await page.evaluate(() => {
+        const samples = window.__frameWork.slice().sort((a, b) => a - b);
+        return { samples: samples.length, p50Ms: samples[Math.floor(samples.length * 0.5)] ?? 0, p95Ms: samples[Math.floor(samples.length * 0.95)] ?? 0, maxMs: samples.at(-1) ?? 0 };
+      });
       const assets = await Promise.all([...requested].map(async file => ({ file, bytes: (await stat(resolve('.' + file)).catch(() => ({ size: 0 }))).size })));
-      const result = { name, ...initial, requested: assets.sort((a, b) => b.bytes - a.bytes), errors };
+      const result = { name, ...initial, frameWork, requested: assets.sort((a, b) => b.bytes - a.bytes), errors };
       results.push(result);
-      console.log(`${name}: ${(initial.readyMs / 1000).toFixed(2)}s; ${(assets.reduce((sum, asset) => sum + asset.bytes, 0) / 1e6).toFixed(2)} MB requested; ${errors.length} errors`);
+      console.log(`${name}: ${(initial.readyMs / 1000).toFixed(2)}s; frame p95 ${frameWork.p95Ms.toFixed(1)}ms; ${(assets.reduce((sum, asset) => sum + asset.bytes, 0) / 1e6).toFixed(2)} MB requested; ${errors.length} errors`);
       if (errors.length) throw new Error(errors.join('\n'));
     } finally { await context.close(); }
   }

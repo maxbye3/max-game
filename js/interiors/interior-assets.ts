@@ -11,6 +11,8 @@ import { isTimAtCinema, isTimAtMusicShop } from '../characters/tim/tim-location.
 import { SHOW_COLLISION_SHAPES } from '../core/config.js';
 import { webImageSource } from '../core/web-images.js';
 import { loadInteriorImage } from './interior-image-loading.js';
+import { interiorBackgroundSource, interiorRenderAssets } from './render-assets.js';
+import { CINEMA_FILM_SOURCE } from '../generated/interiors/cinema-film.generated.js';
 import type { InteriorScene } from './interior-scenes.js';
 export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, wheldonPlayer: boolean, ghostWheldonPlayer: boolean) {
   const isDiaryLabInterior = scene.kind === 'diaryLab';
@@ -24,6 +26,11 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     cinemaFilm.loop = true;
     cinemaFilm.playsInline = true;
     cinemaFilm.preload = 'none';
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cinemaFilm.pause();
+      else if (cinemaFilm.src) void cinemaFilm.play().catch(() => {});
+    });
+    window.addEventListener('pagehide', () => cinemaFilm.pause());
   }
   const isCaveInterior = scene.kind === 'cave';
   const cavePlayerChair = scene.kind === 'cave' && hasCaveTransformation() ? new Image() : null;
@@ -47,7 +54,7 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
   ] : [];
   interior.fetchPriority = 'high';
   spriteSheet.fetchPriority = 'high';
-  interior.src = webImageSource(scene.backgroundSource);
+  interior.src = interiorBackgroundSource(scene.backgroundSource);
   const interiorFrames = scene.backgroundAnimation?.sources.map((source) => {
     if (source === scene.backgroundSource) return interior;
     const image = new Image();
@@ -60,13 +67,16 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     }
   }
   if (SHOW_COLLISION_SHAPES && scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
-  if (scene.doorOverlaySource) doorOverlay.src = webImageSource(scene.doorOverlaySource);
+  if (scene.doorOverlaySource) {
+    const prepared = interiorRenderAssets.doors[scene.kind];
+    doorOverlay.src = prepared ? `../${prepared.source}` : webImageSource(scene.doorOverlaySource);
+  }
   const playerSpriteSource = ghostWheldonPlayer ? characterAsset('alex-s', 'ghostWheldonSprite') : wheldonPlayer ? characterAsset('alex-s', 'wheldonSprite') : SEAL_MODE ? SEAL_SPRITE_SOURCE : playerAsset('spriteSheet');
   spriteSheet.src = playerSpriteSource.startsWith('data:') ? playerSpriteSource : webImageSource(`../${playerSpriteSource}`);
   if (scene.kind === 'artStudio') joshSprite.src = webImageSource(`../${characterAsset('josh', 'avatar')}`);
   if (scene.kind === 'mansion') noelSprite.src = webImageSource(`../${characterAsset('noel', 'interiorAvatar')}`);
   if (scene.kind === 'plantRoom') gardenPanda.src = webImageSource('../img/internal/art/panda.png');
-  if (isCaveInterior || isSiblingPursuitActive()) siblingsSprite.src = webImageSource(`../${characterAsset('siblings', 'girlsSprite')}`);
+  if (isCaveInterior || isSiblingPursuitActive()) siblingsSprite.src = `../${interiorRenderAssets.siblings.source}`;
   if (isMusicShopInterior) musicDjMachine.src = webImageSource('../img/internal/music-dj-machine.png');
   if (isBookshopInterior) {
     bookshopNpcs.forEach((npc) => {
@@ -104,11 +114,11 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     requestAnimationFrame(() => {
       for (const { image, source } of deferredImages) {
         image.fetchPriority = 'low';
-        image.src = webImageSource(source);
+        image.src = interiorBackgroundSource(source);
         void loadInteriorImage(image).catch(error => console.warn(error));
       }
       if (cinemaFilm) {
-        cinemaFilm.src = '../video/film.mp4';
+        cinemaFilm.src = `../${CINEMA_FILM_SOURCE}`;
         void cinemaFilm.play().catch(() => {});
       }
     });
