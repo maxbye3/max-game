@@ -1,0 +1,8 @@
+Ruby smile — built-in image_gen edit.
+
+Edit target: char/ruby/overworld-avatar-pink.png, enlarged 16x for the edit.
+Final asset: char/ruby/overworld-avatar-smile.png (32x44 RGBA).
+Only the generated smile was composited into the original map sprite. Its upturned mouth was sampled onto a five-by-two logical-pixel region for readability; five RGB pixels changed. All remaining pixels and the entire original alpha channel are identical to the pink-outfit sprite. The larger avatar already has its original smile.
+
+Prompt:
+Use case: precise-object-edit. Add ONLY a tiny friendly closed-mouth SMILE to this existing Ruby game sprite. This image is a strict 32x44 logical-pixel sprite enlarged exactly 16x to 512x704. Center a small symmetric smile below her two eyes on the peach face: about 3 logical pixels wide, using muted dark rose/red, with subtly raised corners. The smile must be made of full aligned logical pixels, at least 1 logical pixel thick, so it stays clearly visible when resized back to 32x44. No teeth, no open mouth, no nose, no extra eyebrows. Preserve every other logical pixel: matching vertical eyes, peach skin and rosy cheeks, burgundy curly hair and its exact silhouette, silver earrings, bright pink jacket, striped turtleneck, slim red pants, hands, shoes, body proportions, pose, original framing and transparent padding. Change ONLY the tiny mouth area; do not redraw, rescale, or redesign the head or body. Single sprite, crisp chunky pixel art, same canvas aspect ratio, genuine transparent PNG, no text or background.
