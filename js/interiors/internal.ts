@@ -196,7 +196,7 @@ const interiorDoors = new InteriorDoorsController(scene, {
   sealMode: SEAL_MODE,
   hasCaveColander: () => caveColanderHeld && !isTransformedCave,
 });
-const doughnutShop = scene.kind === 'doughnutShop' && wheldonPlayer
+const doughnutShop = scene.kind === 'doughnutShop' && isAlexPlayer()
   ? new DoughnutShopController(() => interiorDoors.returnUrl(), () => input.releaseAll())
   : null;
 const collision = new InteriorCollision(
