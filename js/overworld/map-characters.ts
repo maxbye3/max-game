@@ -1,5 +1,6 @@
 import { withCharacterPowers } from '../powers/shared/character-power-render.js';
 import { webImageSource } from '../core/web-images.js';
+import { decodeLoadedImage } from '../core/image-decoding.js';
 import { characterAsset, type CharacterId } from '../core/character-assets.js';
 import { samTargetId, samVictimOffset } from '../powers/sam/sam-power.js';
 import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
@@ -63,7 +64,7 @@ function loadImage(character: MapCharacter): Promise<void> {
   return new Promise((resolve, reject) => {
     character.image.onload = async () => {
       try {
-        await character.image.decode?.().catch(() => {});
+        await decodeLoadedImage(character.image);
         character.sprite = prepareMapSprite(character);
         resolve();
       } catch (error) {
@@ -71,6 +72,7 @@ function loadImage(character: MapCharacter): Promise<void> {
       }
     };
     character.image.onerror = () => reject(new Error(`Failed to load ${character.source}`));
+    character.image.fetchPriority = 'low';
     character.image.src = webImageSource(character.source);
   });
 }

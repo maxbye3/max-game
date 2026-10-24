@@ -1,3 +1,5 @@
+import { decodeLoadedImage } from '../core/image-decoding.js';
+
 function waitForLoad(image: HTMLImageElement): Promise<void> {
   return new Promise((resolve, reject) => {
     const cleanup = (): void => {
@@ -26,12 +28,5 @@ export async function loadInteriorImage(image: HTMLImageElement): Promise<void> 
     await waitForLoad(image);
   }
 
-  // A loaded bitmap can still be drawn when a browser rejects or stalls decode().
-  // Keep decoding off the first frame where possible without blocking room entry.
-  if (!image.decode) return;
-  await new Promise<void>((resolve) => {
-    const finish = (): void => { window.clearTimeout(timeout); resolve(); };
-    const timeout = window.setTimeout(finish, 1500);
-    void image.decode().then(finish, finish);
-  });
+  await decodeLoadedImage(image);
 }

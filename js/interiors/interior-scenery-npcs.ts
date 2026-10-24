@@ -10,6 +10,7 @@ export interface InteriorSceneryNpc {
   readonly image: HTMLImageElement;
   readonly frames?: readonly {
     readonly image: HTMLImageElement;
+    readonly source?: string;
     readonly sourceBounds: readonly [number, number, number, number];
     readonly width: number;
     readonly height: number;
@@ -38,7 +39,8 @@ export function drawSceneryNpcs(
   context.imageSmoothingEnabled = false;
   npcs.forEach((npc) => {
     if (npc.id && isOscarEaten(npc.id)) return;
-    const frame = npc.frames?.[Math.floor(timeMs / (npc.frameDurationMs ?? 350)) % npc.frames.length];
+    const selected = npc.frames?.[Math.floor(timeMs / (npc.frameDurationMs ?? 350)) % npc.frames.length];
+    const frame = selected?.image.complete && selected.image.naturalWidth > 0 ? selected : npc.frames?.[0];
     const width = frame?.width ?? npc.width;
     const height = frame?.height ?? npc.height;
     const destinationX = Math.round((npc.x - cameraX - width / 2) * scaleX);

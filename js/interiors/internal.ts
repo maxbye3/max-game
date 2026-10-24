@@ -685,7 +685,7 @@ function gameLoop(time: number): void {
 }
 interiorDoors.syncExitLink(document.querySelector<HTMLAnchorElement>('.interior-exit'));
 document.querySelectorAll<HTMLElement>('.npc-dialogue').forEach(setupDialoguePanel);
-bindControls(); setupAudioMute(); setupInteriorAmbience(enteredDoor);
+bindControls(); setupAudioMute();
 setupInventory(); setupOptionsMenu(() => input.releaseAll());
 bindPowerDialogueDismissal(closeNoelDialogue);
 window.addEventListener('max-game:alex-s-dialogue', () => { input.releaseAll(); closeNoelDialogue(); });
@@ -698,7 +698,7 @@ Promise.all([...assets.requiredImages, ...(lucy ? [lucy.sprite] : [])].map(loadI
     doorLoading.hidden = true;
     context.imageSmoothingEnabled = false;
     startGameLoop(gameLoop, () => { previousTime = 0; });
-    assets.startBackgroundMedia(); doughnutShop?.enter();
+    assets.startDeferredAssets(); setupInteriorAmbience(enteredDoor); doughnutShop?.enter();
     if (isDiaryLabInterior && !siblingChase) startAlexJournalOffer();
   })
   .catch((error: unknown) => {

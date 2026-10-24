@@ -23,9 +23,10 @@ export function createDiaryRoomNpcs(): InteriorSceneryNpc[] {
     ...CATS.map((cat): InteriorSceneryNpc => {
       const frames = cat.bounds.map((sourceBounds, index) => {
         const image = new Image();
-        image.src = `../img/internal/diary-room/${cat.name}/${cat.name}-${index + 1}.png`;
+        const source = `../img/internal/diary-room/${cat.name}/${cat.name}-${index + 1}.png`;
+        if (index === 0) image.src = webImageSource(source);
         const scale = Math.sqrt(CAT_VISIBLE_AREA / (sourceBounds[2] * sourceBounds[3]));
-        return { image, sourceBounds, width: sourceBounds[2] * scale, height: sourceBounds[3] * scale };
+        return { image, source, sourceBounds, width: sourceBounds[2] * scale, height: sourceBounds[3] * scale };
       });
       return {
         x: cat.x, y: cat.y,

@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { readPng, writePng } from './png.mjs';
+import { createHash } from 'node:crypto';
 
 const OUTPUTS = [
   {
@@ -83,11 +84,12 @@ for (const { source, target, threshold, exportName } of OUTPUTS) {
   mkdirSync(dirname(targetPath), { recursive: true });
   const png = writePng(makeTransparent(image, threshold));
   writeFileSync(targetPath, png);
-  spriteExports.push(`export const ${exportName} = ${JSON.stringify(`data:image/png;base64,${png.toString('base64')}`)};`);
+  const version = createHash('sha256').update(png).digest('hex').slice(0, 12);
+  spriteExports.push(`export const ${exportName} = ${JSON.stringify(`${target}?v=${version}`)};`);
   console.log(`Generated ${target}`);
 }
 
-// Ship the transparent sprites inside the battle bundle for static checkouts.
+// Separate cache-versioned images keep binary artwork out of the battle JS.
 const modulePath = resolve('js/generated/characters/niall/battle-sprites.generated.ts');
 mkdirSync(dirname(modulePath), { recursive: true });
 writeFileSync(modulePath, spriteExports.join('\n') + '\n');

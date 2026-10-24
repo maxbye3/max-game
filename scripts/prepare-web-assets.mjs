@@ -9,7 +9,7 @@ function run(command, args) {
   if (result.error || result.status !== 0) throw new Error(`${command}: ${result.error ?? result.stderr}`);
 }
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex').slice(0, 12);
-run('node', ['scripts/generate-source.mjs', 'seal-sprite', 'web-images']);
+run('node', ['scripts/generate-source.mjs', 'seal-sprite', 'battle-avatars', 'web-images']);
 await mkdir('audio/powers', { recursive: true });
 const existingManifest = JSON.parse(await readFile('scripts/web-assets.manifest.json', 'utf8'));
 const characterManifest = JSON.parse(await readFile('char/manifest.json', 'utf8'));

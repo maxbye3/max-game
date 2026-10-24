@@ -89,11 +89,11 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.save();
     const interiorSourceScale = scene.sourceScale;
-    const background = scene.backgroundAnimation && options.interiorFrames.length > 0
+    const animatedBackground = scene.backgroundAnimation && options.interiorFrames.length > 0
       ? options.interiorFrames[Math.floor(timeMs / scene.backgroundAnimation.frameDurationMs) % options.interiorFrames.length]!
       : interior;
     context.drawImage(
-      background,
+      animatedBackground.complete && animatedBackground.naturalWidth > 0 ? animatedBackground : interior,
       cameraX * interiorSourceScale,
       cameraY * interiorSourceScale,
       viewportWidth * interiorSourceScale,

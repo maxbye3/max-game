@@ -19,6 +19,7 @@ The inventory shows the version from `package.json`, stamped into both pages dur
 | `npm run test:dialogue` | NPC conversations, room characters, journals, and Niall |
 | `npm run test:progression` | Save progression, road traffic, interior collision |
 | `npm run test:assets` | Sprite crops, build entries, loading, audio, rendering caches |
+| `npm run profile:loading` | Profile both map starts, all 11 interiors, transformation and battle with an empty browser cache, 4 Mbps network, 80 ms latency, and 4x CPU slowdown; saves `test-results/loading-profile.json` |
 | `npm run test:content` | Feed freshness, fallbacks, refresh/cancellation, galleries |
 | `npm run test:tooling` | Generation cache invalidation and recovery |
 | `npm run watch` | Watch all four TS entries and `css/`, rebuilding cache keys |
@@ -64,6 +65,8 @@ CSS is intentionally ordered in `css/game.css`: base, HUD, navigation, world eff
 Tasks: `dialogues`, `profiles`, `dialogue-themes`, `item-descriptions`, `internal-collision`, `ghost-sprite`, `seal-sprite`, `web-images`, `web-assets`, `battle-avatars`, `styles`. A single task can be run with `node scripts/generate-source.mjs styles`. Specialized `generate:*` npm commands use the same cache. The build invokes generation once, rather than nesting npm lifecycle hooks.
 
 Power descriptions come verbatim from each character’s `item.txt`. The item-description generator explicitly selects Andy’s `Item.txt`, Rei’s `item-1.txt`/`item-2.txt`, and Niall’s `player/item.txt`. Inventory reveals use this text and remember discoveries across navigation and future copies of the gift; edit the original text files to change the wording. Alex S uses `char/wheldon/item.txt`.
+
+Room collision grids use byte-preserving run-length encoding where smaller, expanded only for the selected room. First poses are required for entry; extra cat/charity animation poses follow the first frame, retaining the first pose while later frames load. Room ambience starts when the room is ready. Photo galleries build their thumbnails when opened.
 
 Normal builds generate lossless WebP browser copies for `scripts/web-image-sources.json`, including on CI. Add original image paths to that registry to optimize them; optional dimensions use nearest-neighbour resizing. The seal sheet is generated as a separate, cache-versioned image and only fetched in seal form. Music/fonts remain optional prepared copies: use `npm run prepare:web-assets` to refresh them. Stale or missing copies fall back to originals. Collision guides are original assets and are never optimized.
 

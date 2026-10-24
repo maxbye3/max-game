@@ -8,6 +8,8 @@ import { completeCaveTransformation } from './cave-transformation.js';
 import { setPlayerBody } from './player-body.js';
 import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { createGameAudio } from './audio-mute.js';
+import { webImageSource } from './web-images.js';
+import { loadInteriorImage } from '../interiors/interior-image-loading.js';
 
 const CAVE_DARKNESS_ALPHA = 0.68;
 const SCENE_VIEW = { x: 232, y: 20, width: 176, height: 224 };
@@ -69,10 +71,10 @@ const background = new Image();
 const siblingsSprite = new Image();
 const sealChair = new Image();
 const playerChair = new Image();
-background.src = 'img/internal/cave.jpg?v=20260901-half-size-no-sword';
-siblingsSprite.src = characterAsset('siblings', 'girlsSprite');
-sealChair.src = characterAsset('siblings', 'sealChair');
-playerChair.src = characterAsset('siblings', 'playerChair');
+background.src = webImageSource('img/internal/cave.jpg?v=20260901-half-size-no-sword');
+siblingsSprite.src = webImageSource(characterAsset('siblings', 'girlsSprite'));
+sealChair.src = webImageSource(characterAsset('siblings', 'sealChair'));
+playerChair.src = webImageSource(characterAsset('siblings', 'playerChair'));
 
 const playerChairPlacement = { x: 284, y: 136, width: 72, height: 72 };
 const sealChairPlacement = { x: 348, y: 246, width: 52, height: 61 };
@@ -237,7 +239,7 @@ window.addEventListener('keydown', (event) => {
   next.click();
 });
 
-Promise.all([background, siblingsSprite, sealChair, playerChair].map((image) => image.decode()))
+Promise.all([background, siblingsSprite, sealChair, playerChair].map(loadInteriorImage))
   .then(() => {
     context.imageSmoothingEnabled = false;
     draw();

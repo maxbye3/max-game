@@ -19,12 +19,12 @@ const definitions = [
   ['profiles', ['char/manifest.json', ...profiles], ['js/generated/core/profile-images.generated.ts']],
   ['dialogue-themes', ['char/manifest.json'], ['js/generated/core/dialogue-themes.generated.ts']],
   ['item-descriptions', ['char/manifest.json', ...itemDescriptions], ['js/generated/core/item-descriptions.generated.ts']],
-  ['internal-collision', [...collisionImages, 'scripts/png.mjs'], collisionModules],
+  ['internal-collision', [...collisionImages, 'scripts/png.mjs', 'scripts/lib/collision-encoding.mjs'], collisionModules],
   ['ghost-sprite', ['char/player/ghost_sprite.png'], ['js/generated/core/ghost-sprite.generated.ts']],
   ['seal-sprite', ['char/manifest.json', 'char/player/seal-sprite.png', 'scripts/png.mjs'], ['js/generated/core/seal-sprite.generated.ts', 'img/generated/seal-sprite.png']],
+  ['battle-avatars', ['char/niall/avatar.png', 'char/player/avatar.png', 'scripts/png.mjs'], ['img/battle/niall-avatar.png', 'img/battle/max-avatar.png', 'js/generated/characters/niall/battle-sprites.generated.ts']],
   ['web-images', async () => ['scripts/web-image-sources.json', 'package-lock.json', ...Object.keys(JSON.parse(await readFile('scripts/web-image-sources.json', 'utf8')))], async () => ['scripts/web-assets.manifest.json', ...Object.values(JSON.parse(await readFile('scripts/web-assets.manifest.json', 'utf8')).images).map(asset => asset.output)]],
   ['web-assets', webFiles, ['js/generated/core/web-images.generated.ts', 'js/generated/core/power-themes.generated.ts']],
-  ['battle-avatars', ['char/niall/avatar.png', 'char/player/avatar.png', 'scripts/png.mjs'], ['img/battle/niall-avatar.png', 'img/battle/max-avatar.png', 'js/generated/characters/niall/battle-sprites.generated.ts']],
   ['styles', async () => (await readdir('css')).filter(path => path.endsWith('.css')).map(path => `css/${path}`), ['style.css']],
 ];
 const selected = process.argv.slice(2).filter(arg => arg !== '--force');

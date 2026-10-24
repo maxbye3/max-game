@@ -10,6 +10,7 @@ import { MUSIC_HOUSE_NPCS } from './music-house-npcs.js';
 import { isTimAtCinema, isTimAtMusicShop } from '../characters/tim/tim-location.js';
 import { SHOW_COLLISION_SHAPES } from '../core/config.js';
 import { webImageSource } from '../core/web-images.js';
+import { loadInteriorImage } from './interior-image-loading.js';
 import type { InteriorScene } from './interior-scenes.js';
 export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, wheldonPlayer: boolean, ghostWheldonPlayer: boolean) {
   const isDiaryLabInterior = scene.kind === 'diaryLab';
@@ -26,8 +27,9 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
   }
   const isCaveInterior = scene.kind === 'cave';
   const cavePlayerChair = scene.kind === 'cave' && hasCaveTransformation() ? new Image() : null;
-  if (cavePlayerChair) cavePlayerChair.src = `../${characterAsset('siblings', 'playerChair')}`;
+  if (cavePlayerChair) cavePlayerChair.src = webImageSource(`../${characterAsset('siblings', 'playerChair')}`);
   const interior = new Image(); const collisionMask = new Image();
+  const deferredImages: { image: HTMLImageElement; source: string }[] = [];
   const doorOverlay = new Image(); const spriteSheet = new Image();
   const ghostSpriteSheet = new Image();
   ghostSpriteSheet.src = GHOST_SPRITE_SOURCE;
@@ -43,12 +45,20 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     { id: 'dad', source: `../${characterAsset('dad', 'avatar')}`, x: 398, y: 462, width: 48, height: 72, image: new Image() },
     { id: 'kirin', source: `../${characterAsset('kirin', 'mapSprite')}`, x: 115, y: 535, width: 52, height: 80, image: new Image() },
   ] : [];
+  interior.fetchPriority = 'high';
+  spriteSheet.fetchPriority = 'high';
   interior.src = webImageSource(scene.backgroundSource);
   const interiorFrames = scene.backgroundAnimation?.sources.map((source) => {
+    if (source === scene.backgroundSource) return interior;
     const image = new Image();
-    image.src = webImageSource(source);
+    deferredImages.push({ image, source });
     return image;
   }) ?? [];
+  for (const npc of diaryRoomNpcs) {
+    for (const frame of npc.frames?.slice(1) ?? []) {
+      if (frame.source) deferredImages.push({ image: frame.image, source: frame.source });
+    }
+  }
   if (SHOW_COLLISION_SHAPES && scene.collisionMaskSource) collisionMask.src = scene.collisionMaskSource;
   if (scene.doorOverlaySource) doorOverlay.src = webImageSource(scene.doorOverlaySource);
   const playerSpriteSource = ghostWheldonPlayer ? characterAsset('alex-s', 'ghostWheldonSprite') : wheldonPlayer ? characterAsset('alex-s', 'wheldonSprite') : SEAL_MODE ? SEAL_SPRITE_SOURCE : playerAsset('spriteSheet');
@@ -57,7 +67,7 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
   if (scene.kind === 'mansion') noelSprite.src = webImageSource(`../${characterAsset('noel', 'interiorAvatar')}`);
   if (scene.kind === 'plantRoom') gardenPanda.src = webImageSource('../img/internal/art/panda.png');
   if (isCaveInterior || isSiblingPursuitActive()) siblingsSprite.src = webImageSource(`../${characterAsset('siblings', 'girlsSprite')}`);
-  if (isMusicShopInterior) musicDjMachine.src = '../img/internal/music-dj-machine.png';
+  if (isMusicShopInterior) musicDjMachine.src = webImageSource('../img/internal/music-dj-machine.png');
   if (isBookshopInterior) {
     bookshopNpcs.forEach((npc) => {
       npc.image.src = webImageSource(npc.source);
@@ -68,19 +78,18 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
       npc.image.src = webImageSource(npc.source);
     });
   }
-  if (isGymInterior) { gymGloves.src = '../img/internal/gloves.png'; gymNpcs.forEach((npc) => { npc.image.src = webImageSource(npc.source); }); }
-  if (timCinemaSeat) timCinemaSeat.src = '../img/internal/cinema-tim-seat.png';
+  if (isGymInterior) { gymGloves.src = webImageSource('../img/internal/gloves.png'); gymNpcs.forEach((npc) => { npc.image.src = webImageSource(npc.source); }); }
+  if (timCinemaSeat) timCinemaSeat.src = webImageSource('../img/internal/cinema-tim-seat.png');
   if (isCinemaInterior) cinemaNpcs.forEach((npc) => { npc.image.src = webImageSource(npc.source); });
 
   const requiredImages = [
     ...(cavePlayerChair ? [cavePlayerChair] : []),
     interior,
-    ...interiorFrames,
     spriteSheet,
     ghostSpriteSheet,
     ...(SHOW_COLLISION_SHAPES && scene.collisionMaskSource ? [collisionMask] : []),
     ...(scene.doorOverlaySource ? [doorOverlay] : []),
-    ...diaryRoomNpcs.flatMap((npc) => npc.frames?.map((frame) => frame.image) ?? [npc.image]),
+    ...diaryRoomNpcs.map((npc) => npc.image),
     ...(scene.kind === 'artStudio' ? [joshSprite] : []),
     ...(scene.kind === 'mansion' ? [noelSprite] : []),
     ...(isBookshopInterior ? bookshopNpcs.map((npc) => npc.image) : []),
@@ -90,13 +99,19 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     ...cinemaNpcs.map((npc) => npc.image),
     ...(timCinemaSeat ? [timCinemaSeat] : []),
   ];
-  const startBackgroundMedia = (): void => {
-    if (!cinemaFilm) return;
-    // First paint the playable room; the film must not compete with its images.
+  const startDeferredAssets = (): void => {
+    // First paint the playable room; extra animation poses and the film can follow.
     requestAnimationFrame(() => {
-      cinemaFilm.src = '../video/film.mp4';
-      void cinemaFilm.play().catch(() => {});
+      for (const { image, source } of deferredImages) {
+        image.fetchPriority = 'low';
+        image.src = webImageSource(source);
+        void loadInteriorImage(image).catch(error => console.warn(error));
+      }
+      if (cinemaFilm) {
+        cinemaFilm.src = '../video/film.mp4';
+        void cinemaFilm.play().catch(() => {});
+      }
     });
   };
-  return { cavePlayerChair, interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, cinemaFilm, requiredImages, startBackgroundMedia };
+  return { cavePlayerChair, interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, cinemaFilm, requiredImages, startDeferredAssets };
 }

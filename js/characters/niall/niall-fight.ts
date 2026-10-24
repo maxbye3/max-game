@@ -6,6 +6,7 @@ import { NIALL_MAX_HP, PLAYER_MAX_HP, NiallBattle } from './niall-battle.js';
 import { setNiallQuestState } from '../../core/world-state.js';
 import { createNiallBattleAudio } from './niall-battle-audio.js';
 import { animateDamage, clearDamageAnimations } from './niall-battle-effects.js';
+import { webImageSource } from '../../core/web-images.js';
 
 const playerHpMeter = requireElement<HTMLMeterElement>('#player-hp');
 const niallHpMeter = requireElement<HTMLMeterElement>('#niall-hp');
@@ -14,8 +15,8 @@ const niallHpText = requireElement<HTMLElement>('#niall-hp-text');
 const fomoStatus = requireElement<HTMLElement>('#fomo-status');
 const playerBattler = requireElement<HTMLImageElement>('#player-battler');
 const niallBattler = requireElement<HTMLImageElement>('#niall-battler');
-playerBattler.src = PLAYER_BATTLE_SPRITE;
-niallBattler.src = NIALL_BATTLE_SPRITE;
+playerBattler.src = webImageSource(`../${PLAYER_BATTLE_SPRITE}`);
+niallBattler.src = webImageSource(`../${NIALL_BATTLE_SPRITE}`);
 const battleLog = requireElement<HTMLElement>('#battle-log');
 const actionGrid = requireElement<HTMLElement>('#move-grid');
 const itemGrid = requireElement<HTMLElement>('#item-grid');

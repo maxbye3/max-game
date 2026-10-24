@@ -20,6 +20,7 @@ export class PhotoGalleryController {
   private sources: readonly string[];
   private pending: readonly string[] | null = null;
   private currentIndex = 0;
+  private thumbnailsBuilt = false;
 
   constructor(
     private readonly config: PhotoGalleryConfig,
@@ -44,7 +45,6 @@ export class PhotoGalleryController {
       if (this.lightbox.open) this.pending = data.images;
       else this.updateSources(data.images);
     });
-    this.buildThumbnails();
     requireElement(`#${config.closeId}`).addEventListener('click', () => this.closePanel());
     requireElement(`#${config.lightboxId}-close`).addEventListener('click', () => this.closeLightbox());
     requireElement(`#${config.lightboxId}-previous`).addEventListener('click', () => this.showImage(this.currentIndex - 1));
@@ -60,6 +60,7 @@ export class PhotoGalleryController {
   }
 
   open(): void {
+    if (!this.thumbnailsBuilt) this.buildThumbnails();
     this.panel.hidden = false;
     this.gallery.querySelector<HTMLButtonElement>('button')?.focus();
     this.refresh.start();
@@ -83,6 +84,7 @@ export class PhotoGalleryController {
   }
 
   private buildThumbnails(): void {
+    this.thumbnailsBuilt = true;
     const scrollTop = this.gallery.scrollTop;
     const thumbnails = this.sources.map((source, index) => {
       const button = document.createElement('button');

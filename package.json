@@ -1,6 +1,6 @@
 {
   "name": "max-game",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "private": true,
   "description": "Max's Overworld - a browser overworld game",
   "scripts": {
@@ -36,7 +36,8 @@
     "test:tooling": "node scripts/run-tests.mjs tooling",
     "test:browser": "node scripts/test-browser.mjs",
     "test:controls": "node scripts/run-tests.mjs controls",
-    "generate:styles": "node scripts/generate-source.mjs styles"
+    "generate:styles": "node scripts/generate-source.mjs styles",
+    "profile:loading": "node scripts/profile-loading.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

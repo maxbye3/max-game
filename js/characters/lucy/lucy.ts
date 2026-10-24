@@ -5,6 +5,7 @@ import { nextDialogueVisitIndex } from '../../core/dialogue-visit.js';
 import { characterAsset } from '../../core/character-assets.js';
 import { hasAlexEatenDoughnut } from '../../core/alex-w-state.js';
 import { isAlexPlayer } from '../../core/player-character.js';
+import { webImageSource } from '../../core/web-images.js';
 
 export class LucyController {
   readonly sprite = new Image();
@@ -24,7 +25,7 @@ export class LucyController {
     private readonly dialogueProgress: HTMLElement,
     private readonly giftConfirmation: HTMLElement,
   ) {
-    this.sprite.src = `../${characterAsset('lucy', 'avatar')}`;
+    this.sprite.src = webImageSource(`../${characterAsset('lucy', 'avatar')}`);
     this.plantDiary = new PlantDiaryGalleryController(() => this.resumeDialogue());
     document.querySelector<HTMLButtonElement>('#lucy-plant-diary-yeh')?.addEventListener('click', () => {
       this.showPlantDiary();

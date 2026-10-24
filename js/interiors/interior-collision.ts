@@ -1,4 +1,5 @@
 import { hasCaveTransformation } from '../core/cave-transformation.js';
+import { decodeCollisionBits } from './collision-bits.js';
 import { ART_STUDIO_WALLS, CAVE_WALLS, CHARITY_WALLS, DOUGHNUT_SHOP_WALLS, type InteriorScene } from './interior-scenes.js';
 
 const PLAYER_FRAME_WIDTH = 23;
@@ -18,8 +19,7 @@ export class InteriorCollision {
     this.cellSize = scene.collision?.cellSize ?? 1;
     this.columns = scene.collision?.columns ?? 0;
     this.rows = scene.collision?.rows ?? 0;
-    const encodedBits = scene.collision ? atob(scene.collision.bits) : '';
-    this.bits = Uint8Array.from(encodedBits, (character) => character.charCodeAt(0));
+    this.bits = decodeCollisionBits(scene.collision?.bits ?? '');
   }
 
   isBlocked(x: number, y: number): boolean {

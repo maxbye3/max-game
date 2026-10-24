@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { readPng, rgbaAt } from './png.mjs';
+import { encodeCollisionBits } from './lib/collision-encoding.mjs';
 
 const WORLD_CELL_SIZE = 2;
 
@@ -12,7 +13,7 @@ function writeCollisionMask({ outputName, prefix, columns, rows, bits, sourceCom
     `export const ${prefix}_COLLISION_CELL_SIZE = ${WORLD_CELL_SIZE};\n` +
     `export const ${prefix}_COLLISION_COLUMNS = ${columns};\n` +
     `export const ${prefix}_COLLISION_ROWS = ${rows};\n` +
-    `export const ${prefix}_COLLISION_BITS = '${bits.toString('base64')}';\n`;
+    `export const ${prefix}_COLLISION_BITS = '${encodeCollisionBits(bits)}';\n`;
 
   writeFileSync(outputPath, source);
   console.log(`Generated ${outputPath} (${columns}x${rows} collision cells).`);

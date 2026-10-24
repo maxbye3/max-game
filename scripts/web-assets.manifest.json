@@ -159,6 +159,170 @@
     "img/internal/charity/bg-3.png": {
       "sourceHash": "cc454648a375",
       "output": "img/web/bg-3.09b88095dd08.webp"
+    },
+    "char/wheldon/alex-ghost-sprite.png": {
+      "sourceHash": "82aea17f2774",
+      "output": "img/web/alex-ghost-sprite.acace0fcc52f.webp"
+    },
+    "img/external/signature.png": {
+      "sourceHash": "91db15a74abb",
+      "output": "img/web/signature.db4989d6b0b5.webp"
+    },
+    "char/dad/avatar.png": {
+      "sourceHash": "c298e686a947",
+      "output": "img/web/avatar.e049927d19f1.webp"
+    },
+    "char/lucy/avatar.png": {
+      "sourceHash": "1d1afb5524ca",
+      "output": "img/web/avatar.26263cb54639.webp"
+    },
+    "img/internal/julian-boxing-sprite.png": {
+      "sourceHash": "b6c2d8592711",
+      "output": "img/web/julian-boxing-sprite.e2c66d55bcfe.webp"
+    },
+    "img/internal/tim-bench-press-sprite.png": {
+      "sourceHash": "08df496f0086",
+      "output": "img/web/tim-bench-press-sprite.e6f125b24cb1.webp"
+    },
+    "img/internal/gloves.png": {
+      "sourceHash": "7ac57815f518",
+      "output": "img/web/gloves.7267d7b6927a.webp"
+    },
+    "char/helen/profile.png": {
+      "sourceHash": "daf20f8e79ce",
+      "output": "img/web/profile.1ef0fb3c0d61.webp"
+    },
+    "char/josh/avatar.png": {
+      "sourceHash": "338b5718ecba",
+      "output": "img/web/avatar.0ad9ef78851e.webp"
+    },
+    "img/internal/art/door-open.png": {
+      "sourceHash": "dc8f43895e79",
+      "output": "img/web/door-open.7678f935efff.webp"
+    },
+    "char/noel/interior-avatar.png": {
+      "sourceHash": "6cfc37594a30",
+      "output": "img/web/interior-avatar.e50e21e79341.webp"
+    },
+    "char/tim/walking-sprite.png": {
+      "sourceHash": "e08ce6b56c32",
+      "output": "img/web/walking-sprite.eee3e9e0783c.webp"
+    },
+    "char/wheldon/alex-sprite.png": {
+      "sourceHash": "b70a56cab194",
+      "output": "img/web/alex-sprite.e6bad3c074a7.webp"
+    },
+    "img/external/doughnut_shop.png": {
+      "sourceHash": "fdcbd313c54a",
+      "output": "img/web/doughnut_shop.b70df3295dd6.webp"
+    },
+    "img/external/graveyard.png": {
+      "sourceHash": "7472b1f0d8f5",
+      "output": "img/web/graveyard.2587d0f3d53a.webp"
+    },
+    "char/bochra/map-sprite.png": {
+      "sourceHash": "08c6c026197d",
+      "output": "img/web/map-sprite.528136871a35.webp"
+    },
+    "char/chris/map-sprite.png": {
+      "sourceHash": "47f33ca4b9dd",
+      "output": "img/web/map-sprite.d43258a99093.webp"
+    },
+    "img/external/buildings/job-center.png": {
+      "sourceHash": "e784e1e83518",
+      "output": "img/web/job-center.29db69cff95e.webp"
+    },
+    "char/oscar/map-sprite.png": {
+      "sourceHash": "167539b9737a",
+      "output": "img/web/map-sprite.ce72a6adeaeb.webp"
+    },
+    "char/marina-d/map-sprite.png": {
+      "sourceHash": "b58f6c53c1b8",
+      "output": "img/web/map-sprite.f74ebeb6355e.webp"
+    },
+    "char/joe/map-sprite.png": {
+      "sourceHash": "5dd8bbb61a2c",
+      "output": "img/web/map-sprite.3162434247ec.webp"
+    },
+    "char/sam/map-sprite.png": {
+      "sourceHash": "f3cdca4974f8",
+      "output": "img/web/map-sprite.9a872418c901.webp"
+    },
+    "char/ju/map-sprite.png": {
+      "sourceHash": "2da2e64cf1db",
+      "output": "img/web/map-sprite.9ccb748a2972.webp"
+    },
+    "char/dan/map-sprite.png": {
+      "sourceHash": "ae4ad81408ab",
+      "output": "img/web/map-sprite.13f2a52b13e2.webp"
+    },
+    "img/external/buildings/tori.png": {
+      "sourceHash": "46b90af06d17",
+      "output": "img/web/tori.784db8eee8bb.webp"
+    },
+    "char/mason/map-sprite.png": {
+      "sourceHash": "3540ea41f2fd",
+      "output": "img/web/map-sprite.9136d2a53b7a.webp"
+    },
+    "img/external/buildings/zen-garden.png": {
+      "sourceHash": "d49317ff79f0",
+      "output": "img/web/zen-garden.b34f52a16352.webp"
+    },
+    "char/maddy/map-sprite.png": {
+      "sourceHash": "5c331c388b8c",
+      "output": "img/web/map-sprite.1f7326484990.webp"
+    },
+    "img/external/buildings/tv.png": {
+      "sourceHash": "9609b276f8e0",
+      "output": "img/web/tv.317d491a5dbd.webp"
+    },
+    "char/alice/map-sprite.png": {
+      "sourceHash": "13ff03973608",
+      "output": "img/web/map-sprite.9c2059f83961.webp"
+    },
+    "char/niall/explanation-mark.png": {
+      "sourceHash": "13cb789b62a6",
+      "output": "img/web/explanation-mark.96c5b18193ab.webp"
+    },
+    "img/external/buildings/artist-studio.png": {
+      "sourceHash": "699404910357",
+      "output": "img/web/artist-studio.c23ae01ce638.webp"
+    },
+    "img/external/cars/red-hatchback.png": {
+      "sourceHash": "4edd45506322",
+      "output": "img/web/red-hatchback.dc631424bf74.webp"
+    },
+    "char/siblings/player-chair.png": {
+      "sourceHash": "0dca7d0693b9",
+      "output": "img/web/player-chair.b9539fcd52ce.webp"
+    },
+    "char/siblings/seal-chair.png": {
+      "sourceHash": "190f0ac3c7e9",
+      "output": "img/web/seal-chair.b7000392d313.webp"
+    },
+    "char/tim/dancing.png": {
+      "sourceHash": "b184349d9070",
+      "output": "img/web/dancing.7230c9f028d6.webp"
+    },
+    "img/internal/cinema-tim-seat.png": {
+      "sourceHash": "a9562a9dd636",
+      "output": "img/web/cinema-tim-seat.fc3fb8458ca2.webp"
+    },
+    "img/internal/empty-bench-press.png": {
+      "sourceHash": "f958e1f95114",
+      "output": "img/web/empty-bench-press.e20062b3c958.webp"
+    },
+    "img/internal/music-dj-machine.png": {
+      "sourceHash": "0d9d40ec7b1e",
+      "output": "img/web/music-dj-machine.c1469e732c8c.webp"
+    },
+    "img/battle/niall-avatar.png": {
+      "sourceHash": "d2032703ebeb",
+      "output": "img/web/niall-avatar.8667c96bcf18.webp"
+    },
+    "img/battle/max-avatar.png": {
+      "sourceHash": "8c7b0a8dc66e",
+      "output": "img/web/max-avatar.f2484cfe57c7.webp"
     }
   },
   "themes": {
