@@ -58,7 +58,7 @@ try {
     if (POWER_THEME_SOURCES[source]) assert.ok((await stat(POWER_THEME_SOURCES[source])).size < 300_000, 'prepared power music stays bounded');
   }
   const { WEB_IMAGE_SOURCES } = await moduleFor('web-images.generated');
-  const imageSource = (source) => WEB_IMAGE_SOURCES[source] ?? source;
+  const imageSource = (source) => WEB_IMAGE_SOURCES[source.split('?')[0]] ?? source;
   for (const [source, output] of Object.entries(WEB_IMAGE_SOURCES)) {
     assert.ok((await stat(output)).size < (await stat(source)).size, 'browser copy is smaller');
     assert.ok(!source.includes('collision'), 'collision guides stay untouched');

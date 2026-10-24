@@ -78,7 +78,7 @@ const { SEAL_SPRITE_SOURCE } = await (async () => {
   await withGameTest(async ({loadModule}) => { result = await loadModule('seal-sheet','js/generated/core/seal-sprite.generated.ts'); });
   return result;
 })();
-const prepared = readPng(Buffer.from(SEAL_SPRITE_SOURCE.split(',')[1], 'base64'));
+const prepared = readPng(await readFile(SEAL_SPRITE_SOURCE.split('?')[0]));
 const original = readPng(await readFile('char/player/seal-sprite.png'));
 assert.deepEqual([prepared.width,prepared.height],[original.width,original.height]);
 assert.equal(rgbaAt(prepared,0,0)[3],0,'the seal sheet has a transparent matte');

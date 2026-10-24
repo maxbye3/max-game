@@ -1,42 +1,19 @@
-// Optional asset preparation; normal builds use the checked-in derivatives.
-// Requires cwebp, ImageMagick and ffmpeg. Sources are never changed.
-import { readFile, writeFile, mkdir, stat, unlink, readdir } from 'node:fs/promises';
+// Images are built automatically; this additionally prepares short music and fonts.
+// Requires ffmpeg. Sources are never changed.
+import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { basename } from 'node:path';
 
 function run(command, args) {
   const result = spawnSync(command, args, { encoding: 'utf8' });
   if (result.error || result.status !== 0) throw new Error(`${command}: ${result.error ?? result.stderr}`);
 }
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex').slice(0, 12);
-await mkdir('img/web', { recursive: true });
+run('node', ['scripts/generate-source.mjs', 'seal-sprite', 'web-images']);
 await mkdir('audio/powers', { recursive: true });
 const existingManifest = JSON.parse(await readFile('scripts/web-assets.manifest.json', 'utf8'));
 const characterManifest = JSON.parse(await readFile('char/manifest.json', 'utf8'));
-const images = {};
-const manifest = { images: {}, themes: {}, fonts: existingManifest.fonts ?? {} };
-const prepared = new Set();
-const sizes = { 'img/external/music-shop-sign.png': '68x100!', 'char/katie/map-sprite.png': '208x208!' };
-for (const path of Object.keys(existingManifest.images ?? {})) {
-  if (prepared.has(path) || path.includes('collision')) continue;
-  prepared.add(path);
-  const bytes = await readFile(path).catch(() => null);
-  if (!bytes || bytes.length < 40_000) continue;
-  const size = sizes[path];
-  const output = `img/web/${basename(path, '.png')}.${hash(Buffer.concat([bytes, Buffer.from(size ?? '')]))}.webp`;
-  const input = size ? `${output}.png` : path;
-  if (!(await stat(output).catch(() => null))?.size) {
-    if (size) run('magick', [path, '-sample', size, input]);
-    run('cwebp', ['-quiet', '-lossless', '-z', '9', input, '-o', output]);
-    if (size) await unlink(input);
-  }
-  if ((await stat(output)).size < bytes.length) {
-    images[path] = output;
-    manifest.images[path] = { sourceHash: hash(bytes), output };
-  }
-  else await unlink(output);
-}
+const manifest = { ...existingManifest, themes: {} };
 const themes = {};
 async function prepareTheme(name, path, duration) {
   if (themes[path]) return;
@@ -58,8 +35,4 @@ for (const [, name, path] of dialogues.matchAll(/^\s+"([^"]+)": "([^"]+)"/gm)) {
 }
 await writeFile('scripts/web-assets.manifest.json', JSON.stringify(manifest, null, 2) + '\n');
 run('node', ['scripts/refresh-web-assets.mjs']);
-console.log(`Prepared ${Object.keys(images).length} lossless images and ${Object.keys(themes).length} short soundtracks.`);
-// This directory contains generated copies only; discard obsolete hashes.
-for (const file of await readdir('img/web')) {
-  if (!Object.values(images).includes(`img/web/${file}`)) await unlink(`img/web/${file}`);
-}
+console.log(`Prepared ${Object.keys(manifest.images).length} lossless images and ${Object.keys(themes).length} short soundtracks.`);

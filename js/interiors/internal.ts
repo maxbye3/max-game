@@ -698,7 +698,7 @@ Promise.all([...assets.requiredImages, ...(lucy ? [lucy.sprite] : [])].map(loadI
     doorLoading.hidden = true;
     context.imageSmoothingEnabled = false;
     startGameLoop(gameLoop, () => { previousTime = 0; });
-    doughnutShop?.enter();
+    assets.startBackgroundMedia(); doughnutShop?.enter();
     if (isDiaryLabInterior && !siblingChase) startAlexJournalOffer();
   })
   .catch((error: unknown) => {

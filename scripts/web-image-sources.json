@@ -1,0 +1,52 @@
+{
+  "img/external/overworld.png": {},
+  "map/event-tinder.png": {},
+  "img/external/road.png": {},
+  "img/external/tree.png": {},
+  "img/external/music-shop-sign.png": {
+    "width": 68,
+    "height": 100
+  },
+  "img/external/door-open.png": {},
+  "img/external/billboard-unfinished.png": {},
+  "img/external/billboard-finished.png": {},
+  "img/external/buildings/snow-mansion.png": {},
+  "img/external/snowman-fallen.png": {},
+  "img/external/buildings/diary-lab.png": {},
+  "img/external/buildings/bookshop.png": {},
+  "char/georgia/avatar.png": {},
+  "char/georgia/georgie-bike.png": {},
+  "char/mike/overworld-avatar.png": {},
+  "img/external/mike-aftermath.png": {},
+  "char/rei/overworld-avatar.png": {},
+  "char/adam/avatar.png": {},
+  "char/niall/niall-sprite.png": {},
+  "char/siblings/girls-sprite.png": {},
+  "img/internal/cinema-popcorn-redrawn.png": {},
+  "img/internal/cinema-open-door.png": {},
+  "img/internal/garden.png": {},
+  "img/internal/garden-door.png": {},
+  "img/internal/internal-music.png": {},
+  "img/internal/internal-gym.png": {},
+  "img/internal/gym-door-open.png": {},
+  "img/internal/bookshop-internal.png": {},
+  "img/internal/bookshop-door-open.png": {},
+  "img/internal/mansion.png": {},
+  "img/internal/diary-lab.png": {},
+  "img/internal/diary-lab-doors-out.png": {},
+  "char/katie/map-sprite.png": {
+    "width": 208,
+    "height": 208
+  },
+  "img/internal/doughnut.png": {},
+  "img/internal/doughnuts/door-open.png": {},
+  "char/kirin/map-sprite-v4.png": {
+    "width": 208
+  },
+  "img/generated/seal-sprite.png": {},
+  "img/internal/art-studio.png": {},
+  "img/internal/cave.jpg": {},
+  "img/internal/charity/bg-1.png": {},
+  "img/internal/charity/bg-2.png": {},
+  "img/internal/charity/bg-3.png": {}
+}

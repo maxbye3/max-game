@@ -22,9 +22,7 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     cinemaFilm.muted = true;
     cinemaFilm.loop = true;
     cinemaFilm.playsInline = true;
-    cinemaFilm.autoplay = true;
-    cinemaFilm.src = '../video/film.mp4';
-    void cinemaFilm.play().catch(() => {});
+    cinemaFilm.preload = 'none';
   }
   const isCaveInterior = scene.kind === 'cave';
   const cavePlayerChair = scene.kind === 'cave' && hasCaveTransformation() ? new Image() : null;
@@ -92,5 +90,13 @@ export function createInteriorAssets(scene: InteriorScene, SEAL_MODE: boolean, w
     ...cinemaNpcs.map((npc) => npc.image),
     ...(timCinemaSeat ? [timCinemaSeat] : []),
   ];
-  return { cavePlayerChair, interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, cinemaFilm, requiredImages };
+  const startBackgroundMedia = (): void => {
+    if (!cinemaFilm) return;
+    // First paint the playable room; the film must not compete with its images.
+    requestAnimationFrame(() => {
+      cinemaFilm.src = '../video/film.mp4';
+      void cinemaFilm.play().catch(() => {});
+    });
+  };
+  return { cavePlayerChair, interior, interiorFrames, collisionMask, doorOverlay, spriteSheet, ghostSpriteSheet, noelSprite, gardenPanda, diaryRoomNpcs, joshSprite, siblingsSprite, musicDjMachine, gymGloves, bookshopNpcs, musicHouseNpcs, gymNpcs, cinemaNpcs, timCinemaSeat, cinemaFilm, requiredImages, startBackgroundMedia };
 }

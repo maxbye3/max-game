@@ -2,139 +2,163 @@
   "images": {
     "img/external/overworld.png": {
       "sourceHash": "2a91b8c6d3f7",
-      "output": "img/web/overworld.2a91b8c6d3f7.webp"
+      "output": "img/web/overworld.f88ea512551d.webp"
     },
     "map/event-tinder.png": {
-      "sourceHash": "4c5ed159e951",
-      "output": "img/web/event-tinder.4c5ed159e951.webp"
+      "sourceHash": "1a9bed8d686b",
+      "output": "img/web/event-tinder.add062eb1a3e.webp"
     },
     "img/external/road.png": {
       "sourceHash": "c2c9b53037c8",
-      "output": "img/web/road.c2c9b53037c8.webp"
+      "output": "img/web/road.7e1893d132db.webp"
     },
     "img/external/tree.png": {
       "sourceHash": "23ab3b6252ee",
-      "output": "img/web/tree.23ab3b6252ee.webp"
+      "output": "img/web/tree.a62fece323c9.webp"
     },
     "img/external/music-shop-sign.png": {
-      "sourceHash": "c6f2294fe600",
-      "output": "img/web/music-shop-sign.a04617c0674e.webp"
+      "sourceHash": "bdf4df3cff40",
+      "output": "img/web/music-shop-sign.3c35279b903d.webp"
     },
     "img/external/door-open.png": {
       "sourceHash": "9ae55aea83dd",
-      "output": "img/web/door-open.9ae55aea83dd.webp"
+      "output": "img/web/door-open.d4bd78366092.webp"
     },
     "img/external/billboard-unfinished.png": {
       "sourceHash": "006ff4176196",
-      "output": "img/web/billboard-unfinished.006ff4176196.webp"
+      "output": "img/web/billboard-unfinished.9e333733031f.webp"
     },
     "img/external/billboard-finished.png": {
       "sourceHash": "bb974f79c9ce",
-      "output": "img/web/billboard-finished.bb974f79c9ce.webp"
+      "output": "img/web/billboard-finished.5a4d38bd4aae.webp"
     },
     "img/external/buildings/snow-mansion.png": {
       "sourceHash": "6d639370a96d",
-      "output": "img/web/snow-mansion.6d639370a96d.webp"
+      "output": "img/web/snow-mansion.1d1763e01b64.webp"
     },
     "img/external/snowman-fallen.png": {
       "sourceHash": "a3514804e725",
-      "output": "img/web/snowman-fallen.a3514804e725.webp"
+      "output": "img/web/snowman-fallen.c1fcd559c880.webp"
     },
     "img/external/buildings/diary-lab.png": {
       "sourceHash": "f858c988a210",
-      "output": "img/web/diary-lab.f858c988a210.webp"
+      "output": "img/web/diary-lab.bb33fc94ec08.webp"
     },
     "img/external/buildings/bookshop.png": {
       "sourceHash": "d1aa56fa000e",
-      "output": "img/web/bookshop.d1aa56fa000e.webp"
-    },
-    "char/player/seal-game.png": {
-      "sourceHash": "e47e428347fd",
-      "output": "img/web/seal-game.e47e428347fd.webp"
+      "output": "img/web/bookshop.daba80f13961.webp"
     },
     "char/georgia/avatar.png": {
       "sourceHash": "9f5b01e5beac",
-      "output": "img/web/avatar.9f5b01e5beac.webp"
+      "output": "img/web/avatar.91e41128d77f.webp"
     },
     "char/georgia/georgie-bike.png": {
       "sourceHash": "9f5b01e5beac",
-      "output": "img/web/georgie-bike.9f5b01e5beac.webp"
+      "output": "img/web/georgie-bike.91e41128d77f.webp"
     },
     "char/mike/overworld-avatar.png": {
       "sourceHash": "a85e426feace",
-      "output": "img/web/overworld-avatar.a85e426feace.webp"
+      "output": "img/web/overworld-avatar.e51f4b5ba62e.webp"
     },
     "img/external/mike-aftermath.png": {
       "sourceHash": "bb28cb7e9478",
-      "output": "img/web/mike-aftermath.bb28cb7e9478.webp"
+      "output": "img/web/mike-aftermath.ac23016cf681.webp"
     },
     "char/rei/overworld-avatar.png": {
       "sourceHash": "d5c4103d1343",
-      "output": "img/web/overworld-avatar.d5c4103d1343.webp"
+      "output": "img/web/overworld-avatar.4395aa2f0bb3.webp"
     },
     "char/adam/avatar.png": {
       "sourceHash": "6d67dbbacf42",
-      "output": "img/web/avatar.6d67dbbacf42.webp"
+      "output": "img/web/avatar.0c43b9a2489a.webp"
     },
     "char/niall/niall-sprite.png": {
-      "sourceHash": "21398072c37b",
-      "output": "img/web/niall-sprite.21398072c37b.webp"
+      "sourceHash": "f212b10ff6eb",
+      "output": "img/web/niall-sprite.fdb7fef43f7b.webp"
     },
     "char/siblings/girls-sprite.png": {
       "sourceHash": "d75c09020b66",
-      "output": "img/web/girls-sprite.d75c09020b66.webp"
+      "output": "img/web/girls-sprite.be26988b9c3e.webp"
     },
     "img/internal/cinema-popcorn-redrawn.png": {
       "sourceHash": "eb470bb4fc71",
-      "output": "img/web/cinema-popcorn-redrawn.eb470bb4fc71.webp"
+      "output": "img/web/cinema-popcorn-redrawn.64564383f919.webp"
     },
     "img/internal/cinema-open-door.png": {
       "sourceHash": "dfed51ae6913",
-      "output": "img/web/cinema-open-door.dfed51ae6913.webp"
+      "output": "img/web/cinema-open-door.8e33f3ef77c5.webp"
     },
     "img/internal/garden.png": {
       "sourceHash": "cdab0e7718ed",
-      "output": "img/web/garden.cdab0e7718ed.webp"
+      "output": "img/web/garden.63d359cd2129.webp"
     },
     "img/internal/garden-door.png": {
       "sourceHash": "cf8a0e55e74b",
-      "output": "img/web/garden-door.cf8a0e55e74b.webp"
+      "output": "img/web/garden-door.1a9de4bfdcc9.webp"
     },
     "img/internal/internal-music.png": {
       "sourceHash": "07580744c558",
-      "output": "img/web/internal-music.07580744c558.webp"
+      "output": "img/web/internal-music.54de7806e8ce.webp"
     },
     "img/internal/internal-gym.png": {
       "sourceHash": "ea75b31ce3f6",
-      "output": "img/web/internal-gym.ea75b31ce3f6.webp"
+      "output": "img/web/internal-gym.68023c3c9a14.webp"
     },
     "img/internal/gym-door-open.png": {
       "sourceHash": "25929306b27f",
-      "output": "img/web/gym-door-open.25929306b27f.webp"
+      "output": "img/web/gym-door-open.e7c1f99f12af.webp"
     },
     "img/internal/bookshop-internal.png": {
       "sourceHash": "93b31c1dd5a3",
-      "output": "img/web/bookshop-internal.93b31c1dd5a3.webp"
+      "output": "img/web/bookshop-internal.925fe1fdb3ed.webp"
     },
     "img/internal/bookshop-door-open.png": {
       "sourceHash": "dc8f43895e79",
-      "output": "img/web/bookshop-door-open.dc8f43895e79.webp"
+      "output": "img/web/bookshop-door-open.7678f935efff.webp"
     },
     "img/internal/mansion.png": {
       "sourceHash": "44c89e738fcd",
-      "output": "img/web/mansion.44c89e738fcd.webp"
+      "output": "img/web/mansion.2f6a8a353972.webp"
     },
     "img/internal/diary-lab.png": {
       "sourceHash": "d0abc7dca25b",
-      "output": "img/web/diary-lab.d0abc7dca25b.webp"
+      "output": "img/web/diary-lab.fa4f73cd0d6b.webp"
     },
     "img/internal/diary-lab-doors-out.png": {
       "sourceHash": "13e2bdc1314a",
-      "output": "img/web/diary-lab-doors-out.13e2bdc1314a.webp"
+      "output": "img/web/diary-lab-doors-out.4dc193323566.webp"
     },
     "char/katie/map-sprite.png": {
       "sourceHash": "f81a310d645c",
-      "output": "img/web/map-sprite.524014429428.webp"
+      "output": "img/web/map-sprite.73d29e451883.webp"
+    },
+    "img/internal/doughnut.png": {
+      "sourceHash": "c4dab16f96c0",
+      "output": "img/web/doughnut.95351cb54de8.webp"
+    },
+    "img/internal/doughnuts/door-open.png": {
+      "sourceHash": "dc8f43895e79",
+      "output": "img/web/door-open.7678f935efff.webp"
+    },
+    "char/kirin/map-sprite-v4.png": {
+      "sourceHash": "cfbabb550e88",
+      "output": "img/web/map-sprite-v4.2ca8fe504ea9.webp"
+    },
+    "img/generated/seal-sprite.png": {
+      "sourceHash": "5bde4d7187df",
+      "output": "img/web/seal-sprite.a9d1742c7153.webp"
+    },
+    "img/internal/charity/bg-1.png": {
+      "sourceHash": "68204e40887a",
+      "output": "img/web/bg-1.b8ab6e7b83a6.webp"
+    },
+    "img/internal/charity/bg-2.png": {
+      "sourceHash": "ecaf61f5aa74",
+      "output": "img/web/bg-2.803fb169e2dd.webp"
+    },
+    "img/internal/charity/bg-3.png": {
+      "sourceHash": "cc454648a375",
+      "output": "img/web/bg-3.09b88095dd08.webp"
     }
   },
   "themes": {
