@@ -35,6 +35,9 @@ export async function buildBrowserFixture(interior, directory) {
        import { drawMapCharacters, mapCharacters } from '../overworld/map-characters.js';
        window.__gameTest = { isHeld, signIds: SIGNS.map(sign => sign.id),
          doors: DOORWAYS,
+         npcPositions: () => NPCS.map(({id, name, x, y}) => ({id, name, x, y})),
+         mapNpcPositions: () => MAP_CHARACTER_DEFINITIONS.map(({id, x, y}) => ({id, x, y})),
+         powerTargets: () => currentSamTargets(),
          moveToNpc: id => { const npc = NPCS.find(npc => npc.id === id); const position = npc.getPosition?.() ?? npc; player.x = position.x; player.y = position.y; },
          timScene: () => ({ blocking: isGymTimCutsceneBlockingPlayer(), dialogue: getGymTimCutsceneDialogue(), atMusicShop: isTimAtMusicShop(), atCinema: isTimAtCinema() }),
          mapNpcPixels: id => {

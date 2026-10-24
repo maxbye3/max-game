@@ -3,7 +3,7 @@ import { webImageSource } from '../core/web-images.js';
 import { characterAsset, type CharacterId } from '../core/character-assets.js';
 import { samTargetId, samVictimOffset } from '../powers/sam/sam-power.js';
 import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
-import { RUBY } from './npc-definitions.js';
+import { BOCHRA, CHRIS, DAN, JU, MADDY, MARINA_D, RUBY } from './npc-definitions.js';
 
 export interface MapCharacterDefinition {
   readonly id: CharacterId;
@@ -21,14 +21,14 @@ export interface MapCharacter extends MapCharacterDefinition {
 
 export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
   { id: 'alice', name: 'Alice', source: characterAsset('alice', 'mapSprite'), x: 260, y: 120, height: 52 },
-  { id: 'bochra', name: 'Bochra', source: characterAsset('bochra', 'mapSprite'), x: 1114, y: 172, height: 52 },
-  { id: 'chris', name: 'Chris', source: characterAsset('chris', 'mapSprite'), x: 475, y: 270, height: 52 },
-  { id: 'dan', name: 'Dan', source: characterAsset('dan', 'mapSprite'), x: 1150, y: 372, height: 48 },
+  { id: 'bochra', name: 'Bochra', source: characterAsset('bochra', 'mapSprite'), x: BOCHRA.x, y: BOCHRA.y, height: BOCHRA.height },
+  { id: 'chris', name: 'Chris', source: characterAsset('chris', 'mapSprite'), x: CHRIS.x, y: CHRIS.y, height: CHRIS.height },
+  { id: 'dan', name: 'Dan', source: characterAsset('dan', 'mapSprite'), x: DAN.x, y: DAN.y, height: DAN.height },
   { id: 'joe', name: 'Joe', source: characterAsset('joe', 'mapSprite'), x: 1080, y: 1070, height: 52 },
-  { id: 'ju', name: 'Ju', source: characterAsset('ju', 'mapSprite'), x: 1000, y: 180, height: 52 },
+  { id: 'ju', name: 'Ju', source: characterAsset('ju', 'mapSprite'), x: JU.x, y: JU.y, height: JU.height },
   { id: 'katie', name: 'Katie', source: characterAsset('katie', 'mapSprite'), x: 1130, y: 1018, height: 52 },
-  { id: 'maddy', name: 'Maddy', source: characterAsset('maddy', 'mapSprite'), x: 383, y: 1045, height: 59 },
-  { id: 'marina-d', name: 'Marina', source: characterAsset('marina-d', 'mapSprite'), x: 201, y: 1034, height: 52 },
+  { id: 'maddy', name: 'Maddy', source: characterAsset('maddy', 'mapSprite'), x: MADDY.x, y: MADDY.y, height: MADDY.height },
+  { id: 'marina-d', name: 'Marina', source: characterAsset('marina-d', 'mapSprite'), x: MARINA_D.x, y: MARINA_D.y, height: MARINA_D.height },
   { id: 'mason', name: 'Mason', source: characterAsset('mason', 'mapSprite'), x: 820, y: 570, height: 69 },
   { id: 'meli', name: 'Meli', source: characterAsset('meli', 'mapSprite'), x: 858, y: 570, height: 69 },
   { id: 'oscar', name: 'Oscar', source: characterAsset('oscar', 'mapSprite'), x: 636, y: 564, height: 52 },

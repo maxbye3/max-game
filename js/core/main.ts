@@ -43,6 +43,7 @@ import { isJumpMenuOpen, setupJump } from './jump.js';
 import { setupMusicPlayer } from '../interiors/music-player.js';
 import { resetMusicLibrary } from '../interiors/music-library.js';
 import { loadMapCharacters, MAP_CHARACTER_DEFINITIONS } from '../overworld/map-characters.js';
+import { rememberMapNpcPositions } from '../overworld/map-npc-positions.js';
 import { isNiallFollowing, niallState, updateNiallInteraction } from '../characters/niall/niall.js';
 import { restoreBuildingAmbience, updateBuildingAmbience } from './nightclub-audio.js';
 import { hasMikeAftermath, resetMikeAftermath, resetNiallQuestState } from './world-state.js';
@@ -211,6 +212,7 @@ loadAssets(isCaveThiefPursuitActive())
     loadingOverlay.hidden = true;
     playDoughnutReturnVoice();
     canvas.dataset.collisionShapes = String(COLLISION_SHAPES.length);
+    rememberMapNpcPositions();
     startGameLoop(gameLoop, () => { previousTime = 0; });
   })
   .catch((error: unknown) => {

@@ -90,3 +90,5 @@ export const NEW_CHARACTER = defineNpc('new-character', {
 ```
 
 Keep custom story flows in controllers: Rei has staged mission rewards; Maddy has timed voice lines; Ed has an asynchronous fixture follow-up; Georgia has a moving position. These hooks should remain explicit rather than forcing every character through additional configuration.
+
+Dan, Bochra, Ju, Chris, Katy, Marina D, Ruby, and overworld Maddy exchange eight clear outdoor spots on every overworld load. `js/overworld/map-npc-positions.ts` chooses one shared layout for dialogue, rendering, and power targets, and remembers the previous layout per tab so every character moves. Interior imports never record a map visit.

@@ -4,6 +4,7 @@ import { getNextArsenalFixtureDialogue } from '../characters/ed/arsenal-fixture.
 import { ADAM_ITEM, ALEX_S_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, JOE_ITEM, JU_ITEM, KATIE_ITEM, OSCAR_ITEM, SAM_ITEM, type GiftItem, GIFT_ITEMS } from '../core/inventory-gifts.js';
 import { type Song } from '../interiors/music-library.js';
 import { CHARACTER_DIALOGUE_LINES } from '../generated/dialogues/index.js';
+import { MAP_NPC_POSITIONS } from './map-npc-positions.js';
 
 export interface NpcDefinition {
   readonly id: keyof typeof CHARACTER_DIALOGUE_LINES | 'alexS' | 'marinaD';
@@ -44,8 +45,7 @@ export const ALICE = defineNpc('alice', {
 
 export const CHRIS = defineNpc('chris', {
   name: 'Chris',
-  x: 475,
-  y: 270,
+  ...MAP_NPC_POSITIONS.chris,
   itemGift: CHRIS_ITEM,
 });
 
@@ -96,14 +96,12 @@ export const REI = defineNpc('rei', {
 export const MARINA_D = defineNpc('marinaD', {
   character: 'marina-d',
   name: 'marina d',
-  x: 201,
-  y: 1034,
+  ...MAP_NPC_POSITIONS.marinaD,
 });
 
 export const MADDY = defineNpc('maddy', {
   name: 'Maddy',
-  x: 383,
-  y: 1045,
+  ...MAP_NPC_POSITIONS.maddy,
   height: 59,
 });
 
@@ -117,8 +115,7 @@ export const SAM = defineNpc('sam', {
 
 export const RUBY = defineNpc('ruby', {
   name: 'Ruby',
-  x: 209,
-  y: 1130,
+  ...MAP_NPC_POSITIONS.ruby,
   height: 47,
   songReward: 'Moomoo',
 });
@@ -156,22 +153,19 @@ export const OSCAR = defineNpc('oscar', {
 
 export const JU = defineNpc('ju', {
   name: 'Ju',
-  x: 1000,
-  y: 180,
+  ...MAP_NPC_POSITIONS.ju,
   itemGift: JU_ITEM,
 });
 
 export const BOCHRA = defineNpc('bochra', {
   name: 'Bochra',
-  x: 1114,
-  y: 172,
+  ...MAP_NPC_POSITIONS.bochra,
   itemGift: BOCHRA_ITEM,
 });
 
 export const DAN = defineNpc('dan', {
   name: 'Dan',
-  x: 1150,
-  y: 372,
+  ...MAP_NPC_POSITIONS.dan,
   height: 48,
   itemGift: DAN_ITEM,
 });
@@ -196,8 +190,7 @@ export const ALEX_S = defineNpc('alexS', {
 
 export const KATY = defineNpc('katy', {
   name: 'Katy',
-  x: 422,
-  y: 640,
+  ...MAP_NPC_POSITIONS.katy,
   width: 35,
   itemGift: GIFT_ITEMS[1]!,
 });
