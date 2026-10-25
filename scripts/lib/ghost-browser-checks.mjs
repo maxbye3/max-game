@@ -11,8 +11,10 @@ export async function checkGhostFlows(browser, server, mainFixture) {
     };
     const position = () => page.locator('#game').evaluate(canvas => ({x:Number(canvas.dataset.playerX), y:Number(canvas.dataset.playerY)}));
     const select = async character => {
+      await page.locator('#options-toggle').click();
       await page.locator('#character-toggle').click();
       await page.locator(`[data-character="${character}"]`).click();
+      await page.getByRole('button', { name: 'Close options', exact: true }).click();
     };
     const moveRight = async () => {
       const before = await position();

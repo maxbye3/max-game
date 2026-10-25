@@ -1,7 +1,7 @@
 import { createGameAudio } from '../core/audio-mute.js';
 import { releaseAllInput } from '../core/input.js';
 import { getPlayerBody, setPlayerBody } from '../core/player-body.js';
-import { isWheldonPlayerSpriteEnabled } from '../core/player-sprite-test.js';
+import { isWheldonPlayerSpriteEnabled, setWheldonPlayerSpriteEnabled } from '../core/player-sprite-test.js';
 import type { Player } from '../core/types.js';
 import { isOscarEaten } from '../powers/oscar/oscar-power.js';
 import { ALEX_S } from './npcs.js';
@@ -49,6 +49,7 @@ export function checkRoadAccident(player: Player): void {
 
 export function updateRoadAccident(deltaTime: number, player: Player): void {
   roadAccident.update(deltaTime, player, () => {
+    if (getPlayerBody() === 'alex-s') setWheldonPlayerSpriteEnabled(true);
     setPlayerBody('ghost');
     releaseAllInput();
   });

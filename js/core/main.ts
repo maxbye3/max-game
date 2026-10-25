@@ -52,7 +52,7 @@ import { hideSignDialogue, updateSigns } from './signs.js';
 import { isAlexResurrectionUiBlocking } from '../powers/alex-s/alex-s-power-ui.js';
 import { maddyWorldDeltaTime } from '../powers/maddy/maddy-tea-power.js';
 import { requireElement } from './elements.js';
-import { isCharacterMenuOpen, setupCharacterMenu } from './character-menu.js';
+import { isCharacterMenuOpen } from './character-menu.js';
 import { isOptionsMenuOpen, setupOptionsMenu } from './options-menu.js';
 import { georgiaState } from '../characters/georgia/georgia.js';
 import { isSamPowerActive, samTargetId, type SamPowerTarget, updateSamPower } from '../powers/sam/sam-power.js';
@@ -179,7 +179,6 @@ function gameLoop(time: number): void {
 setupInput();
 document.querySelectorAll<HTMLElement>('.npc-dialogue').forEach(setupDialoguePanel);
 setupLucyPowerInput(canvas);
-setupCharacterMenu();
 setupAudioMute();
 setupOptionsMenu(releaseAllInput);
 setupBusIntro();

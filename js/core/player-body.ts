@@ -1,4 +1,5 @@
-import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
+import { isWheldonPlayerSpriteEnabled, setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
+import { characterForm, unlockCharacter } from './character-unlocks.js';
 import { playerStartupParams } from './player-startup.js';
 import { readStorage, writeStorage } from './storage.js';
 
@@ -20,4 +21,5 @@ export const getPlayerBody = (): PlayerBody => body;
 export function setPlayerBody(next: PlayerBody): void {
   body = next;
   writeStorage(BODY_KEY, next);
+  unlockCharacter(characterForm(next, isWheldonPlayerSpriteEnabled(), new URLSearchParams(window.location.search).has('seal')));
 }

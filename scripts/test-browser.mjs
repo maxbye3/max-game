@@ -11,6 +11,7 @@ import { checkMapNpcPositions } from './lib/map-npc-browser-checks.mjs';
 import { checkOptionsMenu } from './lib/options-browser-checks.mjs';
 import { checkPreparedRenderAssets } from './lib/render-assets-browser-checks.mjs';
 import { checkIdleWaste } from './lib/idle-waste-browser-checks.mjs';
+import { checkCharacterUnlocks } from './lib/character-unlocks-browser-checks.mjs';
 
 if (!process.argv.includes('--prepared')) {
   for (const script of ['scripts/generate-source.mjs', 'scripts/bundle.mjs']) {
@@ -41,6 +42,7 @@ try {
   await checkPreparedRenderAssets(browser, server);
   await checkIdleWaste(browser, server);
   await checkOptionsMenu(browser, server, fixtures);
+  await checkCharacterUnlocks(browser, server, directory);
   await checkMapNpcPositions(browser, server, fixtures[0]);
   await checkItemDescriptions(browser, server);
   await checkGhostFlows(browser, server, fixtures[0]);
@@ -343,14 +345,20 @@ try {
     const page = await browser.newPage({ viewport, isMobile: viewport.width < 1000, hasTouch: viewport.width < 1000 });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.addInitScript(() => localStorage.setItem('max-game:audio-muted', 'true'));
+    await page.addInitScript(() => {
+      localStorage.setItem('max-game:audio-muted', 'true');
+      // This regression checks switching already-earned forms, separately from unlock tests.
+      localStorage.setItem('max-game:unlocked-characters', JSON.stringify(['player', 'wheldon', 'ghost-player', 'ghost-wheldon']));
+    });
     const ready = async () => {
       await page.locator('#door-loading').waitFor({ state: 'hidden' });
       await page.waitForFunction(() => !!document.querySelector('#game').dataset.playerVariant);
     };
     const select = async character => {
+      await page.locator('#options-toggle').click();
       await page.locator('#character-toggle').click();
       await page.locator(`[data-character="${character}"]`).click();
+      await page.getByRole('button', {name:'Close options', exact:true}).click();
     };
     const assertPlayer = async () => {
       await ready();
@@ -368,10 +376,12 @@ try {
         await select(character);
         await page.reload();
         await assertPlayer();
+        await page.locator('#options-toggle').click();
         await page.locator('#character-toggle').click();
         await page.locator('[data-character="player"][aria-pressed="true"]').waitFor({ state: 'visible' });
         assert.equal(await page.locator('[data-character="player"]').getAttribute('aria-pressed'), 'true');
         await page.locator(`[data-character="${character}"]`).click();
+        await page.getByRole('button', {name:'Close options', exact:true}).click();
         await page.locator('#jump-toggle').click();
         await page.getByRole('button', { name: 'Plant Room', exact: true }).click();
         await ready();

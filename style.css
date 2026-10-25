@@ -727,7 +727,7 @@ canvas {
   text-align: center;
 }
 .road-accident-status p { margin: 0; }
-.road-accident-status:has(p:empty) { visibility: hidden; }
+.road-accident-status:has(p:empty):not(:has(button:not([hidden]))) { visibility: hidden; }
 .road-accident-status button {
   margin-top: 8px;
   min-height: 44px;
@@ -2657,6 +2657,7 @@ kbd {
   text-align: left;
   cursor: pointer;
 }
+.character-menu button[hidden] { display: none; }
 .character-menu button:is(:hover, :focus-visible, [aria-pressed="true"]) {
   border-color: var(--accent);
   background: rgb(255 255 255 / 10%);

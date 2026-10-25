@@ -2,16 +2,18 @@ import { requireElement } from './elements.js';
 import { releaseAllInput } from './input.js';
 import { getPlayerBody, setPlayerBody } from './player-body.js';
 import { isWheldonPlayerSpriteEnabled, setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
-import { resetCaveTransformation } from './cave-transformation.js';
+import { isSealPlayer, resetCaveTransformation } from './cave-transformation.js';
+import { characterForm, getUnlockedCharacters, unlockCharacter, type CharacterForm } from './character-unlocks.js';
 
 export function isCharacterMenuOpen(): boolean {
   return document.querySelector('#character-menu')?.matches(':popover-open') ?? false;
 }
 
-export function setupCharacterMenu(): void {
+export function setupCharacterMenu(releaseInput = releaseAllInput): void {
   const toggle = requireElement<HTMLButtonElement>('#character-toggle');
   const menu = requireElement<HTMLElement>('#character-menu');
   const options = Array.from(menu.querySelectorAll<HTMLButtonElement>('button[data-character]'));
+  const selectedCharacter = (): CharacterForm => characterForm(getPlayerBody(), isWheldonPlayerSpriteEnabled(), isSealPlayer());
   const positionMenu = (): void => {
     const anchor = toggle.getBoundingClientRect();
     const gap = 8;
@@ -28,18 +30,23 @@ export function setupCharacterMenu(): void {
     const open = isCharacterMenuOpen();
     toggle.setAttribute('aria-expanded', String(open));
     if (!open) return;
-    releaseAllInput();
-    const ghost = getPlayerBody() === 'ghost';
-    const wheldon = getPlayerBody() === 'alex-s' || isWheldonPlayerSpriteEnabled();
-    const selected = `${ghost ? 'ghost-' : ''}${wheldon ? 'wheldon' : 'player'}`;
-    for (const option of options) option.setAttribute('aria-pressed', String(option.dataset.character === selected));
+    releaseInput();
+    const selected = selectedCharacter();
+    unlockCharacter(selected);
+    const unlocked = getUnlockedCharacters();
+    for (const option of options) {
+      option.hidden = !unlocked.includes(option.dataset.character as CharacterForm);
+      option.setAttribute('aria-pressed', String(option.dataset.character === selected));
+    }
     menu.style.maxHeight = '';
     positionMenu();
     (options.find((option) => option.dataset.character === selected) ?? options[0])?.focus();
   });
   for (const option of options) {
     option.addEventListener('click', () => {
-      const character = option.dataset.character!;
+      const character = option.dataset.character as CharacterForm;
+      if (!getUnlockedCharacters().includes(character)) return;
+      if (character === selectedCharacter()) { menu.hidePopover(); toggle.focus(); return; }
       const ghost = character.startsWith('ghost-');
       const wheldon = character.endsWith('wheldon');
       setWheldonPlayerSpriteEnabled(wheldon);
@@ -47,14 +54,18 @@ export function setupCharacterMenu(): void {
       const url = new URL(window.location.href);
       url.searchParams.set('body', getPlayerBody());
       url.searchParams.set('wheldon', wheldon ? '1' : '0');
-      if (url.searchParams.has('seal')) {
+      const changesSeal = url.searchParams.has('seal') || character === 'seal';
+      if (changesSeal) {
         resetCaveTransformation(url);
-        releaseAllInput();
+        if (character === 'seal') url.searchParams.set('seal', '1');
+      }
+      releaseInput();
+      // Rooms choose their assets and interactions at entry; reload those choices.
+      if (changesSeal || url.pathname.includes('/internal/')) {
         window.location.assign(url.toString());
         return;
       }
       window.history.replaceState(null, '', url);
-      releaseAllInput();
       menu.hidePopover();
       toggle.focus();
     });

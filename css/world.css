@@ -100,7 +100,7 @@
   text-align: center;
 }
 .road-accident-status p { margin: 0; }
-.road-accident-status:has(p:empty) { visibility: hidden; }
+.road-accident-status:has(p:empty):not(:has(button:not([hidden]))) { visibility: hidden; }
 .road-accident-status button {
   margin-top: 8px;
   min-height: 44px;

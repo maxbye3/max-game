@@ -2,11 +2,15 @@ import { readStorage, writeStorage } from './storage.js';
 import { getPlayerBody } from './player-body.js';
 import { isWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { setSiblingPursuitActive } from './sibling-pursuit.js';
+import { unlockCharacter } from './character-unlocks.js';
 
 const KEY = 'max-game:siblings:transformed';
 export const isSealPlayer = (): boolean => new URLSearchParams(window.location.search).has('seal') && getPlayerBody() === 'player' && !isWheldonPlayerSpriteEnabled();
 export const hasCaveTransformation = (): boolean => isSealPlayer() && (readStorage(KEY) === 'true' || new URLSearchParams(window.location.search).get('transformed') === '1');
-export const completeCaveTransformation = (): void => writeStorage(KEY, 'true');
+export function completeCaveTransformation(): void {
+  writeStorage(KEY, 'true');
+  unlockCharacter('seal');
+}
 export function resetCaveTransformation(url: URL): void {
   writeStorage(KEY, 'false');
   setSiblingPursuitActive(false);

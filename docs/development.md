@@ -46,6 +46,7 @@ Install Chromium once: `npx playwright install chromium` (on CI use `--with-deps
 | World constants / collisions | `js/core/config.ts`, `js/core/collision*.ts` |
 | Keyboard and touch input | `js/core/input.ts`, `js/core/mobile-controls.ts` |
 | Options, mute, reset, and feedback entry | `js/core/options-menu.ts`, `js/core/audio-mute.ts`, `js/core/thoughts.ts` |
+| Character selection and earned forms | `js/core/character-menu.ts`, `js/core/character-unlocks.ts`, `js/core/player-startup.ts` |
 | Overworld NPC positions, dialogue, gifts, songs | `js/overworld/npc-definitions.ts` |
 | Stateful NPC conversation / Rei quest | `js/overworld/npcs.ts` |
 | Interior orchestration | `js/interiors/internal.ts` |
@@ -58,6 +59,8 @@ Install Chromium once: `npx playwright install chromium` (on CI use `--with-deps
 | Battle / transformation entries | `js/characters/niall/niall-fight.ts`, `js/core/transform.ts` |
 
 CSS is intentionally ordered in `css/game.css`: base, HUD, navigation, world effects/signs, battle, dialogue, interior features, controls/responsive layout, overlays. Asset URLs in these sources are relative to the root output `style.css`. The style builder concatenates them without changing cascade order or URLs. Edit `css/controls.css` for touch layouts and dialogue clearance, and `css/dialogue.css` for shared conversation panels.
+
+Change character lives under Options on both the map and room pages. Only previously reached forms appear, tracked separately in `max-game:unlocked-characters`; becoming Wheldon does not unlock his ghost. Startup migrates the current form from older saves before refresh restores the starting player. Completing the cave transformation unlocks Baby Seal permanently until Reset game, even when switching forms clears the temporary cave scene. Room/seal selection navigates to prepare the correct assets; other map forms switch in place.
 
 ## Generated inputs
 

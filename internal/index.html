@@ -7,7 +7,7 @@
     <!-- game-preloads:start -->
     <script>(()=>{const rooms={"music-shop":["../img/generated/interiors/musicShop-background-0.9dbc35bcc45e.webp"],"default":[]},choice=rooms[new URLSearchParams(location.search).get('door')];for(const href of Array.isArray(choice)?choice:rooms.default){const link=document.createElement('link');link.rel='preload';link.as='image';link.href=href;link.setAttribute('fetchpriority','high');document.head.append(link);}})();</script>
     <!-- game-preloads:end -->
-    <link rel="stylesheet" href="../style.css?v=543d02cac701" />
+    <link rel="stylesheet" href="../style.css?v=e72b023dc696" />
   </head>
   <body>
     <main class="game-shell">
@@ -35,6 +35,14 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
+        <button id="character-toggle" type="button" popovertarget="character-menu" aria-expanded="false" aria-controls="character-menu">Change character</button>
+        <div id="character-menu" class="character-menu" popover aria-label="Change character">
+          <button type="button" data-character="player" aria-pressed="false">Player</button>
+          <button type="button" data-character="wheldon" aria-pressed="false" hidden>Wheldon</button>
+          <button type="button" data-character="ghost-player" aria-pressed="false" hidden>Ghost player</button>
+          <button type="button" data-character="ghost-wheldon" aria-pressed="false" hidden>Ghost Wheldon</button>
+          <button type="button" data-character="seal" aria-pressed="false" hidden>Baby Seal</button>
+        </div>
         <button id="reset-all" type="button">Reset game</button>
         <button id="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts and feedback</button>
       </section>
@@ -59,7 +67,7 @@
         </div>
         <div id="gift-items" class="gift-items" aria-label="Collected gifts"></div>
         <p id="inventory-message" class="inventory-message"></p>
-        <p class="inventory-version">Version 1.0.12</p>
+        <p class="inventory-version">Version 1.0.13</p>
       </section>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
       <section id="noel-dialogue" class="npc-dialogue" aria-live="polite" hidden>
@@ -300,6 +308,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=10264cb621b8"></script>
+    <script src="../dist/internal-bundle.js?v=9ba69e0f1f33"></script>
   </body>
 </html>

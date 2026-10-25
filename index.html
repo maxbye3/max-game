@@ -9,7 +9,7 @@
     <link rel="preload" as="image" fetchpriority="high" href="img/web/road.7e1893d132db.webp">
     <link rel="preload" as="image" fetchpriority="high" href="img/external/bus.png">
     <!-- game-preloads:end -->
-    <link rel="stylesheet" href="style.css?v=543d02cac701" />
+    <link rel="stylesheet" href="style.css?v=e72b023dc696" />
   </head>
   <body>
     <main class="game-shell">
@@ -43,6 +43,14 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
+        <button id="character-toggle" type="button" popovertarget="character-menu" aria-expanded="false" aria-controls="character-menu">Change character</button>
+        <div id="character-menu" class="character-menu" popover aria-label="Change character">
+          <button type="button" data-character="player" aria-pressed="false">Player</button>
+          <button type="button" data-character="wheldon" aria-pressed="false" hidden>Wheldon</button>
+          <button type="button" data-character="ghost-player" aria-pressed="false" hidden>Ghost player</button>
+          <button type="button" data-character="ghost-wheldon" aria-pressed="false" hidden>Ghost Wheldon</button>
+          <button type="button" data-character="seal" aria-pressed="false" hidden>Baby Seal</button>
+        </div>
         <button id="reset-all" type="button">Reset game</button>
         <button id="thoughts-toggle" type="button" aria-haspopup="dialog" aria-controls="thoughts-dialog">Thoughts and feedback</button>
       </section>
@@ -70,13 +78,6 @@
       <button id="bus-intro-skip" class="bus-intro-skip" type="button" hidden>⏩ Skip intro</button>
       <div class="movement-actions">
         <button id="jump-toggle" class="jump-toggle" type="button" aria-expanded="false" aria-controls="jump-panel">Jump</button>
-        <button id="character-toggle" class="jump-toggle" type="button" popovertarget="character-menu" aria-expanded="false" aria-controls="character-menu">change character</button>
-        <div id="character-menu" class="character-menu" popover aria-label="Change character">
-          <button type="button" data-character="wheldon" aria-pressed="false">wheldon</button>
-          <button type="button" data-character="player" aria-pressed="false">player</button>
-          <button type="button" data-character="ghost-player" aria-pressed="false">ghost player</button>
-          <button type="button" data-character="ghost-wheldon" aria-pressed="false">ghost wheldon</button>
-        </div>
         <button id="controls-toggle" class="controls-toggle" type="button" aria-controls="movement-controls">Toggle Controls</button>
       </div>
       <section id="jump-panel" class="jump-panel" aria-label="Jump to room" hidden>
@@ -141,7 +142,7 @@
         </div>
         <div id="gift-items" class="gift-items" aria-label="Collected gifts"></div>
         <p id="inventory-message" class="inventory-message"></p>
-        <p class="inventory-version">Version 1.0.12</p>
+        <p class="inventory-version">Version 1.0.13</p>
       </section>
       <div id="movement-controls" class="controls">
         <div class="dpad" role="group" aria-label="Movement controls">
@@ -159,6 +160,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=1c3989002388"></script>
+    <script src="dist/main-bundle.js?v=f9b64c574de7"></script>
   </body>
 </html>

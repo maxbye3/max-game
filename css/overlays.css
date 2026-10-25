@@ -291,6 +291,7 @@
   text-align: left;
   cursor: pointer;
 }
+.character-menu button[hidden] { display: none; }
 .character-menu button:is(:hover, :focus-visible, [aria-pressed="true"]) {
   border-color: var(--accent);
   background: rgb(255 255 255 / 10%);
