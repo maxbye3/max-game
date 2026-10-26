@@ -1,6 +1,14 @@
 {
-  "updatedAt": "2026-10-21T06:00:08.355Z",
+  "updatedAt": "2026-10-26T00:16:03.328Z",
   "reviews": [
+    {
+      "title": "Seven Samurai",
+      "year": "1954",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/ji/5q/0k/rv/v6xrz4fr92KY1oNC3HsEvrsvR1n-0-600-0-900-crop.jpg?v=973d70bb0c",
+      "rating": 4.5,
+      "review": "Time for my biannual rewatching of this film. You can tell Seven Samurai is the original that inspired so many films that followed, yet it still feels completely unique. It drags at times, but it's so epic, and you get genuinely attached to every character. Toshiro Mifune is incredible, and I love how much Shakespearean tragedy runs through Kurosawa's storytelling. I wish films like this were still being made.",
+      "url": "https://letterboxd.com/maxbye/film/seven-samurai/"
+    },
     {
       "title": "Obsession",
       "year": "2025",
@@ -232,14 +240,6 @@
       "rating": 2.5,
       "review": "I really liked Edgerton I hope he does more things. I like the momentum of the film but felt theron was a bit flat and the ending was a a bit meh and the film very generic.",
       "url": "https://letterboxd.com/maxbye/film/apex-2026/"
-    },
-    {
-      "title": "The Punisher: One Last Kill",
-      "year": "2026",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/1/3/1/7/4/7/0/1317470-untitled-the-punisher-special-0-600-0-900-crop.jpg?v=5a39a454db",
-      "rating": 3.5,
-      "review": "Glorious violence. Giving up ghosts to kill everyone in his block. Short and sweet. If not a bit pointless.",
-      "url": "https://letterboxd.com/maxbye/film/the-punisher-one-last-kill/"
     }
   ]
 }
