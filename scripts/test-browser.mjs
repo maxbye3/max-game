@@ -101,7 +101,8 @@ try {
           assert.equal(await page.evaluate(() => window.__rubyVoiceAudio.loop), false);
           await page.waitForFunction(() => window.__rubyVoiceAudio.ended, null, { polling: 100 });
           assert.equal(await page.locator('#npc-dialogue-line').textContent(), "Moo moo makes dumb videos of me that I don't enjoy.");
-          assert.equal(await page.locator('#npc-dialogue-profile').isVisible(), false);
+          assert.equal(await page.locator('#npc-dialogue-profile').isVisible(), true);
+          assert.equal(await page.locator('#npc-dialogue-profile').getAttribute('src'), 'char/ruby/profile.png');
           await page.locator('#npc-dialogue-next').click();
           assert.equal(await page.locator('#npc-dialogue-line').textContent(), 'Wanna see them?');
           assert.deepEqual(await page.evaluate(() => window.__rubyVoicePlays), ['audio-1.mp3', 'audio-2.mp3']);

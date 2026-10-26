@@ -17,7 +17,8 @@ await withGameTest(async ({ loadModule, element, values }) => {
     leave(); approach();
     assert.equal(element('#npc-speaker').textContent, 'Ruby');
     assert.equal(line(), "Moo moo makes dumb videos of me that I don't enjoy.");
-    assert.equal(element('#npc-dialogue-profile').hidden, true);
+    assert.equal(element('#npc-dialogue-profile').hidden, false);
+    assert.equal(element('#npc-dialogue-profile').src, 'char/ruby/profile.png');
     assert.equal(element('#ruby-dialogue-options').hidden, true);
     assert.equal(element('#npc-dialogue-next').hidden, false);
     next();
