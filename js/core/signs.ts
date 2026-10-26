@@ -39,7 +39,7 @@ interface Sign {
 
 const SIGN_MESSAGES = [
   "Hey, welcome to my website! People will stop you to talk, but you can keep walking. You don't need to hit the [x] button to close the dialogue!",
-  "People add things to your inventory as you talk to them. Click the Inventory button to use your items. You can also hop around the map with the Jump button!\n\nFinally if you don't like the controls you can toggle a new layout.",
+  "People add things to your inventory as you talk to them. Click the Inventory button to use your items. You can also hop around the map with the Jump button!\n\nFinally if you don't like the controls you can toggle a new layout within the options menu.",
   'DC has one of the highest employment rates in the country, so helping folks find work is my side hustle.',
   "Max is going to be adding more people, places, and things, so check back soon! Have ideas and don't have me on WhatsApp? Open Options, then Thoughts and feedback - he would love to hear them.",
 ] as const;
@@ -87,7 +87,7 @@ export const SIGNS: readonly Sign[] = [
   },
   {
     id: 'east-directory',
-    title: 'Fast travel',
+    title: 'Ignoring people',
     message: SIGN_MESSAGES[0],
     x: 610,
     y: 1151,

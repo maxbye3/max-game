@@ -7,7 +7,6 @@ import { loadInteriorImage } from './interior-image-loading.js';
 import { createInteriorPlayerUpdater } from './interior-player.js';
 import { createRoomCharacterDialogue, type RoomCharacterKind } from './room-character-dialogue.js';
 import { isAlexPlayer } from '../core/player-character.js';
-import { getTimCinemaDialogue } from '../characters/tim/tim-cinema-dialogue.js';
 import { getPlayerSpriteFrame } from '../core/player-sprite.js';
 import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isTimInputPowerActive, updateTimInputWorld } from '../powers/tim/tim-input-power.js';
@@ -222,20 +221,20 @@ const caveSiblings = isCaveInterior && !isTransformedCave && !isSiblingPursuitAc
   : null;
 const cinemaAudience = isCinemaInterior
   ? new CinemaAudienceController({
-    openDialogue: (line, index, total, speaker) => {
+    openDialogue: (line, index, total, speaker, highlight) => {
       beginDialogueAudio(speaker === 'Tim' ? 'Tim' : undefined, '../'); openNoelDialogue();
       noelSpeaker.textContent = speaker; setProfileImage(noelDialogueProfile, speaker, '../');
       noelDialogueLine.textContent = line;
-      if (speaker === 'Tim') {
-        const south = document.createElement('mark');
-        south.textContent = getTimCinemaDialogue()?.highlight ?? 'south';
-        south.className = 'dialogue-highlight';
-        const start = line.indexOf(south.textContent);
-        noelDialogueLine.replaceChildren(line.slice(0, start), south, line.slice(start + south.textContent.length));
+      if (highlight) {
+        const mark = document.createElement('mark');
+        mark.textContent = highlight;
+        mark.className = 'dialogue-highlight';
+        const start = line.indexOf(highlight);
+        noelDialogueLine.replaceChildren(line.slice(0, start), mark, line.slice(start + highlight.length));
       }
       noelDialogueProgress.textContent = `${index + 1}/${total}`;
       noelDialogueProgress.hidden = speaker === 'Tim';
-      noelDialogueNext.hidden = true;
+      noelDialogueNext.hidden = speaker !== 'Tim' || index >= total - 1;
       noelDialogueQuestion.hidden = true;
       noelDialogueOptions.hidden = true;
       musicDialogueOptions.hidden = true;
@@ -485,6 +484,7 @@ function bindControls(): void {
   });
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
   noelDialogueNext.addEventListener('click', () => {
+    if (noelDialogueOpen && cinemaAudience?.next()) return;
     if (isTransformedCave && nearbyInteraction === 'siblings') {
       if (++sealSiblingLineIndex < SEAL_SIBLING_LINES.length) showSealSiblingLine();
       else closeNoelDialogue();

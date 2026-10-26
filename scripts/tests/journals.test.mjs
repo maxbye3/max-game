@@ -75,3 +75,26 @@ await withGameTest(async ({ loadModule, values, element }) => {
   }
   values.clear();
 });
+
+await withGameTest(async ({ loadModule, values }) => {
+  const { CinemaAudienceController, setPlayerBody, setWheldonPlayerSpriteEnabled } = await loadModule('tim-cinema-follow-up', 'js/interiors/cinema-audience.ts', "export { setPlayerBody } from './js/core/player-body.ts'; export { setWheldonPlayerSpriteEnabled } from './js/core/player-sprite-test.ts';");
+  values.set('max-game:tim-at-cinema', 'true');
+  for (const wheldon of [false, true]) {
+    setPlayerBody('player');
+    setWheldonPlayerSpriteEnabled(wheldon);
+    const lines = [];
+    const audience = new CinemaAudienceController({ openDialogue: (...args) => lines.push(args), closeDialogue() {} });
+    audience.update(207, 375, false);
+    assert.equal(lines[0][2], 2, 'Tim has a follow-up after his opening hint');
+    assert.equal(lines[0][4], wheldon ? 'eat some doughnuts' : 'south');
+    assert.equal(audience.next(), true);
+    assert.deepEqual(lines[1], ['solution is surprisingly more macabre than halloween fun', 1, 2, 'Tim', 'macabre']);
+    audience.update(207, 375, true);
+    assert.equal(lines.length, 2, 'standing nearby does not overwrite the follow-up');
+    assert.equal(audience.next(), false, 'the final line does not repeat');
+    audience.update(-100, -100, true);
+    audience.update(207, 375, false);
+    audience.update(-100, -100, true);
+    assert.equal(audience.next(), false, 'walking away cancels the pending follow-up');
+  }
+});

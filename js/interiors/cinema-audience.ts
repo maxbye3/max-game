@@ -3,7 +3,7 @@ import { isTimAtCinema } from '../characters/tim/tim-location.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
 
 interface CinemaAudienceView {
-  readonly openDialogue: (line: string, index: number, total: number, speaker: 'Tim' | 'cinema audience') => void;
+  readonly openDialogue: (line: string, index: number, total: number, speaker: 'Tim' | 'cinema audience', highlight?: string) => void;
   readonly closeDialogue: () => void;
 }
 
@@ -41,12 +41,14 @@ const DIALOGUE_LINES = [
 
 export class CinemaAudienceController {
   private nearbyAudienceIndex: number | null = null;
+  private timFollowUpPending = false;
 
   constructor(private readonly view: CinemaAudienceView) {}
 
   update(playerX: number, playerY: number, dialogueOpen: boolean, characterNearby = false): void {
     if (characterNearby) {
       this.nearbyAudienceIndex = null;
+      this.timFollowUpPending = false;
       return;
     }
     const nextAudienceIndex = AUDIENCE
@@ -57,16 +59,25 @@ export class CinemaAudienceController {
 
     const previousAudienceIndex = this.nearbyAudienceIndex;
     this.nearbyAudienceIndex = nextAudienceIndex;
+    this.timFollowUpPending = false;
     if (previousAudienceIndex !== null && dialogueOpen) this.view.closeDialogue();
     if (nextAudienceIndex !== null) {
       if (nextAudienceIndex === 1 && isTimAtCinema()) {
         const hint = getTimCinemaDialogue();
-        this.view.openDialogue(hint ? hint.opening + hint.highlight + hint.ending : "can you not bother me right now? If your looking to help alex go south", 0, 1, 'Tim');
+        this.timFollowUpPending = true;
+        this.view.openDialogue(hint ? hint.opening + hint.highlight + hint.ending : "can you not bother me right now? If your looking to help alex go south", 0, 2, 'Tim', hint?.highlight ?? 'south');
         return;
       }
       const { line, index } = this.nextDialogueLine();
       this.view.openDialogue(line, index, DIALOGUE_LINES.length, 'cinema audience');
     }
+  }
+
+  next(): boolean {
+    if (!this.timFollowUpPending) return false;
+    this.timFollowUpPending = false;
+    this.view.openDialogue('solution is surprisingly more macabre than halloween fun', 1, 2, 'Tim', 'macabre');
+    return true;
   }
 
   private nextDialogueLine(): { line: string; index: number } {
