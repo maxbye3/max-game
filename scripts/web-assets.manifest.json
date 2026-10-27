@@ -68,6 +68,10 @@
       "sourceHash": "d5c4103d1343",
       "output": "img/web/overworld-avatar.4395aa2f0bb3.webp"
     },
+    "char/ruby/overworld-avatar-smile.png": {
+      "sourceHash": "79354366c4c4",
+      "output": "img/web/overworld-avatar-smile.ffc77a470d73.webp"
+    },
     "char/adam/avatar.png": {
       "sourceHash": "6d67dbbacf42",
       "output": "img/web/avatar.0c43b9a2489a.webp"
