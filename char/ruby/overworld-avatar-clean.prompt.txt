@@ -1,0 +1,6 @@
+Generated with the built-in image_gen tool, using the committed overworld-avatar-smile.png as the edit target and the front-facing player sprite as the pixel-art reference.
+
+Use case: precise-object-edit.
+Clean up Ruby's map sprite at a 32x44 logical pixel resolution, rendered 47 pixels tall. Replace the oversized U-shaped grin with a subtle single-pixel muted-rose mouth. Keep two matching, evenly aligned dark eyes. Give her slim, clearly defined matching pink sleeves and tiny hands pointing down beside her hips. Preserve her curly burgundy hair, silver earrings, pink jacket, orange-and-cream striped turtleneck, full-length red trousers and black-and-white shoes, compact proportions and standing pose. Use crisp, aligned square pixels, a restrained palette and a transparent background. No ground, shadow, text, blur or antialiasing.
+
+Aligned the generated pixel grid with a 1024x1408 crop at (20, 0), then sampled to 32x44 using nearest-neighbor sampling. Standardized alpha to transparent/opaque and reduced to a 32-color palette. The existing 47-pixel map height is retained. The previous locally modified sprite was preserved in its original file.
