@@ -5,6 +5,7 @@ function recordAudio() {
   const instances = [], plays = [];
   globalThis.Audio = class {
     paused = true;
+    ended = false;
     currentTime = 0;
     addEventListener() {}
     removeEventListener() {}
@@ -32,10 +33,12 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   const action = name => element('#move-grid').listeners.get('click')({ target: { closest: () => ({ dataset: { action: name } }) } });
   const hits = () => plays.filter(source => /\/hit-\d\.mp3$/.test(source));
   const music = instances.find(audio => audio.src?.endsWith('/battle-music.mp3'));
-  assert.equal(music.loop, true);
+  assert.equal(music.loop, false);
   assert.equal(music.muted, true, 'the battle honors the saved mute setting without needing an overworld mute button');
   assert.ok(plays.includes(music.src), 'music starts with the battle opening');
   next();
+  music.ended = true;
+  music.paused = true;
   for (let round = 0; round < 5; round++) {
     action('attack');
     assert.equal(hits().length, round * 2, 'announcing a move does not play its impact early');
@@ -46,6 +49,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.equal(hits().length, 10, 'waiting does not play an attack sound');
   next(); next(); next();
   assert.equal(hits().at(-1).split('/').at(-1), 'hit-2.mp3', 'Niall still attacks after the player waits');
+  assert.equal(plays.filter(source => source === music.src).length, 1, 'advancing turns never restarts the music after it ends');
   action('run');
   scheduledCallbacks.at(-1)();
   assert.equal(music.paused, true, 'battle music stops when the fight ends');

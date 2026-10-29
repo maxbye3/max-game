@@ -3,14 +3,14 @@ import { resolveSiteAsset } from '../../core/site-assets.js';
 
 export function createNiallBattleAudio() {
   const music = createGameAudio(resolveSiteAsset('char/niall/audio/battle-music.mp3'));
-  music.loop = true;
+  music.loop = false;
   const impact = createGameAudio();
   let nextHit = 1;
 
   return {
     start(): void {
       // Retry on the opening button if the browser blocked initial autoplay.
-      if (music.paused) void music.play().catch(() => {});
+      if (music.paused && !music.ended) void music.play().catch(() => {});
     },
     hit(): void {
       impact.pause();

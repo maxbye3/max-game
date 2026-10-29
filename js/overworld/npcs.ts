@@ -110,7 +110,7 @@ function showRubyLine(stage: NonNullable<typeof rubyStage>): void {
   nextButton.hidden = stage === 'question' || (stage === 'final' && pendingSongReward === null);
   const voiceAsset = { opening: 'dialogueAudioOne', question: 'dialogueAudioTwo', decline: 'dialogueAudioThree', final: 'dialogueAudioFour' }[stage];
   rubyDialogueAudio.pause();
-  rubyDialogueAudio.src = `${characterAsset('ruby', voiceAsset)}?v=quieter-1`;
+  rubyDialogueAudio.src = `${characterAsset('ruby', voiceAsset)}?v=quieter-2`;
   rubyDialogueAudio.currentTime = 0;
   void rubyDialogueAudio.play().catch(() => {
     // Browsers may require a player gesture before playing dialogue audio.
