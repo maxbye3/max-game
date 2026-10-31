@@ -10,6 +10,6 @@ for (const project of legacyProjects) {
     assert.equal(target, `https://maxbye3.github.io${pathname}?name=a%26b#chapter-2`);
   }
 }
-for (const pathname of ['/', '/internal/', '/stealth-game/', '/zen-garden/', '/japanese/gettysburg/', '/mrMoonhead/', '/africa-other/', '//evil.example/']) {
+for (const pathname of ['/', '/internal/', '/stealth-game/', '/zen-garden/', '/japanese/gettysburg/', '/mrMoonhead/', '/kindness-website.com/', '/africa-other/', '//evil.example/']) {
   redirectLegacyProject({ pathname, search: '', hash: '', replace: () => assert.fail(`Unexpected redirect: ${pathname}`) });
 }

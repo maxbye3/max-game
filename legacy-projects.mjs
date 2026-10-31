@@ -15,7 +15,6 @@ export const legacyProjects = [
   "island_puzzle",
   "kindness-dev",
   "kindness-prod",
-  "kindness-website.com",
   "mental-health-ai",
   "mnookin-two-pager",
   "portfolio",

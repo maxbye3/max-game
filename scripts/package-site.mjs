@@ -11,7 +11,7 @@ for (const path of ['index.html', '404.html', 'legacy-projects.mjs', 'style.css'
 }
 
 // These static projects share the domain, but keep their own assets and relative URLs.
-for (const project of ['stealth-game', 'zen-garden', 'japanese', 'mrMoonhead']) {
+for (const project of ['stealth-game', 'zen-garden', 'japanese', 'mrMoonhead', 'kindness-website.com']) {
   const source = resolve('.cache/linked-sites', project);
   if (!(await stat(resolve(source, 'index.html'))).isFile()) throw new Error(`Missing linked site: ${project}`);
   await cp(source, resolve(output, project), {
