@@ -78,6 +78,8 @@ Map image hints and the measured large-room background hint are stamped into HTM
 
 Room rendering derivatives are generated from the actual scene geometry into `img/generated/interiors/`. They bake the canvas's nearest-neighbour sampling for large backgrounds and door art; short rooms retain vertical resolution for portrait stretching. The four cave poses are packed without changing their source pixels. Original art remains untouched. Browser checks compare prepared backgrounds/poses against original renders, including portrait/desktop crops.
 
+Each interior selects its pixel-art tab icon from `img/favicons/<scene.kind>.svg` alongside its page title. Add a matching SVG when adding an interior kind; all entrances to the same room share its icon.
+
 The cinema uses a checked-in 298×168 silent projection copy, with the original film retained for the fullscreen Kirin view. After changing `video/film.mp4`, use `npm run prepare:cinema-film` with ffmpeg on PATH (or `FFMPEG_PATH` pointing to its executable), then build. Normal builds require no ffmpeg; a stale projection falls back to the original film. The cinema pauses its video while the tab is hidden.
 
 Normal builds generate lossless WebP browser copies for `scripts/web-image-sources.json`, including on CI. Add original image paths to that registry to optimize them; optional dimensions use nearest-neighbour resizing. The seal sheet is generated as a separate, cache-versioned image and only fetched in seal form. Music/fonts remain optional prepared copies: use `npm run prepare:web-assets` to refresh them. Stale or missing copies fall back to originals. Collision guides are original assets and are never optimized.

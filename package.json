@@ -1,6 +1,6 @@
 {
   "name": "max-game",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "private": true,
   "description": "Max's Overworld - a browser overworld game",
   "scripts": {
