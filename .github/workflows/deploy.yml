@@ -40,6 +40,12 @@ jobs:
           ref: main
           path: .cache/linked-sites/japanese
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: maxbye3/mrMoonhead
+          ref: master
+          path: .cache/linked-sites/mrMoonhead
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22

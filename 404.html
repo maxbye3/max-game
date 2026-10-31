@@ -8,10 +8,9 @@
       const path = location.pathname;
       if (path === '/max-game' || path.startsWith('/max-game/')) {
         location.replace('/' + path.slice('/max-game'.length).replace(/^\/+/, '') + location.search + location.hash);
-      } else if (/^\/event-tinder(\/|$)/.test(path)) {
-        location.replace('https://maxbye3.github.io' + path + location.search + location.hash);
       }
     </script>
+    <script type="module" src="/legacy-projects.mjs"></script>
   </head>
   <body>
     <p><a href="/">Play Max's Overworld at maxbye.co</a></p>
