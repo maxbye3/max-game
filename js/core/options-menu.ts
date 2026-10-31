@@ -2,6 +2,7 @@ import { requireElement } from './elements.js';
 import { resetNiallQuestState, resetMikeAftermath } from './world-state.js';
 import { resetTimRoute } from '../characters/tim/tim-location.js';
 import { resetMusicLibrary } from '../interiors/music-library.js';
+import { PORTABLE_WALKMAN, removeGift } from './inventory-gifts.js';
 import { setAlexEatenDoughnut } from './alex-w-state.js';
 import { setPlayerBody } from './player-body.js';
 import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
@@ -40,6 +41,7 @@ export function setupOptionsMenu(releaseInput: () => void): void {
     resetNiallQuestState();
     resetTimRoute();
     resetMikeAftermath();
+    removeGift(PORTABLE_WALKMAN);
     resetMusicLibrary();
     setAlexEatenDoughnut(false);
     setPlayerBody('player');

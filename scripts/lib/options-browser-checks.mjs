@@ -17,7 +17,15 @@ export async function checkOptionsMenu(browser, server, fixtures) {
         await page.waitForFunction(() => document.querySelector('#options-toggle').getAttribute('aria-expanded') === 'true');
       };
       try {
-        await page.addInitScript(() => localStorage.setItem('max-game:audio-muted', 'true'));
+        await page.addInitScript(() => {
+          localStorage.setItem('max-game:audio-muted', 'true');
+          window.__musicPlays = [];
+          const play = HTMLMediaElement.prototype.play;
+          HTMLMediaElement.prototype.play = function (...args) {
+            if (new URL(this.src, location.href).pathname.includes('/audio/music/')) window.__musicPlays.push(this);
+            return play.apply(this, args);
+          };
+        });
         await page.route('**/dist/main-bundle.js*', route => route.fulfill({path:fixtures[0], contentType:'text/javascript'}));
         await page.route('**/dist/internal-bundle.js*', route => route.fulfill({path:fixtures[1], contentType:'text/javascript'}));
         await page.goto(`${server.url}/${interior ? 'internal/' : ''}index.html?door=garden-room`);
@@ -91,10 +99,21 @@ export async function checkOptionsMenu(browser, server, fixtures) {
           localStorage.setItem('max-game:tim-at-cinema', 'true');
           localStorage.setItem('max-game:mike-aftermath', 'true');
           localStorage.setItem('max-game:unlocked-songs', '["Africa"]');
+          localStorage.setItem('max-game:inventory-gifts', '["andy-item","portable-walkman"]');
+          window.dispatchEvent(new Event('max-game:inventory-gift-added'));
+          window.dispatchEvent(new Event('max-game:music-unlocked'));
           localStorage.setItem('max-game:alex-w:eatenDoughnut', 'true');
           localStorage.setItem('max-game:player-body', 'alex-s');
           localStorage.setItem('max-game:wheldon-player-sprite', 'true');
         });
+        if (!interior) {
+          await page.locator('#music-toggle').click();
+          assert.equal(await page.locator('#music-controls-group').isVisible(), true);
+          await page.locator('#music-select').selectOption('Africa');
+          await page.waitForFunction(() => document.querySelector('#music-status').textContent === 'Playing Africa.');
+          assert.equal(await page.evaluate(() => window.__musicPlays.at(-1).paused), false, 'the earned Walkman can play songs before reset');
+          await page.locator('#music-close').click();
+        }
         await open();
         await page.getByRole('button', {name:'Reset game', exact:true}).click();
         await page.waitForURL(`${server.url}/index.html`);
@@ -105,8 +124,41 @@ export async function checkOptionsMenu(browser, server, fixtures) {
           'max-game:player-body', 'max-game:wheldon-player-sprite',
         ].map(key => [key, localStorage.getItem(key)])));
         assert.deepEqual(Object.values(reset), ['hostile', 'false', 'false', 'false', null, 'false', 'player', 'false'], 'Reset game preserves the existing reset behavior from either page');
+        assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:inventory-gifts'))), ['andy-item'], 'Reset game removes the hidden Walkman unlock');
+        await page.locator('#music-toggle').click();
+        const assertMusicLocked = async () => {
+          assert.equal(await page.locator('#music-controls-group').isVisible(), false);
+          assert.equal(await page.locator('#music-select').isDisabled(), true);
+          assert.equal(await page.locator('#music-play-pause').isDisabled(), true);
+          assert.equal(await page.locator('#music-volume').isDisabled(), true);
+          assert.equal(await page.locator('#music-status').textContent(), "You don't have a way to play music");
+        };
+        await assertMusicLocked();
+        await page.evaluate(() => {
+          localStorage.setItem('max-game:unlocked-songs', '["Africa"]');
+          window.dispatchEvent(new Event('max-game:music-unlocked'));
+          const select = document.querySelector('#music-select');
+          select.value = 'Africa';
+          select.dispatchEvent(new Event('change'));
+          document.querySelector('#music-play-pause').dispatchEvent(new Event('click'));
+        });
+        await assertMusicLocked();
+        assert.equal(await page.evaluate(() => window.__musicPlays.length), 0, 'earning a new song after reset cannot bypass the missing Walkman');
+        await page.reload();
+        await ready();
+        await page.locator('#music-toggle').click();
+        await assertMusicLocked();
+        await page.evaluate(() => {
+          const gifts = JSON.parse(localStorage.getItem('max-game:inventory-gifts'));
+          localStorage.setItem('max-game:inventory-gifts', JSON.stringify([...gifts, 'portable-walkman']));
+          window.dispatchEvent(new Event('max-game:inventory-gift-added'));
+        });
+        assert.equal(await page.locator('#music-controls-group').isVisible(), true);
+        await page.locator('#music-select').selectOption('Africa');
+        await page.waitForFunction(() => document.querySelector('#music-status').textContent === 'Playing Africa.');
+        assert.equal(await page.evaluate(() => window.__musicPlays.at(-1).paused), false, 'earning the Walkman again restores playback');
         assert.deepEqual(errors, []);
-        console.log(`PASS Options ${interior ? 'interior' : 'overworld'} ${viewport.width}×${viewport.height}: mute, reset, feedback, keyboard dismissal and movement.`);
+        console.log(`PASS Options ${interior ? 'interior' : 'overworld'} ${viewport.width}×${viewport.height}: mute, reset, Walkman playback gating, feedback, keyboard dismissal and movement.`);
       } catch (error) {
         await page.screenshot({path:`test-results/failure-options-${interior ? 'interior' : 'overworld'}-${viewport.width}.png`});
         throw error;

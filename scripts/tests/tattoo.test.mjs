@@ -7,17 +7,17 @@ await withGameTest(async ({ loadModule }) => {
   tattoo.draw(TATTOO_STENCIL[0][0], 0);
   assert.equal(tattoo.strokes.length, 0, 'the needle is inactive before Start');
   tattoo.start(1000);
-  assert.equal(tattoo.secondsLeft(1000), 12);
+  assert.equal(tattoo.secondsLeft(1000), 10);
   for (const path of TATTOO_STENCIL) {
     for (const point of path) tattoo.draw(point, 2000);
     tattoo.lift();
   }
   assert.deepEqual(tattoo.result(), { score: 100, coverage: 100, accuracy: 100 }, 'tracing the Halstead lettering and tribal strokes earns full marks');
-  tattoo.update(12999);
+  tattoo.update(10999);
   assert.equal(tattoo.phase, 'drawing');
   const completedStrokes = tattoo.strokes.length;
-  tattoo.draw({ x: 120, y: 260 }, 13000);
-  assert.equal(tattoo.phase, 'finished', 'the needle stops at exactly twelve seconds');
+  tattoo.draw({ x: 120, y: 260 }, 11000);
+  assert.equal(tattoo.phase, 'finished', 'the needle stops at exactly ten seconds');
   assert.equal(tattoo.strokes.length, completedStrokes, 'ink after the deadline cannot change the tattoo');
   tattoo.start(20000);
   assert.deepEqual(tattoo.result(), { score: 0, coverage: 0, accuracy: 0 }, 'retry clears the previous tattoo');
