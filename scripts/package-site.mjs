@@ -1,5 +1,5 @@
 import { cp, mkdir, readFile, rm, stat } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { interiorRenderOutputs } from './lib/interior-render-plan.mjs';
 
 const output = resolve('_site');
@@ -7,6 +7,16 @@ await rm(output, { recursive: true, force: true });
 await mkdir(output);
 for (const path of ['index.html', '404.html', 'style.css', 'transform.html', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'video', 'fonts', 'char', 'data']) {
   await cp(path, resolve(output, path), { recursive: true });
+}
+
+// These static projects share the domain, but keep their own assets and relative URLs.
+for (const project of ['stealth-game', 'zen-garden', 'japanese']) {
+  const source = resolve('.cache/linked-sites', project);
+  if (!(await stat(resolve(source, 'index.html'))).isFile()) throw new Error(`Missing linked site: ${project}`);
+  await cp(source, resolve(output, project), {
+    recursive: true,
+    filter: path => !['.git', '.github', 'node_modules'].includes(basename(path)),
+  });
 }
 
 // Keep shared game links working after moving from /max-game/ to the domain root.
@@ -30,4 +40,4 @@ for (const path of (await interiorRenderOutputs()).slice(1)) {
 const cinemaModule = await readFile('js/generated/interiors/cinema-film.generated.ts', 'utf8');
 const cinemaSource = JSON.parse(cinemaModule.match(/= ("[^"]+");/)[1]);
 if (!(await stat(resolve(output, cinemaSource))).isFile()) throw new Error(`Missing published cinema film: ${cinemaSource}`);
-console.log('Packaged game with generated assets in _site.');
+console.log('Packaged game, linked projects, and generated assets in _site.');

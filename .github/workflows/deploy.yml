@@ -22,6 +22,24 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: maxbye3/stealth-game
+          ref: main
+          path: .cache/linked-sites/stealth-game
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: maxbye3/zen-garden
+          ref: main
+          path: .cache/linked-sites/zen-garden
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: maxbye3/japanese
+          ref: main
+          path: .cache/linked-sites/japanese
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22

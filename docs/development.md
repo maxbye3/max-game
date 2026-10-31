@@ -4,7 +4,9 @@
 
 Use Node 20+ and `npm ci`. The game runs on a static server; no API server or credentials are required.
 
-Production is https://maxbye.co/, configured as the custom domain in this repository's GitHub Pages settings. The Deploy game workflow publishes `_site/` from `main`. DNS continues to point to GitHub Pages. The former portfolio source remains in `maxbye3/maxbye3.github.io`, without the custom domain. `404.html` redirects old `/max-game/` links to the root while retaining their path, query, and fragment; it also keeps the game's links to the separate zen-garden and event-tinder projects working at their GitHub Pages URLs.
+Production is https://maxbye.co/, configured as the custom domain in this repository's GitHub Pages settings. The Deploy game workflow publishes `_site/` from `main`. DNS continues to point to GitHub Pages. The former portfolio source remains in `maxbye3/maxbye3.github.io`, without the custom domain. The workflow also checks out the `main` branches of `maxbye3/stealth-game`, `maxbye3/zen-garden`, and `maxbye3/japanese` into `.cache/linked-sites/`; packaging copies these static projects into their matching URL paths, keeping the main game at `/`. Project updates are included on the next Deploy game run, which can also be triggered manually. `404.html` redirects old `/max-game/` links to the root while retaining their path, query, and fragment, and keeps event-tinder links working at its separate GitHub Pages URL.
+
+Before running `npm run build:site` locally, clone those three repositories into `.cache/linked-sites/<project>` (or pull existing checkouts). Ordinary `npm run build` does not need them. Packaging preserves each project's relative asset URLs and excludes Git metadata, GitHub workflows, and `node_modules`.
 
 The inventory shows the version from `package.json`, stamped into both pages during bundling. Bump it for a release with `npm version patch --no-git-tag-version`, then build and commit the updated version and lockfile with the changes.
 
