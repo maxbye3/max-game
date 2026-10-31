@@ -5,9 +5,13 @@ import { interiorRenderOutputs } from './lib/interior-render-plan.mjs';
 const output = resolve('_site');
 await rm(output, { recursive: true, force: true });
 await mkdir(output);
-for (const path of ['index.html', 'style.css', 'transform.html', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'video', 'fonts', 'char', 'data']) {
+for (const path of ['index.html', '404.html', 'style.css', 'transform.html', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'video', 'fonts', 'char', 'data']) {
   await cp(path, resolve(output, path), { recursive: true });
 }
+
+// Keep shared game links working after moving from /max-game/ to the domain root.
+await mkdir(resolve(output, 'max-game'));
+await cp('404.html', resolve(output, 'max-game/index.html'));
 
 // Every optimized file selected by the bundles must be in the deployment too.
 for (const name of ['web-images', 'power-themes']) {

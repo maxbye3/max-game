@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Max's Overworld</title>
+    <script>
+      const path = location.pathname;
+      if (path === '/max-game' || path.startsWith('/max-game/')) {
+        location.replace('/' + path.slice('/max-game'.length).replace(/^\/+/, '') + location.search + location.hash);
+      } else if (/^\/(zen-garden|event-tinder)(\/|$)/.test(path)) {
+        location.replace('https://maxbye3.github.io' + path + location.search + location.hash);
+      }
+    </script>
+  </head>
+  <body>
+    <p><a href="/">Play Max's Overworld at maxbye.co</a></p>
+  </body>
+</html>

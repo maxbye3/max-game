@@ -4,6 +4,8 @@
 
 Use Node 20+ and `npm ci`. The game runs on a static server; no API server or credentials are required.
 
+Production is https://maxbye.co/, configured as the custom domain in this repository's GitHub Pages settings. The Deploy game workflow publishes `_site/` from `main`. DNS continues to point to GitHub Pages. The former portfolio source remains in `maxbye3/maxbye3.github.io`, without the custom domain. `404.html` redirects old `/max-game/` links to the root while retaining their path, query, and fragment; it also keeps the game's links to the separate zen-garden and event-tinder projects working at their GitHub Pages URLs.
+
 The inventory shows the version from `package.json`, stamped into both pages during bundling. Bump it for a release with `npm version patch --no-git-tag-version`, then build and commit the updated version and lockfile with the changes.
 
 | Command | Purpose |
