@@ -1,6 +1,22 @@
 {
-  "updatedAt": "2026-10-26T00:16:03.328Z",
+  "updatedAt": "2026-11-02T20:21:20.733Z",
   "reviews": [
+    {
+      "title": "The Death of Robin Hood",
+      "year": "2026",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/1/1/6/7/8/5/8/1167858-the-death-of-robin-hood-0-600-0-900-crop.jpg?v=39347a2edd",
+      "rating": 3,
+      "review": "Exceptionally brutal and fast-paced beginning and then it just sort of peters out after the first hour.I don't even remember the end. It's just sort of became a completely different and tedious film. Shame as it started as a 5 which some an intense and beautifully Scottish beginning.",
+      "url": "https://letterboxd.com/maxbye/film/the-death-of-robin-hood/"
+    },
+    {
+      "title": "The Weight",
+      "year": "2026",
+      "poster": "https://a.ltrbxd.com/resized/sm/upload/5c/wi/1f/au/weight-0-600-0-900-crop.jpg?v=558a8cef6a",
+      "rating": 3.5,
+      "review": "Good film. Ethan hawke can do no wrong and their were some wonderful side characters (notably ). Really exciting. I'm glad Russell Crown wasn't in it at all because I find his acting style a chore.",
+      "url": "https://letterboxd.com/maxbye/film/the-weight-2026/"
+    },
     {
       "title": "Seven Samurai",
       "year": "1954",
@@ -224,22 +240,6 @@
       "rating": 4,
       "review": "Really great. Loved Hugh Jackman singing and the twists and turns. I wish the first half was a bit more engaging but Jackson and Hudson are oozing with charming.",
       "url": "https://letterboxd.com/maxbye/film/song-sung-blue-2025/"
-    },
-    {
-      "title": "Train Dreams",
-      "year": "2025",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/1/1/2/5/3/8/3/1125383-train-dreams-0-600-0-900-crop.jpg?v=55740bb5b4",
-      "rating": 3.5,
-      "review": "Very moving and great acting from Joel. Bit slow and it sort of petered out but I love the world, the emotion, the acting and the feel of what it was like being a logger from the 20s to the 60s.",
-      "url": "https://letterboxd.com/maxbye/film/train-dreams/"
-    },
-    {
-      "title": "Apex",
-      "year": "2026",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/1/1/9/9/2/4/7/1199247-apex-2026-0-600-0-900-crop.jpg?v=65880e39d9",
-      "rating": 2.5,
-      "review": "I really liked Edgerton I hope he does more things. I like the momentum of the film but felt theron was a bit flat and the ending was a a bit meh and the film very generic.",
-      "url": "https://letterboxd.com/maxbye/film/apex-2026/"
     }
   ]
 }
