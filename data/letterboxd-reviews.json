@@ -1,6 +1,14 @@
 {
-  "updatedAt": "2026-11-02T20:21:20.733Z",
+  "updatedAt": "2026-11-03T10:01:49.266Z",
   "reviews": [
+    {
+      "title": "Some Kind of Heaven",
+      "year": "2020",
+      "poster": "https://a.ltrbxd.com/resized/film-poster/5/6/4/7/3/3/564733-some-kind-of-heaven-0-600-0-900-crop.jpg?v=421a3e594f",
+      "rating": 4,
+      "review": "Wow, quite depressing but an incredible documentary and very human - quite heart breaking. Showing a range of deep emotions and journeys from coping with melancholy by living in bubbles of nostalgia. A reminder that when you get older you don’t have figured out at all.",
+      "url": "https://letterboxd.com/maxbye/film/some-kind-of-heaven/"
+    },
     {
       "title": "The Death of Robin Hood",
       "year": "2026",
@@ -232,14 +240,6 @@
       "rating": 4,
       "review": "Very very cool film. Mifune is such a badass his swashbuckling and galavanting is so cool and the town is amazing. I really enjoyed it.",
       "url": "https://letterboxd.com/maxbye/film/yojimbo/"
-    },
-    {
-      "title": "Song Sung Blue",
-      "year": "2025",
-      "poster": "https://a.ltrbxd.com/resized/film-poster/1/2/5/7/9/2/3/1257923-song-sung-blue-2025-0-600-0-900-crop.jpg?v=cbd714fcd7",
-      "rating": 4,
-      "review": "Really great. Loved Hugh Jackman singing and the twists and turns. I wish the first half was a bit more engaging but Jackson and Hudson are oozing with charming.",
-      "url": "https://letterboxd.com/maxbye/film/song-sung-blue-2025/"
     }
   ]
 }
