@@ -55,12 +55,12 @@
 
 .sign-dialogue h2 {
   margin: 0;
-  font: 10px/1.5 var(--font-pixel);
+  font: calc(10px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
 }
 
 .sign-dialogue p {
   margin: 0;
-  font: 9px/1.8 var(--font-pixel);
+  font: calc(9px * var(--dialogue-text-scale))/1.8 var(--font-pixel);
   white-space: pre-line;
 }
 

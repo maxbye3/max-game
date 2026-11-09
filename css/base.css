@@ -5,11 +5,15 @@
   --text: #f5fff6;
   --font-pixel: "Press Start Game", monospace;
   --font-display: "Orbitron Game", sans-serif;
+  --dialogue-text-scale: 1;
 
   color-scheme: dark;
   font-family: "Exo 2 Game", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
   background: #0d251a;
 }
+
+:root[data-dialogue-text-size="medium"] { --dialogue-text-scale: 1.333333; }
+:root[data-dialogue-text-size="large"] { --dialogue-text-scale: 1.666667; }
 
 @font-face {
   font-family: "Press Start Game";

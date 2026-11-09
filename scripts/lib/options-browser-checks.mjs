@@ -44,6 +44,7 @@ export async function checkOptionsMenu(browser, server, fixtures) {
           assert.equal(await menu.getByRole('button', {name:'Reset game', exact:true}).count(), 1);
           assert.equal(await menu.getByRole('button', {name:'Thoughts and feedback', exact:true}).count(), 1);
           for (const button of await menu.locator('button:visible').all()) {
+            await button.scrollIntoViewIfNeeded();
             const box = await button.boundingBox();
             assert.ok(box.width >= 44 && box.height >= 44, 'options have phone-friendly touch targets');
             assert.ok(await button.evaluate(element => {

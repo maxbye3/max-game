@@ -50,14 +50,14 @@
   min-width: 0;
   margin: 0;
   color: var(--accent);
-  font: 10px/1.5 var(--font-pixel);
+  font: calc(10px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
   text-transform: none;
   overflow-wrap: anywhere;
 }
 
 .npc-dialogue p {
   margin: 0;
-  font: 9px/1.8 var(--font-pixel);
+  font: calc(9px * var(--dialogue-text-scale))/1.8 var(--font-pixel);
 }
 
 .andy-power-reply {
@@ -124,14 +124,14 @@
 .dialogue-progress {
   flex: 0 0 auto;
   color: #b8e493;
-  font: 8px/1.8 var(--font-pixel);
+  font: calc(8px * var(--dialogue-text-scale))/1.8 var(--font-pixel);
   white-space: nowrap;
 }
 
 .dialogue-gift-confirmation {
   margin-top: 8px !important;
   color: #b8e493;
-  font: 8px/1.6 var(--font-pixel) !important;
+  font: calc(8px * var(--dialogue-text-scale))/1.6 var(--font-pixel) !important;
 }
 
 #noel-dialogue-question {
@@ -139,7 +139,7 @@
   padding-top: 0;
   border-top: 0;
   color: #fff3c8;
-  font-size: 8px !important;
+  font-size: calc(8px * var(--dialogue-text-scale)) !important;
   white-space: normal;
 }
 
@@ -172,7 +172,7 @@
   border-radius: 5px;
   color: #f5fff6;
   background: #294b31;
-  font: 8px/1.5 var(--font-pixel);
+  font: calc(8px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
   text-align: left;
   text-decoration: none;
   cursor: pointer;
@@ -200,7 +200,7 @@
   border-radius: 5px;
   color: #17321c;
   background: var(--accent);
-  font: 8px/1.5 var(--font-pixel);
+  font: calc(8px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
   cursor: pointer;
 }
 
@@ -283,4 +283,4 @@
   cursor: pointer;
 }
 
-.sibling-chase-message { font: 10px/1.8 var(--font-pixel); pointer-events: none; }
+.sibling-chase-message { font: calc(10px * var(--dialogue-text-scale))/1.8 var(--font-pixel); pointer-events: none; }

@@ -8,7 +8,7 @@
     <!-- game-preloads:start -->
     <script>(()=>{const rooms={"music-shop":["../img/generated/interiors/musicShop-background-0.9dbc35bcc45e.webp"],"default":[]},choice=rooms[new URLSearchParams(location.search).get('door')];for(const href of Array.isArray(choice)?choice:rooms.default){const link=document.createElement('link');link.rel='preload';link.as='image';link.href=href;link.setAttribute('fetchpriority','high');document.head.append(link);}})();</script>
     <!-- game-preloads:end -->
-    <link rel="stylesheet" href="../style.css?v=e72b023dc696" />
+    <link rel="stylesheet" href="../style.css?v=b4a5cfed4023" />
   </head>
   <body>
     <main class="game-shell">
@@ -36,6 +36,12 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
+        <label class="dialogue-text-size-label" for="dialogue-text-size">Dialogue &amp; sign text size</label>
+        <select id="dialogue-text-size" class="dialogue-text-size">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
         <button id="character-toggle" type="button" popovertarget="character-menu" aria-expanded="false" aria-controls="character-menu">Change character</button>
         <div id="character-menu" class="character-menu" popover aria-label="Change character">
           <button type="button" data-character="player" aria-pressed="false">Player</button>
@@ -309,6 +315,6 @@
         <span class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys</span>
       </div>
     </main>
-    <script src="../dist/internal-bundle.js?v=b215756c1a35"></script>
+    <script src="../dist/internal-bundle.js?v=c8b8123a6005"></script>
   </body>
 </html>

@@ -9,7 +9,7 @@
     <link rel="preload" as="image" fetchpriority="high" href="img/web/road.7e1893d132db.webp">
     <link rel="preload" as="image" fetchpriority="high" href="img/external/bus.png">
     <!-- game-preloads:end -->
-    <link rel="stylesheet" href="style.css?v=e72b023dc696" />
+    <link rel="stylesheet" href="style.css?v=b4a5cfed4023" />
   </head>
   <body>
     <main class="game-shell">
@@ -43,6 +43,12 @@
           </svg>
           <span class="audio-mute-label">Mute</span>
         </button>
+        <label class="dialogue-text-size-label" for="dialogue-text-size">Dialogue &amp; sign text size</label>
+        <select id="dialogue-text-size" class="dialogue-text-size">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
         <button id="character-toggle" type="button" popovertarget="character-menu" aria-expanded="false" aria-controls="character-menu">Change character</button>
         <div id="character-menu" class="character-menu" popover aria-label="Change character">
           <button type="button" data-character="player" aria-pressed="false">Player</button>
@@ -160,6 +166,6 @@
       </div>
       <p id="announcer" class="visually-hidden" role="status" aria-live="polite"></p>
     </main>
-    <script src="dist/main-bundle.js?v=541344116ce6"></script>
+    <script src="dist/main-bundle.js?v=9493b98b0232"></script>
   </body>
 </html>

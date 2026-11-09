@@ -8,6 +8,7 @@ import { setPlayerBody } from './player-body.js';
 import { setWheldonPlayerSpriteEnabled } from './player-sprite-test.js';
 import { resetCharacterUnlocks } from './character-unlocks.js';
 import { setupCharacterMenu } from './character-menu.js';
+import { readStorage, writeStorage } from './storage.js';
 
 export function isOptionsMenuOpen(): boolean {
   return document.querySelector('#options-menu')?.matches(':popover-open') ?? false;
@@ -17,6 +18,18 @@ export function setupOptionsMenu(releaseInput: () => void): void {
   setupCharacterMenu(releaseInput);
   const toggle = requireElement<HTMLButtonElement>('#options-toggle');
   const menu = requireElement<HTMLElement>('#options-menu');
+  const textSize = requireElement<HTMLSelectElement>('#dialogue-text-size');
+  const applyTextSize = (value: string | null): void => {
+    const size = value === 'medium' || value === 'large' ? value : 'small';
+    textSize.value = size;
+    document.documentElement.dataset.dialogueTextSize = size;
+  };
+  applyTextSize(readStorage('max-game:dialogue-text-size'));
+  textSize.addEventListener('change', () => {
+    releaseInput();
+    applyTextSize(textSize.value);
+    writeStorage('max-game:dialogue-text-size', textSize.value);
+  });
   const positionMenu = (): void => {
     const anchor = toggle.getBoundingClientRect();
     const margin = 12;

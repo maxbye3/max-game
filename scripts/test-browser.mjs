@@ -9,6 +9,7 @@ import { checkGhostFlows } from './lib/ghost-browser-checks.mjs';
 import { checkItemDescriptions } from './lib/item-description-browser-checks.mjs';
 import { checkMapNpcPositions } from './lib/map-npc-browser-checks.mjs';
 import { checkOptionsMenu } from './lib/options-browser-checks.mjs';
+import { checkDialogueTextSizes } from './lib/dialogue-text-size-browser-checks.mjs';
 import { checkPreparedRenderAssets } from './lib/render-assets-browser-checks.mjs';
 import { checkIdleWaste } from './lib/idle-waste-browser-checks.mjs';
 import { checkCharacterUnlocks } from './lib/character-unlocks-browser-checks.mjs';
@@ -42,6 +43,7 @@ try {
   await checkPreparedRenderAssets(browser, server);
   await checkIdleWaste(browser, server);
   await checkOptionsMenu(browser, server, fixtures);
+  await checkDialogueTextSizes(browser, server, fixtures);
   await checkCharacterUnlocks(browser, server, directory);
   await checkMapNpcPositions(browser, server, fixtures[0]);
   await checkItemDescriptions(browser, server);

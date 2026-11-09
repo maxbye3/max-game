@@ -6,11 +6,15 @@
   --text: #f5fff6;
   --font-pixel: "Press Start Game", monospace;
   --font-display: "Orbitron Game", sans-serif;
+  --dialogue-text-scale: 1;
 
   color-scheme: dark;
   font-family: "Exo 2 Game", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
   background: #0d251a;
 }
+
+:root[data-dialogue-text-size="medium"] { --dialogue-text-scale: 1.333333; }
+:root[data-dialogue-text-size="large"] { --dialogue-text-scale: 1.666667; }
 
 @font-face {
   font-family: "Press Start Game";
@@ -682,12 +686,12 @@ canvas {
 
 .sign-dialogue h2 {
   margin: 0;
-  font: 10px/1.5 var(--font-pixel);
+  font: calc(10px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
 }
 
 .sign-dialogue p {
   margin: 0;
-  font: 9px/1.8 var(--font-pixel);
+  font: calc(9px * var(--dialogue-text-scale))/1.8 var(--font-pixel);
   white-space: pre-line;
 }
 
@@ -1339,14 +1343,14 @@ canvas {
   min-width: 0;
   margin: 0;
   color: var(--accent);
-  font: 10px/1.5 var(--font-pixel);
+  font: calc(10px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
   text-transform: none;
   overflow-wrap: anywhere;
 }
 
 .npc-dialogue p {
   margin: 0;
-  font: 9px/1.8 var(--font-pixel);
+  font: calc(9px * var(--dialogue-text-scale))/1.8 var(--font-pixel);
 }
 
 .andy-power-reply {
@@ -1413,14 +1417,14 @@ canvas {
 .dialogue-progress {
   flex: 0 0 auto;
   color: #b8e493;
-  font: 8px/1.8 var(--font-pixel);
+  font: calc(8px * var(--dialogue-text-scale))/1.8 var(--font-pixel);
   white-space: nowrap;
 }
 
 .dialogue-gift-confirmation {
   margin-top: 8px !important;
   color: #b8e493;
-  font: 8px/1.6 var(--font-pixel) !important;
+  font: calc(8px * var(--dialogue-text-scale))/1.6 var(--font-pixel) !important;
 }
 
 #noel-dialogue-question {
@@ -1428,7 +1432,7 @@ canvas {
   padding-top: 0;
   border-top: 0;
   color: #fff3c8;
-  font-size: 8px !important;
+  font-size: calc(8px * var(--dialogue-text-scale)) !important;
   white-space: normal;
 }
 
@@ -1461,7 +1465,7 @@ canvas {
   border-radius: 5px;
   color: #f5fff6;
   background: #294b31;
-  font: 8px/1.5 var(--font-pixel);
+  font: calc(8px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
   text-align: left;
   text-decoration: none;
   cursor: pointer;
@@ -1489,7 +1493,7 @@ canvas {
   border-radius: 5px;
   color: #17321c;
   background: var(--accent);
-  font: 8px/1.5 var(--font-pixel);
+  font: calc(8px * var(--dialogue-text-scale))/1.5 var(--font-pixel);
   cursor: pointer;
 }
 
@@ -1572,7 +1576,7 @@ canvas {
   cursor: pointer;
 }
 
-.sibling-chase-message { font: 10px/1.8 var(--font-pixel); pointer-events: none; }
+.sibling-chase-message { font: calc(10px * var(--dialogue-text-scale))/1.8 var(--font-pixel); pointer-events: none; }
 
 .gift-items {
   display: grid;
@@ -1987,8 +1991,8 @@ kbd {
 .alex-resurrection-choice,
 .alex-resurrection-dialogue { z-index: 46; width: min(390px, var(--dialogue-width)); }
 .alex-resurrection-choice select { display: block; width: 100%; min-height: 44px; margin-top: 12px; padding: 8px; border: 2px solid #f4c273; border-radius: 5px; color: #fff4d3; background: #38291a; font: 14px var(--font-display); }
-.alex-resurrection-talk { bottom: 134px; max-width: calc(100% - 48px); font-size: 9px; line-height: 1.5; }
-.alex-resurrection-countdown { margin-top: 12px !important; color: #f4c273; font-size: 8px !important; }
+.alex-resurrection-talk { bottom: 134px; max-width: calc(100% - 48px); font-size: calc(9px * var(--dialogue-text-scale)); line-height: 1.5; }
+.alex-resurrection-countdown { margin-top: 12px !important; color: #f4c273; font-size: calc(8px * var(--dialogue-text-scale)) !important; }
 .julian-bargain p { margin: 6px 0 10px; }
 .julian-bargain button { min-height: 48px; width: 100%; margin-top: 6px; border: 2px solid #ffe393; border-radius: 8px; padding: 8px; background: #63424f; color: #fff4c6; font: bold 14px monospace; cursor: pointer; }
 .julian-bargain button:disabled { opacity: .55; cursor: default; }
@@ -2412,7 +2416,8 @@ kbd {
 .options-menu:popover-open { display: grid; gap: 8px; }
 .options-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .options-header h2 { margin: 0; font: 12px/1.5 var(--font-pixel); }
-.options-menu button {
+.options-menu button,
+.options-menu select {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2429,10 +2434,11 @@ kbd {
   overflow-wrap: anywhere;
   cursor: pointer;
 }
+.dialogue-text-size-label { margin-top: 4px; font: 9px/1.8 var(--font-pixel); }
 .options-menu .options-close { flex: 0 0 44px; width: 44px; padding: 0; font: 24px/1 var(--font-display); }
 .options-menu .audio-mute-toggle { color: var(--accent); }
 .options-menu #reset-all { border-color: #a96f6f; color: #ffe8e8; }
-.options-menu button:is(:hover, :focus-visible), .options-toggle[aria-expanded="true"] { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
+.options-menu :is(button, select):is(:hover, :focus-visible), .options-toggle[aria-expanded="true"] { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .josh-codec[hidden] { display: none; }
 
@@ -2532,7 +2538,7 @@ kbd {
   padding: 14px 16px;
   border: 1px solid #8dd9ee;
   background: rgba(0, 12, 18, 0.86);
-  font-size: clamp(12px, 2.2vw, 17px);
+  font-size: calc(clamp(12px, 2.2vw, 17px) * var(--dialogue-text-scale));
   line-height: 1.55;
 }
 
