@@ -162,7 +162,7 @@ function advanceTurn(): void {
     const move = battle.resolveNiallTurn();
     if (!move) return;
     battleAudio.hit();
-    if (move.selfDamage) niallBattler.classList.add('poisoned');
+    if (move.poison) niallBattler.classList.add('poisoned');
     animateDamage('#player-opening-damage', move.damage);
     animateDamage('#niall-opening-damage', move.selfDamage ?? 0);
     renderBattle();

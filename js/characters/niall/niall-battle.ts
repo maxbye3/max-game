@@ -1,6 +1,7 @@
 export interface NiallAttack {
   readonly damage: number;
   readonly selfDamage?: number;
+  readonly poison?: boolean;
   readonly fomo?: boolean;
   readonly passOut?: boolean;
   readonly message: string;
@@ -66,7 +67,12 @@ export const NIALL_ATTACKS: readonly NiallAttack[] = [
     message: '“We got a game set up for you!”',
     effectMessage: 'You get FOMO. PLAYER loses 8 HP.',
   },
-  { damage: 12, message: 'Niall releases Tallulah on you.', effectMessage: 'PLAYER loses 12 HP.' },
+  {
+    damage: 0,
+    selfDamage: 12,
+    message: 'Niall releases Tallulah on you.',
+    effectMessage: 'Tallulah refuses to hurt you. Niall’s plan backfires! NIALL loses 12 HP.',
+  },
   {
     damage: 8,
     message: 'Niall orders everything off the menu.',
@@ -91,6 +97,7 @@ export const NIALL_ATTACKS: readonly NiallAttack[] = [
   {
     damage: 0,
     selfDamage: 10,
+    poison: true,
     message: 'Niall opens a RED STRIPE.',
     effectMessage: 'Niall poisons himself. NIALL loses 10 HP.',
   },

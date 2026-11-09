@@ -33,19 +33,25 @@ await withGameTest(async ({ loadModule }) => {
       fight.resolvePlayerTurn();
       if (!fight.waitingForNiall) break;
       const playerHpBeforeSetup = fight.playerHp;
+      const niallHpBeforeResponse = fight.niallHp;
       const enemyMove = fight.takeNiallTurn();
       if (enemyMove) enemyMoves.push(enemyMove);
       assert.equal(fight.waitingForNiall, false, 'Niall takes exactly one action per player turn');
       assert.equal(fight.playerHp, playerHpBeforeSetup, 'Niall setup screen does not apply damage');
       assert.equal(fight.takeNiallTurn(), null, 'Niall cannot attack twice in one turn');
       fight.resolveNiallTurn();
+      if (enemyMove?.message.includes('Tallulah')) {
+        assert.equal(fight.playerHp, playerHpBeforeSetup, 'Tallulah never damages the player');
+        assert.equal(fight.niallHp, niallHpBeforeResponse - 12, 'releasing Tallulah costs Niall 12 HP');
+        assert.equal(enemyMove.poison, undefined, 'Tallulah does not poison Niall');
+      }
     }
     return { fight, enemyMoves, playerMoves };
   };
 
   const unhealed = playNiallFight();
   assert.equal(unhealed.fight.playerHp, 0, 'without healing Buckfast defeats the player');
-  assert.equal(unhealed.fight.niallHp, 40, 'Niall survives when Buckfast defeats the unhealed player');
+  assert.equal(unhealed.fight.niallHp, 28, 'Niall survives when Buckfast defeats the unhealed player');
   assert.equal(unhealed.fight.niallAttackIndex, 10, 'Buckfast is the final attack in the unhealed battle');
   assert.equal(unhealed.enemyMoves.at(-1).passOut, true);
   assert.equal(
@@ -58,17 +64,18 @@ await withGameTest(async ({ loadModule }) => {
   assert.equal(unhealed.fight.hasFomo, true);
   assert.equal(unhealed.enemyMoves[1].fomo, true);
   assert.equal(unhealed.enemyMoves[1].damage, 8, 'FOMO has its own damage value');
-  assert.deepEqual(unhealed.enemyMoves.slice(0, 8).map((move) => move.damage), [8, 8, 12, 8, 10, 8, 10, 6]);
+  assert.deepEqual(unhealed.enemyMoves.slice(0, 8).map((move) => move.damage), [8, 8, 0, 8, 10, 8, 10, 6]);
   assert.equal(unhealed.enemyMoves[8].selfDamage, 10, 'Red Stripe damages Niall');
+  assert.equal(unhealed.enemyMoves[8].poison, true, 'Red Stripe still poisons Niall');
   assert.equal(niallBattle.NIALL_MAX_HP, 180, 'Niall has the increased health total');
 
   const healed = playNiallFight(8);
   assert.equal(healed.fight.healthItemUsed, true);
-  assert.equal(healed.fight.playerHp, 4, 'one late health item lets the player survive Buckfast and the recycled attacks');
+  assert.equal(healed.fight.playerHp, 24, 'one late health item lets the player survive Buckfast and the recycled attack');
   assert.equal(healed.fight.niallHp, 0, 'recycled player attacks can defeat Niall');
-  assert.equal(healed.fight.niallAttackIndex, 12);
+  assert.equal(healed.fight.niallAttackIndex, 11);
   assert.deepEqual(healed.playerMoves.slice(6, 12), niallBattle.PLAYER_ATTACKS, 'all player commands repeat after hot sauce');
-  assert.deepEqual(healed.enemyMoves.slice(10), niallBattle.NIALL_ATTACKS.slice(0, 2), 'Niall restarts his attacks after Buckfast');
+  assert.deepEqual(healed.enemyMoves.slice(10), niallBattle.NIALL_ATTACKS.slice(0, 1), 'Niall restarts his attacks after Buckfast');
   assert.match(niallBattle.PLAYER_ATTACKS[4].message, /North Korea/, 'the Korean attack comes later in the list');
   assert.equal(healed.fight.takeNiallTurn(), null, 'Niall cannot attack after being defeated');
   assert.equal(healed.fight.useHealthItem(), 0, 'the healing item cannot be reused');
