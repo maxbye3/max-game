@@ -16,6 +16,7 @@ const webFiles = async () => {
   return ['css/base.css', 'scripts/web-assets.manifest.json', ...Object.values(manifest).flatMap(group => Object.entries(group).flatMap(([source, asset]) => [source, asset.output]))];
 };
 const definitions = [
+  ['protected-photos', ['scripts/lib/protected-photo-feeds.mjs', 'scripts/photo-sources/photos-journal.json', 'scripts/photo-sources/photos-workout.json'], ['data/protected/photos-journal.json', 'data/protected/photos-workout.json', 'js/generated/interiors/photo-keys.generated.ts']],
   ['dialogues', [...dialogues, 'char/manifest.json'], async () => (await readdir('js/generated/dialogues').catch(error => { if (error.code === 'ENOENT') return []; throw error; })).map(path => `js/generated/dialogues/${path}`)],
   ['profiles', ['char/manifest.json', ...profiles], ['js/generated/core/profile-images.generated.ts']],
   ['dialogue-themes', ['char/manifest.json'], ['js/generated/core/dialogue-themes.generated.ts']],

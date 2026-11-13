@@ -1,5 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { decodePhotoFeed, encodePhotoFeed } from './lib/protected-photo-feeds.mjs';
 
 // Shared album pages expose their first page as JSON in this callback. Do not
 // scrape every image URL: that also picks up album covers and profile pictures.
@@ -65,8 +66,11 @@ export async function fetchAlbumImages(albumUrl, fetcher = fetch) {
 
 export async function syncGooglePhotos() {
   const results = await Promise.allSettled(['art', 'journal', 'plants', 'workout'].map(async (name) => {
-    const path = new URL(`../data/photos-${name}.json`, import.meta.url);
-    const saved = JSON.parse(await readFile(path, 'utf8'));
+    const protectedFeed = name === 'journal' || name === 'workout';
+    const directory = protectedFeed ? 'scripts/photo-sources' : 'data';
+    const path = new URL(`../${directory}/photos-${name}.json`, import.meta.url);
+    const stored = JSON.parse(await readFile(path, 'utf8'));
+    const saved = protectedFeed ? decodePhotoFeed(name, stored) : stored;
     if (!saved.albumUrl) {
       console.warn(`${name}: shared album URL is not configured; keeping saved photos.`);
       return;
@@ -75,7 +79,7 @@ export async function syncGooglePhotos() {
     const data = { albumUrl: saved.albumUrl, images };
     // Keep an unchanged snapshot byte-for-byte to avoid unnecessary deployments.
     if (JSON.stringify(saved.images) !== JSON.stringify(images)) {
-      await writeFile(path, `${JSON.stringify(data, null, 2)}\n`);
+      await writeFile(path, `${JSON.stringify(protectedFeed ? encodePhotoFeed(name, data) : data, null, 2)}\n`);
     }
     console.log(`${name}: synced ${images.length} photos.`);
   }));

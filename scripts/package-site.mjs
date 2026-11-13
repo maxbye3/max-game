@@ -4,10 +4,16 @@ import { interiorRenderOutputs } from './lib/interior-render-plan.mjs';
 import { legacyProjects } from '../legacy-projects.mjs';
 
 const output = resolve('_site');
+const privateFeeds = new Set(['journal', 'workout'].map(name => resolve(`data/photos-${name}.json`)));
 await rm(output, { recursive: true, force: true });
 await mkdir(output);
 for (const path of ['index.html', '404.html', 'legacy-projects.mjs', 'style.css', 'transform.html', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'video', 'fonts', 'char', 'data']) {
-  await cp(path, resolve(output, path), { recursive: true });
+  await cp(path, resolve(output, path), { recursive: true, filter: source => !privateFeeds.has(resolve(source)) });
+}
+
+for (const name of ['journal', 'workout']) {
+  const feed = JSON.parse(await readFile(resolve(output, `data/protected/photos-${name}.json`), 'utf8'));
+  if (feed.version !== 1 || !feed.ciphertext || feed.images || feed.albumUrl) throw new Error(`Unprotected ${name} feed`);
 }
 
 // These static projects share the domain, but keep their own assets and relative URLs.

@@ -1,7 +1,9 @@
 import { hasAlexEatenDoughnut } from '../core/alex-w-state.js';
 import { isAlexPlayer } from '../core/player-character.js';
-import { images } from '../../data/photos-journal.json';
+import encryptedPhotos from '../../data/protected/photos-journal.json';
+import { PHOTO_KEYS } from '../generated/interiors/photo-keys.generated.js';
 import { PhotoGalleryController } from './photo-gallery.js';
+import { decodeProtectedPhotos } from './protected-photos.js';
 
 export class JournalGalleryController extends PhotoGalleryController {
   constructor(onClose: () => void) {
@@ -11,8 +13,10 @@ export class JournalGalleryController extends PhotoGalleryController {
       closeId: 'journal-gallery-close',
       lightboxId: 'journal-lightbox',
       label: 'Journal page',
-      dataPath: '../data/photos-journal.json',
-    }, onClose, images);
+      dataPath: '../data/protected/photos-journal.json',
+      decode: data => decodeProtectedPhotos(data, PHOTO_KEYS.journal),
+      clearOnHide: true,
+    }, onClose, () => decodeProtectedPhotos(encryptedPhotos, PHOTO_KEYS.journal));
   }
 
   override open(): void {

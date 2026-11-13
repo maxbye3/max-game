@@ -8,6 +8,8 @@ interface PhotoGalleryConfig {
   readonly lightboxId: string;
   readonly label: string;
   readonly dataPath: string;
+  readonly decode?: (data: unknown) => Promise<readonly string[]>;
+  readonly clearOnHide?: boolean;
 }
 
 export class PhotoGalleryController {
@@ -25,9 +27,9 @@ export class PhotoGalleryController {
   constructor(
     private readonly config: PhotoGalleryConfig,
     private readonly onClose: () => void,
-    initialSources: readonly string[],
+    private readonly initialSources: readonly string[] | (() => Promise<readonly string[]>),
   ) {
-    this.sources = initialSources;
+    this.sources = typeof initialSources === 'function' ? [] : initialSources;
     this.panel = requireElement(`#${config.panelId}`);
     this.gallery = requireElement(`#${config.galleryId}`);
     this.lightbox = requireElement(`#${config.lightboxId}`);
@@ -35,15 +37,21 @@ export class PhotoGalleryController {
     this.counter = requireElement(`#${config.lightboxId}-counter`);
     this.image.referrerPolicy = 'no-referrer';
     this.refresh = new ContentRefresh(async (signal) => {
+      if (typeof initialSources === 'function' && !this.thumbnailsBuilt) {
+        const sources = await initialSources();
+        if (signal.aborted || !this.isOpen()) return;
+        this.updateSources(sources);
+      }
       if (window.location.protocol === 'file:') return;
       const response = await fetch(`${config.dataPath}?updated=${Date.now()}`, { cache: 'no-store', signal });
       if (!response.ok) return;
-      const data = await response.json() as { images?: unknown };
-      if (signal.aborted || !this.isOpen() || !Array.isArray(data.images)
-        || !data.images.every((source: unknown) => typeof source === 'string'
+      const data: unknown = await response.json();
+      const images: unknown = config.decode ? await config.decode(data) : (data as { images?: unknown } | null)?.images;
+      if (signal.aborted || !this.isOpen() || !Array.isArray(images)
+        || !images.every((source: unknown) => typeof source === 'string'
           && /^https:\/\/lh3\.googleusercontent\.com\//.test(source))) return;
-      if (this.lightbox.open) this.pending = data.images;
-      else this.updateSources(data.images);
+      if (this.lightbox.open) this.pending = images;
+      else this.updateSources(images);
     });
     requireElement(`#${config.closeId}`).addEventListener('click', () => this.closePanel());
     requireElement(`#${config.lightboxId}-close`).addEventListener('click', () => this.closeLightbox());
@@ -60,7 +68,7 @@ export class PhotoGalleryController {
   }
 
   open(): void {
-    if (!this.thumbnailsBuilt) this.buildThumbnails();
+    if (!this.thumbnailsBuilt && typeof this.initialSources !== 'function') this.buildThumbnails();
     this.panel.hidden = false;
     this.gallery.querySelector<HTMLButtonElement>('button')?.focus();
     this.refresh.start();
@@ -70,7 +78,15 @@ export class PhotoGalleryController {
     this.refresh.stop();
     this.panel.hidden = true;
     if (this.lightbox.open) this.lightbox.close();
-    this.applyPending();
+    if (this.config.clearOnHide) {
+      this.sources = [];
+      this.pending = null;
+      this.thumbnailsBuilt = false;
+      this.gallery.replaceChildren();
+      this.image.removeAttribute('src');
+      this.image.alt = '';
+      this.counter.textContent = '';
+    } else this.applyPending();
   }
 
   isOpen(): boolean {
@@ -79,8 +95,10 @@ export class PhotoGalleryController {
 
   private updateSources(sources: readonly string[]): void {
     if (JSON.stringify(sources) === JSON.stringify(this.sources)) return;
+    const firstBuild = !this.thumbnailsBuilt;
     this.sources = sources;
     this.buildThumbnails();
+    if (firstBuild && this.isOpen()) this.gallery.querySelector<HTMLButtonElement>('button')?.focus();
   }
 
   private buildThumbnails(): void {
