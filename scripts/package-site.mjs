@@ -7,7 +7,7 @@ const output = resolve('_site');
 const privateFeeds = new Set(['journal', 'workout'].map(name => resolve(`data/photos-${name}.json`)));
 await rm(output, { recursive: true, force: true });
 await mkdir(output);
-for (const path of ['index.html', '404.html', 'legacy-projects.mjs', 'style.css', 'transform.html', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'video', 'fonts', 'char', 'data']) {
+for (const path of ['index.html', '404.html', 'legacy-projects.mjs', 'style.css', 'transform.html', 'todos', 'internal', 'niall-fight', 'dist', 'img', 'audio', 'video', 'fonts', 'char', 'data']) {
   await cp(path, resolve(output, path), { recursive: true, filter: source => !privateFeeds.has(resolve(source)) });
 }
 
