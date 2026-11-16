@@ -1,3 +1,4 @@
+import { recordPersonSpokenTo } from '../core/people-spoken-to.js';
 import { getTimCinemaDialogue } from '../characters/tim/tim-cinema-dialogue.js';
 import { isTimAtCinema } from '../characters/tim/tim-location.js';
 import { nextDialogueVisitIndex } from '../core/dialogue-visit.js';
@@ -63,11 +64,13 @@ export class CinemaAudienceController {
     if (previousAudienceIndex !== null && dialogueOpen) this.view.closeDialogue();
     if (nextAudienceIndex !== null) {
       if (nextAudienceIndex === 1 && isTimAtCinema()) {
+        recordPersonSpokenTo('tim');
         const hint = getTimCinemaDialogue();
         this.timFollowUpPending = true;
         this.view.openDialogue(hint ? hint.opening + hint.highlight + hint.ending : "can you not bother me right now? If your looking to help alex go south", 0, 2, 'Tim', hint?.highlight ?? 'south');
         return;
       }
+      if (nextAudienceIndex !== 1) recordPersonSpokenTo(`cinema-audience-${nextAudienceIndex}`);
       const { line, index } = this.nextDialogueLine();
       this.view.openDialogue(line, index, DIALOGUE_LINES.length, 'cinema audience');
     }

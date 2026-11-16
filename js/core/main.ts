@@ -1,3 +1,4 @@
+import { isTodoGuideOpen } from './todo-guide.js';
 import { resetCaveTransformationForCurrentForm } from './cave-transformation.js';
 import { setupLucyPowerInput } from '../powers/lucy/lucy-power-input.js';
 import { isEdTattooOpen } from '../powers/ed/tattoo-ui.js';
@@ -102,7 +103,7 @@ function gameLoop(time: number): void {
   worldAnimationTime = worldAnimationTime === 0 ? time : worldAnimationTime + worldDeltaTime * 1000;
   previousTime = time;
   updatePowerups(time);
-  if (isDoorNavigationStarted() || isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) {
+  if (isDoorNavigationStarted() || isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen() || isTodoGuideOpen()) {
     draw(time, worldAnimationTime);
     return;
   }

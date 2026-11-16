@@ -1,3 +1,4 @@
+import { openTodoGuide } from './todo-guide.js';
 import { activateTimInputPower, timInputPowerSecondsLeft, TIM_INPUT_POWER_DURATION } from '../powers/tim/tim-input-power.js';
 import { getPlayerBody } from './player-body.js';
 import { getRevealedItemDescription, revealItemDescription } from './item-descriptions.js';
@@ -184,9 +185,14 @@ function renderGiftItems(): void {
     const useButton = document.createElement('button');
     useButton.type = 'button';
     useButton.disabled = isNoelPowerActive();
-    useButton.textContent = item.id === LUCY_SOLAR_CAP.id ? (isLucyCapEquipped() ? 'Take off' : 'Wear') : 'Use';
+    useButton.textContent = item.id === 'todo-guide' ? 'Open' : item.id === LUCY_SOLAR_CAP.id ? (isLucyCapEquipped() ? 'Take off' : 'Wear') : 'Use';
     useButton.addEventListener('click', () => {
       if (isNoelPowerActive()) return;
+      if (item.id === 'todo-guide') {
+        setInventoryOpen(false);
+        openTodoGuide();
+        return;
+      }
       if (item.id === 'alex-s-item') {
         setInventoryOpen(false);
         openAlexResurrectionChoice((character) => {

@@ -5,7 +5,7 @@ import { withGameTest } from './helpers.mjs';
 await withGameTest(async ({ loadModule, values }) => {
   const { ITEM_DESCRIPTIONS, ITEM_DESCRIPTION_SOURCES } = await loadModule('item-text', 'js/generated/core/item-descriptions.generated.ts');
   const { GIFT_ITEMS } = await loadModule('gifts', 'js/core/inventory-gifts.ts');
-  const powers = GIFT_ITEMS.filter(item => !item.hiddenFromInventory && item.id !== 'lucy-solar-cap');
+  const powers = GIFT_ITEMS.filter(item => !item.hiddenFromInventory && !['lucy-solar-cap', 'todo-guide'].includes(item.id));
   assert.deepEqual(Object.keys(ITEM_DESCRIPTIONS).sort(), powers.map(item => item.id).sort(), 'every usable power has an original text source');
   assert.equal(ITEM_DESCRIPTION_SOURCES['andy-item'], 'char/andy/Item.txt');
   assert.equal(ITEM_DESCRIPTION_SOURCES['rei-item'], 'char/rei/item-1.txt');

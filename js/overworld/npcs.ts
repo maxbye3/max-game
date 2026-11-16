@@ -1,3 +1,5 @@
+import { recordPersonSpokenTo } from '../core/people-spoken-to.js';
+import { TodoWelcomeDialogue } from '../core/todo-guide.js';
 import { requireElement } from '../core/dom.js';
 import { getPlayerBody } from '../core/player-body.js';
 import { createGameAudio } from '../core/audio-mute.js';
@@ -28,6 +30,7 @@ const dialogueProgress = requireElement<HTMLElement>('#npc-dialogue-progress');
 const giftConfirmation = requireElement<HTMLElement>('#npc-gift-confirmation');
 const closeButton = requireElement<HTMLButtonElement>('#npc-dialogue-close');
 const nextButton = requireElement<HTMLButtonElement>('#npc-dialogue-next');
+const todoWelcome = new TodoWelcomeDialogue(dialogue, dialogueLine, nextButton);
 const oscarOptions = requireElement<HTMLElement>('#oscar-dialogue-options');
 const aliceOptions = requireElement<HTMLElement>('#alice-dialogue-options');
 const rubyOptions = requireElement<HTMLElement>('#ruby-dialogue-options');
@@ -164,7 +167,23 @@ function hasMoreDialogue(): boolean {
   return activeNpc.dialogueLines.length > 1;
 }
 
+function finishDialogue(): void {
+  if (!activeNpc || dialogue.hidden) return;
+  maddyDialogueAudio.pause();
+  maddyDialogueAudio.currentTime = 0;
+  rubyDialogueAudio.pause();
+  rubyDialogueAudio.currentTime = 0;
+  oscarOptions.hidden = true;
+  aliceOptions.hidden = true;
+  rubyOptions.hidden = true;
+  dialogueSession += 1;
+  fixtureLoading = false;
+  pendingFixtureLine = null;
+  if (!todoWelcome.finish()) closeDialogue();
+}
+
 function closeDialogue(): void {
+  todoWelcome.cancel();
   dialogueSession += 1;
   fixtureLoading = false;
   pendingFixtureLine = null;
@@ -305,6 +324,7 @@ function acceptQuest(): void {
 }
 
 function advanceDialogue(): void {
+  if (todoWelcome.isOpen) { finishDialogue(); return; }
   if (fixtureLoading || !oscarOptions.hidden || !aliceOptions.hidden || !rubyOptions.hidden) return;
   if (activeNpc?.id === 'ruby') {
     if (rubyStage === 'opening') showRubyLine('question');
@@ -364,13 +384,14 @@ function advanceDialogue(): void {
   } else if (pendingSongReward) {
     showSongLine();
   } else if (activeNpc?.id === 'rei' && !hasMoreDialogue()) {
-    closeDialogue();
+    finishDialogue();
   } else if (activeNpc && activeNpc.dialogueLines.length > 1) {
     const lines = activeNpc.dialogueLines;
     if (activeNpc.id === 'oscar' && currentDialogueLineIndex === lines.length - 1) {
       showOscarQuestion();
       return;
     }
+    if (currentDialogueLineIndex === lines.length - 1 && todoWelcome.finish()) return;
     currentDialogueLineIndex = (currentDialogueLineIndex + 1) % lines.length;
     dialogueLine.textContent = lines[currentDialogueLineIndex] ?? '';
     giftConfirmation.hidden = true;
@@ -389,6 +410,7 @@ function showDialogueLine(npc: NpcDefinition): void {
 }
 
 function openDialogue(npc: NpcDefinition): void {
+  recordPersonSpokenTo(npc.id);
   announceWorldInteraction();
   releaseAllInput();
   hideSignDialogue();
@@ -516,19 +538,19 @@ export function setupNpcInteractions(): void {
   });
   window.addEventListener('max-game:chris-power-activated', closeDialogue);
   window.addEventListener('max-game:dan-power-activated', closeDialogue);
-  closeButton.addEventListener('click', closeDialogue);
+  closeButton.addEventListener('click', finishDialogue);
   nextButton.addEventListener('click', advanceDialogue);
   requireElement<HTMLAnchorElement>('#oscar-zen-garden-link').addEventListener('click', closeDialogue);
-  requireElement<HTMLButtonElement>('#oscar-zen-garden-dismiss').addEventListener('click', closeDialogue);
+  requireElement<HTMLButtonElement>('#oscar-zen-garden-dismiss').addEventListener('click', finishDialogue);
   requireElement<HTMLAnchorElement>('#alice-event-tinder-link').addEventListener('click', closeDialogue);
-  requireElement<HTMLButtonElement>('#alice-event-tinder-dismiss').addEventListener('click', closeDialogue);
+  requireElement<HTMLButtonElement>('#alice-event-tinder-dismiss').addEventListener('click', finishDialogue);
   requireElement<HTMLAnchorElement>('#ruby-videos-yes').addEventListener('click', () => chooseRubyVideos(true));
   requireElement<HTMLButtonElement>('#ruby-videos-no').addEventListener('click', () => chooseRubyVideos(false));
   window.addEventListener('keydown', (event) => {
     if (!activeNpc) return;
     if (event.code === 'Escape') {
       event.preventDefault();
-      closeDialogue();
+      finishDialogue();
       return;
     }
     if ((pendingRequestLine || pendingFollowUpLine || requestLineShown) && (event.code === 'Enter' || event.code === 'Space')) {

@@ -1,3 +1,5 @@
+import { recordPersonSpokenTo } from '../core/people-spoken-to.js';
+
 export type CharityNpc = 'charity-cook' | 'charity-computer' | 'charity-teacher';
 
 export function isCharityNpc(kind: string | null): kind is CharityNpc {
@@ -61,6 +63,7 @@ export class CharityDialogueController {
   }
 
   start(kind: CharityNpc): void {
+    recordPersonSpokenTo(kind);
     this.active = kind;
     this.index = 0;
     this.open();

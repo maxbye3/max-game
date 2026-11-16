@@ -14,6 +14,7 @@ import { checkPreparedRenderAssets } from './lib/render-assets-browser-checks.mj
 import { checkIdleWaste } from './lib/idle-waste-browser-checks.mjs';
 import { checkCharacterUnlocks } from './lib/character-unlocks-browser-checks.mjs';
 import { checkJournalProtection } from './lib/journal-browser-checks.mjs';
+import { checkTodoGuide } from './lib/todo-browser-checks.mjs';
 
 if (!process.argv.includes('--prepared')) {
   for (const script of ['scripts/generate-source.mjs', 'scripts/bundle.mjs']) {
@@ -42,6 +43,7 @@ try {
   const fixtures = [await buildBrowserFixture(false, directory), await buildBrowserFixture(true, directory)];
   browser = await chromium.launch({ headless: !process.argv.includes('--headed'), ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}) });
   await checkJournalProtection(browser, server, fixtures[1]);
+  await checkTodoGuide(browser, server, fixtures);
   await checkPreparedRenderAssets(browser, server);
   await checkIdleWaste(browser, server);
   await checkOptionsMenu(browser, server, fixtures);
@@ -309,8 +311,14 @@ try {
                 await page.screenshot({path:`test-results/cook-${viewport.width}-${mode}.png`});
               }
               await panel.locator('.npc-dialogue-options button:visible').last().click();
-              if (kind === 'charity-cook') await panel.waitFor({state:'hidden'});
-              else assert.ok(await page.locator('#noel-dialogue-next').isVisible(), 'declining continues the conversation');
+              if (kind === 'charity-cook') {
+                if (await panel.isVisible()) {
+                  assert.match(await page.locator('#noel-dialogue-line').textContent(), /^hey looks like your new around here/);
+                  await assertDialogueActions(panel);
+                  await page.locator('#noel-dialogue-next').click();
+                }
+                await panel.waitFor({state:'hidden'});
+              } else assert.ok(await page.locator('#noel-dialogue-next').isVisible(), 'declining continues the conversation');
             }
           }
           await page.goto(server.url + '/internal/index.html?door=garden-room');

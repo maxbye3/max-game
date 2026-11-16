@@ -1,3 +1,4 @@
+import { recordPersonSpokenTo } from './people-spoken-to.js';
 import { DIALOGUE_THEME_SOURCES } from '../generated/core/dialogue-themes.generated.js';
 import { POWER_THEME_SOURCES } from '../generated/core/power-themes.generated.js';
 import { createGameAudio, hasPowerAudioFocus } from './audio-mute.js';
@@ -30,6 +31,7 @@ function notifyAudioFocusChanged(): void {
 
 /** Marks a conversation as active so world ambience can be mixed underneath it. */
 export function beginDialogueAudio(name?: string, prefix = ''): void {
+  recordPersonSpokenTo(name);
   addAndyDialogueReply();
   dialogueAudioSession += 1;
   const session = dialogueAudioSession;

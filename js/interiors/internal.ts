@@ -1,3 +1,5 @@
+import { recordPersonSpokenTo } from '../core/people-spoken-to.js';
+import { TodoWelcomeDialogue, isTodoGuideOpen } from '../core/todo-guide.js';
 import { hasCaveTransformation, completeCaveTransformation, isSealPlayer, resetCaveTransformationForCurrentForm, SEAL_SIBLING_LINES } from '../core/cave-transformation.js';
 import { isSiblingPursuitActive } from '../core/sibling-pursuit.js';
 import { InteriorSiblingChase, INTERIOR_CHASE_MESSAGE } from './interior-sibling-chase.js';
@@ -61,7 +63,7 @@ import { setupInteriorAmbience } from './plant-room-ambience.js';
 import { MusicHouseDialogueController } from './music-house-dialogue.js';
 import { markInteriorVisited } from '../core/world-state.js';
 import { JOSH, NOEL, WHELDON, getInteriorScene, type InteractionKind } from './interior-scenes.js';
-import { JoshDialogueController } from './josh-dialogue.js';
+import { createJoshDialogue } from './josh-dialogue.js';
 import type { Direction } from '../core/types.js';
 import { setProfileImage, setSiblingProfileImage } from '../core/profile-images.js';
 import { beginDialogueAudio, endDialogueAudio, bindPowerDialogueDismissal } from '../core/dialogue-audio.js';
@@ -91,6 +93,15 @@ const siblingsDialogueOptions = requireElement<HTMLElement>('#siblings-dialogue-
 const siblingsViewWebsite = requireElement<HTMLAnchorElement>('#siblings-view-website');
 const siblingsDeclineButton = requireElement<HTMLButtonElement>('#siblings-decline');
 const musicDialogueOptions = requireElement<HTMLElement>('#music-dialogue-options');
+const todoWelcome = new TodoWelcomeDialogue(
+  noelDialogue, noelDialogueLine, noelDialogueNext, closeNoelDialogue,
+  () => !['minnie', 'buzz', 'tigger', 'socks', 'diary', 'experiments', 'colander'].includes(nearbyInteraction ?? ''),
+  () => {
+    caveSiblings?.closeDialogue();
+    joshDialogue.stop();
+    charityDialogue.stop();
+  },
+);
 const noelDialogueClose = requireElement<HTMLButtonElement>('#noel-dialogue-close');
 
 const possessAlexButton = requireElement<HTMLButtonElement>('#possess-room-alex');
@@ -151,7 +162,7 @@ const input = new DirectionInputController({ canHold: () => doorLoading.hidden &
 const charityDialogue = new CharityDialogueController({
   dialogue: noelDialogue, speaker: noelSpeaker, line: noelDialogueLine,
   profile: noelDialogueProfile, progress: noelDialogueProgress, next: noelDialogueNext,
-}, () => { openNoelDialogue(false); interactionPrompt.hidden = true; }, closeNoelDialogue);
+}, () => { openNoelDialogue(false); interactionPrompt.hidden = true; }, todoWelcome.end);
 const dadDialogue = new DadDialogueController(
   () => { input.releaseAll(); openNoelDialogue(); },
   () => openFeature('movies'),
@@ -163,23 +174,7 @@ function openNoelDialogue(characterConversation = true): void {
   if (characterConversation && !noelDialogueOpen) prependPlayerReaction(noelDialogueLine);
   noelDialogueOpen = true;
 }
-const joshDialogue = new JoshDialogueController({
-  dialogue: noelDialogue,
-  speaker: noelSpeaker,
-  line: noelDialogueLine,
-  profile: noelDialogueProfile,
-  progress: noelDialogueProgress,
-  next: noelDialogueNext,
-  question: noelDialogueQuestion,
-  options: noelDialogueOptions,
-  artOptions: requireElement<HTMLElement>('#josh-dialogue-options'),
-  yes: requireElement<HTMLButtonElement>('#josh-yes'),
-  no: requireElement<HTMLButtonElement>('#josh-no'),
-  signupOptions: requireElement<HTMLElement>('#josh-signup-options'),
-  notNow: requireElement<HTMLButtonElement>('#josh-not-now'),
-  codec: requireElement<HTMLElement>('#josh-codec'),
-  codecContinue: requireElement<HTMLButtonElement>('#josh-codec-continue'),
-}, () => { input.releaseAll(); openNoelDialogue(); }, closeNoelDialogue);
+const joshDialogue = createJoshDialogue(() => { input.releaseAll(); openNoelDialogue(); }, todoWelcome.end);
 const diaryLabFeatures = new DiaryLabFeatures();
 const journalGallery = new JournalGalleryController(closeNoelDialogue);
 const goodreadsReading = new GoodreadsReadingController(closeNoelDialogue);
@@ -188,7 +183,7 @@ const lucy = isPlantRoomInterior
   ? new LucyController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation)
   : null;
 const gymNpcDialogue = new GymNpcDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation);
-const musicHouseDialogue = new MusicHouseDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation, closeNoelDialogue);
+const musicHouseDialogue = new MusicHouseDialogueController(noelDialogueLine, noelDialogueNext, noelDialogueProgress, noelGiftConfirmation, todoWelcome.end);
 let caveColanderHeld = hasCaveColander();
 const interiorDoors = new InteriorDoorsController(scene, {
   enteredDoor,
@@ -207,6 +202,7 @@ const flightLandingBlocked = (x: number, y: number): boolean => collision.player
 const caveSiblings = isCaveInterior && !isTransformedCave && !isSiblingPursuitActive()
   ? new CaveSiblingsController({
     showLine: ({ speaker, line }, index, total) => {
+      recordPersonSpokenTo(speaker);
       noelSpeaker.textContent = speaker; setSiblingProfileImage(noelDialogueProfile, speaker, '../');
       noelDialogueSecondProfile.hidden = true;
       noelDialogueLine.textContent = line;
@@ -216,7 +212,7 @@ const caveSiblings = isCaveInterior && !isTransformedCave && !isSiblingPursuitAc
     showOptions: () => {
       siblingsDialogueOptions.hidden = false;
     },
-    closeDialogue: () => closeNoelDialogue(),
+    closeDialogue: () => todoWelcome.end(),
   })
   : null;
 const cinemaAudience = isCinemaInterior
@@ -241,15 +237,16 @@ const cinemaAudience = isCinemaInterior
       noelDialogue.hidden = false;
       interactionPrompt.hidden = true;
     },
-    closeDialogue: () => closeNoelDialogue(),
+    closeDialogue: () => todoWelcome.end(),
   })
   : null;
 
-const roomDialogue = createRoomCharacterDialogue({ open: openNoelDialogue, close: closeNoelDialogue, isActive: kind => nearbyInteraction === kind && noelDialogueOpen });
+const roomDialogue = createRoomCharacterDialogue({ open: openNoelDialogue, close: todoWelcome.end, isActive: kind => nearbyInteraction === kind && noelDialogueOpen });
 function startRoomCharacterDialogue(kind: RoomCharacterKind): void {
   if (nearbyInteraction === kind && !noelDialogueOpen) roomDialogue.start(kind);
 }
 function closeNoelDialogue(): void {
+  todoWelcome.cancel();
   charityDialogue.stop();
   endDialogueAudio(); caveSiblings?.closeDialogue();
   joshDialogue.stop();
@@ -315,6 +312,7 @@ function showSiblingsDialogue(): void {
 function showSealSiblingLine(): void {
   const current = SEAL_SIBLING_LINES[sealSiblingLineIndex];
   if (!current) return;
+  recordPersonSpokenTo(current.speaker);
   noelSpeaker.textContent = current.speaker;
   setSiblingProfileImage(noelDialogueProfile, current.speaker, '../');
   noelDialogueLine.textContent = current.text;
@@ -461,7 +459,7 @@ function bindControls(): void {
     if (event.code === 'Escape' && noelDialogueOpen) {
       event.preventDefault();
       if (diaryLabFeatures.closeLightbox()) return;
-      closeNoelDialogue();
+      todoWelcome.end();
       return;
     }
     if (event.target instanceof Element && event.target.closest('button, a, input, textarea, select')) return;
@@ -484,6 +482,7 @@ function bindControls(): void {
   });
   interactionPrompt.addEventListener('click', activateNearbyInteraction);
   noelDialogueNext.addEventListener('click', () => {
+    if (todoWelcome.isOpen) { todoWelcome.end(); return; }
     if (noelDialogueOpen && cinemaAudience?.next()) return;
     if (isTransformedCave && nearbyInteraction === 'siblings') {
       if (++sealSiblingLineIndex < SEAL_SIBLING_LINES.length) showSealSiblingLine();
@@ -500,9 +499,9 @@ function bindControls(): void {
     else if (nearbyInteraction === 'wheldon') roomDialogue.next('wheldon');
     else if (nearbyInteraction === 'josh') joshDialogue.next();
   });
-  noelDialogueClose.addEventListener('click', closeNoelDialogue);
+  noelDialogueClose.addEventListener('click', todoWelcome.end);
   requireElement<HTMLButtonElement>('#helen-reading-yes').addEventListener('click', () => openFeature('reading'));
-  requireElement<HTMLButtonElement>('#helen-reading-no').addEventListener('click', closeNoelDialogue);
+  requireElement<HTMLButtonElement>('#helen-reading-no').addEventListener('click', todoWelcome.end);
   possessAlexButton.addEventListener('click', () => {
     if (getPlayerBody() !== 'ghost' || nearbyInteraction !== 'wheldon' || !roomDialogue.isWheldonQuestion) return;
     setPlayerBody('player');
@@ -636,7 +635,7 @@ function gameLoop(time: number): void {
   previousTime = time;
   if (doughnutShop?.eating) return;
   updatePowerups(time);
-  if (isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen()) { draw(time, worldAnimationTime); return; }
+  if (isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen() || isTodoGuideOpen()) { draw(time, worldAnimationTime); return; }
   siblingChase?.update(deltaTime, player);
   if (siblingChase) {
     chaseMessage.hidden = siblingChase.phase !== 'message';

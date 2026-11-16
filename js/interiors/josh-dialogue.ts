@@ -1,3 +1,4 @@
+import { requireElement } from '../core/dom.js';
 import { createGameAudio } from '../core/audio-mute.js';
 import { beginDialogueAudio } from '../core/dialogue-audio.js';
 import { setProfileImage } from '../core/profile-images.js';
@@ -170,4 +171,24 @@ export class JoshDialogueController {
     this.stopRingtone();
     void this.ringtone.play().catch(() => {});
   }
+}
+
+export function createJoshDialogue(open: () => void, close: () => void): JoshDialogueController {
+  return new JoshDialogueController({
+    dialogue: requireElement('#noel-dialogue'),
+    speaker: requireElement('#noel-speaker'),
+    line: requireElement('#noel-dialogue-line'),
+    profile: requireElement<HTMLImageElement>('#noel-dialogue-profile'),
+    progress: requireElement('#noel-dialogue-progress'),
+    next: requireElement<HTMLButtonElement>('#noel-dialogue-next'),
+    question: requireElement('#noel-dialogue-question'),
+    options: requireElement('#noel-dialogue-options'),
+    artOptions: requireElement('#josh-dialogue-options'),
+    yes: requireElement<HTMLButtonElement>('#josh-yes'),
+    no: requireElement<HTMLButtonElement>('#josh-no'),
+    signupOptions: requireElement('#josh-signup-options'),
+    notNow: requireElement<HTMLButtonElement>('#josh-not-now'),
+    codec: requireElement('#josh-codec'),
+    codecContinue: requireElement<HTMLButtonElement>('#josh-codec-continue'),
+  }, open, close);
 }

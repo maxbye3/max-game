@@ -1,3 +1,4 @@
+import { recordPersonSpokenTo } from '../core/people-spoken-to.js';
 import { DOORWAYS } from '../core/doors.js';
 import { isHeld, releaseAllInput } from '../core/input.js';
 import { isTimAtCinema, isTimAtMusicShop, moveTimToCinema, moveTimToMusicShop } from '../characters/tim/tim-location.js';
@@ -125,6 +126,7 @@ export function updateGymTimCutscene(deltaTime: number, player: Player): void {
     const targetX = player.x + 32;
     const targetY = player.y + 4;
     if (moveToward(targetX, targetY, FOLLOW_SPEED, deltaTime)) {
+      recordPersonSpokenTo('tim');
       state.phase = 'talking';
       state.timer = 0;
       state.lineVisible = true;

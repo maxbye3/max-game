@@ -20,10 +20,11 @@ export async function withGameTest(run) {
   const elements = new Map();
   function element(selector) {
     if (!elements.has(selector)) elements.set(selector, {
-      hidden: false, textContent: '', src: '', children: [], dataset: {}, listeners: new Map(),
+      hidden: false, textContent: '', src: '', children: [], dataset: {}, style: {}, listeners: new Map(),
       classList: { toggle() {} },
       setAttribute() {}, removeAttribute(name) { if (name === 'src') this.src = ''; }, remove() {},
       getContext() { return {}; },
+      querySelectorAll() { return []; },
       append(...children) { this.children.push(...children); },
       replaceChildren(...children) { this.children = children; },
       focus() {}, showModal() { this.open = true; }, close() { this.open = false; },

@@ -2742,3 +2742,50 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .kirin-movie-dialog *, .kirin-movie-dialog *::before, .kirin-movie-dialog *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; }
 }
+
+.todo-guide {
+  box-sizing: border-box;
+  width: min(1000px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  background: #0d251a;
+  color: var(--text);
+}
+.todo-guide::backdrop { background: #000c; }
+.todo-guide button {
+  display: block;
+  position: sticky;
+  top: 0;
+  margin: 0 0 12px auto;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 2px solid var(--accent);
+  border-radius: 5px;
+  background: #183821;
+  color: inherit;
+  font: 10px/1.5 var(--font-pixel);
+  cursor: pointer;
+}
+.todo-guide button:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+.todo-guide-sheet {
+  position: relative;
+  width: min(100%, calc((100dvh - 112px) * 1102 / 479));
+  margin-inline: auto;
+  container-type: inline-size;
+}
+.todo-guide img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.todo-talk-count {
+  position: absolute;
+  left: 52%;
+  top: 42%;
+  width: 24%;
+  transform: translateY(-50%);
+  color: #351e14;
+  font: clamp(8px, 3.3cqw, 32px)/1 var(--font-pixel);
+  text-align: center;
+  white-space: nowrap;
+}

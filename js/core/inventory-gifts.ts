@@ -8,6 +8,7 @@ export interface GiftItem {
   readonly name: string;
   readonly imageSource: string;
   readonly description: string;
+  readonly revealSource?: string;
   // Some gifts are permanent unlocks rather than usable items, so they
   // shouldn't clutter the inventory list once collected.
   readonly hiddenFromInventory?: boolean;
@@ -24,6 +25,14 @@ export const GIFT_LINES = [
   'Here. Don’t lose it.',
   'Take this and get out of here.',
 ] as const;
+
+export const TODO_ITEM: GiftItem = {
+  id: 'todo-guide',
+  name: 'To-dos',
+  imageSource: 'img/external/to-do/todo.png',
+  revealSource: 'img/external/to-do/reveal.gif',
+  description: 'Things to do when you’re stuck. Otherwise, have fun exploring!',
+};
 
 export const JULIAN_ITEM: GiftItem = {
   id: 'julian-item',
@@ -213,7 +222,7 @@ function showItemReceivedOverlay(item: GiftItem): void {
   overlay.className = 'quest-accepted-overlay item-received-overlay';
   overlay.setAttribute('aria-label', `${item.name} added to inventory`);
   const image = document.createElement('img');
-  image.src = resolveSiteAsset(item.imageSource);
+  image.src = resolveSiteAsset(item.revealSource ?? item.imageSource);
   image.alt = item.name;
   overlay.append(image);
   gameShell.append(overlay);
@@ -228,6 +237,7 @@ export const KIRIN_ITEM: GiftItem = {
 };
 
 export const GIFT_ITEMS: readonly GiftItem[] = [
+  TODO_ITEM,
   {
     id: 'mike-item',
     name: "Mike's item",
