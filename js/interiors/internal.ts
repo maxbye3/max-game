@@ -1,3 +1,4 @@
+import { isAdamEngagementOpen } from '../powers/adam/adam-power.js';
 import { recordPersonSpokenTo } from '../core/people-spoken-to.js';
 import { TodoWelcomeDialogue, isTodoGuideOpen } from '../core/todo-guide.js';
 import { hasCaveTransformation, completeCaveTransformation, isSealPlayer, resetCaveTransformationForCurrentForm, SEAL_SIBLING_LINES } from '../core/cave-transformation.js';
@@ -635,7 +636,7 @@ function gameLoop(time: number): void {
   previousTime = time;
   if (doughnutShop?.eating) return;
   updatePowerups(time);
-  if (isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isKirinMovieOpen() || isTodoGuideOpen()) { draw(time, worldAnimationTime); return; }
+  if (isOptionsMenuOpen() || isThoughtsOpen() || isEdTattooOpen() || isAdamEngagementOpen() || isKirinMovieOpen() || isTodoGuideOpen()) { draw(time, worldAnimationTime); return; }
   siblingChase?.update(deltaTime, player);
   if (siblingChase) {
     chaseMessage.hidden = siblingChase.phase !== 'message';

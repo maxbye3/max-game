@@ -49,6 +49,7 @@ export class DirectionInputController {
 
   setup(): void {
     setupThoughts(() => this.releaseAll());
+    window.addEventListener('max-game:adam-power-activated', () => this.releaseAll());
     window.addEventListener('max-game:ed-power-activated', () => this.releaseAll());
     window.addEventListener('max-game:kirin-power-activated', () => this.releaseAll());
     this.releaseButtonHandlers.push(setupMobileControls(

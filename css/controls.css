@@ -83,7 +83,6 @@ kbd {
   .controls { right: 12px; bottom: 12px; }
   .bus-intro-skip { left: 12px; bottom: 12px; }
   .jump-toggle { left: 12px; bottom: 12px; }
-  .adam-leap-button { left: 12px; bottom: 68px; }
   .jump-panel { left: 12px; bottom: 68px; width: calc(100% - 24px); }
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }
   .sign-dialogue { width: min(calc(100% - 24px), var(--dialogue-width)); }
@@ -160,8 +159,7 @@ kbd {
     bottom: calc(50px + env(safe-area-inset-bottom));
   }
 
-  .npc-talk,
-  .adam-leap-button {
+  .npc-talk {
     bottom: calc(var(--mobile-dock-height) + 12px);
   }
 

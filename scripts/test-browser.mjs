@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { checkAdamEngagement } from './lib/adam-browser-checks.mjs';
 import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -43,6 +44,7 @@ try {
   const fixtures = [await buildBrowserFixture(false, directory), await buildBrowserFixture(true, directory)];
   browser = await chromium.launch({ headless: !process.argv.includes('--headed'), ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}) });
   await checkJournalProtection(browser, server, fixtures[1]);
+  await checkAdamEngagement(browser, server);
   await checkTodoGuide(browser, server, fixtures);
   await checkPreparedRenderAssets(browser, server);
   await checkIdleWaste(browser, server);

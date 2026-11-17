@@ -35,7 +35,7 @@ let now = 1000;
 Object.defineProperty(performance, 'now', { configurable: true, value: () => now });
 Date.now = () => now;
 try {
-  for (const id of ['noel-item', 'sam-item', 'lucy-item', 'maddy-item', 'katy-item', 'tim-item', 'rei-item', 'rei-item-2', 'mike-item', 'adam-item', 'oscar-item', 'andy-item', 'bochra-item', 'chris-item', 'dan-item', 'georgia-item', 'helen-item', 'joe-item', 'ju-item', 'katie-item', 'alice-item']) {
+  for (const id of ['noel-item', 'sam-item', 'lucy-item', 'maddy-item', 'katy-item', 'tim-item', 'rei-item', 'rei-item-2', 'mike-item', 'oscar-item', 'andy-item', 'bochra-item', 'chris-item', 'dan-item', 'georgia-item', 'helen-item', 'joe-item', 'ju-item', 'katie-item', 'alice-item']) {
     now = 1000;
     await withGameTest(async ({ loadModule, values, element }) => {
       const inventory = await loadModule('inventory', 'js/core/inventory.ts');

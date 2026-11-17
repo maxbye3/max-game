@@ -36,7 +36,6 @@ import { roadAccident } from '../overworld/road-accident.js';
 import { getPlayerSpriteFrame } from './player-sprite.js';
 import { drawWorldBackground, drawWorldForeground } from '../overworld/overworld-props-render.js';
 import { drawMaddyTeaPower, drawMaddyTeaWorldOverlay } from '../powers/maddy/maddy-tea-power.js';
-import { adamJumpOffset, adamPowerSecondsLeft, drawAdamPower, drawAdamShadow } from '../powers/adam/adam-power.js';
 import { samCameraJolt } from '../powers/sam/sam-power.js';
 import { drawSamPower, drawSamVictimEffects, drawSamWorldOverlay, drawSamTerrain, drawSamGround } from '../powers/sam/sam-power-render.js';
 import { drawSpeechBubble } from './speech-bubble.js';
@@ -139,12 +138,8 @@ export function draw(time: number, worldTime = time): void {
   const width = spriteFrame.width * sealRenderScale;
   const height = spriteFrame.height * sealRenderScale;
   const baselineOffset = spriteFrame.baselineOffset * sealRenderScale;
-  const adamActive = adamPowerSecondsLeft() > 0;
-  const adamLift = adamJumpOffset();
-  const adamHeight = adamActive ? Math.round(height * 1.14) : height;
   const holeTransform = getHolePlayerTransform();
   const playerVisible = isBusIntroPlayerVisible() && roadAccident.playerVisible;
-  if (playerVisible && adamActive) drawAdamShadow(context, player.x - cameraX, player.y - cameraY);
   if (playerVisible && holeTransform) {
     context.save();
     context.globalAlpha = holeTransform.opacity;
@@ -186,16 +181,16 @@ export function draw(time: number, worldTime = time): void {
     );
     context.restore();
   } else if (playerVisible) {
-    withCharacterPowers(context, player.x - cameraX, player.y - cameraY, adamHeight, 'player', () => context.drawImage(
+    withCharacterPowers(context, player.x - cameraX, player.y - cameraY, height, 'player', () => context.drawImage(
       playerSpriteSheet,
       sourceX,
       sourceY,
       sourceWidth,
       sourceHeight,
       Math.round(player.x - cameraX - width / 2),
-      Math.round(player.y - cameraY - adamHeight - adamLift + baselineOffset),
+      Math.round(player.y - cameraY - height + baselineOffset),
       width,
-      adamHeight,
+      height,
     ), time);
   }
   if (playerVisible && hasCaveColander()) {
@@ -217,20 +212,19 @@ export function draw(time: number, worldTime = time): void {
   drawJuWorld(context, cameraX, cameraY, time);
   drawJulianWorld(context, cameraX, cameraY, time);
   drawOscarWorld(context, cameraX, cameraY, time);
-  drawReiWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
-  drawNoelWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
-  drawMikeWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
+  drawReiWorld(context, cameraX, cameraY, time, 1, 1, height);
+  drawNoelWorld(context, cameraX, cameraY, time, 1, 1, height);
+  drawMikeWorld(context, cameraX, cameraY, time, 1, 1, height);
   drawLucyWorld(context, cameraX, cameraY, time);
-  drawKatieWorld(context, cameraX, cameraY, time, 1, 1, adamHeight);
+  drawKatieWorld(context, cameraX, cameraY, time, 1, 1, height);
   if (playerVisible) {
     drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, time);
-    drawAdamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, SEAL_MODE);
-    drawSamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
-    drawTimPower(context, player.x - cameraX, player.y - cameraY, time, adamHeight);
+    drawSamPower(context, player.x - cameraX, player.y - cameraY, height, time);
+    drawTimPower(context, player.x - cameraX, player.y - cameraY, time, height);
     drawOscarPower(context, player.x - cameraX, player.y - cameraY, height, time, player.direction.endsWith('Left') || player.direction === 'left');
-    drawAndyPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
-    drawChrisPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time, player.direction.endsWith('Left') || player.direction === 'left');
-    drawDanPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, time);
+    drawAndyPlayer(context, player.x - cameraX, player.y - cameraY, height, time);
+    drawChrisPlayer(context, player.x - cameraX, player.y - cameraY, height, time, player.direction.endsWith('Left') || player.direction === 'left');
+    drawDanPlayer(context, player.x - cameraX, player.y - cameraY, height, time);
   }
 
   const thief = getCaveThief();
@@ -240,7 +234,7 @@ export function draw(time: number, worldTime = time): void {
   }
   const gymTimDialogue = getGymTimCutsceneDialogue();
   if (gymTimDialogue) drawSpeechBubble(context, gymTimDialogue.text, gymTimDialogue.x - cameraX, gymTimDialogue.y - cameraY);
-  drawTimWorld(context, player.x - cameraX, player.y - cameraY, time, adamHeight);
+  drawTimWorld(context, player.x - cameraX, player.y - cameraY, time, height);
   drawAlexResurrection(context, player.x - cameraX, player.y - cameraY, time);
   drawAliceWorld(context, cameraX, cameraY, time);
 }

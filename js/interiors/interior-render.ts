@@ -27,7 +27,6 @@ import { InteriorCollision } from './interior-collision.js';
 import { InteriorDoorsController } from './interior-doors.js';
 import { drawSceneryNpcs } from './interior-scenery-npcs.js';
 import { drawMaddyTeaPower, drawMaddyTeaWorldOverlay } from '../powers/maddy/maddy-tea-power.js';
-import { adamJumpOffset, adamPowerSecondsLeft, drawAdamPower, drawAdamShadow } from '../powers/adam/adam-power.js';
 import { drawOscarPower, drawOscarWorldBites, drawOscarTerrain, drawOscarWorld } from '../powers/oscar/oscar-power-render.js';
 import { isOscarEaten } from '../powers/oscar/oscar-power.js';
 import { drawAlexResurrection } from '../powers/alex-s/alex-s-power-render.js';
@@ -314,20 +313,16 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
       ? { ...baseSpriteFrame, width: Math.round(baseSpriteFrame.width * 0.75), height: Math.round(baseSpriteFrame.height * 0.75) }
       : baseSpriteFrame;
     const { sourceX, sourceY, sourceWidth, sourceHeight, width, height, baselineOffset } = spriteFrame;
-    const adamActive = adamPowerSecondsLeft() > 0;
-    const adamLift = adamJumpOffset();
-    const adamHeight = adamActive ? Math.round(height * 1.14) : height;
-    if (adamActive) drawAdamShadow(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY);
-    withCharacterPowers(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, adamHeight * scaleY, 'player', () => context.drawImage(
+    withCharacterPowers(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, height * scaleY, 'player', () => context.drawImage(
       ghostMode && !ghostWheldonPlayer ? getGhostSpriteSheet(options.ghostSpriteSheet) : spriteSheet,
       sourceX,
       sourceY,
       sourceWidth,
       sourceHeight,
       Math.round((player.x - cameraX - width / 2) * scaleX),
-      Math.round((player.y - cameraY - adamHeight - adamLift + baselineOffset) * scaleY),
+      Math.round((player.y - cameraY - height + baselineOffset) * scaleY),
       width * scaleX,
-      adamHeight * scaleY,
+      height * scaleY,
     ), timeMs);
     if (caveColanderHeld) {
       drawColander(
@@ -364,26 +359,25 @@ export function createInteriorRenderer(options: InteriorRenderOptions): (timeMs:
     drawJuWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawJulianWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawOscarWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY);
-    drawReiWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
+    drawReiWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, height);
     drawSamVictimEffects(context, cameraX, cameraY, timeMs, scaleX, scaleY);
     drawSamWorldOverlay(context, timeMs);
-    drawNoelWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
-    drawMikeWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
+    drawNoelWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, height);
+    drawMikeWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, height);
     drawLucyWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY);
-    drawKatieWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
+    drawKatieWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, height);
     context.save();
     context.scale(scaleX, scaleY);
     drawMaddyTeaPower(context, player.x - cameraX, player.y - cameraY, height, timeMs);
-    drawAdamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, SEAL_MODE);
-    drawSamPower(context, player.x - cameraX, player.y - cameraY, adamHeight, timeMs);
-    drawTimPower(context, player.x - cameraX, player.y - cameraY, timeMs, adamHeight);
+    drawSamPower(context, player.x - cameraX, player.y - cameraY, height, timeMs);
+    drawTimPower(context, player.x - cameraX, player.y - cameraY, timeMs, height);
     drawOscarPower(context, player.x - cameraX, player.y - cameraY, height, timeMs, player.direction.endsWith('Left') || player.direction === 'left');
-    drawAndyPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, timeMs);
-    drawChrisPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, timeMs, player.direction.endsWith('Left') || player.direction === 'left');
-    drawDanPlayer(context, player.x - cameraX, player.y - cameraY, adamHeight, timeMs);
+    drawAndyPlayer(context, player.x - cameraX, player.y - cameraY, height, timeMs);
+    drawChrisPlayer(context, player.x - cameraX, player.y - cameraY, height, timeMs, player.direction.endsWith('Left') || player.direction === 'left');
+    drawDanPlayer(context, player.x - cameraX, player.y - cameraY, height, timeMs);
     context.restore();
-    drawTimWorld(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, timeMs, adamHeight * scaleY);
+    drawTimWorld(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, timeMs, height * scaleY);
     drawAlexResurrection(context, (player.x - cameraX) * scaleX, (player.y - cameraY) * scaleY, timeMs, scaleX, scaleY);
-    drawAliceWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, adamHeight);
+    drawAliceWorld(context, cameraX, cameraY, timeMs, scaleX, scaleY, height);
   }
 }

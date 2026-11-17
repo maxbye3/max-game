@@ -1,120 +1,97 @@
-const POWER_START_KEY = 'max-game:adam-power-start';
-const POWER_DURATION = 10_000;
-const LEAP_PERIOD = 1_650;
-const LEAP_DURATION = 820;
-const LEAP_HEIGHT = 58;
+import { EngagementGame } from './engagement-game.js';
+import { drawEngagementGame } from './engagement-render.js';
+import { createGameAudio, releaseGameAudio } from '../../core/audio-mute.js';
+import { resolveSiteAsset } from '../../core/site-assets.js';
+import { announceWorldInteraction } from '../../core/world-interactions.js';
 
-let fallbackStart = 0;
-let manualLeapAt = -Infinity;
-let leapButton: HTMLButtonElement | null = null;
+let dialog: HTMLDialogElement | null = null;
+export const isAdamEngagementOpen = (): boolean => dialog?.open ?? false;
 
-export const ADAM_POWER_REVEAL = 'Adam’s item made you taller and stronger through the legs. For 10 seconds, each leap rose twice as high.';
-
-function powerStart(): number {
-  try { return Number(window.sessionStorage.getItem(POWER_START_KEY)) || fallbackStart; }
-  catch { return fallbackStart; }
-}
-
-export function activateAdamPower(now = Date.now()): void {
-  fallbackStart = now;
-  manualLeapAt = now;
-  try { window.sessionStorage.setItem(POWER_START_KEY, String(now)); }
-  catch { /* The current page still gets the effect. */ }
-  updateAdamLeapControl(now);
-}
-
-export function adamPowerSecondsLeft(now = Date.now()): number {
-  const start = powerStart();
-  return start > 0 ? Math.max(0, (start + POWER_DURATION - now) / 1000) : 0;
-}
-
-export function adamJumpOffset(now = Date.now()): number {
-  if (adamPowerSecondsLeft(now) === 0) return 0;
-  const start = powerStart();
-  const scheduledLeapAt = start + Math.floor((now - start) / LEAP_PERIOD) * LEAP_PERIOD;
-  const elapsed = now - Math.max(scheduledLeapAt, manualLeapAt);
-  return elapsed >= 0 && elapsed < LEAP_DURATION
-    ? Math.sin(Math.PI * elapsed / LEAP_DURATION) * LEAP_HEIGHT
-    : 0;
-}
-
-export function adamAirStrideMultiplier(now = Date.now()): number {
-  return 1 + 0.45 * adamJumpOffset(now) / LEAP_HEIGHT;
-}
-
-export function requestAdamLeap(now = Date.now()): void {
-  if (adamPowerSecondsLeft(now) === 0 || now - manualLeapAt < 280) return;
-  manualLeapAt = now;
-}
-
-export function setupAdamLeapControl(): void {
-  if (leapButton) return;
-  const shell = document.querySelector<HTMLElement>('.game-shell');
-  if (!shell) return;
-  leapButton = document.createElement('button');
-  leapButton.type = 'button';
-  leapButton.className = 'adam-leap-button';
-  leapButton.textContent = 'Leap';
-  leapButton.setAttribute('aria-label', 'Leap while Adam’s power is active');
-  leapButton.hidden = true;
-  leapButton.addEventListener('click', () => requestAdamLeap());
-  shell.append(leapButton);
-  window.addEventListener('keydown', (event) => {
-    if (event.code !== 'KeyJ' || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.target instanceof HTMLElement && event.target.closest('button, input, textarea, [contenteditable="true"]')) return;
-    requestAdamLeap();
+export function openAdamEngagement(): void {
+  if (isAdamEngagementOpen()) return;
+  announceWorldInteraction();
+  window.dispatchEvent(new Event('max-game:adam-power-activated'));
+  const previousFocus = document.activeElement;
+  const panel = document.createElement('dialog');
+  dialog = panel;
+  panel.className = 'engagement-dialog';
+  panel.setAttribute('aria-labelledby', 'engagement-title');
+  panel.innerHTML = `
+    <header><div><p>ADAM'S WEDDING RING</p><h2 id="engagement-title">The perfect moment</h2></div><button class="engagement-close" aria-label="Close engagement game" type="button">×</button></header>
+    <p class="engagement-instructions">Line up the ring with the wedding finger.</p>
+    <canvas width="360" height="440" aria-label="Two hands moving in opposite directions. Tap when the ring lines up with the finger."></canvas>
+    <p class="engagement-result" role="status" aria-live="polite">be careful of <strong>Bakoven</strong> wind</p>
+    <button class="engagement-tap" type="button">TAP TO ENGAGE</button>`;
+  const canvas = panel.querySelector('canvas')!;
+  const context = canvas.getContext('2d')!;
+  const result = panel.querySelector<HTMLElement>('.engagement-result')!;
+  const tap = panel.querySelector<HTMLButtonElement>('.engagement-tap')!;
+  const artwork = { adam: new Image(), maddy: new Image(), ring: new Image() };
+  artwork.adam.src = resolveSiteAsset('char/adam/adam.png');
+  artwork.maddy.src = resolveSiteAsset('char/adam/maddy.png');
+  artwork.ring.src = resolveSiteAsset('char/adam/item.png');
+  let ready = false;
+  tap.disabled = true;
+  tap.textContent = 'Loading hands…';
+  void Promise.all(Object.values(artwork).map(image => image.decode())).then(() => {
+    if (!panel.open) return;
+    ready = true;
+    tap.disabled = false;
+    tap.textContent = 'TAP TO ENGAGE';
+  }).catch(() => {
+    if (panel.open) result.textContent = 'The hands could not load. Close and try again.';
   });
-  updateAdamLeapControl();
-}
-
-export function updateAdamLeapControl(now = Date.now()): void {
-  const hidden = adamPowerSecondsLeft(now) === 0;
-  if (leapButton && leapButton.hidden !== hidden) leapButton.hidden = hidden;
-}
-
-export function drawAdamShadow(context: CanvasRenderingContext2D, x: number, y: number, now = Date.now()): void {
-  if (adamPowerSecondsLeft(now) === 0) return;
-  const lift = adamJumpOffset(now);
-  context.save();
-  context.imageSmoothingEnabled = false;
-  context.globalAlpha = 0.45 - lift / 220;
-  context.fillStyle = '#162421';
-  context.beginPath();
-  context.ellipse(Math.round(x), Math.round(y - 2), 21 + lift / 4, 6 + lift / 14, 0, 0, Math.PI * 2);
-  context.fill();
-  context.restore();
-}
-
-export function drawAdamPower(context: CanvasRenderingContext2D, x: number, y: number, frameHeight: number, sealMode = false, now = Date.now()): void {
-  if (adamPowerSecondsLeft(now) === 0) return;
-  const lift = adamJumpOffset(now);
-  const feetY = y - lift;
-  context.save();
-  context.imageSmoothingEnabled = false;
-  if (!sealMode) {
-    // Extend both trouser legs in the same chunky palette as the sprite.
-    context.fillStyle = '#25214f';
-    context.fillRect(Math.round(x - 13), Math.round(feetY - 17), 10, 10);
-    context.fillRect(Math.round(x + 3), Math.round(feetY - 17), 10, 10);
-    context.fillStyle = '#44429e';
-    context.fillRect(Math.round(x - 11), Math.round(feetY - 16), 7, 7);
-    context.fillRect(Math.round(x + 4), Math.round(feetY - 16), 7, 7);
-  }
-  const pulse = (now / 120) % 1;
-  context.globalAlpha = (1 - pulse) * 0.75;
-  context.fillStyle = '#b5f9ff';
-  for (let i = 0; i < 22; i += 1) {
-    const angle = i * Math.PI / 11;
-    const radius = 22 + pulse * 28;
-    context.fillRect(Math.round(x + Math.cos(angle) * radius), Math.round(y - 3 + Math.sin(angle) * radius * 0.32), 3, 3);
-  }
-  if (lift > 2) {
-    context.globalAlpha = Math.min(1, lift / 25);
-    context.fillStyle = '#d7ffff';
-    for (let i = 0; i < 8; i += 1) {
-      const drift = (now / 40 + i * 19) % 28;
-      context.fillRect(Math.round(x - 18 + i * 5), Math.round(feetY + frameHeight * 0.15 + drift), 2, 4);
+  const sound = createGameAudio(resolveSiteAsset('char/adam/congratulations.mp3'));
+  sound.preload = 'auto';
+  const game = new EngagementGame();
+  let frame = 0;
+  let previousTime = 0;
+  let celebrated = false;
+  const engage = (): void => {
+    if (!ready || game.phase !== 'moving') return;
+    if (game.tap()) {
+      result.textContent = 'Here goes…';
+      tap.disabled = true;
     }
-  }
-  context.restore();
+  };
+  const draw = (now: number): void => {
+    if (!panel.open) return;
+    if (ready) game.update(previousTime ? (now - previousTime) / 1000 : 0);
+    previousTime = now;
+    drawEngagementGame(context, game, artwork, now);
+    if (ready && game.phase === 'moving') tap.disabled = false;
+    else if (game.phase === 'returning' && result.textContent !== 'Not quite! Try the next pass.') {
+      result.textContent = 'Not quite! Try the next pass.';
+    }
+    if (game.phase === 'engaged' && !celebrated) {
+      celebrated = true;
+      result.textContent = 'Congratulations!';
+      tap.textContent = 'ENGAGED';
+      panel.classList.add('is-engaged');
+      void sound.play().catch(() => {});
+    }
+    frame = requestAnimationFrame(draw);
+  };
+  tap.addEventListener('click', engage);
+  canvas.addEventListener('pointerdown', event => { if (event.button === 0) { event.preventDefault(); engage(); } });
+  panel.addEventListener('keydown', event => {
+    event.stopPropagation();
+    if ((event.code === 'Space' || event.code === 'Enter') && !(event.target instanceof HTMLButtonElement)) {
+      event.preventDefault();
+      if (!event.repeat) engage();
+    } else if (event.repeat && (event.code === 'Space' || event.code === 'Enter')) event.preventDefault();
+  });
+  panel.addEventListener('keyup', event => event.stopPropagation());
+  panel.querySelector('.engagement-close')!.addEventListener('click', () => panel.close());
+  panel.addEventListener('close', () => {
+    cancelAnimationFrame(frame);
+    releaseGameAudio(sound);
+    panel.remove();
+    dialog = null;
+    if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+  }, { once: true });
+  document.body.append(panel);
+  panel.showModal();
+  tap.focus();
+  frame = requestAnimationFrame(draw);
 }

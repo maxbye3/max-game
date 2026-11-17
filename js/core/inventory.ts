@@ -31,7 +31,7 @@ import { activateMaddyTeaPower, maddyTeaSecondsLeft } from '../powers/maddy/madd
 import { isEdGiftCharged } from '../powers/ed/ed-power.js';
 import { openEdTattooGame } from '../powers/ed/tattoo-ui.js';
 import { activateNiallSpeed, niallSpeedSecondsLeft } from '../powers/niall/niall-speed-power.js';
-import { activateAdamPower, adamPowerSecondsLeft, setupAdamLeapControl, updateAdamLeapControl } from '../powers/adam/adam-power.js';
+import { openAdamEngagement } from '../powers/adam/adam-power.js';
 import { activateSamPower, samPowerSecondsLeft, SAM_POWER_DURATION } from '../powers/sam/sam-power.js';
 import { activateOscarPower, oscarPowerSecondsLeft, OSCAR_POWER_DURATION } from '../powers/oscar/oscar-power.js';
 import { activateBochraPower, bochraPowerSecondsLeft, BOCHRA_POWER_DURATION } from '../powers/bochra/bochra-power.js';
@@ -43,7 +43,6 @@ import { characterAsset, characterAssetOrNull } from './character-assets.js';
 import { openKirinMovie } from '../powers/kirin/kirin-movie.js';
 
 const ITEM_THEME_DURATION = 10_000;
-const ADAM_THEME_SOURCE = characterAsset('adam', 'theme');
 const KATY_THEME_SOURCE = characterAsset('katy', 'theme');
 const LUCY_THEME_SOURCE = characterAsset('lucy', 'theme');
 const TIM_THEME_SOURCE = characterAsset('tim', 'theme');
@@ -136,7 +135,6 @@ let katyTheme: HTMLAudioElement | null = null;
 let katyThemeTimeout = 0;
 let katyPowerPendingReveal = false;
 let maddyPowerPendingReveal = false;
-let adamPowerPendingReveal = false;
 let oscarPowerPendingReveal = false;
 let andyPowerPendingReveal = false;
 let bochraPowerPendingReveal = false;
@@ -345,12 +343,9 @@ function renderGiftItems(): void {
         setInventoryOpen(false);
         openEdTattooGame(() => playItemTheme(ED_THEME_SOURCE, true), stopItemTheme);
       } else if (item.id === 'adam-item') {
-        activateAdamPower();
-        playItemTheme(ADAM_THEME_SOURCE);
-        adamPowerPendingReveal = true;
-        powerupStatus.textContent = 'Adam power 10.0s';
-        if (powerupStatus.hidden) powerupStatus.hidden = false;
+        stopPowerMusic();
         setInventoryOpen(false);
+        openAdamEngagement();
       } else if (item.id === 'sam-item') {
         activateSamPower();
         window.dispatchEvent(new Event('max-game:sam-power-activated'));
@@ -414,15 +409,10 @@ function setInventoryOpen(isOpen: boolean): void {
 export function setupInventory(): void {
   if (!hasGift(LUCY_SOLAR_CAP)) setLucyCapEquipped(false);
   renderGiftItems();
-  setupAdamLeapControl();
   if (alexSPowerSecondsLeft() > 0) {
     alexSPowerPendingReveal = true;
     const themeRemaining = alexSThemeSecondsLeft();
     if (themeRemaining > 0) playItemTheme(ALEX_S_THEME_SOURCE, false, themeRemaining * 1000);
-  }
-  const adamRemaining = adamPowerSecondsLeft();
-  if (adamRemaining > 0) {
-    adamPowerPendingReveal = true;
   }
   window.addEventListener('max-game:inventory-gift-added', () => {
     renderGiftItems();
@@ -477,7 +467,6 @@ export function updatePowerups(frameTime: number): void {
   const katySecondsLeft = katyPowerSecondsLeft(now);
   const teaSecondsLeft = maddyTeaSecondsLeft(now);
   const niallSecondsLeft = niallSpeedSecondsLeft();
-  const adamSecondsLeft = adamPowerSecondsLeft();
   const samSecondsLeft = samPowerSecondsLeft(now);
   const timSecondsLeft = timInputPowerSecondsLeft(now);
   const oscarSecondsLeft = oscarPowerSecondsLeft(now);
@@ -488,7 +477,6 @@ export function updatePowerups(frameTime: number): void {
   const georgiaSecondsLeft = georgiaPowerSecondsLeft(now);
   const helenSecondsLeft = helenPowerSecondsLeft(now);
   const expiredDescriptions: string[] = [];
-  updateAdamLeapControl();
 
   if (alexSPowerPendingReveal && alexSSecondsLeft === 0) {
     expiredDescriptions.push(revealItemDescription('alex-s-item'));
@@ -503,10 +491,6 @@ export function updatePowerups(frameTime: number): void {
   if (maddyPowerPendingReveal && teaSecondsLeft === 0) {
     expiredDescriptions.push(revealItemDescription('maddy-item'));
     maddyPowerPendingReveal = false;
-  }
-  if (adamPowerPendingReveal && adamSecondsLeft === 0) {
-    expiredDescriptions.push(revealItemDescription('adam-item'));
-    adamPowerPendingReveal = false;
   }
   if (oscarPowerPendingReveal && oscarSecondsLeft === 0) {
     expiredDescriptions.push(revealItemDescription('oscar-item'));
@@ -674,10 +658,6 @@ export function updatePowerups(frameTime: number): void {
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (samSecondsLeft > 0) {
     const status = `Sam power ${samSecondsLeft.toFixed(1)}s`;
-    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
-    if (powerupStatus.hidden) powerupStatus.hidden = false;
-  } else if (adamSecondsLeft > 0) {
-    const status = `Adam power ${adamSecondsLeft.toFixed(1)}s`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;
   } else if (teaSecondsLeft > 0) {

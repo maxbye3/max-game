@@ -33,7 +33,6 @@ import { isAlexResurrectionUiBlocking } from '../powers/alex-s/alex-s-power-ui.j
 import { isPlayerTripping } from '../powers/katy/katy-power.js';
 import { isGymTimCutsceneBlockingPlayer } from '../interiors/gym-tim-cutscene.js';
 import { niallSpeedMultiplier } from '../powers/niall/niall-speed-power.js';
-import { adamAirStrideMultiplier } from '../powers/adam/adam-power.js';
 import { samMovementMultiplier } from '../powers/sam/sam-power.js';
 import { oscarMovementMultiplier, isOscarTerrainEaten, settleOscarDigestion } from '../powers/oscar/oscar-power.js';
 import { andyMovementMultiplier } from '../powers/andy/andy-power.js';
@@ -135,7 +134,7 @@ export function updatePlayer(deltaTime: number, speedMultiplier: number): void {
   const timDirection = timInputVector(dx, dy); dx = timDirection.x; dy = timDirection.y;
 
   const isMoving = dx !== 0 || dy !== 0;
-  const movementSpeed = SPEED * speedMultiplier * niallSpeedMultiplier() * adamAirStrideMultiplier() * aliceMovementMultiplier() * samMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier();
+  const movementSpeed = SPEED * speedMultiplier * niallSpeedMultiplier() * aliceMovementMultiplier() * samMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier();
   const flying = isGeorgiaPowerActive();
   if (flying) moveGeorgiaFlight(player, dx, dy, movementSpeed, deltaTime, FLIGHT_BOUNDS);
   if (!isMoving) {

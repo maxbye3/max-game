@@ -18,7 +18,6 @@ import { isAlexResurrectionUiBlocking } from '../powers/alex-s/alex-s-power-ui.j
 import { DirectionInputController } from '../core/input.js';
 import { InteriorCollision } from './interior-collision.js';
 import { niallSpeedMultiplier } from '../powers/niall/niall-speed-power.js';
-import { adamAirStrideMultiplier } from '../powers/adam/adam-power.js';
 import { isOscarTerrainEaten, oscarMovementMultiplier, settleOscarDigestion } from '../powers/oscar/oscar-power.js';
 import { andyMovementMultiplier } from '../powers/andy/andy-power.js';
 import { moveWithCollisions } from '../core/movement.js';
@@ -57,7 +56,7 @@ export function createInteriorPlayerUpdater({ player, input, width: WORLD_WIDTH,
     dx = juDirection.x; dy = juDirection.y;
     const timDirection = timInputVector(dx, dy); dx = timDirection.x; dy = timDirection.y;
     const flying = isGeorgiaPowerActive();
-    const movementSpeed = SPEED * niallSpeedMultiplier() * adamAirStrideMultiplier() * aliceMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier() * samMovementMultiplier();
+    const movementSpeed = SPEED * niallSpeedMultiplier() * aliceMovementMultiplier() * oscarMovementMultiplier() * andyMovementMultiplier() * bochraMovementMultiplier() * chrisMovementMultiplier() * helenMovementMultiplier() * juMovementMultiplier() * julianMovementMultiplier() * lucyMovementMultiplier() * mikeMovementMultiplier() * noelMovementMultiplier() * reiMovementMultiplier() * samMovementMultiplier();
     if (flying) moveGeorgiaFlight(player, dx, dy, movementSpeed, deltaTime, FLIGHT_BOUNDS);
     if (dx === 0 && dy === 0) {
       player.animationTime = 0;

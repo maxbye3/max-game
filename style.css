@@ -529,31 +529,6 @@ canvas {
   outline: none;
 }
 
-.adam-leap-button {
-  position: absolute;
-  z-index: 8;
-  left: 24px;
-  bottom: 82px;
-  min-width: 86px;
-  padding: 12px 16px;
-  border: 2px solid #ebffff;
-  border-radius: 8px;
-  color: #073b4b;
-  background: #a5f6ff;
-  box-shadow: 4px 4px 0 rgb(0 0 0 / 55%);
-  font: 9px/1.5 var(--font-pixel);
-  cursor: pointer;
-  touch-action: manipulation;
-  user-select: none;
-}
-
-.adam-leap-button:hover,
-.adam-leap-button:focus-visible {
-  background: #e9ffff;
-  outline: none;
-}
-
-.adam-leap-button[hidden] { display: none; }
 
 .jump-panel {
   position: absolute;
@@ -1968,7 +1943,6 @@ kbd {
   .controls { right: 12px; bottom: 12px; }
   .bus-intro-skip { left: 12px; bottom: 12px; }
   .jump-toggle { left: 12px; bottom: 12px; }
-  .adam-leap-button { left: 12px; bottom: 68px; }
   .jump-panel { left: 12px; bottom: 68px; width: calc(100% - 24px); }
   .inventory-panel { top: 62px; right: 12px; width: calc(100% - 24px); }
   .sign-dialogue { width: min(calc(100% - 24px), var(--dialogue-width)); }
@@ -2045,8 +2019,7 @@ kbd {
     bottom: calc(50px + env(safe-area-inset-bottom));
   }
 
-  .npc-talk,
-  .adam-leap-button {
+  .npc-talk {
     bottom: calc(var(--mobile-dock-height) + 12px);
   }
 
@@ -2789,3 +2762,19 @@ kbd {
   text-align: center;
   white-space: nowrap;
 }
+
+.engagement-dialog { box-sizing: border-box; width: min(560px, calc(100vw - 20px)); max-height: calc(100dvh - 20px); padding: 16px; overflow: auto; border: 3px solid #e4ba73; border-radius: 10px; background: #180f24; color: #ffe5b4; font-family: var(--font-pixel); }
+.engagement-dialog::backdrop { background: #08040de8; }
+.engagement-dialog[open] { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.engagement-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; }
+.engagement-dialog header p { font-size: 8px; margin: 0 0 8px; color: #c79ac7; }
+.engagement-dialog h2 { font: 12px/1.6 var(--font-pixel); margin: 0; }
+.engagement-dialog button { min-height: 44px; border: 2px solid #e4ba73; border-radius: 5px; color: inherit; background: #432643; cursor: pointer; font: 10px/1.5 var(--font-pixel); }
+.engagement-close { min-width: 44px; font-size: 24px !important; }
+.engagement-dialog canvas { display: block; width: min(100%, calc((100dvh - 230px) * 360 / 440)); min-height: 80px; height: auto; aspect-ratio: 360 / 440; image-rendering: pixelated; touch-action: manipulation; border: 1px solid #674560; border-radius: 4px; flex-shrink: 0; }
+.engagement-instructions, .engagement-result { font-size: 9px; line-height: 1.7; text-align: center; margin: 0; }
+.engagement-tap { width: 100%; padding: 12px; touch-action: manipulation; }
+.engagement-tap:disabled { cursor: default; }
+.engagement-dialog button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+.engagement-dialog.is-engaged .engagement-result { color: #ffdb83; font-size: clamp(10px, 3vw, 18px); }
+@media (max-height: 480px) { .engagement-dialog[open] { gap: 6px; padding: 10px; } .engagement-dialog header p { display: none; } .engagement-dialog canvas { width: min(100%, calc((100dvh - 200px) * 360 / 440)); } }
