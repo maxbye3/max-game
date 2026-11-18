@@ -5,7 +5,8 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   const worldState = await loadModule('world-state', 'js/core/world-state.ts');
   let resolveFixture;
   globalThis.fetch = () => new Promise((resolve) => { resolveFixture = resolve; });
-  values.clear();
+  values.clear(); values.set('max-game:todo-guide-received', 'true');
+  values.set('max-game:todo-guide-received', 'true');
   const npcs = await loadModule('npcs', 'js/overworld/npcs.ts');
   npcs.setupNpcInteractions();
   const next = () => element('#npc-dialogue-next').listeners.get('click')();
@@ -59,7 +60,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.equal(element('#npc-dialogue-line').textContent, alexLine);
 
   // Alex delivers his restored item before offering music, with his root portrait.
-  values.clear();
+  values.clear(); values.set('max-game:todo-guide-received', 'true');
   const approachAlex = () => npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
   leave(); approachAlex();
   assert.equal(values.has('max-game:inventory-gifts'), false);
@@ -89,7 +90,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Alex keeps talking after reissuing his item');
 
   // Adam keeps his facts between the rotating greeting and inventory gift.
-  values.clear();
+  values.clear(); values.set('max-game:todo-guide-received', 'true');
   const approachAdam = () => npcs.updateNpcInteractions(npcs.ADAM.x, npcs.ADAM.y);
   leave(); approachAdam();
   assert.match(element('#npc-dialogue-line').textContent, /You\'re shorter than I was expecting/);
@@ -130,7 +131,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   window.open = () => { spotifyOpens += 1; };
   for (const accept of [false, true]) {
     for (let owned = 0; owned < 8; owned += 1) {
-      values.clear();
+      values.clear(); values.set('max-game:todo-guide-received', 'true');
       const gifts = [];
       if (owned & 1) gifts.push('andy-item');
       if (owned & 2) gifts.push('portable-walkman');
@@ -201,7 +202,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   for (const completed of [false, true]) {
     for (const owned of [[], ['rei-item'], ['rei-item-2'], ['rei-item', 'rei-item-2']]) {
       for (const songOwned of [false, true]) {
-        values.clear();
+        values.clear(); values.set('max-game:todo-guide-received', 'true');
         values.set('max-game:rei-gift-stage', '2');
         values.set('max-game:mike-aftermath', String(completed));
         values.set('max-game:inventory-gifts', JSON.stringify(owned));
@@ -227,7 +228,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
     }
   }
   // A fresh save still receives the first item after accepting the mission.
-  values.clear();
+  values.clear(); values.set('max-game:todo-guide-received', 'true');
   approachRei();
   finishReiMission(false);
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item']);
@@ -260,7 +261,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   reloadedNpcs.updateNpcInteractions(-100, -100);
   npcs.setupNpcInteractions();
 
-  values.clear();
+  values.clear(); values.set('max-game:todo-guide-received', 'true');
   values.set('max-game:inventory-gifts', '["marina-d-item-1", "marina-d-item-2"]');
   const inventoryGifts = await loadModule('inventory-gifts', 'js/core/inventory-gifts.ts');
   assert.deepEqual(inventoryGifts.getCollectedGifts(), []);
@@ -272,7 +273,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'Marina D no longer gives either item');
 
   for (const npc of [npcs.CHRIS]) {
-    values.clear();
+    values.clear(); values.set('max-game:todo-guide-received', 'true');
     leave(); npcs.updateNpcInteractions(npc.x, npc.y);
     assert.equal(element('#npc-dialogue-line').textContent, npc.dialogueLines[0]);
     assert.equal(element('#npc-dialogue-profile').hidden, false);
@@ -294,7 +295,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   }
 
   // Alice finishes her greeting before the gift and event question.
-  values.clear(); leave(); npcs.updateNpcInteractions(npcs.ALICE.x, npcs.ALICE.y);
+  values.clear(); values.set('max-game:todo-guide-received', 'true'); leave(); npcs.updateNpcInteractions(npcs.ALICE.x, npcs.ALICE.y);
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   for (let index = 1; index < npcs.ALICE.dialogueLines.length; index++) {
     next();

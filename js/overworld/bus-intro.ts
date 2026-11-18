@@ -26,6 +26,7 @@ const controls = document.querySelector<HTMLElement>('.controls');
 const inventoryToggle = document.querySelector<HTMLElement>('#inventory-toggle');
 const jumpToggle = document.querySelector<HTMLElement>('.movement-actions');
 const musicToggle = document.querySelector<HTMLElement>('#music-toggle');
+const optionsToggle = document.querySelector<HTMLElement>('#options-toggle');
 
 let active = shouldPlay;
 let elapsed = 0;
@@ -70,6 +71,7 @@ function setGameplayUiHidden(hidden: boolean): void {
   inventoryToggle?.classList.toggle('opening-intro-hidden', hidden);
   jumpToggle?.classList.toggle('opening-intro-hidden', hidden);
   musicToggle?.classList.toggle('opening-intro-hidden', hidden);
+  optionsToggle?.classList.toggle('opening-intro-hidden', hidden);
 }
 
 function finishIntro(player: Player): void {

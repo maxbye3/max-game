@@ -64,3 +64,22 @@ await withGameTest(async ({ loadModule, element, values }) => {
   assert.equal(element('#npc-dialogue').hidden, true);
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['todo-guide']);
 });
+
+await withGameTest(async ({ loadModule, element, values }) => {
+  const npcs = await loadModule('alex-welcome-order', 'js/overworld/npcs.ts');
+  npcs.setupNpcInteractions();
+  const next = () => element('#npc-dialogue-next').listeners.get('click')();
+  npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
+  next();
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
+  next();
+  assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa']);
+  next();
+  assert.match(element('#npc-dialogue-line').textContent, /^hey looks like your new around here/);
+  next();
+  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item', 'todo-guide']);
+  assert.equal(element('#npc-dialogue').hidden, true);
+  npcs.updateNpcInteractions(-100, -100);
+  npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
+  assert.doesNotMatch(element('#npc-dialogue-line').textContent, /^hey looks like/);
+});

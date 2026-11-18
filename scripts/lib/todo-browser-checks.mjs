@@ -16,7 +16,7 @@ export async function checkTodoGuide(browser, server, fixtures) {
         await page.waitForFunction(() => !!window.__gameTest);
         await page.evaluate(() => { window.pauseGameTest = true; });
         await page.waitForTimeout(80);
-        await page.evaluate(kind => window.__gameTest.openNpc(kind), interior ? 'noel' : 'georgia');
+        await page.evaluate(kind => window.__gameTest.openNpc(kind), interior ? 'noel' : 'alexS');
         const prefix = interior ? '#noel' : '#npc';
         const line = page.locator(`${prefix}-dialogue-line`);
         assert.equal(await page.evaluate(() => localStorage.getItem('max-game:todo-guide-received')), null);
@@ -25,13 +25,15 @@ export async function checkTodoGuide(browser, server, fixtures) {
           await page.locator('#noel-game-no').click();
           for (let i = 0; i < 3; i++) await page.locator('#noel-dialogue-next').click();
         } else {
-          for (let i = 0; i < 200 && !(await line.textContent()).startsWith('hey looks like'); i++) {
-            const next = page.locator('#npc-dialogue-next');
-            await (await next.isVisible() ? next : page.locator('#npc-dialogue-close')).click();
-          }
+          await page.locator('#npc-dialogue-next').click();
+          assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:inventory-gifts'))), ['alex-s-item']);
+          await page.locator('#npc-dialogue-next').click();
+          assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:unlocked-songs'))), ['Africa']);
+          assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:inventory-gifts')).includes('todo-guide')), false);
+          await page.locator('#npc-dialogue-next').click();
         }
         assert.match(await line.textContent(), /^hey looks like your new around here/);
-        assert.equal(await page.locator(`${prefix}-speaker`).textContent(), interior ? 'Noel' : 'Georgia');
+        assert.equal(await page.locator(`${prefix}-speaker`).textContent(), interior ? 'Noel' : 'Alex S');
         assert.equal(await page.locator(`${prefix}-dialogue-profile`).isVisible(), !interior, 'the farewell preserves both portrait presence and intentional absence');
         await page.locator(`${prefix}-dialogue-next`).click();
         const reveal = page.locator('.item-received-overlay img[src$="/to-do/reveal.gif"]');
@@ -61,7 +63,7 @@ export async function checkTodoGuide(browser, server, fixtures) {
         await open.click();
         await page.keyboard.press('Escape');
         assert.equal(await viewer.isVisible(), false, 'Escape dismisses the image');
-        await page.evaluate(kind => window.__gameTest.openNpc(kind), interior ? 'noel' : 'georgia');
+        await page.evaluate(kind => window.__gameTest.openNpc(kind), interior ? 'noel' : 'alexS');
         await page.locator(`${prefix}-dialogue-close`).click();
         await page.locator('#inventory-toggle').click();
         await open.click();
@@ -78,7 +80,7 @@ export async function checkTodoGuide(browser, server, fixtures) {
         await page.locator('#door-loading').waitFor({ state: 'hidden' });
         await page.evaluate(() => { window.pauseGameTest = true; });
         await page.waitForTimeout(80);
-        await page.evaluate(kind => window.__gameTest.openNpc(kind), interior ? 'noel' : 'georgia');
+        await page.evaluate(kind => window.__gameTest.openNpc(kind), interior ? 'noel' : 'alexS');
         await page.locator(`${prefix}-dialogue-close`).click();
         assert.equal(await page.locator(`${prefix}-dialogue`).isVisible(), false, 'future conversations omit the farewell after reload');
         assert.equal(await page.locator('.item-received-overlay img[src$="/to-do/reveal.gif"]').count(), 0);

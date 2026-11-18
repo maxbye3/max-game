@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { withGameTest } from './helpers.mjs';
 
 await withGameTest(async ({ loadModule, element, values }) => {
+  values.set('max-game:todo-guide-received', 'true');
   const npcs = await loadModule('npcs', 'js/overworld/npcs.ts');
   npcs.setupNpcInteractions();
   const click = selector => element(selector).listeners.get('click')();
@@ -11,7 +12,7 @@ await withGameTest(async ({ loadModule, element, values }) => {
   const line = () => element('#npc-dialogue-line').textContent;
 
   for (const accept of [false, true]) for (const songOwned of [false, true]) {
-    values.clear();
+    values.clear(); values.set('max-game:todo-guide-received', 'true');
     if (songOwned) values.set('max-game:unlocked-songs', '["Moomoo"]');
     const overlayCount = element('.game-shell').children.length;
     leave(); approach();
@@ -53,7 +54,7 @@ await withGameTest(async ({ loadModule, element, values }) => {
     assert.equal(element('#npc-dialogue-next').hidden, true);
   }
 
-  values.clear();
+  values.clear(); values.set('max-game:todo-guide-received', 'true');
   leave(); approach(); next();
   click('#npc-dialogue-close');
   assert.equal(element('#ruby-dialogue-options').hidden, true);

@@ -94,6 +94,7 @@ let pendingGiftItem: GiftItem | null = null;
 let pendingGiftConfirmation: string | null = null;
 let pendingFixtureLine: (() => Promise<string>) | null = null;
 let pendingSongReward: Song | null = null;
+let welcomeAfterReward = false;
 let dialogueSession = 0;
 let fixtureLoading = false;
 let currentDialogueLineIndex = 0;
@@ -184,6 +185,7 @@ function finishDialogue(): void {
 
 function closeDialogue(): void {
   todoWelcome.cancel();
+  welcomeAfterReward = false;
   dialogueSession += 1;
   fixtureLoading = false;
   pendingFixtureLine = null;
@@ -242,7 +244,8 @@ function showGiftLine(): void {
   giftConfirmation.textContent = giftWasAdded ? pendingGiftConfirmation : '';
   pendingGiftConfirmation = null;
   giftConfirmation.hidden = !giftWasAdded;
-  nextButton.hidden = pendingSongReward === null && pendingRequestLine === null && activeNpc?.id !== 'oscar' && activeNpc?.id !== 'alice' && !hasMoreDialogue();
+  welcomeAfterReward = todoWelcome.isAvailable && pendingSongReward === null;
+  nextButton.hidden = !welcomeAfterReward && pendingSongReward === null && pendingRequestLine === null && activeNpc?.id !== 'oscar' && activeNpc?.id !== 'alice' && !hasMoreDialogue();
 }
 
 function showAliceEventQuestion(): void {
@@ -300,7 +303,8 @@ function showSongLine(): void {
   giftConfirmation.hidden = true;
   awardSong(pendingSongReward);
   pendingSongReward = null;
-  nextButton.hidden = !hasMoreDialogue();
+  welcomeAfterReward = todoWelcome.isAvailable;
+  nextButton.hidden = !welcomeAfterReward && !hasMoreDialogue();
 }
 
 function acceptQuest(): void {
@@ -326,12 +330,16 @@ function acceptQuest(): void {
 function advanceDialogue(): void {
   if (todoWelcome.isOpen) { finishDialogue(); return; }
   if (fixtureLoading || !oscarOptions.hidden || !aliceOptions.hidden || !rubyOptions.hidden) return;
+  if (welcomeAfterReward) {
+    welcomeAfterReward = false;
+    if (todoWelcome.finish()) return;
+  }
   if (activeNpc?.id === 'ruby') {
     if (rubyStage === 'opening') showRubyLine('question');
     else if (rubyStage === 'decline') showRubyLine('final');
     else if (rubyStage === 'final' && pendingSongReward) {
       showSongLine();
-      nextButton.hidden = true;
+      nextButton.hidden = !welcomeAfterReward;
     }
     return;
   }
@@ -410,6 +418,7 @@ function showDialogueLine(npc: NpcDefinition): void {
 }
 
 function openDialogue(npc: NpcDefinition): void {
+  welcomeAfterReward = false;
   recordPersonSpokenTo(npc.id);
   announceWorldInteraction();
   releaseAllInput();
@@ -490,7 +499,8 @@ function openDialogue(npc: NpcDefinition): void {
     return;
   }
   showDialogueLine(npc);
-  nextButton.hidden = pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && !hasMoreDialogue() && npc.id !== 'alice';
+  welcomeAfterReward = todoWelcome.isAvailable && !pendingGiftLine && !pendingSongReward && !pendingRequestLine && !pendingFollowUpLine && !pendingFixtureLine && npc.id !== 'alice' && npc.id !== 'rei';
+  nextButton.hidden = !welcomeAfterReward && pendingRequestLine === null && pendingFollowUpLine === null && pendingFixtureLine === null && pendingGiftLine === null && pendingSongReward === null && !hasMoreDialogue() && npc.id !== 'alice';
   dialogue.hidden = false;
 }
 

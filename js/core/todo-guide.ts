@@ -25,13 +25,17 @@ export class TodoWelcomeDialogue {
     if (!this.canOffer() || !this.finish()) this.close?.();
   };
 
+  get isAvailable(): boolean {
+    return readStorage(RECEIVED_KEY) !== 'true' && !hasGift(TODO_ITEM);
+  }
+
   finish(): boolean {
     if (this.isOpen) {
       writeStorage(RECEIVED_KEY, 'true');
       addGift(TODO_ITEM);
       return false;
     }
-    if (readStorage(RECEIVED_KEY) === 'true' || hasGift(TODO_ITEM)) return false;
+    if (!this.isAvailable) return false;
     this.beforeFarewell();
     endDialogueAudio();
     this.isOpen = true;
