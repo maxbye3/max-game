@@ -180,8 +180,7 @@ export const JOE = defineNpc('joe', {
 export const ALEX_S = defineNpc('alexS', {
   character: 'alex-s',
   name: 'Alex S',
-  x: 680,
-  y: 1063,
+  ...MAP_NPC_POSITIONS.alexS,
   width: 20,
   height: 46,
   songReward: 'Africa',

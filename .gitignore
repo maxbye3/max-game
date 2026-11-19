@@ -2,6 +2,7 @@
 node_modules/
 .cache/
 test-results/
+/work/
 
 # Generated source modules, optimized assets, and browser bundles.
 js/generated/

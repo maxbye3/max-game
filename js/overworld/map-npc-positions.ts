@@ -8,6 +8,7 @@ const locations = {
   marinaD: { x: 201, y: 1034 },
   ruby: { x: 209, y: 1130 },
   maddy: { x: 383, y: 1045 },
+  alexS: { x: 680, y: 1063 },
 } as const;
 
 const STORAGE_KEY = 'max-game:map-npc-layout';

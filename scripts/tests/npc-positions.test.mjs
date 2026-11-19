@@ -12,7 +12,7 @@ await withGameTest(async ({ loadModule }) => {
     `);
     let previous = await load();
     const ids = Object.keys(previous.MAP_NPC_POSITIONS);
-    assert.deepEqual(ids.sort(), ['bochra', 'chris', 'dan', 'ju', 'katy', 'maddy', 'marinaD', 'ruby']);
+    assert.deepEqual(ids.sort(), ['alexS', 'bochra', 'chris', 'dan', 'ju', 'katy', 'maddy', 'marinaD', 'ruby']);
     const fixed = previous.NPCS.filter(npc => !ids.includes(npc.id)).map(({id, x, y}) => ({id, x, y}));
     assert.equal(window.sessionStorage.getItem('max-game:map-npc-layout'), null, 'importing NPCs alone does not count as an overworld visit');
 
@@ -29,7 +29,7 @@ await withGameTest(async ({ loadModule }) => {
         occupied.add(`${spot.x},${spot.y}`);
         const npc = current.NPCS.find(npc => npc.id === id);
         assert.deepEqual({x:npc.x, y:npc.y}, spot, 'dialogue uses the chosen position');
-        if (id !== 'katy') {
+        if (id !== 'katy' && id !== 'alexS') {
           const sprite = current.MAP_CHARACTER_DEFINITIONS.find(character => character.id === (id === 'marinaD' ? 'marina-d' : id));
           assert.deepEqual({x:sprite.x, y:sprite.y}, spot, 'rendering and power targets use the same position');
         }
@@ -39,7 +39,7 @@ await withGameTest(async ({ loadModule }) => {
       previous = current;
     }
 
-    for (const saved of ['bad json', '{}', '[0,0,0,0,0,0,0,0]', '[0,1,2,3,4,5,6,99]']) {
+    for (const saved of ['bad json', '{}', '[0,0,0,0,0,0,0,0,0]', '[0,1,2,3,4,5,6,7,99]', '[0,1,2,3,4,5,6,7]']) {
       window.sessionStorage.setItem('max-game:map-npc-layout', saved);
       const { MAP_NPC_POSITIONS } = await load();
       assert.equal(new Set(Object.values(MAP_NPC_POSITIONS).map(spot => `${spot.x},${spot.y}`)).size, ids.length, 'invalid saved layouts recover safely');

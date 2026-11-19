@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const ids = ['dan', 'bochra', 'ju', 'chris', 'katy', 'marinaD', 'ruby', 'maddy'];
+const ids = ['dan', 'bochra', 'ju', 'chris', 'katy', 'marinaD', 'ruby', 'maddy', 'alexS'];
 const spot = ({x, y}) => ({x, y});
 
 export async function checkMapNpcPositions(browser, server, mainFixture) {
@@ -14,7 +14,10 @@ export async function checkMapNpcPositions(browser, server, mainFixture) {
       await page.waitForFunction(() => !!document.querySelector('#game').dataset.playerVariant);
     };
     try {
-      await page.addInitScript(() => localStorage.setItem('max-game:audio-muted', 'true'));
+      await page.addInitScript(() => {
+        localStorage.setItem('max-game:audio-muted', 'true');
+        localStorage.setItem('max-game:inventory-gifts', '["todo-guide"]');
+      });
       await page.route('**/dist/main-bundle.js*', route => route.fulfill({path:mainFixture, contentType:'text/javascript'}));
       await page.goto(`${server.url}/index.html?door=garden-room&debug-position`);
       let previous, fixed;
@@ -30,24 +33,38 @@ export async function checkMapNpcPositions(browser, server, mainFixture) {
         fixed = stationary;
         for (const npc of moving) {
           if (previous) assert.notDeepEqual(spot(npc), spot(previous.find(old => old.id === npc.id)), `${npc.name} moves on reload and after a room visit`);
-          if (npc.id !== 'katy') {
+          if (npc.id !== 'katy' && npc.id !== 'alexS') {
             assert.deepEqual(spot(sprites.find(sprite => sprite.id === (npc.id === 'marinaD' ? 'marina-d' : npc.id))), spot(npc), 'sprite and dialogue positions agree');
           }
-          assert.deepEqual(spot(targets.find(target => target.id === (npc.id === 'marinaD' ? 'marina' : npc.id))), spot(npc), 'powers target the displayed character');
+          const targetId = npc.id === 'marinaD' ? 'marina' : npc.id === 'alexS' ? 'alex-s' : npc.id;
+          assert.deepEqual(spot(targets.find(target => target.id === targetId)), spot(npc), 'powers target the displayed character');
           await page.evaluate(id => window.__gameTest.moveToNpc(id), npc.id);
           await page.waitForFunction(name => !document.querySelector('#npc-dialogue').hidden && document.querySelector('#npc-speaker').textContent === name, npc.name);
           const panel = await page.locator('#npc-dialogue').boundingBox();
           assert.ok(panel.x >= 0 && panel.y >= 0 && panel.x + panel.width <= viewport.width + 1 && panel.y + panel.height <= viewport.height + 1, 'dialogue at a new location fits the viewport');
         }
         await page.locator('#npc-dialogue-close').click();
-        const before = await page.locator('#game').evaluate(canvas => Number(canvas.dataset.playerX));
-        if (mobile) {
-          const stick = await page.locator('.mobile-thumbstick').boundingBox();
-          await page.mouse.move(stick.x + stick.width / 2 + 35, stick.y + stick.height / 2);
-          await page.mouse.down();
-        } else await page.keyboard.down('ArrowRight');
-        try { await page.waitForFunction(x => Number(document.querySelector('#game').dataset.playerX) > x, before, {timeout:5000}); }
-        finally { if (mobile) await page.mouse.up(); else await page.keyboard.up('ArrowRight'); }
+        const before = await page.locator('#game').evaluate(canvas => ({ x: canvas.dataset.playerX, y: canvas.dataset.playerY }));
+        let moved = false;
+        // A shuffled spot may have a hedge on one side; try another direction
+        // before treating collision as a failure to release dialogue controls.
+        for (const [key, dx, dy] of [['ArrowRight', 35, 0], ['ArrowDown', 0, 35], ['ArrowLeft', -35, 0], ['ArrowUp', 0, -35]]) {
+          if (mobile) {
+            const stick = await page.locator('.mobile-thumbstick').boundingBox();
+            await page.mouse.move(stick.x + stick.width / 2 + dx, stick.y + stick.height / 2 + dy);
+            await page.mouse.down();
+          } else await page.keyboard.down(key);
+          try {
+            await page.waitForFunction(position => {
+              const { playerX, playerY } = document.querySelector('#game').dataset;
+              return playerX !== position.x || playerY !== position.y;
+            }, before, {timeout:1500});
+            moved = true;
+          } catch (error) { if (error.name !== 'TimeoutError') throw error; }
+          finally { if (mobile) await page.mouse.up(); else await page.keyboard.up(key); }
+          if (moved) break;
+        }
+        assert.ok(moved, 'closing the dialogue releases movement');
         assert.deepEqual(await page.evaluate(() => window.__gameTest.npcPositions()), npcs, 'positions remain stable during play');
         previous = moving;
         if (visit === 0) {
@@ -61,7 +78,7 @@ export async function checkMapNpcPositions(browser, server, mainFixture) {
         } else if (visit === 1) await page.reload();
       }
       assert.deepEqual(errors, [], 'shuffled NPCs introduce no browser exceptions');
-      console.log(`PASS map NPC positions ${viewport.width}×${viewport.height}: eight characters move on reload and room return; dialogue, drawing, powers and movement agree.`);
+      console.log(`PASS map NPC positions ${viewport.width}×${viewport.height}: nine characters move on reload and room return; dialogue, drawing, powers and movement agree.`);
     } catch (error) {
       await page.screenshot({path:`test-results/failure-map-npc-positions-${viewport.width}.png`});
       throw error;
