@@ -5,8 +5,8 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   const worldState = await loadModule('world-state', 'js/core/world-state.ts');
   let resolveFixture;
   globalThis.fetch = () => new Promise((resolve) => { resolveFixture = resolve; });
-  values.clear(); values.set('max-game:todo-guide-received', 'true');
-  values.set('max-game:todo-guide-received', 'true');
+  values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
+  const inventory = () => JSON.parse(values.get('max-game:inventory-gifts')).filter(id => id !== 'todo-guide');
   const npcs = await loadModule('npcs', 'js/overworld/npcs.ts');
   npcs.setupNpcInteractions();
   const next = () => element('#npc-dialogue-next').listeners.get('click')();
@@ -26,7 +26,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   await new Promise((resolve) => setImmediate(resolve));
   assert.match(element('#npc-dialogue-line').textContent, /Next Arsenal game: Arsenal v Test opponents/);
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['ed-item']);
+  assert.deepEqual(inventory(), ['ed-item']);
   assert.equal(values.has('max-game:unlocked-songs'), false);
   assert.equal(element('#npc-dialogue-next').hidden, false);
   next();
@@ -40,11 +40,11 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Ed can continue his dialogue when rewards are already owned');
   // Song owned, item removed: deliver the item again independently of music.
-  values.set('max-game:inventory-gifts', '[]');
+  values.set('max-game:inventory-gifts', '["todo-guide"]');
   leave(); approachEd(); next();
   await new Promise((resolve) => setImmediate(resolve));
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['ed-item']);
+  assert.deepEqual(inventory(), ['ed-item']);
   assert.equal(element('#npc-dialogue-next').hidden, false, 'NPC dialogue remains available after the item reward');
   // Item owned, song absent: skip the item and offer music after football.
   values.delete('max-game:unlocked-songs');
@@ -60,14 +60,14 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.equal(element('#npc-dialogue-line').textContent, alexLine);
 
   // Alex delivers his restored item before offering music, with his root portrait.
-  values.clear(); values.set('max-game:todo-guide-received', 'true');
+  values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
   const approachAlex = () => npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
   leave(); approachAlex();
-  assert.equal(values.has('max-game:inventory-gifts'), false);
+  assert.equal(inventory().length, 0);
   assert.equal(element('#npc-dialogue-profile').src, 'char/wheldon/profile.png');
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
+  assert.deepEqual(inventory(), ['alex-s-item']);
   assert.equal(values.has('max-game:unlocked-songs'), false);
   assert.equal(element('#npc-dialogue-next').hidden, false);
   next();
@@ -76,7 +76,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Alex continues his dialogue after the song reward');
   // Song owned: later conversations keep cycling the dialogue.
   leave(); approachAlex(); next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
+  assert.deepEqual(inventory(), ['alex-s-item']);
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa']);
   // An older save with other songs still receives Africa once.
   values.set('max-game:unlocked-songs', '["Outer wildeds"]');
@@ -84,13 +84,13 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Outer wildeds', 'Africa']);
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Alex continues his dialogue after the song reward');
   // Players who already unlocked Africa still receive the missing item.
-  values.set('max-game:inventory-gifts', '[]');
+  values.set('max-game:inventory-gifts', '["todo-guide"]');
   leave(); approachAlex(); next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item']);
+  assert.deepEqual(inventory(), ['alex-s-item']);
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Alex keeps talking after reissuing his item');
 
   // Adam keeps his facts between the rotating greeting and inventory gift.
-  values.clear(); values.set('max-game:todo-guide-received', 'true');
+  values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
   const approachAdam = () => npcs.updateNpcInteractions(npcs.ADAM.x, npcs.ADAM.y);
   leave(); approachAdam();
   assert.match(element('#npc-dialogue-line').textContent, /You\'re shorter than I was expecting/);
@@ -109,7 +109,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   assert.match(element('#npc-dialogue-line').textContent, /2006 Champions League final/);
   assert.equal(element('#npc-dialogue-next').hidden, false);
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['adam-item']);
+  assert.deepEqual(inventory(), ['adam-item']);
   assert.equal(element('#npc-dialogue-next').hidden, false, 'NPC dialogue can continue after an item is awarded');
   assert.equal(values.has('max-game:unlocked-songs'), false);
   next();
@@ -119,9 +119,9 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   next();
   assert.match(element('#npc-dialogue-line').textContent, /Dial Square/);
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Adam can continue his dialogue after his follow-up fact');
-  values.set('max-game:inventory-gifts', '[]');
+  values.set('max-game:inventory-gifts', '["todo-guide"]');
   leave(); approachAdam(); next(); next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['adam-item']);
+  assert.deepEqual(inventory(), ['adam-item']);
   assert.equal(values.has('max-game:unlocked-songs'), false);
 
   // Andy gives unclaimed rewards, then plays every line after either music choice.
@@ -131,8 +131,8 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   window.open = () => { spotifyOpens += 1; };
   for (const accept of [false, true]) {
     for (let owned = 0; owned < 8; owned += 1) {
-      values.clear(); values.set('max-game:todo-guide-received', 'true');
-      const gifts = [];
+      values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
+      const gifts = ['todo-guide'];
       if (owned & 1) gifts.push('andy-item');
       if (owned & 2) gifts.push('portable-walkman');
       const songs = ['Africa'];
@@ -173,7 +173,7 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
         assert.equal(element('#andy-next').hidden, lineIndex === andyLines.length - 1);
         if (lineIndex < andyLines.length - 1) controller.next();
       }
-      assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')).sort(), ['andy-item', 'portable-walkman']);
+      assert.deepEqual(inventory().sort(), ['andy-item', 'portable-walkman']);
       assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa', 'Too much duolingo']);
       controller.next();
       assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa', 'Too much duolingo']);
@@ -202,17 +202,17 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   for (const completed of [false, true]) {
     for (const owned of [[], ['rei-item'], ['rei-item-2'], ['rei-item', 'rei-item-2']]) {
       for (const songOwned of [false, true]) {
-        values.clear(); values.set('max-game:todo-guide-received', 'true');
+        values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
         values.set('max-game:rei-gift-stage', '2');
         values.set('max-game:mike-aftermath', String(completed));
-        values.set('max-game:inventory-gifts', JSON.stringify(owned));
+        values.set('max-game:inventory-gifts', JSON.stringify(['todo-guide', ...owned]));
         if (songOwned) values.set('max-game:unlocked-songs', '["Lemon jelly"]');
         approachRei();
         assert.equal(element('#npc-dialogue-line').textContent, reiLines[0], 'every visit starts with Rei’s greeting');
         assert.equal(element('#npc-dialogue-profile').hidden, true, 'Rei has no root portrait');
         finishReiMission(completed);
         const missingGift = ['rei-item', 'rei-item-2'].find((id) => !owned.includes(id));
-        assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), missingGift ? [...owned, missingGift] : owned);
+        assert.deepEqual(inventory(), missingGift ? [...owned, missingGift] : owned);
         if (missingGift) {
           assert.match(element('#npc-gift-confirmation').textContent, /Rei's item was added/);
           if (!songOwned) next();
@@ -228,27 +228,27 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
     }
   }
   // A fresh save still receives the first item after accepting the mission.
-  values.clear(); values.set('max-game:todo-guide-received', 'true');
+  values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
   approachRei();
   finishReiMission(false);
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item']);
+  assert.deepEqual(inventory(), ['rei-item']);
   assert.equal(values.get('max-game:rei-gift-stage'), '1');
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Lemon jelly']);
   // Removing that item restores it on the next visit instead of skipping it.
-  values.set('max-game:inventory-gifts', '[]');
+  values.set('max-game:inventory-gifts', '["todo-guide"]');
   approachRei(); finishReiMission(false);
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['rei-item']);
+  assert.deepEqual(inventory(), ['rei-item']);
   // Leaving during an overlay must cancel the pending gift.
-  values.set('max-game:inventory-gifts', '[]');
+  values.set('max-game:inventory-gifts', '["todo-guide"]');
   values.set('max-game:rei-gift-stage', '2');
   worldState.markInteriorVisited();
   approachRei(); next(); next(); next();
   const delayedGift = scheduledCallbacks.at(-1);
   leave(); delayedGift();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), []);
+  assert.deepEqual(inventory(), []);
   // Both items and song owned: repeat completion survives reload without duplicates.
-  values.set('max-game:inventory-gifts', '["rei-item", "rei-item-2"]');
+  values.set('max-game:inventory-gifts', '["todo-guide", "rei-item", "rei-item-2"]');
   values.set('max-game:unlocked-songs', '["Lemon jelly"]');
   const savedReiProgress = new Map(values);
   const reloadedNpcs = await loadModule('npcs-reloaded', 'js/overworld/npcs.ts');
@@ -261,25 +261,25 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
   reloadedNpcs.updateNpcInteractions(-100, -100);
   npcs.setupNpcInteractions();
 
-  values.clear(); values.set('max-game:todo-guide-received', 'true');
-  values.set('max-game:inventory-gifts', '["marina-d-item-1", "marina-d-item-2"]');
+  values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
+  values.set('max-game:inventory-gifts', '["todo-guide", "marina-d-item-1", "marina-d-item-2"]');
   const inventoryGifts = await loadModule('inventory-gifts', 'js/core/inventory-gifts.ts');
-  assert.deepEqual(inventoryGifts.getCollectedGifts(), []);
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'retired Marina D gifts are removed from existing saves');
+  assert.deepEqual(inventoryGifts.getCollectedGifts().filter(item => item.id !== 'todo-guide'), []);
+  assert.deepEqual(inventory(), [], 'retired Marina D gifts are removed from existing saves');
   const approachMarina = () => npcs.updateNpcInteractions(npcs.MARINA_D.x, npcs.MARINA_D.y);
   leave(); approachMarina();
   assert.equal(element('#npc-dialogue-next').hidden, false, 'Marina D dialogue remains available');
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [], 'Marina D no longer gives either item');
+  assert.deepEqual(inventory(), [], 'Marina D no longer gives either item');
 
   for (const npc of [npcs.CHRIS]) {
-    values.clear(); values.set('max-game:todo-guide-received', 'true');
+    values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]');
     leave(); npcs.updateNpcInteractions(npc.x, npc.y);
     assert.equal(element('#npc-dialogue-line').textContent, npc.dialogueLines[0]);
     assert.equal(element('#npc-dialogue-profile').hidden, false);
     assert.match(element('#npc-dialogue-profile').src, new RegExp(`^char/${npc.id}/profile\\.(png|jpg|jpeg)$`));
     next();
-    assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
+    assert.deepEqual(inventory(), [`${npc.id}-item`]);
     assert.equal(element('#npc-dialogue-next').hidden, false, 'Chris continues his lines after the item reward');
     assert.equal(values.has('max-game:unlocked-songs'), false);
     next();
@@ -288,22 +288,22 @@ await withGameTest(async ({ loadModule, values, element, scheduledCallbacks }) =
     assert.equal(element('#npc-dialogue-line').textContent, npc.dialogueLines[1]);
     next();
     assert.equal(element('#npc-dialogue-line').textContent, npc.dialogueLines[2]);
-    assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
-    values.set('max-game:inventory-gifts', '[]');
+    assert.deepEqual(inventory(), [`${npc.id}-item`]);
+    values.set('max-game:inventory-gifts', '["todo-guide"]');
     leave(); npcs.updateNpcInteractions(npc.x, npc.y); next();
-    assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), [`${npc.id}-item`]);
+    assert.deepEqual(inventory(), [`${npc.id}-item`]);
   }
 
   // Alice finishes her greeting before the gift and event question.
-  values.clear(); values.set('max-game:todo-guide-received', 'true'); leave(); npcs.updateNpcInteractions(npcs.ALICE.x, npcs.ALICE.y);
+  values.clear(); values.set('max-game:inventory-gifts', '["todo-guide"]'); leave(); npcs.updateNpcInteractions(npcs.ALICE.x, npcs.ALICE.y);
   assert.equal(element('#npc-dialogue-profile').hidden, false);
   for (let index = 1; index < npcs.ALICE.dialogueLines.length; index++) {
     next();
     assert.equal(element('#npc-dialogue-line').textContent, npcs.ALICE.dialogueLines[index]);
-    assert.equal(values.has('max-game:inventory-gifts'), false);
+    assert.equal(inventory().length, 0);
   }
   next();
-  assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alice-item']);
+  assert.deepEqual(inventory(), ['alice-item']);
   next();
   assert.equal(element('#alice-dialogue-options').hidden, false);
   assert.equal(element('#npc-dialogue-next').hidden, true);

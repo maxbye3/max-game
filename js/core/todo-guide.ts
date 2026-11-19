@@ -1,11 +1,11 @@
 import { getPeopleSpokenCount, PEOPLE_TO_MEET } from './people-spoken-to.js';
 import { addGift, hasGift, TODO_ITEM } from './inventory-gifts.js';
-import { readStorage, writeStorage } from './storage.js';
+import { writeStorage } from './storage.js';
 import { endDialogueAudio } from './dialogue-audio.js';
 import { resolveSiteAsset } from './site-assets.js';
 
 const RECEIVED_KEY = 'max-game:todo-guide-received';
-export const TODO_WELCOME_LINE = "hey looks like your new around here. I'm adding this to your inventory. Take a look if your stuck on things to do otherwise have fun exploring";
+export const TODO_WELCOME_LINE = "here's some things to try if your a bit lost..";
 
 /** Append the welcome gift only when a player finishes a conversation. */
 export class TodoWelcomeDialogue {
@@ -26,15 +26,11 @@ export class TodoWelcomeDialogue {
   };
 
   get isAvailable(): boolean {
-    return readStorage(RECEIVED_KEY) !== 'true' && !hasGift(TODO_ITEM);
+    return !hasGift(TODO_ITEM);
   }
 
   finish(): boolean {
-    if (this.isOpen) {
-      writeStorage(RECEIVED_KEY, 'true');
-      addGift(TODO_ITEM);
-      return false;
-    }
+    if (this.isOpen) return false;
     if (!this.isAvailable) return false;
     this.beforeFarewell();
     endDialogueAudio();
@@ -42,6 +38,8 @@ export class TodoWelcomeDialogue {
     this.line.textContent = TODO_WELCOME_LINE;
     this.panel.querySelectorAll<HTMLElement>('.npc-dialogue-options, .npc-dialogue-question, .dialogue-progress, .dialogue-gift-confirmation').forEach(element => { element.hidden = true; });
     this.next.hidden = false;
+    addGift(TODO_ITEM);
+    writeStorage(RECEIVED_KEY, 'true');
     return true;
   }
 

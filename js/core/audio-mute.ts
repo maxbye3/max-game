@@ -18,6 +18,7 @@ export function focusPowerAudio(audio: HTMLMediaElement | null, duration: number
   powerAudioEndsAt = performance.now() + duration;
   gameAudio.forEach((other) => { if (other !== audio && other.loop) other.pause(); });
   window.dispatchEvent(new Event('max-game:power-audio-focus'));
+  if (!Number.isFinite(duration)) return;
   powerAudioTimer = window.setTimeout(() => {
     powerAudioEndsAt = 0;
     powerAudio = null;

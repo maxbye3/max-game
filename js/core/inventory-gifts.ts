@@ -142,7 +142,7 @@ export const ED_ITEM: GiftItem = {
 
 export const ADAM_ITEM: GiftItem = {
   id: 'adam-item',
-  name: "Adam's wedding ring",
+  name: 'engagement ring',
   imageSource: characterAsset('adam', 'item'),
   description: ITEM_DESCRIPTIONS['adam-item']!,
 };

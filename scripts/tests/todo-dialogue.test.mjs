@@ -14,17 +14,21 @@ await withGameTest(async ({ loadModule, values, element }) => {
   assert.equal(line.textContent, TODO_WELCOME_LINE);
   assert.equal(options.hidden, true);
   assert.equal(next.hidden, false);
-  assert.equal(getCollectedGifts().length, 0, 'read the farewell before the reveal');
-  welcome.cancel();
-  assert.equal(values.has('max-game:todo-guide-received'), false, 'walking away does not complete the gift');
-  welcome.finish();
+  assert.deepEqual(getCollectedGifts().map(item => item.name), ['To-dos'], 'the introduction awards the guide immediately');
+  assert.equal(values.get('max-game:todo-guide-received'), 'true');
+  const overlayCount = element('.game-shell').children.length;
   assert.equal(welcome.finish(), false, 'finishing the farewell closes the conversation');
   welcome.cancel();
+  assert.equal(welcome.finish(), false, 'walking away after the introduction cannot lose or repeat the gift');
+  assert.equal(element('.game-shell').children.length, overlayCount, 'the reveal only plays once');
   assert.deepEqual(getCollectedGifts().map(item => item.name), ['To-dos']);
   assert.ok(element('.game-shell').children.some(overlay => overlay.children.some(image => image.src.endsWith('/img/external/to-do/reveal.gif'))));
   removeGift(TODO_ITEM);
   const afterNavigation = new TodoWelcomeDialogue(panel, line, next);
-  assert.equal(afterNavigation.finish(), false, 'the gift remains one-time after deletion and navigation');
+  assert.equal(afterNavigation.finish(), true, 'a missing guide is restored even when the received flag is already set');
+  assert.deepEqual(getCollectedGifts().map(item => item.name), ['To-dos']);
+  afterNavigation.cancel();
+  assert.equal(afterNavigation.finish(), false, 'an existing guide is never duplicated');
 });
 
 await withGameTest(async ({ loadModule, values, element }) => {
@@ -56,7 +60,7 @@ await withGameTest(async ({ loadModule, element, values }) => {
   element('#npc-dialogue-next').listeners.get('click')();
   element('#npc-dialogue-close').listeners.get('click')();
   const farewell = element('#npc-dialogue-line').textContent;
-  assert.match(farewell, /^hey looks like your new around here/);
+  assert.equal(farewell, "here's some things to try if your a bit lost..");
   resolveFixture({ ok: true, json: async () => ({ events: [] }) });
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(element('#npc-dialogue-line').textContent, farewell, 'an unfinished football lookup cannot overwrite the farewell');
@@ -75,11 +79,10 @@ await withGameTest(async ({ loadModule, element, values }) => {
   next();
   assert.deepEqual(JSON.parse(values.get('max-game:unlocked-songs')), ['Africa']);
   next();
-  assert.match(element('#npc-dialogue-line').textContent, /^hey looks like your new around here/);
-  next();
+  assert.equal(element('#npc-dialogue-line').textContent, "here's some things to try if your a bit lost..");
   assert.deepEqual(JSON.parse(values.get('max-game:inventory-gifts')), ['alex-s-item', 'todo-guide']);
-  assert.equal(element('#npc-dialogue').hidden, true);
   npcs.updateNpcInteractions(-100, -100);
+  assert.equal(element('#npc-dialogue').hidden, true);
   npcs.updateNpcInteractions(npcs.ALEX_S.x, npcs.ALEX_S.y);
-  assert.doesNotMatch(element('#npc-dialogue-line').textContent, /^hey looks like/);
+  assert.notEqual(element('#npc-dialogue-line').textContent, "here's some things to try if your a bit lost..");
 });

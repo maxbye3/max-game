@@ -4,6 +4,7 @@ export interface EngagementArtwork {
   readonly adam: HTMLImageElement;
   readonly maddy: HTMLImageElement;
   readonly ring: HTMLImageElement;
+  readonly background: HTMLImageElement;
 }
 
 // Anchors in the supplied original images: Adam's held ring and Maddy's
@@ -41,8 +42,12 @@ export function drawEngagementGame(context: CanvasRenderingContext2D, game: Enga
   context.imageSmoothingEnabled = false;
   context.fillStyle = '#180f24';
   context.fillRect(0, 0, 360, 440);
-  context.fillStyle = '#34213b';
-  for (let y = 20; y < 440; y += 32) for (let x = 15; x < 360; x += 32) context.fillRect(x, y, 2, 2);
+  if (artwork.background.complete && artwork.background.naturalWidth) {
+    const scale = Math.max(360 / artwork.background.naturalWidth, 440 / artwork.background.naturalHeight);
+    const width = artwork.background.naturalWidth * scale;
+    const height = artwork.background.naturalHeight * scale;
+    context.drawImage(artwork.background, (360 - width) / 2, (440 - height) / 2, width, height);
+  }
   const ringX = 50 + game.ringX * 220;
   const fingerX = 50 + game.fingerX * 220;
   const bottomY = BOTTOM_Y - game.connection * BOTTOM_REACH;

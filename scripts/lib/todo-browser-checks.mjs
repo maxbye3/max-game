@@ -32,13 +32,15 @@ export async function checkTodoGuide(browser, server, fixtures) {
           assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:inventory-gifts')).includes('todo-guide')), false);
           await page.locator('#npc-dialogue-next').click();
         }
-        assert.match(await line.textContent(), /^hey looks like your new around here/);
+        assert.equal(await line.textContent(), "here's some things to try if your a bit lost..");
+        assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:inventory-gifts')).includes('todo-guide')), true, 'the guide is awarded with its introduction, before another click');
         assert.equal(await page.locator(`${prefix}-speaker`).textContent(), interior ? 'Noel' : 'Alex S');
         assert.equal(await page.locator(`${prefix}-dialogue-profile`).isVisible(), !interior, 'the farewell preserves both portrait presence and intentional absence');
-        await page.locator(`${prefix}-dialogue-next`).click();
         const reveal = page.locator('.item-received-overlay img[src$="/to-do/reveal.gif"]');
         await reveal.waitFor({ state: 'visible' });
         await reveal.evaluate(image => image.decode());
+        await reveal.locator('..').waitFor({ state: 'detached' });
+        await page.locator(`${prefix}-dialogue-next`).click();
         assert.equal(await page.locator(`${prefix}-dialogue`).isVisible(), false);
         await page.locator('#inventory-toggle').click();
         const open = page.locator('[data-item-id="todo-guide"] button', { hasText: 'Open' });
@@ -87,6 +89,14 @@ export async function checkTodoGuide(browser, server, fixtures) {
         await page.locator('#inventory-toggle').click();
         await open.click();
         assert.equal(await viewer.locator('.todo-talk-count').textContent(), '2 / 42', 'the total persists after reload');
+        await viewer.locator('button').click();
+        await page.locator('#inventory-toggle').click();
+        await page.locator('[data-item-id="todo-guide"] button', { hasText: 'Delete', exact: true }).click();
+        assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:inventory-gifts')).includes('todo-guide')), false);
+        await page.evaluate(kind => window.__gameTest.openNpc(kind), interior ? 'tim' : 'sam');
+        await page.locator(`${prefix}-dialogue-close`).click();
+        assert.equal(await line.textContent(), "here's some things to try if your a bit lost..");
+        assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('max-game:inventory-gifts')).filter(id => id === 'todo-guide').length), 1, 'the next conversation restores a missing guide despite the old received flag');
       } finally { await page.close(); }
     }
   }
