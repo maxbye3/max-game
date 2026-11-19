@@ -63,7 +63,7 @@ try {
       page.on('pageerror', error => errors.push(error.message));
       try {
         await page.addInitScript(() => {
-          localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:todo-guide-received', 'true');
+          localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:inventory-gifts', '["todo-guide"]');
           window.__rubyVoicePlays = [];
           const play = HTMLMediaElement.prototype.play;
           HTMLMediaElement.prototype.play = function (...args) {
@@ -423,7 +423,7 @@ try {
     page.on('console', message => { if (message.type() === 'error' && !message.text().startsWith('Failed to load resource:')) errors.push(message.text()); });
     try {
       await page.addInitScript(() => {
-        localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:todo-guide-received', 'true');
+        localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:inventory-gifts', '["todo-guide"]');
         HTMLImageElement.prototype.decode = function () {
           return this.src.endsWith('/buzz/buzz-2.png') ? new Promise(() => {}) : Promise.reject(new DOMException('Decode rejected', 'EncodingError'));
         };
@@ -453,7 +453,7 @@ try {
     const errors = [];
     let attempts = 0;
     missingImagePage.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-    await missingImagePage.addInitScript(() => { localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:todo-guide-received', 'true'); });
+    await missingImagePage.addInitScript(() => { localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:inventory-gifts', '["todo-guide"]'); });
     await missingImagePage.route('**/img/internal/diary-room/buzz/buzz-1.png*', route => {
       attempts++;
       return route.fulfill({status:404, body:'Missing image'});
@@ -468,7 +468,7 @@ try {
   const production = await browser.newPage({ viewport: {width:390,height:740}, isMobile: true, hasTouch: true });
   const errors = [];
   production.on('pageerror', error => errors.push(error.message));
-  await production.addInitScript(() => { localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:todo-guide-received', 'true'); });
+  await production.addInitScript(() => { localStorage.clear(); localStorage.setItem('max-game:audio-muted', 'true'); localStorage.setItem('max-game:inventory-gifts', '["todo-guide"]'); });
   const doors = ['diary-lab-left', 'job-center', 'cave', 'cinema', 'feedback-center', 'garden-room', 'music-shop', 'gym', 'bookshop', 'artist-studio', 'snow-mansion'];
   try {
     for (const door of doors) {
