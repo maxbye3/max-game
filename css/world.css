@@ -240,9 +240,15 @@
   animation: quest-accepted-pop 3.2s cubic-bezier(.2, 1.4, .4, 1) forwards;
 }
 
+.item-received-overlay {
+  grid-template-rows: minmax(0, var(--reward-space, 100dvh)) 1fr;
+}
+
 .item-received-overlay img {
+  grid-row: 1;
   width: min(64vw, 460px);
-  max-height: 68dvh;
+  /* Leave room for the pop animation and shadow above the dialogue. */
+  max-height: min(68dvh, max(0px, calc((var(--reward-space, 100dvh) - 32px) / 1.1)));
   object-fit: contain;
 }
 

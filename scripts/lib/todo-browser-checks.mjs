@@ -39,6 +39,20 @@ export async function checkTodoGuide(browser, server, fixtures) {
         const reveal = page.locator('.item-received-overlay img[src$="/to-do/reveal.gif"]');
         await reveal.waitFor({ state: 'visible' });
         await reveal.evaluate(image => image.decode());
+        // Inspect the largest animation frame as well as its resting size.
+        for (const time of [384, 576, 2560, 3100]) {
+          await reveal.evaluate((image, time) => {
+            for (const animation of image.getAnimations()) {
+              animation.pause();
+              animation.currentTime = time;
+            }
+          }, time);
+          const art = await reveal.boundingBox();
+          const dialogue = await page.locator(`${prefix}-dialogue`).boundingBox();
+          assert.ok(art.y >= 0 && art.y + art.height + 10 <= dialogue.y,
+            'reward art and its shadow stay above the dialogue throughout the reveal');
+        }
+        await reveal.evaluate(image => image.getAnimations().forEach(animation => animation.play()));
         await reveal.locator('..').waitFor({ state: 'detached' });
         await page.locator(`${prefix}-dialogue-next`).click();
         assert.equal(await page.locator(`${prefix}-dialogue`).isVisible(), false);

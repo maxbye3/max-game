@@ -14,6 +14,22 @@ export function setupDialoguePanel(panel: HTMLElement): void {
   header.after(content, actions);
   if (next) panel.append(next);
 
+  // Reward art uses the space above the highest open dialogue, including after
+  // text, control layout or viewport changes resize the panel.
+  const shell = panel.closest<HTMLElement>('.game-shell');
+  if (shell) {
+    const rewardLayout = new ResizeObserver(() => {
+      const tops = Array.from(shell.querySelectorAll<HTMLElement>('.npc-dialogue:not([hidden])'))
+        .map(dialogue => dialogue.getBoundingClientRect().top);
+      if (tops.length) shell.style.setProperty('--reward-space', `${Math.max(0, Math.min(...tops))}px`);
+      else shell.style.removeProperty('--reward-space');
+    });
+    rewardLayout.observe(panel);
+    rewardLayout.observe(shell);
+    const controls = shell.querySelector<HTMLElement>('.controls');
+    if (controls) rewardLayout.observe(controls);
+  }
+
   // New lines, choices and reopened conversations always start at the top.
   new MutationObserver(mutations => {
     const changed = mutations.some(mutation => {
