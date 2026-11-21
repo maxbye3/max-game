@@ -19,6 +19,7 @@ await withGameTest(async ({ loadModule }) => {
     for (let visit = 0; visit < 24; visit++) {
       previous.rememberMapNpcPositions();
       const saved = window.sessionStorage.getItem('max-game:map-npc-layout');
+      window.location.search = visit % 2 ? '?door=garden-room' : '';
       const current = await load();
       assert.equal(window.sessionStorage.getItem('max-game:map-npc-layout'), saved, 'interior imports cannot overwrite the last overworld layout');
       const occupied = new Set();
