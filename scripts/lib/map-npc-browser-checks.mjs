@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-const ids = ['dan', 'bochra', 'ju', 'chris', 'katy', 'marinaD', 'ruby', 'maddy', 'alexS'];
+const ids = ['dan', 'bochra', 'ju', 'chris', 'katy', 'marinaD', 'ruby', 'maddy', 'alexS', 'osh', 'inessa'];
 const spot = ({x, y}) => ({x, y});
 
 export async function checkMapNpcPositions(browser, server, mainFixture) {
@@ -78,7 +78,7 @@ export async function checkMapNpcPositions(browser, server, mainFixture) {
         } else if (visit === 1) await page.reload();
       }
       assert.deepEqual(errors, [], 'shuffled NPCs introduce no browser exceptions');
-      console.log(`PASS map NPC positions ${viewport.width}×${viewport.height}: nine characters move on reload and room return; dialogue, drawing, powers and movement agree.`);
+      console.log(`PASS map NPC positions ${viewport.width}×${viewport.height}: ${ids.length} characters move on reload and room return; dialogue, drawing, powers and movement agree.`);
     } catch (error) {
       await page.screenshot({path:`test-results/failure-map-npc-positions-${viewport.width}.png`});
       throw error;

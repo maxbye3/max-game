@@ -12,7 +12,7 @@ await withGameTest(async ({ loadModule }) => {
     `);
     let previous = await load();
     const ids = Object.keys(previous.MAP_NPC_POSITIONS);
-    assert.deepEqual(ids.sort(), ['alexS', 'bochra', 'chris', 'dan', 'ju', 'katy', 'maddy', 'marinaD', 'ruby']);
+    assert.deepEqual(ids.sort(), ['alexS', 'bochra', 'chris', 'dan', 'inessa', 'ju', 'katy', 'maddy', 'marinaD', 'osh', 'ruby']);
     const fixed = previous.NPCS.filter(npc => !ids.includes(npc.id)).map(({id, x, y}) => ({id, x, y}));
     assert.equal(window.sessionStorage.getItem('max-game:map-npc-layout'), null, 'importing NPCs alone does not count as an overworld visit');
 
@@ -39,7 +39,7 @@ await withGameTest(async ({ loadModule }) => {
       previous = current;
     }
 
-    for (const saved of ['bad json', '{}', '[0,0,0,0,0,0,0,0,0]', '[0,1,2,3,4,5,6,7,99]', '[0,1,2,3,4,5,6,7]']) {
+    for (const saved of ['bad json', '{}', '[0,0,0,0,0,0,0,0,0]', '[0,1,2,3,4,5,6,7,99]', '[0,1,2,3,4,5,6,7]', JSON.stringify(Array(ids.length).fill(0)), JSON.stringify([...ids.slice(1).map((_, index) => index), 99])]) {
       window.sessionStorage.setItem('max-game:map-npc-layout', saved);
       const { MAP_NPC_POSITIONS } = await load();
       assert.equal(new Set(Object.values(MAP_NPC_POSITIONS).map(spot => `${spot.x},${spot.y}`)).size, ids.length, 'invalid saved layouts recover safely');

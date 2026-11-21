@@ -16,6 +16,7 @@ import { checkIdleWaste } from './lib/idle-waste-browser-checks.mjs';
 import { checkCharacterUnlocks } from './lib/character-unlocks-browser-checks.mjs';
 import { checkJournalProtection } from './lib/journal-browser-checks.mjs';
 import { checkTodoGuide } from './lib/todo-browser-checks.mjs';
+import { checkOshAndInessa } from './lib/osh-inessa-browser-checks.mjs';
 
 if (!process.argv.includes('--prepared')) {
   for (const script of ['scripts/generate-source.mjs', 'scripts/bundle.mjs']) {
@@ -43,6 +44,7 @@ async function assertDialogueActions(panel) {
 try {
   const fixtures = [await buildBrowserFixture(false, directory), await buildBrowserFixture(true, directory)];
   browser = await chromium.launch({ headless: !process.argv.includes('--headed'), ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}) });
+  await checkOshAndInessa(browser, server, fixtures);
   await checkJournalProtection(browser, server, fixtures[1]);
   await checkAdamEngagement(browser, server);
   await checkTodoGuide(browser, server, fixtures);

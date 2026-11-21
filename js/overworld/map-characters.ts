@@ -4,7 +4,7 @@ import { decodeLoadedImage } from '../core/image-decoding.js';
 import { characterAsset, type CharacterId } from '../core/character-assets.js';
 import { samTargetId, samVictimOffset } from '../powers/sam/sam-power.js';
 import { isOscarEaten, oscarCharacterId } from '../powers/oscar/oscar-power.js';
-import { BOCHRA, CHRIS, DAN, JU, MADDY, MARINA_D, RUBY } from './npc-definitions.js';
+import { BOCHRA, CHRIS, DAN, INESSA, JU, MADDY, MARINA_D, OSH, RUBY } from './npc-definitions.js';
 
 export interface MapCharacterDefinition {
   readonly id: CharacterId;
@@ -25,6 +25,7 @@ export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
   { id: 'bochra', name: 'Bochra', source: characterAsset('bochra', 'mapSprite'), x: BOCHRA.x, y: BOCHRA.y, height: BOCHRA.height },
   { id: 'chris', name: 'Chris', source: characterAsset('chris', 'mapSprite'), x: CHRIS.x, y: CHRIS.y, height: CHRIS.height },
   { id: 'dan', name: 'Dan', source: characterAsset('dan', 'mapSprite'), x: DAN.x, y: DAN.y, height: DAN.height },
+  { id: 'inessa', name: INESSA.name, source: characterAsset('inessa', 'mapSprite'), x: INESSA.x, y: INESSA.y, height: INESSA.height },
   { id: 'joe', name: 'Joe', source: characterAsset('joe', 'mapSprite'), x: 1080, y: 1070, height: 52 },
   { id: 'ju', name: 'Ju', source: characterAsset('ju', 'mapSprite'), x: JU.x, y: JU.y, height: JU.height },
   { id: 'katie', name: 'Katie', source: characterAsset('katie', 'mapSprite'), x: 1130, y: 1018, height: 52 },
@@ -32,6 +33,7 @@ export const MAP_CHARACTER_DEFINITIONS: readonly MapCharacterDefinition[] = [
   { id: 'marina-d', name: 'Marina', source: characterAsset('marina-d', 'mapSprite'), x: MARINA_D.x, y: MARINA_D.y, height: MARINA_D.height },
   { id: 'mason', name: 'Mason', source: characterAsset('mason', 'mapSprite'), x: 820, y: 570, height: 69 },
   { id: 'meli', name: 'Meli', source: characterAsset('meli', 'mapSprite'), x: 858, y: 570, height: 69 },
+  { id: 'osh', name: OSH.name, source: characterAsset('osh', 'mapSprite'), x: OSH.x, y: OSH.y, height: OSH.height },
   { id: 'oscar', name: 'Oscar', source: characterAsset('oscar', 'mapSprite'), x: 636, y: 564, height: 52 },
   { id: 'sam', name: 'Sam', source: characterAsset('sam', 'mapSprite'), x: 324, y: 974, height: 52 },
   { id: 'ruby', name: RUBY.name, source: characterAsset('ruby', 'overworldAvatar'), x: RUBY.x, y: RUBY.y, height: RUBY.height },

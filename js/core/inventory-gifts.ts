@@ -126,6 +126,20 @@ export const MADDY_ITEM: GiftItem = {
   description: ITEM_DESCRIPTIONS['maddy-item']!,
 };
 
+export const INESSA_ITEM: GiftItem = {
+  id: 'inessa-item',
+  name: "Inessa's bubble tea",
+  imageSource: characterAsset('inessa', 'item'),
+  description: ITEM_DESCRIPTIONS['inessa-item']!,
+};
+
+export const OSH_ITEM: GiftItem = {
+  id: 'osh-item',
+  name: "Osh's item",
+  imageSource: characterAsset('osh', 'item'),
+  description: ITEM_DESCRIPTIONS['osh-item']!,
+};
+
 export const OSCAR_ITEM: GiftItem = {
   id: 'oscar-item',
   name: "Oscar's item",
@@ -264,6 +278,8 @@ export const GIFT_ITEMS: readonly GiftItem[] = [
   REI_ITEM_2,
   MADDY_ITEM,
   OSCAR_ITEM,
+  OSH_ITEM,
+  INESSA_ITEM,
   ED_ITEM,
   ADAM_ITEM,
   ALICE_ITEM,

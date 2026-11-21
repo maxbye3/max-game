@@ -149,8 +149,8 @@
       "output": "img/web/map-sprite-v4.2ca8fe504ea9.webp"
     },
     "img/generated/seal-sprite.png": {
-      "sourceHash": "5bde4d7187df",
-      "output": "img/web/seal-sprite.a9d1742c7153.webp"
+      "sourceHash": "af2150ad5e10",
+      "output": "img/web/seal-sprite.0ef6aafdb1e0.webp"
     },
     "img/internal/charity/bg-1.png": {
       "sourceHash": "68204e40887a",
@@ -240,6 +240,26 @@
       "sourceHash": "167539b9737a",
       "output": "img/web/map-sprite.ce72a6adeaeb.webp"
     },
+    "char/inessa/map-sprite.png": {
+      "sourceHash": "5c8dbb3b1d3c",
+      "output": "img/web/map-sprite.d2752cf208d4.webp"
+    },
+    "char/inessa/item.png": {
+      "sourceHash": "8cd081c2f447",
+      "output": "img/web/item.4d269fd00bdd.webp"
+    },
+    "char/osh/map-sprite.png": {
+      "sourceHash": "3c00634b8bbe",
+      "output": "img/web/map-sprite.c56749b47f4d.webp"
+    },
+    "char/osh/profile.png": {
+      "sourceHash": "15468fc00bea",
+      "output": "img/web/profile.e87b62ca834f.webp"
+    },
+    "char/osh/item.png": {
+      "sourceHash": "21ad39ec0166",
+      "output": "img/web/item.5d8f3332704b.webp"
+    },
     "char/marina-d/map-sprite.png": {
       "sourceHash": "b58f6c53c1b8",
       "output": "img/web/map-sprite.f74ebeb6355e.webp"
@@ -321,12 +341,12 @@
       "output": "img/web/music-dj-machine.c1469e732c8c.webp"
     },
     "img/battle/niall-avatar.png": {
-      "sourceHash": "d2032703ebeb",
-      "output": "img/web/niall-avatar.8667c96bcf18.webp"
+      "sourceHash": "6b0740a59803",
+      "output": "img/web/niall-avatar.c8a247697fbe.webp"
     },
     "img/battle/max-avatar.png": {
-      "sourceHash": "8c7b0a8dc66e",
-      "output": "img/web/max-avatar.f2484cfe57c7.webp"
+      "sourceHash": "41e1e5c64ca9",
+      "output": "img/web/max-avatar.e223404bbca6.webp"
     }
   },
   "themes": {

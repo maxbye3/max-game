@@ -1,3 +1,7 @@
+import { isOshPowerActive } from '../osh/osh-power.js';
+import { withOshPope } from '../osh/osh-power-render.js';
+import { isInessaPowerActive } from '../inessa/inessa-power.js';
+import { withInessaTea } from '../inessa/inessa-power-render.js';
 import { withTimContradiction } from '../tim/tim-power-render.js';
 import { withSamPinch } from '../sam/sam-power-render.js';
 import { withReiPower } from '../rei/rei-power-render.js';
@@ -36,6 +40,8 @@ import { isTimInputPowerActive } from '../tim/tim-input-power.js';
 
 type PowerWrapper = (context: CanvasRenderingContext2D, x: number, y: number, height: number, id: string, draw: () => void, now: number) => void;
 const powers: readonly { active: (now: number) => boolean; wrap: PowerWrapper }[] = [
+  { active: isOshPowerActive, wrap: withOshPope },
+  { active: isInessaPowerActive, wrap: withInessaTea },
   { active: isAlicePowerActive, wrap: (context, x, y, height, id, draw, now) => withAliceKit(context, x, y, height, id, draw, now) },
   { active: isSamPowerActive, wrap: (context, x, y, _height, id, draw, now) => withSamPinch(context, x, y, id, draw, now) },
   { active: isReiPowerActive, wrap: (context, x, y, height, id, draw, now) => withReiPower(context, x, y, height, id, draw, now) },

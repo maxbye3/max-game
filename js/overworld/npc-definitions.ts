@@ -1,7 +1,7 @@
 import { ADAM_FACTS } from '../characters/adam/adam-facts.js';
 import { GEORGIA, georgiaState } from '../characters/georgia/georgia.js';
 import { getNextArsenalFixtureDialogue } from '../characters/ed/arsenal-fixture.js';
-import { ADAM_ITEM, ALEX_S_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, JOE_ITEM, JU_ITEM, KATIE_ITEM, OSCAR_ITEM, SAM_ITEM, type GiftItem, GIFT_ITEMS } from '../core/inventory-gifts.js';
+import { ADAM_ITEM, ALEX_S_ITEM, ALICE_ITEM, BOCHRA_ITEM, CHRIS_ITEM, DAN_ITEM, ED_ITEM, GEORGIA_ITEM, INESSA_ITEM, JOE_ITEM, JU_ITEM, KATIE_ITEM, OSH_ITEM, OSCAR_ITEM, SAM_ITEM, type GiftItem, GIFT_ITEMS } from '../core/inventory-gifts.js';
 import { type Song } from '../interiors/music-library.js';
 import { CHARACTER_DIALOGUE_LINES } from '../generated/dialogues/index.js';
 import { MAP_NPC_POSITIONS } from './map-npc-positions.js';
@@ -151,6 +151,19 @@ export const OSCAR = defineNpc('oscar', {
   itemGift: OSCAR_ITEM,
 });
 
+export const INESSA = defineNpc('inessa', {
+  name: 'Inessa',
+  ...MAP_NPC_POSITIONS.inessa,
+  itemGift: INESSA_ITEM,
+});
+
+export const OSH = defineNpc('osh', {
+  name: 'Osh',
+  height: 46,
+  ...MAP_NPC_POSITIONS.osh,
+  itemGift: OSH_ITEM,
+});
+
 export const JU = defineNpc('ju', {
   name: 'Ju',
   ...MAP_NPC_POSITIONS.ju,
@@ -205,7 +218,7 @@ export const GEORGIA_NPC = defineNpc('georgia', {
   itemGift: GEORGIA_ITEM,
 });
 
-export const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, MADDY, SAM, RUBY, KATIE, MASON, MELI, OSCAR, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
+export const NPCS: readonly NpcDefinition[] = [ADAM, ED, MIKE, REI, MARINA_D, MADDY, SAM, RUBY, KATIE, MASON, MELI, OSCAR, OSH, INESSA, JU, BOCHRA, DAN, JOE, ALEX_S, KATY, GEORGIA_NPC, ALICE, CHRIS];
 
 let adamFactIndex = 0;
 function nextAdamFact(): string {

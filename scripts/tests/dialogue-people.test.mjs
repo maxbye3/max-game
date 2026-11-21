@@ -22,7 +22,8 @@ await withGameTest(async ({ loadModule, values }) => {
   values.clear();
   const characters = Object.keys(JSON.parse(await readFile('char/manifest.json', 'utf8')).characters).filter(id => id !== 'siblings');
   for (const id of [...characters, 'marina', 'charity-cook', 'charity-computer', 'charity-teacher', ...[0, 2, 3, 4, 5].map(index => `cinema-audience-${index}`)]) restored.recordPersonSpokenTo(id);
-  assert.equal(restored.getPeopleSpokenCount(), progress.PEOPLE_TO_MEET);
+  assert.equal(restored.getPeopleSpokenCount(), characters.length + 9, 'all manifest and interior people count, including additions beyond the goal');
+  assert.ok(restored.getPeopleSpokenCount() >= progress.PEOPLE_TO_MEET);
   assert.equal(progress.PEOPLE_TO_MEET, 42, 'every person can fill the requested 42-person goal');
 });
 

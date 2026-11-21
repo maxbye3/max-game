@@ -1,3 +1,7 @@
+import { activateOshPower, oshPowerSecondsLeft } from '../powers/osh/osh-power.js';
+import { updateOshPowerUi } from '../powers/osh/osh-power-ui.js';
+import { activateInessaPower, inessaPowerSecondsLeft, INESSA_POWER_DURATION } from '../powers/inessa/inessa-power.js';
+import { updateInessaDialogue } from '../powers/inessa/inessa-dialogue.js';
 import { openTodoGuide } from './todo-guide.js';
 import { activateTimInputPower, timInputPowerSecondsLeft, TIM_INPUT_POWER_DURATION } from '../powers/tim/tim-input-power.js';
 import { getPlayerBody } from './player-body.js';
@@ -209,7 +213,18 @@ function renderGiftItems(): void {
         renderGiftItems();
         return;
       }
-      if (item.id === 'katie-item') {
+      if (item.id === 'osh-item') {
+        stopPowerMusic();
+        activateOshPower();
+        window.dispatchEvent(new Event('max-game:osh-power-activated'));
+        setInventoryOpen(false);
+        updateOshPowerUi(performance.now());
+      } else if (item.id === 'inessa-item') {
+        activateInessaPower();
+        window.dispatchEvent(new Event('max-game:inessa-power-activated'));
+        playItemTheme(characterAsset('inessa', 'theme'), true, INESSA_POWER_DURATION);
+        setInventoryOpen(false);
+      } else if (item.id === 'katie-item') {
         activateKatiePower();
         window.dispatchEvent(new Event('max-game:katie-power-activated'));
         playItemTheme(KATIE_THEME_SOURCE, true, KATIE_POWER_DURATION);
@@ -449,6 +464,10 @@ export function updatePowerups(frameTime: number): void {
   // A RAF timestamp can precede an inventory click in the same frame.
   // Read the current clock so a newly activated power never looks expired.
   const now = Math.max(frameTime, performance.now());
+  updateOshPowerUi(now);
+  updateInessaDialogue(now);
+  const oshSecondsLeft = oshPowerSecondsLeft(now);
+  const inessaSecondsLeft = inessaPowerSecondsLeft(now);
   updateAlexResurrectionUi();
   const alexSSecondsLeft = alexSPowerSecondsLeft();
   const reiGravitySeconds = reiPowerSecondsLeft('gravity', now);
@@ -584,7 +603,11 @@ export function updatePowerups(frameTime: number): void {
     renderGiftItems();
   }
 
-  if (alexSSecondsLeft > 0) {
+  if (oshSecondsLeft > 0 || inessaSecondsLeft > 0) {
+    const status = [oshSecondsLeft > 0 ? `Pope ${oshSecondsLeft.toFixed(1)}s` : '', inessaSecondsLeft > 0 ? `Русский чай ${inessaSecondsLeft.toFixed(1)}s` : ''].filter(Boolean).join(' · ');
+    if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
+    if (powerupStatus.hidden) powerupStatus.hidden = false;
+  } else if (alexSSecondsLeft > 0) {
     const status = `Alex S resurrection ${alexSSecondsLeft.toFixed(1)}s`;
     if (powerupStatus.textContent !== status) powerupStatus.textContent = status;
     if (powerupStatus.hidden) powerupStatus.hidden = false;

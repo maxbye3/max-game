@@ -1,3 +1,5 @@
+import { oshPowerSecondsLeft } from './osh/osh-power.js';
+import { inessaPowerSecondsLeft } from './inessa/inessa-power.js';
 import { isAdamEngagementOpen } from './adam/adam-power.js';
 import { alexSPowerSecondsLeft } from './alex-s/alex-s-power.js';
 import { alicePowerSecondsLeft } from './alice/alice-power.js';
@@ -25,6 +27,8 @@ import { reiPowerSecondsLeft } from './rei/rei-power.js';
 /** Includes both frame-clock powers and powers persisted with a wall-clock deadline. */
 export function isAnyPowerActive(now = performance.now()): boolean {
   return isAdamEngagementOpen() ||
+    oshPowerSecondsLeft(now) > 0 ||
+    inessaPowerSecondsLeft(now) > 0 ||
     alexSPowerSecondsLeft() > 0 ||
     alicePowerSecondsLeft(now) > 0 ||
     andyPowerSecondsLeft(now) > 0 ||

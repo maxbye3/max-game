@@ -480,3 +480,37 @@ kbd {
   font-size: 8px;
 }
 .top-actions > .inventory-toggle { flex-grow: 1.5; gap: 3px; }
+
+.osh-prayer {
+  position: fixed;
+  z-index: 44;
+  right: max(12px, env(safe-area-inset-right));
+  top: max(72px, calc(env(safe-area-inset-top) + 60px));
+  width: min(320px, calc(100vw - 24px));
+  max-height: calc(100dvh - 160px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 2px solid #e5c66d;
+  border-radius: 10px;
+  background: #14271bf5;
+  color: #fff3c5;
+  font: 13px/1.5 monospace;
+}
+.osh-prayer[hidden], #osh-prayer-conversation[hidden] { display: none; }
+.osh-prayer p { margin: 8px 2px; }
+.osh-prayer button {
+  min-height: 44px;
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #e5c66d;
+  border-radius: 6px;
+  background: #fff0ba;
+  color: #172616;
+  font: bold 13px monospace;
+  cursor: pointer;
+}
+#osh-prayer-conversation > div { display: flex; gap: 6px; }
+.osh-prayer button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.inessa-russian { display: block; font: bold 15px/1.5 monospace; color: #efbde8; }
+.inessa-subtitle { display: block; margin-top: 8px; font-size: .85em; }
